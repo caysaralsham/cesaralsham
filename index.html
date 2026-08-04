@@ -11,7 +11,7 @@
 <meta property="og:type" content="business.business">
 <meta property="og:locale" content="ar_DZ">
 <meta property="og:locale:alternate" content="fr_DZ">
-<script type="application/ld+json">
+<script type="application/ld+json" id="businessSchema">
 {
   "@context": "https://schema.org",
   "@type": "HomeAndConstructionBusiness",
@@ -386,6 +386,24 @@ function renderSocialIcons(){
   document.getElementById('headerSocial').innerHTML = html;
   document.getElementById('footerSocial').innerHTML = html;
   document.getElementById('contactWhatsapp').href = `https://wa.me/${(settings.whatsapp||'213541737888').replace(/[^0-9]/g,'')}`;
+  renderBusinessSchema();
+}
+
+function renderBusinessSchema(){
+  const sameAs = [settings.facebook, settings.instagram, settings.tiktok].filter(Boolean);
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "HomeAndConstructionBusiness",
+    "name": "قيصر الشام للحجر والرخام",
+    "alternateName": "Cesar Al Cham Marbre et Pierre",
+    "description": "شركة جزائرية متخصصة في تصميم ونحت وتركيب الحجر والرخام - Entreprise algérienne spécialisée dans le marbre et la pierre naturelle.",
+    "telephone": "+213541737888",
+    "address": { "@type": "PostalAddress", "addressLocality": "دالي إبراهيم", "addressCountry": "DZ" },
+    "areaServed": "DZ",
+    "url": "https://cesar-alcham.com"
+  };
+  if(sameAs.length) schema.sameAs = sameAs;
+  document.getElementById('businessSchema').textContent = JSON.stringify(schema);
 }
 
 let activeCategory = 'all';
