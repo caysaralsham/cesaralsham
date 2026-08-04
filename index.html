@@ -56,13 +56,14 @@
   .brand .name{color:var(--gold); font-size:24px; font-weight:800;}
   .brand .sub{color:#cfc6ac; font-size:13.5px; margin-top:1px;}
   nav{display:flex; flex-direction:column; gap:10px; align-items:flex-start;}
-  nav a{color:#e8e2d2; font-size:19px; font-weight:600; transition:.15s;}
+  nav a{color:var(--ink); font-size:19px; font-weight:600; transition:.15s;}
   nav a:hover{color:var(--gold);}
   .header-phone{color:#fff; font-weight:700; font-size:14.5px; display:flex; align-items:center; gap:6px;}
   .social-icons{display:flex; gap:12px; align-items:center;}
   .social-icons a{width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,.1); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px; transition:.15s;}
   .social-icons a:hover{background:var(--gold);}
   footer .social-icons a{background:rgba(255,255,255,.06);}
+  #navWrap .social-icons a{background:rgba(33,29,23,.08); color:var(--ink);}
   .burger{display:none; color:#fff; font-size:22px; background:none; border:none; cursor:pointer;}
 
   /* ---- hero ---- */
@@ -144,7 +145,7 @@
   .admin-item button{background:none; border:none; color:var(--danger); cursor:pointer; font-size:18px;}
 
   @media (max-width:820px){
-    #navWrap{display:none !important; width:100%; flex-direction:column; align-items:flex-start; gap:16px; background:#1a1712; padding:18px; border-radius:10px; margin-top:14px;}
+    #navWrap{display:none !important; width:100%; flex-direction:column; align-items:flex-start; gap:16px; background:var(--white); padding:18px; border-radius:10px; margin-top:14px; box-shadow:0 4px 16px rgba(0,0,0,.1);}
     #navWrap.open{display:flex !important;}
     #navWrap nav{display:flex; flex-direction:column; gap:12px; width:100%;}
     .burger{display:block;}
@@ -155,6 +156,7 @@
   @media (max-width:520px){
     .gallery-grid{grid-template-columns:1fr;}
     .contact-item{min-width:130px; padding:14px 18px;}
+    #homeShowcase{grid-template-columns:repeat(2,1fr) !important;}
   }
 </style>
 </head>
@@ -170,7 +172,12 @@
       </div>
     </div>
     <button class="burger" id="burgerBtn" aria-label="القائمة">☰</button>
-    <div style="display:flex; align-items:center; gap:28px;" id="navWrap">
+  </div>
+</header>
+
+<div style="background:var(--cream-2); border-bottom:1px solid var(--line); padding:14px 24px; text-align:left;">
+  <div style="max-width:1180px; margin:0 auto; text-align:left;">
+    <div style="display:inline-flex; align-items:center; gap:24px;" id="navWrap">
       <nav style="position:relative;">
         <a href="#home">الرئيسية</a>
         <a href="#gallery" id="navGallery">أعمالنا</a>
@@ -178,11 +185,11 @@
         <a href="#contact">تواصل معنا</a>
         <div id="navCategoryDropdown" style="display:none; position:absolute; top:100%; margin-top:10px; background:#2C2721; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.35); padding:8px; min-width:180px; max-height:340px; overflow-y:auto; z-index:60;"></div>
       </nav>
-      <a class="header-phone" href="tel:0541737888">📞 0541.73.78.88</a>
+      <a class="header-phone" href="tel:0541737888" style="color:var(--ink);">📞 0541.73.78.88</a>
       <div class="social-icons" id="headerSocial"></div>
     </div>
   </div>
-</header>
+</div>
 
 <section class="hero" id="home">
   <svg width="52" height="52" viewBox="0 0 52 52" style="margin:0 auto 14px; display:block; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.15);" xmlns="http://www.w3.org/2000/svg">
@@ -197,6 +204,7 @@
   <h1><span id="heroTitleMain">أرقى أنواع</span> <span id="heroTitleAccent" style="color:var(--gold-deep);">الحجر والرخام</span></h1>
   <p id="heroSubtitle">تصاميم ونحت وتركيب بخبرة عالية — من ديالي إبراهيم، الجزائر، لكل بيت يستحق لمسة فخامة</p>
   <a class="btn" href="#contact">تواصل معنا واطلب عرض سعر</a>
+  <div id="homeShowcase" style="max-width:1100px; margin:36px auto 0; display:grid; grid-template-columns:repeat(4,1fr); gap:14px; padding:0 24px;"></div>
 </section>
 
 <section class="section" id="gallery">
@@ -214,6 +222,29 @@
 <div class="overlay" id="lightboxOverlay" style="position:fixed; inset:0; background:rgba(20,17,13,.92); z-index:300; display:none; align-items:center; justify-content:center; padding:20px; cursor:zoom-out;">
   <span style="position:absolute; top:18px; left:24px; color:#fff; font-size:34px; cursor:pointer; z-index:2;" id="lightboxClose">×</span>
   <img id="lightboxImg" src="" style="max-width:92%; max-height:88vh; border-radius:8px; box-shadow:0 10px 40px rgba(0,0,0,.5);">
+</div>
+
+<div class="overlay" id="editItemOverlay">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-head">
+      <h3>تعديل بيانات الصورة</h3>
+      <button class="close-x" data-close="editItemOverlay">×</button>
+    </div>
+    <img id="editItemPreview" style="width:100%; max-height:180px; object-fit:cover; border-radius:8px; margin-bottom:14px;">
+    <div class="field"><label>عنوان (اختياري)</label><input type="text" id="editTitle"></div>
+    <div class="field">
+      <label>القسم / التصنيف</label>
+      <select id="editCategorySelect">
+        <option value="__new__">➕ قسم جديد...</option>
+      </select>
+      <input type="text" id="editCategory" placeholder="اكتب اسم القسم الجديد" style="margin-top:8px;">
+    </div>
+    <div class="field"><label>القياس</label><input type="text" id="editSize"></div>
+    <div class="field"><label>اللون</label><input type="text" id="editColor"></div>
+    <div class="field"><label>النوع</label><input type="text" id="editType"></div>
+    <div class="field"><label>السعر</label><input type="text" id="editPrice"></div>
+    <button class="btn" style="width:100%; justify-content:center;" id="btnSaveEditItem">حفظ التعديلات</button>
+  </div>
 </div>
 
 <section class="section about" id="about">
@@ -292,7 +323,13 @@
         </div>
       </div>
       <div class="field"><label>عنوان (اختياري)</label><input type="text" id="upTitle" placeholder="مثال: مدفأة رخام كارارا"></div>
-      <div class="field"><label>القسم / التصنيف</label><input type="text" id="upCategory" list="categoryList" placeholder="مثال: شمينة، جرن حمام، سبالة، تابلو أرض، تابلو حائط..."><datalist id="categoryList"></datalist></div>
+      <div class="field">
+        <label>القسم / التصنيف</label>
+        <select id="upCategorySelect">
+          <option value="__new__">➕ قسم جديد...</option>
+        </select>
+        <input type="text" id="upCategory" placeholder="اكتب اسم القسم الجديد" style="margin-top:8px;">
+      </div>
       <div class="field"><label>القياس (اختياري)</label><input type="text" id="upSize" placeholder="مثال: 2.10 × 1.20 م"></div>
       <div class="field"><label>اللون (اختياري)</label><input type="text" id="upColor" placeholder="مثال: أبيض"></div>
       <div class="field"><label>النوع (اختياري)</label><input type="text" id="upType" placeholder="مثال: رخام كارارا"></div>
@@ -435,10 +472,14 @@ let activeCategory = 'all';
 
 function renderCategoryFilters(){
   const wrap = document.getElementById('categoryFilters');
-  const list = document.getElementById('categoryList');
   const cats = [...new Set(items.map(it => (it.category||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar'));
 
-  if(list){ list.innerHTML = cats.map(c => `<option value="${c}">`).join(''); }
+  const newOpt = '<option value="__new__">➕ قسم جديد...</option>';
+  const catOpts = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+  ['upCategorySelect','editCategorySelect'].forEach(id=>{
+    const sel = document.getElementById(id);
+    if(sel){ const cur = sel.value; sel.innerHTML = newOpt + catOpts; if(cats.includes(cur)) sel.value = cur; }
+  });
 
   // تعبئة قائمة الأقسام المنسدلة تحت "أعمالنا" بالقائمة العلوية
   const nd = document.getElementById('navCategoryDropdown');
@@ -567,6 +608,7 @@ function renderAdminList(){
     <div class="admin-item">
       <img src="${it.img}">
       <div class="info"><b>${it.title || '(بدون عنوان)'}</b>${it.size||''} ${it.color? '· '+it.color:''}</div>
+      <button onclick="openEditItem('${it.id}')" title="تعديل">✏️</button>
       <button onclick="deleteItem('${it.id}')" title="حذف">🗑</button>
     </div>
   `).join('');
@@ -629,6 +671,78 @@ async function removeItemCloud(id){
   }catch(e){ console.error(e); toast('تعذر الحذف من السحابة'); }
 }
 
+async function updateItemInCloud(updatedItem){
+  if(!fbReady) return;
+  const chunkId = chunkOf[updatedItem.id];
+  if(!chunkId) return;
+  const updated = (chunkCache[chunkId]||[]).map(it => it.id === updatedItem.id ? updatedItem : it);
+  try{
+    await db.collection(FS_COLLECTION).doc(chunkId).set({items: updated});
+  }catch(e){ console.error(e); toast('تعذر حفظ التعديل'); }
+}
+
+let editingItemId = null;
+
+function setupCategorySelect(selectId, inputId, initialCategory){
+  const sel = document.getElementById(selectId);
+  const input = document.getElementById(inputId);
+  if(initialCategory && [...sel.options].some(o=>o.value===initialCategory)){
+    sel.value = initialCategory;
+    input.value = initialCategory;
+    input.style.display = 'none';
+  } else {
+    sel.value = '__new__';
+    input.value = initialCategory || '';
+    input.style.display = '';
+  }
+}
+document.getElementById('upCategorySelect').addEventListener('change', ()=>{
+  const sel = document.getElementById('upCategorySelect');
+  const input = document.getElementById('upCategory');
+  if(sel.value === '__new__'){ input.value=''; input.style.display=''; input.focus(); }
+  else { input.value = sel.value; input.style.display = 'none'; }
+});
+document.getElementById('editCategorySelect').addEventListener('change', ()=>{
+  const sel = document.getElementById('editCategorySelect');
+  const input = document.getElementById('editCategory');
+  if(sel.value === '__new__'){ input.value=''; input.style.display=''; input.focus(); }
+  else { input.value = sel.value; input.style.display = 'none'; }
+});
+
+function openEditItem(id){
+  const it = items.find(x => x.id === id);
+  if(!it) return;
+  editingItemId = id;
+  document.getElementById('editItemPreview').src = it.img;
+  document.getElementById('editTitle').value = it.title || '';
+  setupCategorySelect('editCategorySelect', 'editCategory', it.category || '');
+  document.getElementById('editSize').value = it.size || '';
+  document.getElementById('editColor').value = it.color || '';
+  document.getElementById('editType').value = it.type || '';
+  document.getElementById('editPrice').value = it.price || '';
+  document.getElementById('editItemOverlay').classList.add('show');
+}
+document.getElementById('btnSaveEditItem').addEventListener('click', async ()=>{
+  const it = items.find(x => x.id === editingItemId);
+  if(!it) return;
+  const updated = {
+    ...it,
+    title: document.getElementById('editTitle').value.trim(),
+    category: document.getElementById('editCategory').value.trim(),
+    size: document.getElementById('editSize').value.trim(),
+    color: document.getElementById('editColor').value.trim(),
+    type: document.getElementById('editType').value.trim(),
+    price: document.getElementById('editPrice').value.trim(),
+  };
+  items = items.map(x => x.id === editingItemId ? updated : x);
+  renderGallery();
+  renderAdminList();
+  renderHomeShowcase();
+  document.getElementById('editItemOverlay').classList.remove('show');
+  await updateItemInCloud(updated);
+  toast('تم حفظ التعديلات');
+});
+
 function startSync(){
   db.collection(FS_COLLECTION).onSnapshot(async (snap)=>{
     let mainDoc = null;
@@ -672,6 +786,7 @@ function startSync(){
     renderSocialIcons();
     renderHeroSection();
     renderAboutSection();
+    renderHomeShowcase();
   }, (err)=>{ console.error(err); });
 }
 
@@ -679,6 +794,25 @@ function renderHeroSection(){
   document.getElementById('heroTitleMain').textContent = settings.heroTitleMain || DEFAULT_SETTINGS.heroTitleMain;
   document.getElementById('heroTitleAccent').textContent = settings.heroTitleAccent || DEFAULT_SETTINGS.heroTitleAccent;
   document.getElementById('heroSubtitle').textContent = settings.heroSubtitle || DEFAULT_SETTINGS.heroSubtitle;
+}
+
+function renderHomeShowcase(){
+  const wrap = document.getElementById('homeShowcase');
+  if(!wrap || !items.length) { if(wrap) wrap.innerHTML=''; return; }
+  const seen = new Set();
+  const picks = [];
+  for(const it of items){
+    const cat = (it.category||'').trim();
+    if(cat && seen.has(cat)) continue;
+    if(cat) seen.add(cat);
+    picks.push(it);
+    if(picks.length >= 8) break;
+  }
+  wrap.innerHTML = picks.map(it => `
+    <div style="border-radius:10px; overflow:hidden; box-shadow:var(--shadow); cursor:zoom-in; aspect-ratio:1;" onclick="openLightbox('${it.img}')">
+      <img src="${it.img}" loading="lazy" style="width:100%; height:100%; object-fit:cover;" alt="${(it.title||it.category||'رخام وحجر طبيعي')} - قيصر الشام">
+    </div>
+  `).join('');
 }
 
 function renderAboutSection(){
@@ -898,7 +1032,7 @@ document.getElementById('btnUpload').addEventListener('click', async ()=>{
 
   // watermark: logo + text
   const logoImg = await getLogoImage();
-  const wmText = 'الجزائر · قيصر الشام · 0541.73.78.88';
+  const wmText = 'الجزائر · قيصر الشام للحجر والرخام · 0541.73.78.88';
   const fontSize = Math.max(14, Math.round(w * 0.022));
   ctx.font = `700 ${fontSize}px Tajawal, Arial`;
   const textW = ctx.measureText(wmText).width;
@@ -944,6 +1078,8 @@ document.getElementById('btnUpload').addEventListener('click', async ()=>{
       loadedImage = null; rotation = 0;
       document.getElementById('upTitle').value = '';
       document.getElementById('upCategory').value = '';
+      document.getElementById('upCategory').style.display = '';
+      document.getElementById('upCategorySelect').value = '__new__';
       document.getElementById('upSize').value = '';
       document.getElementById('upColor').value = '';
       document.getElementById('upType').value = '';
