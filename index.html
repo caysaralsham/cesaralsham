@@ -394,6 +394,11 @@
       <button class="btn" style="width:100%; justify-content:center;" id="btnUpload">رفع الصورة</button>
 
       <hr style="margin:22px 0; border:none; border-top:1px solid var(--line);">
+      <h4 style="margin:0 0 10px;">إدارة الأقسام</h4>
+      <div style="font-size:11.5px; color:var(--text-dim); margin-bottom:10px;">إذا كتبت اسم قسم غلط، غيّره أو احذفه من هون — التغيير بينطبق على كل الصور يلي فيها نفس القسم.</div>
+      <div id="categoryManager"></div>
+
+      <hr style="margin:22px 0; border:none; border-top:1px solid var(--line);">
       <h4 style="margin:0 0 12px;">الصور الحالية</h4>
       <div id="adminList"></div>
 
@@ -593,6 +598,48 @@ function renderCategoryFilters(){
       nd.innerHTML = '';
     }
   }
+
+  renderCategoryManager(cats);
+}
+
+function renderCategoryManager(cats){
+  const wrap = document.getElementById('categoryManager');
+  if(!wrap) return;
+  if(!cats.length){
+    wrap.innerHTML = '<div style="font-size:12px; color:var(--text-dim);">لا توجد أقسام بعد.</div>';
+    return;
+  }
+  wrap.innerHTML = cats.map(c => {
+    const count = items.filter(it => (it.category||'').trim() === c).length;
+    return `<div style="display:flex; align-items:center; gap:8px; padding:8px 10px; background:var(--cream-2); border-radius:8px; margin-bottom:6px;">
+      <div style="flex:1; font-size:13px;">${c} <span style="color:var(--text-dim); font-size:11.5px;">(${count} صورة)</span></div>
+      <button type="button" class="btn-ghost btn-sm" onclick="renameCategory('${c.replace(/'/g,"\\'")}')" title="تعديل الاسم">✎</button>
+      <button type="button" class="btn-ghost btn-sm" onclick="deleteCategory('${c.replace(/'/g,"\\'")}')" title="حذف القسم">🗑</button>
+    </div>`;
+  }).join('');
+}
+
+async function renameCategory(oldName){
+  const newName = prompt('اكتب الاسم الجديد للقسم:', oldName);
+  if(newName === null) return;
+  const trimmed = newName.trim();
+  if(!trimmed){ toast('الاسم ما ينفع يكون فاضي'); return; }
+  if(trimmed === oldName) return;
+  items = items.map(it => (it.category||'').trim() === oldName ? {...it, category: trimmed} : it);
+  await chunkAndWriteItems(items);
+  renderCategoryFilters();
+  renderAdminList();
+  toast('تم تعديل اسم القسم');
+}
+
+async function deleteCategory(name){
+  const count = items.filter(it => (it.category||'').trim() === name).length;
+  if(!confirm(`حذف قسم "${name}"؟ (${count} صورة) — الصور رح تضل موجودة بس بدون قسم، لازم تعطيها قسم جديد لاحقًا.`)) return;
+  items = items.map(it => (it.category||'').trim() === name ? {...it, category: ''} : it);
+  await chunkAndWriteItems(items);
+  renderCategoryFilters();
+  renderAdminList();
+  toast('تم حذف القسم');
 }
 
 async function askAboutItem(id){
