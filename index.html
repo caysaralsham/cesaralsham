@@ -63,6 +63,8 @@
   nav a:hover{color:var(--gold);}
   nav a.active{color:var(--gold);}
   nav a.active::after{content:""; position:absolute; right:0; left:0; bottom:0; height:2px; background:var(--gold); border-radius:2px;}
+  #navWrap:hover #navCategoryDropdown{display:block;}
+  #navCategoryDropdown a:hover{background:rgba(255,255,255,.08);}
   .header-phone{color:#fff; font-weight:700; font-size:13.5px; display:flex; align-items:center; gap:6px;}
   .social-icons{display:flex; gap:9px; align-items:center;}
   .social-icons a{width:36px; height:36px; border-radius:50%; border:1.5px solid var(--gold); background:transparent; display:flex; align-items:center; justify-content:center; color:var(--gold); font-size:15px; flex-shrink:0; transition:.25s;}
@@ -205,7 +207,7 @@
       <div id="navWrap" style="position:relative;">
         <nav>
           <a href="#home" class="active">الرئيسية</a>
-          <a href="#gallery" id="navGallery">أعمالنا</a>
+          <a href="works.html" id="navGallery">أعمالنا</a>
           <a href="#about">من نحن</a>
           <a href="#contact">تواصل معنا</a>
         </nav>
@@ -267,19 +269,6 @@
   <div id="homeShowcase" style="max-width:1100px; margin:36px auto 0; display:grid; grid-template-columns:repeat(4,1fr); gap:14px; padding:0 24px;"></div>
 </section>
 
-<section class="section" id="gallery">
-  <div class="section-head reveal">
-    <h2>من أعمالنا</h2>
-    <div class="rule"></div>
-    <p>مجموعة مختارة من قطعنا المنفذة — تُضاف أعمال جديدة باستمرار</p>
-  </div>
-  <div class="gallery-grid" id="galleryGrid">
-    <div class="empty-gallery">جاري التحميل...</div>
-  </div>
-  <div style="text-align:center; margin-top:44px;">
-    <a class="btn btn-outline" href="works.html">عرض جميع الأعمال</a>
-  </div>
-</section>
 
 <div class="overlay" id="lightboxOverlay" style="position:fixed; inset:0; background:rgba(20,17,13,.92); z-index:300; display:none; align-items:center; justify-content:center; padding:20px; cursor:zoom-out;">
   <span style="position:absolute; top:18px; left:24px; color:#fff; font-size:34px; cursor:pointer; z-index:2;" id="lightboxClose">×</span>
@@ -467,6 +456,15 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+
+// عدّاد زيارات بسيط: كل ما حدا يفتح الصفحة، بنزيد عدّاد يوم اليوم بـ Firestore
+(function trackVisit(){
+  const today = new Date().toISOString().slice(0,10); // YYYY-MM-DD
+  db.collection('cesar_stats').doc(today).set({
+    date: today,
+    count: firebase.firestore.FieldValue.increment(1)
+  }, {merge:true}).catch(()=>{ /* صامت إذا صلاحيات Firestore ما بتسمح بعد */ });
+})();
 const storage = firebase.storage();
 const FS_COLLECTION = 'cesar_website';
 const FS_DOC = 'main';
@@ -559,66 +557,10 @@ function renderCategoryFilters(){
     if(cats.length){
       nd.innerHTML = `<a href="works.html" style="display:block; padding:8px 12px; color:#e8e2d2; font-size:14px; border-radius:6px;">كل الأقسام</a>` +
         cats.map(c => `<a href="works.html?category=${encodeURIComponent(c)}" style="display:block; padding:8px 12px; color:#e8e2d2; font-size:14px; border-radius:6px;">${c}</a>`).join('');
-      nd.querySelectorAll('a').forEach(a=>{
-        a.addEventListener('mouseenter', ()=>{ a.style.background = 'rgba(255,255,255,.08)'; });
-        a.addEventListener('mouseleave', ()=>{ a.style.background = 'transparent'; });
-      });
     } else {
       nd.innerHTML = '';
     }
   }
-}
-
-function pickVariedItems(count){
-  // نوزّع الاختيار على الأقسام المختلفة بالتناوب (round-robin) بدل ما ناخد بس الأحدث ورا بعض،
-  // هيك الواجهة بتعطي إحساس متنوع من كل أنواع الشغل، مش قسم واحد مكرر.
-  const byCategory = {};
-  const order = [];
-  items.forEach(it=>{
-    const cat = (it.category||'').trim() || '__none__';
-    if(!byCategory[cat]){ byCategory[cat] = []; order.push(cat); }
-    byCategory[cat].push(it);
-  });
-  const picked = [];
-  let round = 0;
-  while(picked.length < count){
-    let addedThisRound = false;
-    for(const cat of order){
-      if(byCategory[cat][round]){
-        picked.push(byCategory[cat][round]);
-        addedThisRound = true;
-        if(picked.length >= count) break;
-      }
-    }
-    if(!addedThisRound) break;
-    round++;
-  }
-  return picked;
-}
-
-function renderGallery(){
-  const grid = document.getElementById('galleryGrid');
-  const selected = pickVariedItems(10);
-  if(!selected.length){
-    grid.innerHTML = '<div class="empty-gallery">لا توجد صور بعد.</div>';
-    return;
-  }
-  grid.innerHTML = selected.map(it => `
-    <div class="card">
-      <div class="img-wrap" style="cursor:zoom-in;" onclick="openLightbox('${it.img}')"><img src="${it.img}" loading="lazy" alt="${(it.title||it.category||'رخام وحجر طبيعي - Marbre et pierre naturelle')} - قيصر الشام للحجر والرخام Algérie"></div>
-      <div class="body">
-        ${it.title ? `<div class="title">${it.title}</div>` : ''}
-        <div class="meta">
-          ${it.category ? `<b>القسم:</b> ${it.category}<br>` : ''}
-          ${it.size ? `<b>القياس:</b> ${it.size}<br>` : ''}
-          ${it.color ? `<b>اللون:</b> ${it.color}<br>` : ''}
-          ${it.type ? `<b>النوع:</b> ${it.type}<br>` : ''}
-          ${it.price ? `<b>السعر:</b> ${it.price}<br>` : ''}
-        </div>
-        <button class="btn btn-outline btn-sm" style="width:100%; justify-content:center; margin-top:10px;" onclick="askAboutItem('${it.id}')">💬 اسأل عن السعر عبر واتساب</button>
-      </div>
-    </div>
-  `).join('');
 }
 
 async function askAboutItem(id){
@@ -653,20 +595,6 @@ function closeLightbox(){
 document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
 document.getElementById('lightboxOverlay').addEventListener('click', (e)=>{
   if(e.target.id === 'lightboxOverlay') closeLightbox();
-});
-
-const navGalleryLink = document.getElementById('navGallery');
-const navCategoryDropdown = document.getElementById('navCategoryDropdown');
-navGalleryLink.addEventListener('click', (e)=>{
-  if(navCategoryDropdown.children.length){
-    e.preventDefault();
-    const isOpen = navCategoryDropdown.style.display === 'block';
-    navCategoryDropdown.style.display = isOpen ? 'none' : 'block';
-    if(!isOpen) document.getElementById('gallery').scrollIntoView({behavior:'smooth'});
-  }
-});
-document.addEventListener('click', (e)=>{
-  if(!e.target.closest('nav')) navCategoryDropdown.style.display = 'none';
 });
 
 window.addEventListener('scroll', ()=>{
@@ -830,7 +758,6 @@ document.getElementById('btnSaveEditItem').addEventListener('click', async ()=>{
     price: document.getElementById('editPrice').value.trim(),
   };
   items = items.map(x => x.id === editingItemId ? updated : x);
-  renderGallery();
   renderAdminList();
   renderHomeShowcase();
   document.getElementById('editItemOverlay').classList.remove('show');
@@ -877,7 +804,6 @@ document.getElementById('watermarkFileInput').addEventListener('change', async (
     const imgUrl = await storageRef.getDownloadURL();
     const updated = { ...it, img: imgUrl };
     items = items.map(x => x.id === it.id ? updated : x);
-    renderGallery();
     renderAdminList();
     renderHomeShowcase();
     document.getElementById('editItemPreview').src = imgUrl;
@@ -930,7 +856,6 @@ function startSync(){
     combined.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
     items = combined;
 
-    renderGallery();
     renderCategoryFilters();
     renderAdminList();
     renderSocialIcons();
@@ -1037,7 +962,43 @@ function renderAdminStats(){
     <div style="font-size:11px; color:var(--text-dim); margin-bottom:4px;">${lbl}</div>
     <div style="font-size:16px; font-weight:800; color:var(--ink);">${val}</div>
   </div>`;
-  wrap.innerHTML = card('إجمالي الأعمال', totalWorks) + card('عدد الأقسام', cats.size) + card('آخر صورة مضافة', lastLabel);
+  wrap.innerHTML = card('إجمالي الأعمال', totalWorks) + card('عدد الأقسام', cats.size) + card('آخر صورة مضافة', lastLabel)
+    + card('زيارات اليوم', '...') + card('زيارات هذا الشهر', '...');
+  renderVisitStats();
+}
+
+async function renderVisitStats(){
+  const wrap = document.getElementById('adminStats');
+  if(!wrap) return;
+  try{
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0,10);
+    const monthPrefix = todayStr.slice(0,7); // YYYY-MM
+
+    const todayDoc = await db.collection('cesar_stats').doc(todayStr).get();
+    const todayCount = todayDoc.exists ? (todayDoc.data().count || 0) : 0;
+
+    const monthSnap = await db.collection('cesar_stats')
+      .where(firebase.firestore.FieldPath.documentId(), '>=', monthPrefix + '-01')
+      .where(firebase.firestore.FieldPath.documentId(), '<=', monthPrefix + '-31')
+      .get();
+    let monthCount = 0;
+    monthSnap.forEach(doc => monthCount += (doc.data().count || 0));
+
+    const cards = wrap.querySelectorAll('div > div:last-child');
+    // آخر بطاقتين هني "زيارات اليوم" و"زيارات هذا الشهر"
+    if(cards.length >= 2){
+      cards[cards.length-2].textContent = todayCount;
+      cards[cards.length-1].textContent = monthCount;
+    }
+  }catch(e){
+    console.error(e);
+    const cards = wrap.querySelectorAll('div > div:last-child');
+    if(cards.length >= 2){
+      cards[cards.length-2].textContent = '—';
+      cards[cards.length-1].textContent = '—';
+    }
+  }
 }
 
 function openAdmin(){
@@ -1289,7 +1250,6 @@ document.getElementById('btnUpload').addEventListener('click', async ()=>{
         img: imgUrl
       };
       items.unshift(newItem);
-      renderGallery();
       renderAdminList();
       await saveNewItem(newItem);
       toast('تم رفع الصورة بنجاح');
@@ -1317,7 +1277,6 @@ document.getElementById('btnUpload').addEventListener('click', async ()=>{
 async function deleteItem(id){
   if(!confirm('حذف هذه الصورة؟')) return;
   items = items.filter(it => it.id !== id);
-  renderGallery();
   renderAdminList();
   await removeItemCloud(id);
   try{ await storage.ref('gallery/' + id + '.jpg').delete(); }
