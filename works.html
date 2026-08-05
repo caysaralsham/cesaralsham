@@ -140,6 +140,14 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+(function trackVisit(){
+  const today = new Date().toISOString().slice(0,10);
+  db.collection('cesar_stats').doc(today).set({
+    date: today,
+    count: firebase.firestore.FieldValue.increment(1)
+  }, {merge:true}).catch(()=>{});
+})();
+
 const FS_COLLECTION = 'cesar_website';
 const CHUNK_PREFIX = 'items_';
 
