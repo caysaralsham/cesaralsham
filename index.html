@@ -56,14 +56,13 @@
   .brand .name{color:var(--gold); font-size:24px; font-weight:800;}
   .brand .sub{color:#cfc6ac; font-size:13.5px; margin-top:1px;}
   nav{display:flex; flex-direction:column; gap:10px; align-items:flex-start;}
-  nav a{color:#000; font-size:20.5px; font-weight:700; transition:.15s;}
+  nav a{color:#fff; font-size:18px; font-weight:700; transition:.15s;}
   nav a:hover{color:var(--gold);}
   .header-phone{color:#fff; font-weight:700; font-size:14.5px; display:flex; align-items:center; gap:6px;}
   .social-icons{display:flex; gap:12px; align-items:center;}
   .social-icons a{width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,.1); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px; transition:.15s;}
   .social-icons a:hover{background:var(--gold);}
   footer .social-icons a{background:rgba(255,255,255,.06);}
-  #navWrap .social-icons a{background:rgba(33,29,23,.08); color:var(--ink);}
   .burger{display:none; color:#fff; font-size:22px; background:none; border:none; cursor:pointer;}
 
   /* ---- hero ---- */
@@ -148,6 +147,9 @@
     #navWrap{display:none !important; width:100%; flex-direction:column; align-items:flex-start; gap:16px; background:var(--white); padding:18px; border-radius:10px; margin-top:14px; box-shadow:0 4px 16px rgba(0,0,0,.1);}
     #navWrap.open{display:flex !important;}
     #navWrap nav{display:flex; flex-direction:column; gap:12px; width:100%;}
+    #navWrap nav a{color:var(--ink);}
+    #navWrap .header-phone{color:var(--ink);}
+    #navWrap .social-icons a{background:rgba(33,29,23,.08); color:var(--ink);}
     .burger{display:block;}
     .header-inner{flex-wrap:wrap;}
     .gallery-grid{grid-template-columns:repeat(2,1fr);}
@@ -171,23 +173,20 @@
         <div class="sub">للحجر والرخام · الجزائر</div>
       </div>
     </div>
-    <button class="burger" id="burgerBtn" aria-label="القائمة">☰</button>
+    <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
+    <div id="navWrap" style="display:flex; align-items:center; gap:24px; flex-wrap:wrap;">
+    <nav style="position:relative;">
+      <a href="#home">الرئيسية</a>
+      <a href="#gallery" id="navGallery">أعمالنا</a>
+      <a href="#about">من نحن</a>
+      <a href="#contact">تواصل معنا</a>
+      <div id="navCategoryDropdown" style="display:none; position:absolute; top:100%; margin-top:10px; background:#2C2721; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.35); padding:8px; min-width:180px; max-height:340px; overflow-y:auto; z-index:60;"></div>
+    </nav>
+    <a class="header-phone" href="tel:0541737888">📞 0541.73.78.88</a>
+    <div class="social-icons" id="headerSocial"></div>
   </div>
-
-  <div style="background:var(--cream-2); border-bottom:1px solid var(--line); padding:14px 24px; text-align:left;">
-    <div style="max-width:1180px; margin:0 auto; text-align:left;">
-      <div style="display:inline-flex; align-items:center; gap:24px;" id="navWrap">
-        <nav style="position:relative;">
-          <a href="#home">الرئيسية</a>
-          <a href="#gallery" id="navGallery">أعمالنا</a>
-          <a href="#about">من نحن</a>
-          <a href="#contact">تواصل معنا</a>
-          <div id="navCategoryDropdown" style="display:none; position:absolute; top:100%; margin-top:10px; background:#2C2721; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.35); padding:8px; min-width:180px; max-height:340px; overflow-y:auto; z-index:60;"></div>
-        </nav>
-        <a class="header-phone" href="tel:0541737888" style="color:var(--ink);">📞 0541.73.78.88</a>
-        <div class="social-icons" id="headerSocial"></div>
-      </div>
-    </div>
+  <button class="burger" id="burgerBtn" aria-label="القائمة">☰</button>
+  </div>
   </div>
 </header>
 
@@ -225,13 +224,15 @@
 </div>
 
 <div class="overlay" id="editItemOverlay">
-  <div class="modal" style="max-width:420px;">
+  <div class="modal" style="max-width:560px;">
     <div class="modal-head">
       <h3>تعديل بيانات الصورة</h3>
       <button class="close-x" data-close="editItemOverlay">×</button>
     </div>
     <img id="editItemPreview" style="width:100%; max-height:180px; object-fit:cover; border-radius:8px; margin-bottom:10px;">
-    <button class="btn-ghost btn-sm" style="width:100%; justify-content:center; display:flex; margin-bottom:14px;" id="btnAddWatermark">إضافة شعار الجزائر / قيصر الشام على هذه الصورة</button>
+    <input type="file" id="watermarkFileInput" accept="image/*" style="display:none;">
+    <button class="btn-ghost btn-sm" style="width:100%; justify-content:center; display:flex; margin-bottom:6px;" id="btnAddWatermark">إضافة شعار الجزائر / قيصر الشام على هذه الصورة</button>
+    <div style="font-size:11.5px; color:var(--text-dim); margin-bottom:14px;">بيطلب منك اختيار نفس الصورة من جهازك (لتفادي مشكلة رفض المتصفح لتحميل الصورة من الرابط)، وبيرفعها بدل القديمة مع الشعار عليها.</div>
     <div class="field"><label>عنوان (اختياري)</label><input type="text" id="editTitle"></div>
     <div class="field">
       <label>القسم / التصنيف</label>
@@ -744,7 +745,15 @@ document.getElementById('btnSaveEditItem').addEventListener('click', async ()=>{
   toast('تم حفظ التعديلات');
 });
 
-document.getElementById('btnAddWatermark').addEventListener('click', async ()=>{
+document.getElementById('btnAddWatermark').addEventListener('click', ()=>{
+  if(!editingItemId) return;
+  document.getElementById('watermarkFileInput').value = '';
+  document.getElementById('watermarkFileInput').click();
+});
+
+document.getElementById('watermarkFileInput').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
   const it = items.find(x => x.id === editingItemId);
   if(!it) return;
   const btn = document.getElementById('btnAddWatermark');
@@ -752,18 +761,23 @@ document.getElementById('btnAddWatermark').addEventListener('click', async ()=>{
   btn.textContent = 'جارٍ الإضافة...';
   btn.disabled = true;
   try{
+    const objectUrl = URL.createObjectURL(file);
     const img = new Image();
-    img.crossOrigin = 'anonymous';
     await new Promise((res, rej)=>{
       img.onload = res;
-      img.onerror = () => rej(new Error('تعذر تحميل الصورة'));
-      img.src = it.img;
+      img.onerror = () => rej(new Error('تعذر فتح الصورة المختارة'));
+      img.src = objectUrl;
     });
+    const maxW = 1800;
+    const scale = Math.min(1, maxW / img.naturalWidth);
+    const w = Math.round(img.naturalWidth * scale);
+    const h = Math.round(img.naturalHeight * scale);
     const canvas = document.createElement('canvas');
-    canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+    canvas.width = w; canvas.height = h;
     const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    await drawWatermark(ctx, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, w, h);
+    URL.revokeObjectURL(objectUrl);
+    await drawWatermark(ctx, w, h);
     const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.9));
     const storageRef = storage.ref('gallery/' + it.id + '.jpg');
     await storageRef.put(blob, { contentType: 'image/jpeg' });
