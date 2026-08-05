@@ -468,7 +468,7 @@ const db = firebase.firestore();
   }, {merge:true}).catch(()=>{ /* صامت إذا صلاحيات Firestore ما بتسمح بعد */ });
 
   // تحديد الدولة من عنوان IP (خدمة مجانية بدون مفتاح API)
-  fetch('https://ipapi.co/json/')
+  fetch('https://ipwho.is/')
     .then(r => r.json())
     .then(geo => {
       const code = (geo && geo.country_code) ? geo.country_code : 'XX';
