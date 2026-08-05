@@ -456,6 +456,18 @@ const firebaseConfig = {
   appId: "1:1025769465563:web:53b5c9949dbb26364d8efe"
 };
 firebase.initializeApp(firebaseConfig);
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
+let authReady = false;
+let authReadyResolvers = [];
+firebase.auth().onAuthStateChanged(()=>{
+  authReady = true;
+  authReadyResolvers.forEach(r=>r());
+  authReadyResolvers = [];
+});
+function waitForAuthReady(){
+  if(authReady) return Promise.resolve();
+  return new Promise(res => authReadyResolvers.push(res));
+}
 const db = firebase.firestore();
 
 // عدّاد زيارات بسيط: كل ما حدا يفتح الصفحة، بنزيد عدّاد يوم اليوم بـ Firestore
@@ -930,7 +942,8 @@ document.querySelectorAll('.overlay').forEach(ov=>{
   ov.addEventListener('click', (e)=>{ if(e.target === ov) ov.classList.remove('show'); });
 });
 
-document.getElementById('adminFab').addEventListener('click', ()=>{
+document.getElementById('adminFab').addEventListener('click', async ()=>{
+  await waitForAuthReady();
   if(firebase.auth().currentUser){
     openAdmin();
   } else {
