@@ -366,7 +366,8 @@
   <div class="modal" style="max-width:520px;">
     <div class="modal-head"><h3>لوحة الإدارة — إضافة صورة</h3><button class="close-x" data-close="adminOverlay">×</button></div>
     <div class="modal-body">
-      <div id="adminStats" style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px;"></div>
+      <div id="adminStats" style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:10px;"></div>
+      <div id="adminCountries" style="font-size:12px; color:var(--text-dim); margin-bottom:20px;"></div>
       <div class="field"><label>الصورة</label><input type="file" id="upFile" accept="image/*"></div>
       <div id="previewWrap" style="display:none; margin-bottom:14px;">
         <div style="background:var(--cream-2); border-radius:8px; padding:10px; text-align:center; overflow:hidden;">
@@ -460,10 +461,22 @@ const db = firebase.firestore();
 // عدّاد زيارات بسيط: كل ما حدا يفتح الصفحة، بنزيد عدّاد يوم اليوم بـ Firestore
 (function trackVisit(){
   const today = new Date().toISOString().slice(0,10); // YYYY-MM-DD
-  db.collection('cesar_stats').doc(today).set({
+  const docRef = db.collection('cesar_stats').doc(today);
+  docRef.set({
     date: today,
     count: firebase.firestore.FieldValue.increment(1)
   }, {merge:true}).catch(()=>{ /* صامت إذا صلاحيات Firestore ما بتسمح بعد */ });
+
+  // تحديد الدولة من عنوان IP (خدمة مجانية بدون مفتاح API)
+  fetch('https://ipapi.co/json/')
+    .then(r => r.json())
+    .then(geo => {
+      const code = (geo && geo.country_code) ? geo.country_code : 'XX';
+      return docRef.set({
+        countries: { [code]: firebase.firestore.FieldValue.increment(1) }
+      }, {merge:true});
+    })
+    .catch(()=>{ /* صامت إذا الخدمة ما ردّت أو تجاوزنا الحد المجاني */ });
 })();
 const storage = firebase.storage();
 const FS_COLLECTION = 'cesar_website';
@@ -983,13 +996,30 @@ async function renderVisitStats(){
       .where(firebase.firestore.FieldPath.documentId(), '<=', monthPrefix + '-31')
       .get();
     let monthCount = 0;
-    monthSnap.forEach(doc => monthCount += (doc.data().count || 0));
+    const countryTotals = {};
+    monthSnap.forEach(doc => {
+      const d = doc.data();
+      monthCount += (d.count || 0);
+      if(d.countries){
+        Object.entries(d.countries).forEach(([code, n])=>{
+          countryTotals[code] = (countryTotals[code] || 0) + n;
+        });
+      }
+    });
 
     const cards = wrap.querySelectorAll('div > div:last-child');
     // آخر بطاقتين هني "زيارات اليوم" و"زيارات هذا الشهر"
     if(cards.length >= 2){
       cards[cards.length-2].textContent = todayCount;
       cards[cards.length-1].textContent = monthCount;
+    }
+
+    const countriesWrap = document.getElementById('adminCountries');
+    if(countriesWrap){
+      const sorted = Object.entries(countryTotals).sort((a,b)=> b[1]-a[1]).slice(0,6);
+      countriesWrap.textContent = sorted.length
+        ? 'أكثر الدول زيارة هالشهر: ' + sorted.map(([code,n])=> `${code} (${n})`).join(' · ')
+        : '';
     }
   }catch(e){
     console.error(e);
