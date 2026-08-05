@@ -569,14 +569,41 @@ function renderCategoryFilters(){
   }
 }
 
+function pickVariedItems(count){
+  // نوزّع الاختيار على الأقسام المختلفة بالتناوب (round-robin) بدل ما ناخد بس الأحدث ورا بعض،
+  // هيك الواجهة بتعطي إحساس متنوع من كل أنواع الشغل، مش قسم واحد مكرر.
+  const byCategory = {};
+  const order = [];
+  items.forEach(it=>{
+    const cat = (it.category||'').trim() || '__none__';
+    if(!byCategory[cat]){ byCategory[cat] = []; order.push(cat); }
+    byCategory[cat].push(it);
+  });
+  const picked = [];
+  let round = 0;
+  while(picked.length < count){
+    let addedThisRound = false;
+    for(const cat of order){
+      if(byCategory[cat][round]){
+        picked.push(byCategory[cat][round]);
+        addedThisRound = true;
+        if(picked.length >= count) break;
+      }
+    }
+    if(!addedThisRound) break;
+    round++;
+  }
+  return picked;
+}
+
 function renderGallery(){
   const grid = document.getElementById('galleryGrid');
-  const latest = items.slice(0, 6);
-  if(!latest.length){
+  const selected = pickVariedItems(10);
+  if(!selected.length){
     grid.innerHTML = '<div class="empty-gallery">لا توجد صور بعد.</div>';
     return;
   }
-  grid.innerHTML = latest.map(it => `
+  grid.innerHTML = selected.map(it => `
     <div class="card">
       <div class="img-wrap" style="cursor:zoom-in;" onclick="openLightbox('${it.img}')"><img src="${it.img}" loading="lazy" alt="${(it.title||it.category||'رخام وحجر طبيعي - Marbre et pierre naturelle')} - قيصر الشام للحجر والرخام Algérie"></div>
       <div class="body">
