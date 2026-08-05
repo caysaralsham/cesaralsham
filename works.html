@@ -142,10 +142,21 @@ const db = firebase.firestore();
 
 (function trackVisit(){
   const today = new Date().toISOString().slice(0,10);
-  db.collection('cesar_stats').doc(today).set({
+  const docRef = db.collection('cesar_stats').doc(today);
+  docRef.set({
     date: today,
     count: firebase.firestore.FieldValue.increment(1)
   }, {merge:true}).catch(()=>{});
+
+  fetch('https://ipapi.co/json/')
+    .then(r => r.json())
+    .then(geo => {
+      const code = (geo && geo.country_code) ? geo.country_code : 'XX';
+      return docRef.set({
+        countries: { [code]: firebase.firestore.FieldValue.increment(1) }
+      }, {merge:true});
+    })
+    .catch(()=>{});
 })();
 
 const FS_COLLECTION = 'cesar_website';
