@@ -273,9 +273,11 @@
     <div class="rule"></div>
     <p>مجموعة مختارة من قطعنا المنفذة — تُضاف أعمال جديدة باستمرار</p>
   </div>
-  <div class="category-filters" id="categoryFilters" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:24px;"></div>
   <div class="gallery-grid" id="galleryGrid">
     <div class="empty-gallery">جاري التحميل...</div>
+  </div>
+  <div style="text-align:center; margin-top:44px;">
+    <a class="btn btn-outline" href="works.html">عرض جميع الأعمال</a>
   </div>
 </section>
 
@@ -375,6 +377,7 @@
   <div class="modal" style="max-width:520px;">
     <div class="modal-head"><h3>لوحة الإدارة — إضافة صورة</h3><button class="close-x" data-close="adminOverlay">×</button></div>
     <div class="modal-body">
+      <div id="adminStats" style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px;"></div>
       <div class="field"><label>الصورة</label><input type="file" id="upFile" accept="image/*"></div>
       <div id="previewWrap" style="display:none; margin-bottom:14px;">
         <div style="background:var(--cream-2); border-radius:8px; padding:10px; text-align:center; overflow:hidden;">
@@ -541,7 +544,6 @@ function renderBusinessSchema(){
 let activeCategory = 'all';
 
 function renderCategoryFilters(){
-  const wrap = document.getElementById('categoryFilters');
   const cats = [...new Set(items.map(it => (it.category||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar'));
 
   const newOpt = '<option value="__new__">➕ قسم جديد...</option>';
@@ -551,19 +553,13 @@ function renderCategoryFilters(){
     if(sel){ const cur = sel.value; sel.innerHTML = newOpt + catOpts; if(cats.includes(cur)) sel.value = cur; }
   });
 
-  // تعبئة قائمة الأقسام المنسدلة تحت "أعمالنا" بالقائمة العلوية
+  // تعبئة قائمة الأقسام المنسدلة تحت "أعمالنا" بالقائمة العلوية — بتوديك لصفحة أعمالنا الكاملة مفلترة
   const nd = document.getElementById('navCategoryDropdown');
   if(nd){
     if(cats.length){
-      nd.innerHTML = `<a href="#gallery" data-navcat="all" style="display:block; padding:8px 12px; color:#e8e2d2; font-size:14px; border-radius:6px;">كل الأقسام</a>` +
-        cats.map(c => `<a href="#gallery" data-navcat="${c}" style="display:block; padding:8px 12px; color:#e8e2d2; font-size:14px; border-radius:6px;">${c}</a>`).join('');
-      nd.querySelectorAll('[data-navcat]').forEach(a=>{
-        a.addEventListener('click', ()=>{
-          activeCategory = a.dataset.navcat;
-          renderCategoryFilters();
-          renderGallery();
-          nd.style.display = 'none';
-        });
+      nd.innerHTML = `<a href="works.html" style="display:block; padding:8px 12px; color:#e8e2d2; font-size:14px; border-radius:6px;">كل الأقسام</a>` +
+        cats.map(c => `<a href="works.html?category=${encodeURIComponent(c)}" style="display:block; padding:8px 12px; color:#e8e2d2; font-size:14px; border-radius:6px;">${c}</a>`).join('');
+      nd.querySelectorAll('a').forEach(a=>{
         a.addEventListener('mouseenter', ()=>{ a.style.background = 'rgba(255,255,255,.08)'; });
         a.addEventListener('mouseleave', ()=>{ a.style.background = 'transparent'; });
       });
@@ -571,32 +567,16 @@ function renderCategoryFilters(){
       nd.innerHTML = '';
     }
   }
-
-  if(!cats.length){ wrap.innerHTML = ''; return; }
-
-  if(!cats.includes(activeCategory) && activeCategory !== 'all') activeCategory = 'all';
-
-  const btn = (val, label) => `<button class="btn ${activeCategory===val?'':'btn-outline'} btn-sm" data-cat="${val}" style="padding:8px 18px;">${label}</button>`;
-  wrap.innerHTML = btn('all','الكل') + cats.map(c => btn(c, c)).join('');
-
-  wrap.querySelectorAll('[data-cat]').forEach(b=>{
-    b.addEventListener('click', ()=>{
-      activeCategory = b.dataset.cat;
-      renderCategoryFilters();
-      renderGallery();
-    });
-  });
 }
 
 function renderGallery(){
-  renderCategoryFilters();
   const grid = document.getElementById('galleryGrid');
-  const filtered = activeCategory === 'all' ? items : items.filter(it => (it.category||'').trim() === activeCategory);
-  if(!filtered.length){
+  const latest = items.slice(0, 6);
+  if(!latest.length){
     grid.innerHTML = '<div class="empty-gallery">لا توجد صور بعد.</div>';
     return;
   }
-  grid.innerHTML = filtered.map(it => `
+  grid.innerHTML = latest.map(it => `
     <div class="card">
       <div class="img-wrap" style="cursor:zoom-in;" onclick="openLightbox('${it.img}')"><img src="${it.img}" loading="lazy" alt="${(it.title||it.category||'رخام وحجر طبيعي - Marbre et pierre naturelle')} - قيصر الشام للحجر والرخام Algérie"></div>
       <div class="body">
@@ -924,6 +904,7 @@ function startSync(){
     items = combined;
 
     renderGallery();
+    renderCategoryFilters();
     renderAdminList();
     renderSocialIcons();
     renderHeroSection();
@@ -1018,9 +999,24 @@ function renderDomainCountdown(){
   else el.innerHTML = `⛔ <b style="color:var(--danger);">الدومين متأخر عن التجديد بـ ${Math.abs(days)} يوم!</b>`;
 }
 
+function renderAdminStats(){
+  const wrap = document.getElementById('adminStats');
+  if(!wrap) return;
+  const totalWorks = items.length;
+  const cats = new Set(items.map(it => (it.category||'').trim()).filter(Boolean));
+  const last = items[0]; // items مرتبة الأحدث أولًا
+  const lastLabel = last ? (last.title || last.category || 'صورة بدون عنوان') : '—';
+  const card = (lbl, val) => `<div style="background:var(--cream-2); border-radius:10px; padding:12px; text-align:center;">
+    <div style="font-size:11px; color:var(--text-dim); margin-bottom:4px;">${lbl}</div>
+    <div style="font-size:16px; font-weight:800; color:var(--ink);">${val}</div>
+  </div>`;
+  wrap.innerHTML = card('إجمالي الأعمال', totalWorks) + card('عدد الأقسام', cats.size) + card('آخر صورة مضافة', lastLabel);
+}
+
 function openAdmin(){
   const user = firebase.auth().currentUser;
   document.getElementById('currentAdminEmail').textContent = user ? user.email : '—';
+  renderAdminStats();
   document.getElementById('setHeroTitleMain').value = settings.heroTitleMain || '';
   document.getElementById('setHeroTitleAccent').value = settings.heroTitleAccent || '';
   document.getElementById('setHeroSubtitle').value = settings.heroSubtitle || '';
@@ -1244,7 +1240,9 @@ document.getElementById('btnUpload').addEventListener('click', async ()=>{
   await drawWatermark(ctx, w, h);
 
   const itemId = uid();
-  toast('جاري رفع الصورة...');
+  const uploadBtn = document.getElementById('btnUpload');
+  uploadBtn.disabled = true;
+  uploadBtn.textContent = 'جاري الرفع...';
 
   canvas.toBlob(async (blob)=>{
     try{
@@ -1282,8 +1280,11 @@ document.getElementById('btnUpload').addEventListener('click', async ()=>{
     }catch(e){
       console.error(e);
       toast('تعذر رفع الصورة — حاول من جديد');
+    }finally{
+      uploadBtn.disabled = false;
+      uploadBtn.textContent = 'رفع الصورة';
     }
-  }, 'image/jpeg', 0.9);
+  }, 'image/jpeg', 0.85);
 });
 
 async function deleteItem(id){
