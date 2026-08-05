@@ -50,13 +50,13 @@
 
   /* ---- header ---- */
   header{background:var(--ink); position:sticky; top:0; z-index:50;}
-  .header-inner{max-width:1180px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; padding:16px 24px;}
+  .header-inner{max-width:1180px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; padding:60px 24px 68px;}
   .brand{display:flex; align-items:center; gap:12px;}
-  .brand img{width:56px; height:56px; object-fit:contain;}
-  .brand .name{color:var(--gold); font-size:19px; font-weight:800;}
-  .brand .sub{color:#cfc6ac; font-size:12px; margin-top:1px;}
+  .brand img{width:110px; height:110px; object-fit:contain;}
+  .brand .name{color:var(--gold); font-size:24px; font-weight:800;}
+  .brand .sub{color:#cfc6ac; font-size:13.5px; margin-top:1px;}
   nav{display:flex; flex-direction:column; gap:10px; align-items:flex-start;}
-  nav a{color:var(--ink); font-size:19px; font-weight:600; transition:.15s;}
+  nav a{color:#000; font-size:20.5px; font-weight:700; transition:.15s;}
   nav a:hover{color:var(--gold);}
   .header-phone{color:#fff; font-weight:700; font-size:14.5px; display:flex; align-items:center; gap:6px;}
   .social-icons{display:flex; gap:12px; align-items:center;}
@@ -230,7 +230,8 @@
       <h3>تعديل بيانات الصورة</h3>
       <button class="close-x" data-close="editItemOverlay">×</button>
     </div>
-    <img id="editItemPreview" style="width:100%; max-height:180px; object-fit:cover; border-radius:8px; margin-bottom:14px;">
+    <img id="editItemPreview" style="width:100%; max-height:180px; object-fit:cover; border-radius:8px; margin-bottom:10px;">
+    <button class="btn-ghost btn-sm" style="width:100%; justify-content:center; display:flex; margin-bottom:14px;" id="btnAddWatermark">إضافة شعار الجزائر / قيصر الشام على هذه الصورة</button>
     <div class="field"><label>عنوان (اختياري)</label><input type="text" id="editTitle"></div>
     <div class="field">
       <label>القسم / التصنيف</label>
@@ -743,6 +744,47 @@ document.getElementById('btnSaveEditItem').addEventListener('click', async ()=>{
   toast('تم حفظ التعديلات');
 });
 
+document.getElementById('btnAddWatermark').addEventListener('click', async ()=>{
+  const it = items.find(x => x.id === editingItemId);
+  if(!it) return;
+  const btn = document.getElementById('btnAddWatermark');
+  const originalLabel = btn.textContent;
+  btn.textContent = 'جارٍ الإضافة...';
+  btn.disabled = true;
+  try{
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    await new Promise((res, rej)=>{
+      img.onload = res;
+      img.onerror = () => rej(new Error('تعذر تحميل الصورة'));
+      img.src = it.img;
+    });
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    await drawWatermark(ctx, canvas.width, canvas.height);
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.9));
+    const storageRef = storage.ref('gallery/' + it.id + '.jpg');
+    await storageRef.put(blob, { contentType: 'image/jpeg' });
+    const imgUrl = await storageRef.getDownloadURL();
+    const updated = { ...it, img: imgUrl };
+    items = items.map(x => x.id === it.id ? updated : x);
+    renderGallery();
+    renderAdminList();
+    renderHomeShowcase();
+    document.getElementById('editItemPreview').src = imgUrl;
+    await updateItemInCloud(updated);
+    toast('تمت إضافة الشعار على الصورة');
+  }catch(e){
+    console.error(e);
+    toast('تعذّرت إضافة الشعار على هذه الصورة');
+  }finally{
+    btn.textContent = originalLabel;
+    btn.disabled = false;
+  }
+});
+
 function startSync(){
   db.collection(FS_COLLECTION).onSnapshot(async (snap)=>{
     let mainDoc = null;
@@ -1007,6 +1049,25 @@ function getLogoImage(){
   });
 }
 
+async function drawWatermark(ctx, w, h){
+  const logoImg = await getLogoImage();
+  const wmText = 'الجزائر · قيصر الشام للحجر والرخام · 0541.73.78.88';
+  const fontSize = Math.max(14, Math.round(w * 0.022));
+  ctx.font = `700 ${fontSize}px Tajawal, Arial`;
+  const textW = ctx.measureText(wmText).width;
+  const logoH = fontSize * 2.4;
+  const logoW = logoImg.width * (logoH / logoImg.height);
+  const padX = 12, padY = 8, gap = 8;
+  const boxW = textW + padX*2 + logoW + gap, boxH = Math.max(fontSize, logoH) + padY*2;
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.fillRect(w - boxW - 10, h - boxH - 10, boxW, boxH);
+  ctx.drawImage(logoImg, w - boxW - 10 + padX, h - boxH - 10 + (boxH - logoH)/2, logoW, logoH);
+  ctx.fillStyle = '#fff';
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'right';
+  ctx.fillText(wmText, w - 10 - padX, h - 10 - boxH/2);
+}
+
 document.getElementById('btnUpload').addEventListener('click', async ()=>{
   if(!loadedImage){ toast('يرجى اختيار صورة'); return; }
 
@@ -1031,22 +1092,7 @@ document.getElementById('btnUpload').addEventListener('click', async ()=>{
   ctx.restore();
 
   // watermark: logo + text
-  const logoImg = await getLogoImage();
-  const wmText = 'الجزائر · قيصر الشام للحجر والرخام · 0541.73.78.88';
-  const fontSize = Math.max(14, Math.round(w * 0.022));
-  ctx.font = `700 ${fontSize}px Tajawal, Arial`;
-  const textW = ctx.measureText(wmText).width;
-  const logoH = fontSize * 2.4;
-  const logoW = logoImg.width * (logoH / logoImg.height);
-  const padX = 12, padY = 8, gap = 8;
-  const boxW = textW + padX*2 + logoW + gap, boxH = Math.max(fontSize, logoH) + padY*2;
-  ctx.fillStyle = 'rgba(0,0,0,0.45)';
-  ctx.fillRect(w - boxW - 10, h - boxH - 10, boxW, boxH);
-  ctx.drawImage(logoImg, w - boxW - 10 + padX, h - boxH - 10 + (boxH - logoH)/2, logoW, logoH);
-  ctx.fillStyle = '#fff';
-  ctx.textBaseline = 'middle';
-  ctx.textAlign = 'right';
-  ctx.fillText(wmText, w - 10 - padX, h - 10 - boxH/2);
+  await drawWatermark(ctx, w, h);
 
   const itemId = uid();
   toast('جاري رفع الصورة...');
