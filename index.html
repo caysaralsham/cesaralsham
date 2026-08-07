@@ -1001,7 +1001,7 @@ document.querySelectorAll('.overlay').forEach(ov=>{
 document.getElementById('adminFab').addEventListener('click', async ()=>{
   await waitForAuthReady();
   if(firebase.auth().currentUser){
-    openAdmin();
+    window.location.href = 'admin-works.html';
   } else {
     document.getElementById('loginErr').style.display = 'none';
     document.getElementById('loginOverlay').classList.add('show');
@@ -1012,10 +1012,7 @@ document.getElementById('btnDoLogin').addEventListener('click', ()=>{
   const pass = document.getElementById('loginPass').value;
   document.getElementById('loginErr').style.display = 'none';
   firebase.auth().signInWithEmailAndPassword(email, pass).then(()=>{
-    document.getElementById('loginOverlay').classList.remove('show');
-    document.getElementById('loginUser').value = '';
-    document.getElementById('loginPass').value = '';
-    openAdmin();
+    window.location.href = 'admin-works.html';
   }).catch(err=>{
     console.error(err);
     document.getElementById('loginErr').style.display = 'block';
