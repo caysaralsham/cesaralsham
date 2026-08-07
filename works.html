@@ -60,6 +60,7 @@
   .empty-gallery{grid-column:1/-1; text-align:center; padding:60px 20px; color:var(--text-dim); font-size:14px;}
 
   .btn{display:inline-flex; align-items:center; gap:8px; background:var(--gold); color:#fff; padding:12px 26px; border-radius:14px; font-size:14px; font-weight:700; border:none; cursor:pointer; transition:.3s ease;}
+  .btn-sm{padding:9px 16px; font-size:12.5px; border-radius:10px;}
   .btn:hover{background:var(--gold-deep);}
   .btn-outline{background:transparent; border:1.5px solid var(--gold); color:var(--gold-deep);}
   .btn-outline:hover{background:var(--gold); color:#fff;}
@@ -121,6 +122,10 @@
   <div class="pagination" id="pagination"></div>
 </section>
 
+<div class="overlay" id="lightboxOverlay" style="position:fixed; inset:0; background:rgba(20,17,13,.92); z-index:300; display:none; align-items:center; justify-content:center; padding:20px; cursor:zoom-out;">
+  <img id="lightboxImg" src="" style="max-width:92%; max-height:88vh; border-radius:8px; box-shadow:0 10px 40px rgba(0,0,0,.5);">
+</div>
+
 <footer>
   <div>© <span id="year"></span> <b>قيصر الشام</b> للحجر والرخام — جميع الحقوق محفوظة</div>
   <div style="margin-top:6px;"><a href="index.html">العودة للصفحة الرئيسية</a></div>
@@ -128,6 +133,17 @@
 
 <script>
 document.getElementById('year').textContent = new Date().getFullYear();
+
+function openLightbox(imgUrl){
+  document.getElementById('lightboxImg').src = imgUrl;
+  document.getElementById('lightboxOverlay').style.display = 'flex';
+}
+function closeLightbox(){
+  document.getElementById('lightboxOverlay').style.display = 'none';
+}
+document.getElementById('lightboxOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'lightboxOverlay') closeLightbox();
+});
 
 const firebaseConfig = {
   apiKey: "AIzaSyDi1Pn7guMnyc0CetV8Z9IUC-k0gtav2_8",
@@ -160,9 +176,11 @@ const db = firebase.firestore();
 })();
 
 const FS_COLLECTION = 'cesar_website';
+const FS_DOC = 'main';
 const CHUNK_PREFIX = 'items_';
 
 let items = [];
+let settings = {};
 let activeCategory = 'all';
 let currentPage = 1;
 const PAGE_SIZE = 12;
@@ -175,6 +193,7 @@ db.collection(FS_COLLECTION).onSnapshot((snap)=>{
   const itemChunks = {};
   snap.forEach(doc=>{
     if(doc.id.startsWith(CHUNK_PREFIX)) itemChunks[doc.id] = doc.data().items || [];
+    if(doc.id === FS_DOC) settings = doc.data().settings || {};
   });
   let combined = [];
   Object.values(itemChunks).forEach(arr=> combined = combined.concat(arr));
@@ -183,6 +202,28 @@ db.collection(FS_COLLECTION).onSnapshot((snap)=>{
   renderFilters();
   renderGrid();
 }, err=> console.error(err));
+
+async function askAboutItem(id){
+  const it = items.find(x => x.id === id);
+  if(!it) return;
+  const waText = `مرحباً، أنا مهتم بـ "${it.title || 'هذه القطعة'}" اللي شفتها بموقعكم — ممكن أعرف السعر والتفاصيل؟`;
+
+  // على الهاتف: نحاول نفتح قائمة مشاركة حقيقية فيها الصورة + النص مع بعض
+  if(navigator.canShare){
+    try{
+      const res = await fetch(it.img);
+      const blob = await res.blob();
+      const file = new File([blob], (it.title || 'قطعة') + '.jpg', {type: blob.type || 'image/jpeg'});
+      if(navigator.canShare({files:[file]})){
+        await navigator.share({ files:[file], text: waText, title: it.title || 'قيصر الشام' });
+        return;
+      }
+    }catch(e){ console.error(e); }
+  }
+  // بديل (كمبيوتر أو لو المشاركة مش مدعومة): واتساب بالنص + رابط الصورة
+  const waTextWithLink = waText + `\n${it.img}`;
+  window.open(`https://wa.me/${(settings.whatsapp||'213541737888').replace(/[^0-9]/g,'')}?text=${encodeURIComponent(waTextWithLink)}`, '_blank');
+}
 
 function renderFilters(){
   const wrap = document.getElementById('categoryFilters');
@@ -220,7 +261,7 @@ function renderGrid(){
 
   grid.innerHTML = pageItems.map(it => `
     <div class="card">
-      <div class="img-wrap"><img src="${it.img}" loading="lazy" alt="${(it.title||it.category||'رخام وحجر طبيعي')} - قيصر الشام للحجر والرخام"></div>
+      <div class="img-wrap" style="cursor:zoom-in;" onclick="openLightbox('${it.img}')"><img src="${it.img}" loading="lazy" alt="${(it.title||it.category||'رخام وحجر طبيعي')} - قيصر الشام للحجر والرخام"></div>
       <div class="body">
         ${it.title ? `<div class="title">${it.title}</div>` : ''}
         <div class="meta">
@@ -230,6 +271,7 @@ function renderGrid(){
           ${it.type ? `<b>النوع:</b> ${it.type}<br>` : ''}
           ${it.price ? `<b>السعر:</b> ${it.price}<br>` : ''}
         </div>
+        <button class="btn btn-outline btn-sm" style="width:100%; justify-content:center; margin-top:10px;" onclick="askAboutItem('${it.id}')">💬 اسأل عن السعر عبر واتساب</button>
       </div>
     </div>
   `).join('');
