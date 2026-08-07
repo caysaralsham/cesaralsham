@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الإعدادات العامة | قيصر الشام</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<style>
+  :root{
+    --ink:#111111; --gold:#B88A2A; --gold-deep:#8F6A1F; --cream:#FFFFFF; --cream-2:#FAF9F7;
+    --stone:#1A1A1A; --text-dim:#666666; --line:#ECE8E0; --white:#FFFFFF; --danger:#A6453D; --danger-soft:#F3E2E0;
+    --radius:14px; --shadow:0 6px 20px rgba(17,17,17,.06);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Cairo','Tajawal',sans-serif; background:var(--cream-2); color:#1A1A1A; direction:rtl;}
+  a{text-decoration:none; color:inherit;}
+
+  header{background:var(--ink); color:#fff; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  header h1{font-size:16px; font-weight:800; margin:0; color:var(--gold);}
+  header .right{display:flex; align-items:center; gap:12px; font-size:12.5px; flex-wrap:wrap;}
+  header a.backlink{color:#cfc6ac;}
+
+  .wrap{max-width:760px; margin:0 auto; padding:24px 16px 60px;}
+
+  .panel{background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); margin-bottom:18px;}
+  .panel h2{font-size:15px; margin:0 0 6px;}
+  .panel .desc{font-size:11.5px; color:var(--text-dim); margin:0 0 14px; line-height:1.8;}
+
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; background:var(--gold); color:#fff; padding:12px 18px; border-radius:10px; font-size:14px; font-weight:700; border:none; cursor:pointer; width:100%;}
+  .btn:hover{background:var(--gold-deep);}
+  .btn-ghost{background:transparent; border:1.5px solid var(--gold); color:var(--gold-deep);}
+  .btn-ghost:hover{background:var(--gold); color:#fff;}
+  .btn-danger{background:var(--danger-soft); color:var(--danger); border:1px solid #E3C3C0;}
+  .btn-sm{padding:9px 14px; font-size:12.5px; width:auto;}
+
+  .field{margin-bottom:13px;}
+  .field label{display:block; font-size:12.5px; font-weight:700; color:var(--text-dim); margin-bottom:5px;}
+  .field input, .field textarea{width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:9px; font-family:inherit; font-size:14.5px;}
+  .field textarea{resize:vertical;}
+
+  hr{border:none; border-top:1px solid var(--line); margin:18px 0;}
+
+  #loginScreen{position:fixed; inset:0; background:var(--ink); display:flex; align-items:center; justify-content:center; z-index:500; padding:16px;}
+  #loginScreen .box{background:#fff; border-radius:14px; width:100%; max-width:340px; padding:28px 24px; box-shadow:0 20px 60px rgba(0,0,0,.4);}
+  #loginScreen h2{text-align:center; font-size:16px; margin:0 0 18px;}
+  .err{color:var(--danger); font-size:12.5px; display:none; margin-bottom:8px;}
+
+  .toast{position:fixed; bottom:20px; right:20px; left:20px; margin:0 auto; max-width:320px; background:var(--ink); color:#fff; padding:12px 20px; border-radius:8px; font-size:13.5px; z-index:200; opacity:0; transform:translateY(10px); transition:.25s; text-align:center;}
+  .toast.show{opacity:1; transform:translateY(0);}
+
+  .backup-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .backup-row .btn-sm{flex:1; min-width:150px;}
+
+  @media (max-width:480px){
+    header{padding:14px 14px;}
+    header h1{font-size:14px;}
+    .wrap{padding:18px 12px 50px;}
+    .panel{padding:15px;}
+    .backup-row .btn-sm{min-width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="box">
+    <h2>دخول الإعدادات العامة</h2>
+    <div class="field"><label>البريد الإلكتروني</label><input type="email" id="loginUser" autocomplete="username"></div>
+    <div class="field"><label>كلمة السر</label><input type="password" id="loginPass" autocomplete="current-password"></div>
+    <div id="loginErr" class="err">البريد الإلكتروني أو كلمة السر غير صحيحة</div>
+    <button class="btn" id="btnDoLogin">دخول</button>
+  </div>
+</div>
+
+<header>
+  <h1>الإعدادات العامة — قيصر الشام</h1>
+  <div class="right">
+    <a class="backlink" href="index.html">↩ الموقع</a>
+    <a class="backlink" href="admin-works.html">🖼 إدارة الصور والأقسام</a>
+    <span id="whoEmail"></span>
+    <button class="btn btn-ghost btn-sm" id="btnLogout">خروج</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="panel">
+    <h2>عنوان الصفحة الرئيسية</h2>
+    <div class="field"><label>الجزء الأول من العنوان</label><input type="text" id="setHeroTitleMain"></div>
+    <div class="field"><label>الجزء الذهبي من العنوان</label><input type="text" id="setHeroTitleAccent"></div>
+    <div class="field"><label>الوصف تحت العنوان</label><textarea id="setHeroSubtitle" rows="2"></textarea></div>
+    <button class="btn btn-ghost" id="btnSaveHero">حفظ عنوان الصفحة الرئيسية</button>
+  </div>
+
+  <div class="panel">
+    <h2>قسم "من نحن"</h2>
+    <div class="field"><label>عنوان القسم</label><input type="text" id="setAboutTitle"></div>
+    <div class="field"><label>نص القسم</label><textarea id="setAboutText" rows="4"></textarea></div>
+    <div class="field"><label>صورة القسم</label><input type="file" id="setAboutImgFile" accept="image/*"></div>
+    <div id="aboutImgPreviewWrap" style="display:none; margin:8px 0;"><img id="aboutImgPreview" style="max-width:100%; max-height:160px; border-radius:8px;"></div>
+    <div class="field"><label>سطر التواصل (تحت "احنا هون لخدمتك")</label><input type="text" id="setContactTagline"></div>
+    <button class="btn btn-ghost" id="btnSaveAbout">حفظ قسم "من نحن"</button>
+  </div>
+
+  <div class="panel">
+    <h2>روابط التواصل الاجتماعي</h2>
+    <div class="field"><label>واتساب (رقم بدون + ولا أصفار، مثال: 213541737888)</label><input type="text" id="setWhatsapp" placeholder="213541737888"></div>
+    <div class="field"><label>فيسبوك</label><input type="text" id="setFacebook" placeholder="https://facebook.com/..."></div>
+    <div class="field"><label>انستغرام</label><input type="text" id="setInstagram" placeholder="https://instagram.com/..."></div>
+    <div class="field"><label>تيك توك</label><input type="text" id="setTiktok" placeholder="https://tiktok.com/@..."></div>
+    <button class="btn btn-ghost" id="btnSaveSocial">حفظ الروابط</button>
+  </div>
+
+  <div class="panel">
+    <h2>تجديد الدومين (النطاق)</h2>
+    <div class="field"><label>تاريخ انتهاء الدومين</label><input type="date" id="setDomainExpiry" lang="en" style="direction:ltr;"></div>
+    <div id="domainCountdown" style="font-size:13px; color:var(--text-dim); margin-bottom:12px;"></div>
+    <button class="btn btn-ghost" id="btnSaveDomain">حفظ تاريخ الانتهاء</button>
+  </div>
+
+  <div class="panel">
+    <h2>نسخة احتياطية (باكأب) للموقع</h2>
+    <p class="desc">نزّل نسخة من كل بيانات الموقع (الأقسام، الصور، الإعدادات) واحتفظ فيها عندك. إذا صار مشكل، ارفع نفس الملف من هون لاسترجاع البيانات، أو ابعته لمن بيساعدك يفهم المشكلة فورًا.</p>
+    <div class="backup-row">
+      <button class="btn btn-ghost btn-sm" id="btnExportBackup">⬇ تنزيل نسخة احتياطية</button>
+      <input type="file" id="importBackupFile" accept="application/json" style="display:none;">
+      <button class="btn btn-ghost btn-sm" id="btnImportBackup">⬆ استرجاع من نسخة احتياطية</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>حساب الدخول</h2>
+    <div style="font-size:13px; color:var(--text-dim); margin-bottom:6px;">مسجّل دخول بالحساب: <b id="currentAdminEmail" style="color:var(--ink);"></b></div>
+    <div style="font-size:11.5px; color:var(--text-dim);">لتغيير كلمة السر أو إضافة حساب أدمن ثاني، هذا يصير من Firebase Console → Authentication → Users، مش من هون.</div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDi1Pn7guMnyc0CetV8Z9IUC-k0gtav2_8",
+  authDomain: "basel-7b29b.firebaseapp.com",
+  projectId: "basel-7b29b",
+  storageBucket: "basel-7b29b.firebasestorage.app",
+  messagingSenderId: "1025769465563",
+  appId: "1:1025769465563:web:53b5c9949dbb26364d8efe"
+};
+firebase.initializeApp(firebaseConfig);
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
+const db = firebase.firestore();
+const storage = firebase.storage();
+
+const FS_COLLECTION = 'cesar_website';
+const FS_DOC = 'main';
+const CHUNK_PREFIX = 'items_';
+
+const DEFAULT_SETTINGS = {
+  facebook:'', instagram:'', tiktok:'', whatsapp:'213541737888', domainExpiry:'',
+  heroTitleMain:'أرقى أنواع',
+  heroTitleAccent:'الحجر والرخام',
+  heroSubtitle:'تصاميم ونحت وتركيب بخبرة عالية — من ديالي إبراهيم، الجزائر، لكل بيت يستحق لمسة فخامة',
+  aboutTitle:'من نحن',
+  aboutText:'قيصر الشام للحجر والرخام — شركة جزائرية متخصصة في تصميم ونحت وتركيب الحجر والرخام بأعلى معايير الجودة، من المداخن والمغاسل إلى الأعمدة والحوائط المنحوتة. نجمع بين الحرفية التقليدية والدقة الحديثة لنقدم قطعاً تدوم.',
+  contactTagline:'لأي استفسار أو طلب عرض سعر، احنا هون لخدمتك'
+};
+let settings = {...DEFAULT_SETTINGS};
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(()=> t.classList.remove('show'), 2600);
+}
+function byteLen(obj){ return JSON.stringify(obj).length; }
+
+async function saveSettings(){
+  await db.collection(FS_COLLECTION).doc(FS_DOC).set({settings}, {merge:true});
+}
+async function chunkAndWriteItems(itemsArray){
+  const CHUNK_MAX_BYTES = 850000;
+  const chunks = [];
+  let current = [], currentSize = 0;
+  itemsArray.forEach(it=>{
+    const size = byteLen(it);
+    if(current.length && currentSize + size > CHUNK_MAX_BYTES){ chunks.push(current); current = []; currentSize = 0; }
+    current.push(it); currentSize += size;
+  });
+  if(current.length) chunks.push(current);
+  for(let i=0;i<chunks.length;i++){
+    await db.collection(FS_COLLECTION).doc(CHUNK_PREFIX+i).set({items: chunks[i]});
+  }
+}
+
+// ---------- auth ----------
+firebase.auth().onAuthStateChanged(user=>{
+  if(user){
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('whoEmail').textContent = user.email;
+    document.getElementById('currentAdminEmail').textContent = user.email;
+    loadSettingsAndFill();
+  } else {
+    document.getElementById('loginScreen').style.display = 'flex';
+  }
+});
+document.getElementById('btnDoLogin').addEventListener('click', ()=>{
+  const email = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  document.getElementById('loginErr').style.display = 'none';
+  firebase.auth().signInWithEmailAndPassword(email, pass).catch(err=>{
+    console.error(err);
+    document.getElementById('loginErr').style.display = 'block';
+  });
+});
+document.getElementById('loginPass').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('btnDoLogin').click(); });
+document.getElementById('btnLogout').addEventListener('click', ()=> firebase.auth().signOut());
+
+// ---------- load & fill ----------
+async function loadSettingsAndFill(){
+  try{
+    const doc = await db.collection(FS_COLLECTION).doc(FS_DOC).get();
+    settings = {...DEFAULT_SETTINGS, ...((doc.exists && doc.data().settings) || {})};
+  }catch(e){ console.error(e); }
+  document.getElementById('setHeroTitleMain').value = settings.heroTitleMain || '';
+  document.getElementById('setHeroTitleAccent').value = settings.heroTitleAccent || '';
+  document.getElementById('setHeroSubtitle').value = settings.heroSubtitle || '';
+  document.getElementById('setWhatsapp').value = settings.whatsapp || '';
+  document.getElementById('setAboutTitle').value = settings.aboutTitle || '';
+  document.getElementById('setAboutText').value = settings.aboutText || '';
+  document.getElementById('setAboutImgFile').value = '';
+  if(settings.aboutImg){
+    document.getElementById('aboutImgPreview').src = settings.aboutImg;
+    document.getElementById('aboutImgPreviewWrap').style.display = '';
+  } else {
+    document.getElementById('aboutImgPreviewWrap').style.display = 'none';
+  }
+  document.getElementById('setContactTagline').value = settings.contactTagline || '';
+  document.getElementById('setFacebook').value = settings.facebook || '';
+  document.getElementById('setInstagram').value = settings.instagram || '';
+  document.getElementById('setTiktok').value = settings.tiktok || '';
+  document.getElementById('setDomainExpiry').value = settings.domainExpiry || '';
+  renderDomainCountdown();
+}
+
+function renderDomainCountdown(){
+  const el = document.getElementById('domainCountdown');
+  if(!settings.domainExpiry){ el.textContent = 'لم يُحدَّد تاريخ بعد.'; return; }
+  const target = new Date(settings.domainExpiry + 'T00:00:00');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const days = Math.round((target - today) / 86400000);
+  if(days > 30) el.innerHTML = `متبقي <b style="color:var(--gold-deep);">${days}</b> يوم على تجديد الدومين.`;
+  else if(days > 0) el.innerHTML = `⚠️ متبقي <b style="color:var(--danger);">${days}</b> يوم بس على تجديد الدومين.`;
+  else if(days === 0) el.innerHTML = `⚠️ <b style="color:var(--danger);">الدومين ينتهي اليوم!</b>`;
+  else el.innerHTML = `⛔ <b style="color:var(--danger);">الدومين متأخر عن التجديد بـ ${Math.abs(days)} يوم!</b>`;
+}
+
+// ---------- save handlers ----------
+document.getElementById('btnSaveHero').addEventListener('click', async ()=>{
+  settings.heroTitleMain = document.getElementById('setHeroTitleMain').value.trim() || DEFAULT_SETTINGS.heroTitleMain;
+  settings.heroTitleAccent = document.getElementById('setHeroTitleAccent').value.trim() || DEFAULT_SETTINGS.heroTitleAccent;
+  settings.heroSubtitle = document.getElementById('setHeroSubtitle').value.trim() || DEFAULT_SETTINGS.heroSubtitle;
+  await saveSettings();
+  toast('تم حفظ عنوان الصفحة الرئيسية');
+});
+
+document.getElementById('btnSaveAbout').addEventListener('click', async ()=>{
+  settings.aboutTitle = document.getElementById('setAboutTitle').value.trim() || DEFAULT_SETTINGS.aboutTitle;
+  settings.aboutText = document.getElementById('setAboutText').value.trim() || DEFAULT_SETTINGS.aboutText;
+  settings.contactTagline = document.getElementById('setContactTagline').value.trim() || DEFAULT_SETTINGS.contactTagline;
+  const file = document.getElementById('setAboutImgFile').files[0];
+  if(file){
+    try{
+      toast('جاري رفع صورة القسم...');
+      const storageRef = storage.ref('site/about.jpg');
+      await storageRef.put(file, { contentType: file.type || 'image/jpeg' });
+      settings.aboutImg = await storageRef.getDownloadURL();
+    }catch(e){ console.error(e); toast('تعذر رفع صورة القسم'); }
+  }
+  await saveSettings();
+  toast('تم حفظ قسم "من نحن"');
+});
+
+document.getElementById('btnSaveSocial').addEventListener('click', async ()=>{
+  settings.whatsapp = document.getElementById('setWhatsapp').value.trim();
+  settings.facebook = document.getElementById('setFacebook').value.trim();
+  settings.instagram = document.getElementById('setInstagram').value.trim();
+  settings.tiktok = document.getElementById('setTiktok').value.trim();
+  await saveSettings();
+  toast('تم حفظ روابط التواصل الاجتماعي');
+});
+
+document.getElementById('btnSaveDomain').addEventListener('click', async ()=>{
+  settings.domainExpiry = document.getElementById('setDomainExpiry').value;
+  await saveSettings();
+  renderDomainCountdown();
+  toast('تم حفظ تاريخ انتهاء الدومين');
+});
+
+// ---------- backup / restore ----------
+document.getElementById('btnExportBackup').addEventListener('click', async ()=>{
+  try{
+    const snap = await db.collection(FS_COLLECTION).get();
+    let items = [];
+    snap.forEach(doc=>{ if(doc.id.startsWith(CHUNK_PREFIX)) items = items.concat(doc.data().items || []); });
+    const backup = { type:'qaysar-alsham-backup', exportedAt: new Date().toISOString(), settings, items };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `qaysar-alsham-backup-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    toast('تم تنزيل النسخة الاحتياطية');
+  }catch(e){ console.error(e); toast('تعذر إنشاء النسخة الاحتياطية'); }
+});
+document.getElementById('btnImportBackup').addEventListener('click', ()=>{
+  document.getElementById('importBackupFile').value = '';
+  document.getElementById('importBackupFile').click();
+});
+document.getElementById('importBackupFile').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  try{
+    const text = await file.text();
+    const backup = JSON.parse(text);
+    if(!backup || !Array.isArray(backup.items) || typeof backup.settings !== 'object'){
+      toast('هذا الملف مش نسخة احتياطية صالحة'); return;
+    }
+    if(!confirm('استرجاع هالنسخة رح يستبدل كل البيانات الحالية (الصور والإعدادات). متأكد بدك تكمل؟')) return;
+    const snap = await db.collection(FS_COLLECTION).get();
+    const oldChunkIds = [];
+    snap.forEach(doc => { if(doc.id.startsWith(CHUNK_PREFIX)) oldChunkIds.push(doc.id); });
+    for(const cid of oldChunkIds){ await db.collection(FS_COLLECTION).doc(cid).delete(); }
+    await chunkAndWriteItems(backup.items);
+    settings = {...DEFAULT_SETTINGS, ...backup.settings};
+    await db.collection(FS_COLLECTION).doc(FS_DOC).set({settings});
+    loadSettingsAndFill();
+    toast('تم استرجاع النسخة الاحتياطية بنجاح');
+  }catch(err){ console.error(err); toast('تعذّر قراءة أو استرجاع هذا الملف'); }
+});
+</script>
+</body>
+</html>
