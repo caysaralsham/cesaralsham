@@ -351,20 +351,32 @@ function getLogoImage(){
 async function drawWatermark(ctx, w, h){
   const logoImg = await getLogoImage();
   const wmText = 'الجزائر · قيصر الشام للحجر والرخام · 0541.73.78.88';
-  const fontSize = Math.max(14, Math.round(w * 0.022));
+  let fontSize = Math.max(11, Math.round(w * 0.022));
   ctx.font = `700 ${fontSize}px Tajawal, Arial`;
-  const textW = ctx.measureText(wmText).width;
-  const logoH = fontSize * 2.4;
-  const logoW = logoImg.width * (logoH / logoImg.height);
+  let textW = ctx.measureText(wmText).width;
+  let logoH = fontSize * 2.4;
+  let logoW = logoImg.width * (logoH / logoImg.height);
   const padX = 12, padY = 8, gap = 8;
-  const boxW = textW + padX*2 + logoW + gap, boxH = Math.max(fontSize, logoH) + padY*2;
+  let boxW = textW + padX*2 + logoW + gap;
+  const maxBoxW = w - 20;
+  if(boxW > maxBoxW){
+    const scale = Math.max(0.35, maxBoxW / boxW);
+    fontSize = Math.max(8, Math.round(fontSize * scale));
+    ctx.font = `700 ${fontSize}px Tajawal, Arial`;
+    textW = ctx.measureText(wmText).width;
+    logoH = fontSize * 2.4;
+    logoW = logoImg.width * (logoH / logoImg.height);
+    boxW = textW + padX*2 + logoW + gap;
+  }
+  const boxH = Math.max(fontSize, logoH) + padY*2;
+  const boxX = Math.max(10, w - boxW - 10);
   ctx.fillStyle = 'rgba(0,0,0,0.45)';
-  ctx.fillRect(w - boxW - 10, h - boxH - 10, boxW, boxH);
-  ctx.drawImage(logoImg, w - boxW - 10 + padX, h - boxH - 10 + (boxH - logoH)/2, logoW, logoH);
+  ctx.fillRect(boxX, h - boxH - 10, boxW, boxH);
+  ctx.drawImage(logoImg, boxX + padX, h - boxH - 10 + (boxH - logoH)/2, logoW, logoH);
   ctx.fillStyle = '#fff';
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'right';
-  ctx.fillText(wmText, w - 10 - padX, h - 10 - boxH/2);
+  ctx.fillText(wmText, boxX + boxW - padX, h - 10 - boxH/2);
 }
 
 // ---------- category select helper ----------
