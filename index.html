@@ -1012,12 +1012,26 @@ document.getElementById('btnDoLogin').addEventListener('click', ()=>{
   const pass = document.getElementById('loginPass').value;
   document.getElementById('loginErr').style.display = 'none';
   firebase.auth().signInWithEmailAndPassword(email, pass).then(()=>{
-    window.location.href = 'admin-works.html';
+    document.getElementById('loginOverlay').classList.remove('show');
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+    if(new URLSearchParams(location.search).get('panel') === 'settings') openAdmin();
+    else window.location.href = 'admin-works.html';
   }).catch(err=>{
     console.error(err);
     document.getElementById('loginErr').style.display = 'block';
   });
 });
+// دخول مباشر للإعدادات العامة (النصوص، الشعار، النسخة الاحتياطية...) عبر index.html?panel=settings
+(async function autoOpenSettingsPanel(){
+  if(new URLSearchParams(location.search).get('panel') !== 'settings') return;
+  await waitForAuthReady();
+  if(firebase.auth().currentUser) openAdmin();
+  else {
+    document.getElementById('loginErr').style.display = 'none';
+    document.getElementById('loginOverlay').classList.add('show');
+  }
+})();
 function renderDomainCountdown(){
   const el = document.getElementById('domainCountdown');
   if(!settings.domainExpiry){ el.textContent = 'لم يُحدَّد تاريخ بعد.'; return; }
