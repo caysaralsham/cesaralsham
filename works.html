@@ -3,146 +3,101 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>الإعدادات العامة | قيصر الشام</title>
-<meta name="robots" content="noindex, nofollow">
+<title>أعمالنا | قيصر الشام للحجر والرخام</title>
+<meta name="description" content="معرض أعمال قيصر الشام للحجر والرخام — شمينة، جرن حمام، سبالة، تابلوهات أرضية وحائطية وأعمدة منحوتة. Galerie de nos réalisations en marbre et pierre naturelle.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <style>
   :root{
     --ink:#111111; --gold:#B88A2A; --gold-deep:#8F6A1F; --cream:#FFFFFF; --cream-2:#FAF9F7;
-    --stone:#1A1A1A; --text-dim:#666666; --line:#ECE8E0; --white:#FFFFFF; --danger:#A6453D; --danger-soft:#F3E2E0;
-    --radius:14px; --shadow:0 6px 20px rgba(17,17,17,.06);
+    --text-dim:#666666; --line:#ECE8E0; --shadow:0 10px 30px rgba(17,17,17,.06);
+    --radius:20px;
   }
   *{box-sizing:border-box;}
-  body{margin:0; font-family:'Cairo','Tajawal',sans-serif; background:var(--cream-2); color:#1A1A1A; direction:rtl;}
+  body{margin:0; font-family:'Cairo','Tajawal',sans-serif; background:var(--cream); color:#1A1A1A; direction:rtl; line-height:1.6;}
   a{text-decoration:none; color:inherit;}
+  img{max-width:100%; display:block;}
 
-  header{background:var(--ink); color:#fff; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
-  header h1{font-size:16px; font-weight:800; margin:0; color:var(--gold);}
-  header .right{display:flex; align-items:center; gap:12px; font-size:12.5px; flex-wrap:wrap;}
-  header a.backlink{color:#cfc6ac;}
+  header{background:var(--ink); position:sticky; top:0; z-index:50;}
+  .header-inner{max-width:1280px; margin:0 auto; padding:16px 24px; display:flex; align-items:center; justify-content:space-between; gap:16px;}
+  .brand{display:flex; align-items:center; gap:10px; color:var(--gold); font-weight:800; font-size:18px;}
+  nav a{color:#cfc6ac; font-size:14px; font-weight:700; margin-inline-start:20px;}
+  nav a:hover, nav a.home-link:hover{color:var(--gold);}
 
-  .wrap{max-width:760px; margin:0 auto; padding:24px 16px 60px;}
+  .page-head{max-width:1280px; margin:0 auto; padding:56px 24px 24px; text-align:center;}
+  .page-head h1{font-size:clamp(26px,4vw,38px); font-weight:900; margin:0 0 10px;}
+  .page-head h1 span{color:var(--gold-deep);}
+  .page-head p{color:var(--text-dim); font-size:14.5px; margin:0;}
 
-  .panel{background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); margin-bottom:18px;}
-  .panel h2{font-size:15px; margin:0 0 6px;}
-  .panel .desc{font-size:11.5px; color:var(--text-dim); margin:0 0 14px; line-height:1.8;}
+  .filters{max-width:1280px; margin:0 auto; padding:0 24px 32px; display:flex; flex-wrap:wrap; gap:10px; justify-content:center;}
+  .filter-btn{background:var(--cream-2); border:1.5px solid var(--line); color:var(--ink); padding:9px 20px; border-radius:999px; font-size:13.5px; font-weight:700; cursor:pointer; transition:.2s;}
+  .filter-btn:hover{border-color:var(--gold);}
+  .filter-btn.active{background:var(--gold); border-color:var(--gold); color:#fff;}
 
-  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; background:var(--gold); color:#fff; padding:12px 18px; border-radius:10px; font-size:14px; font-weight:700; border:none; cursor:pointer; width:100%;}
-  .btn:hover{background:var(--gold-deep);}
-  .btn-ghost{background:transparent; border:1.5px solid var(--gold); color:var(--gold-deep);}
-  .btn-ghost:hover{background:var(--gold); color:#fff;}
-  .btn-danger{background:var(--danger-soft); color:var(--danger); border:1px solid #E3C3C0;}
-  .btn-sm{padding:9px 14px; font-size:12.5px; width:auto;}
+  .gallery-grid{max-width:1280px; margin:0 auto; padding:0 24px 80px; display:grid; grid-template-columns:repeat(4,1fr); gap:22px;}
+  .card{background:#fff; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); cursor:pointer; transition:.3s ease; display:flex; flex-direction:column;}
+  .card:hover{transform:translateY(-5px); box-shadow:0 20px 40px rgba(17,17,17,.12);}
+  .card .img-wrap{aspect-ratio:4/3; overflow:hidden; background:var(--cream-2);}
+  .card .img-wrap img{width:100%; height:100%; object-fit:cover; transition:.4s ease;}
+  .card:hover .img-wrap img{transform:scale(1.06);}
+  .card .body{padding:14px 16px;}
+  .card .title{font-weight:700; font-size:14.5px; margin-bottom:4px;}
+  .card .meta{font-size:12px; color:var(--text-dim);}
 
-  .field{margin-bottom:13px;}
-  .field label{display:block; font-size:12.5px; font-weight:700; color:var(--text-dim); margin-bottom:5px;}
-  .field input, .field textarea{width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:9px; font-family:inherit; font-size:14.5px;}
-  .field textarea{resize:vertical;}
+  .empty-state{grid-column:1/-1; text-align:center; padding:60px 20px; color:var(--text-dim); font-size:14px;}
 
-  hr{border:none; border-top:1px solid var(--line); margin:18px 0;}
+  footer{background:#0c0c0c; color:#8a8270; text-align:center; padding:26px; font-size:12.5px; margin-top:40px;}
+  footer b{color:var(--gold);}
 
-  #loginScreen{position:fixed; inset:0; background:var(--ink); display:flex; align-items:center; justify-content:center; z-index:500; padding:16px;}
-  #loginScreen .box{background:#fff; border-radius:14px; width:100%; max-width:340px; padding:28px 24px; box-shadow:0 20px 60px rgba(0,0,0,.4);}
-  #loginScreen h2{text-align:center; font-size:16px; margin:0 0 18px;}
-  .err{color:var(--danger); font-size:12.5px; display:none; margin-bottom:8px;}
+  .lightbox-overlay{position:fixed; inset:0; background:rgba(20,17,13,.92); z-index:300; display:none; align-items:center; justify-content:center; padding:20px; cursor:zoom-out;}
+  .lightbox-overlay.show{display:flex;}
+  .lightbox-close{position:absolute; top:18px; left:24px; color:#fff; font-size:34px; cursor:pointer; z-index:2;}
+  .lightbox-overlay img{max-width:92%; max-height:88vh; border-radius:8px; box-shadow:0 10px 40px rgba(0,0,0,.5);}
 
-  .toast{position:fixed; bottom:20px; right:20px; left:20px; margin:0 auto; max-width:320px; background:var(--ink); color:#fff; padding:12px 20px; border-radius:8px; font-size:13.5px; z-index:200; opacity:0; transform:translateY(10px); transition:.25s; text-align:center;}
-  .toast.show{opacity:1; transform:translateY(0);}
-
-  .backup-row{display:flex; gap:8px; flex-wrap:wrap;}
-  .backup-row .btn-sm{flex:1; min-width:150px;}
-
-  @media (max-width:480px){
-    header{padding:14px 14px;}
-    header h1{font-size:14px;}
-    .wrap{padding:18px 12px 50px;}
-    .panel{padding:15px;}
-    .backup-row .btn-sm{min-width:100%;}
+  @media (max-width:960px){
+    .gallery-grid{grid-template-columns:repeat(2,1fr);}
+    nav a{margin-inline-start:14px; font-size:13px;}
+  }
+  @media (max-width:520px){
+    .gallery-grid{grid-template-columns:1fr; gap:16px;}
   }
 </style>
 </head>
 <body>
 
-<div id="loginScreen">
-  <div class="box">
-    <h2>دخول الإعدادات العامة</h2>
-    <div class="field"><label>البريد الإلكتروني</label><input type="email" id="loginUser" autocomplete="username"></div>
-    <div class="field"><label>كلمة السر</label><input type="password" id="loginPass" autocomplete="current-password"></div>
-    <div id="loginErr" class="err">البريد الإلكتروني أو كلمة السر غير صحيحة</div>
-    <button class="btn" id="btnDoLogin">دخول</button>
-  </div>
-</div>
-
 <header>
-  <h1>الإعدادات العامة — قيصر الشام</h1>
-  <div class="right">
-    <a class="backlink" href="index.html">↩ الموقع</a>
-    <a class="backlink" href="admin-works.html">🖼 إدارة الصور والأقسام</a>
-    <span id="whoEmail"></span>
-    <button class="btn btn-ghost btn-sm" id="btnLogout">خروج</button>
+  <div class="header-inner">
+    <a class="brand home-link" href="index.html">قيصر الشام</a>
+    <nav>
+      <a href="index.html">الرئيسية</a>
+      <a href="index.html#about">من نحن</a>
+      <a href="index.html#contact">تواصل معنا</a>
+    </nav>
   </div>
 </header>
 
-<div class="wrap">
-
-  <div class="panel">
-    <h2>عنوان الصفحة الرئيسية</h2>
-    <div class="field"><label>الجزء الأول من العنوان</label><input type="text" id="setHeroTitleMain"></div>
-    <div class="field"><label>الجزء الذهبي من العنوان</label><input type="text" id="setHeroTitleAccent"></div>
-    <div class="field"><label>الوصف تحت العنوان</label><textarea id="setHeroSubtitle" rows="2"></textarea></div>
-    <button class="btn btn-ghost" id="btnSaveHero">حفظ عنوان الصفحة الرئيسية</button>
-  </div>
-
-  <div class="panel">
-    <h2>قسم "من نحن"</h2>
-    <div class="field"><label>عنوان القسم</label><input type="text" id="setAboutTitle"></div>
-    <div class="field"><label>نص القسم</label><textarea id="setAboutText" rows="4"></textarea></div>
-    <div class="field"><label>صورة القسم</label><input type="file" id="setAboutImgFile" accept="image/*"></div>
-    <div id="aboutImgPreviewWrap" style="display:none; margin:8px 0;"><img id="aboutImgPreview" style="max-width:100%; max-height:160px; border-radius:8px;"></div>
-    <div class="field"><label>سطر التواصل (تحت "احنا هون لخدمتك")</label><input type="text" id="setContactTagline"></div>
-    <button class="btn btn-ghost" id="btnSaveAbout">حفظ قسم "من نحن"</button>
-  </div>
-
-  <div class="panel">
-    <h2>روابط التواصل الاجتماعي</h2>
-    <div class="field"><label>واتساب (رقم بدون + ولا أصفار، مثال: 213541737888)</label><input type="text" id="setWhatsapp" placeholder="213541737888"></div>
-    <div class="field"><label>فيسبوك</label><input type="text" id="setFacebook" placeholder="https://facebook.com/..."></div>
-    <div class="field"><label>انستغرام</label><input type="text" id="setInstagram" placeholder="https://instagram.com/..."></div>
-    <div class="field"><label>تيك توك</label><input type="text" id="setTiktok" placeholder="https://tiktok.com/@..."></div>
-    <button class="btn btn-ghost" id="btnSaveSocial">حفظ الروابط</button>
-  </div>
-
-  <div class="panel">
-    <h2>تجديد الدومين (النطاق)</h2>
-    <div class="field"><label>تاريخ انتهاء الدومين</label><input type="date" id="setDomainExpiry" lang="en" style="direction:ltr;"></div>
-    <div id="domainCountdown" style="font-size:13px; color:var(--text-dim); margin-bottom:12px;"></div>
-    <button class="btn btn-ghost" id="btnSaveDomain">حفظ تاريخ الانتهاء</button>
-  </div>
-
-  <div class="panel">
-    <h2>نسخة احتياطية (باكأب) للموقع</h2>
-    <p class="desc">نزّل نسخة من كل بيانات الموقع (الأقسام، الصور، الإعدادات) واحتفظ فيها عندك. إذا صار مشكل، ارفع نفس الملف من هون لاسترجاع البيانات، أو ابعته لمن بيساعدك يفهم المشكلة فورًا.</p>
-    <div class="backup-row">
-      <button class="btn btn-ghost btn-sm" id="btnExportBackup">⬇ تنزيل نسخة احتياطية</button>
-      <input type="file" id="importBackupFile" accept="application/json" style="display:none;">
-      <button class="btn btn-ghost btn-sm" id="btnImportBackup">⬆ استرجاع من نسخة احتياطية</button>
-    </div>
-  </div>
-
-  <div class="panel">
-    <h2>حساب الدخول</h2>
-    <div style="font-size:13px; color:var(--text-dim); margin-bottom:6px;">مسجّل دخول بالحساب: <b id="currentAdminEmail" style="color:var(--ink);"></b></div>
-    <div style="font-size:11.5px; color:var(--text-dim);">لتغيير كلمة السر أو إضافة حساب أدمن ثاني، هذا يصير من Firebase Console → Authentication → Users، مش من هون.</div>
-  </div>
-
+<div class="page-head">
+  <h1>أعمالنا في <span>الحجر والرخام</span></h1>
+  <p>تصفّح مجموعة من أعمالنا المنجزة — دوس على أي صورة لعرضها بحجم أكبر</p>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="filters" id="filters"></div>
+
+<div class="gallery-grid" id="galleryGrid">
+  <div class="empty-state">جاري تحميل الأعمال...</div>
+</div>
+
+<footer>
+  <b>قيصر الشام للحجر والرخام</b> — جميع الحقوق محفوظة © 2026
+</footer>
+
+<div class="lightbox-overlay" id="lightboxOverlay">
+  <span class="lightbox-close" id="lightboxClose">×</span>
+  <img id="lightboxImg" src="">
+</div>
 
 <script>
 const firebaseConfig = {
@@ -154,196 +109,77 @@ const firebaseConfig = {
   appId: "1:1025769465563:web:53b5c9949dbb26364d8efe"
 };
 firebase.initializeApp(firebaseConfig);
-firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
 const db = firebase.firestore();
-const storage = firebase.storage();
 
 const FS_COLLECTION = 'cesar_website';
-const FS_DOC = 'main';
 const CHUNK_PREFIX = 'items_';
 
-const DEFAULT_SETTINGS = {
-  facebook:'', instagram:'', tiktok:'', whatsapp:'213541737888', domainExpiry:'',
-  heroTitleMain:'أرقى أنواع',
-  heroTitleAccent:'الحجر والرخام',
-  heroSubtitle:'تصاميم ونحت وتركيب بخبرة عالية — من ديالي إبراهيم، الجزائر، لكل بيت يستحق لمسة فخامة',
-  aboutTitle:'من نحن',
-  aboutText:'قيصر الشام للحجر والرخام — شركة جزائرية متخصصة في تصميم ونحت وتركيب الحجر والرخام بأعلى معايير الجودة، من المداخن والمغاسل إلى الأعمدة والحوائط المنحوتة. نجمع بين الحرفية التقليدية والدقة الحديثة لنقدم قطعاً تدوم.',
-  contactTagline:'لأي استفسار أو طلب عرض سعر، احنا هون لخدمتك'
-};
-let settings = {...DEFAULT_SETTINGS};
+let items = [];
+let activeCategory = 'all';
 
-function toast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(window._toastTimer);
-  window._toastTimer = setTimeout(()=> t.classList.remove('show'), 2600);
-}
-function byteLen(obj){ return JSON.stringify(obj).length; }
+// لو الرابط جاي من القائمة المنسدلة بـ index.html بشكل works.html?category=اسم_القسم
+const params = new URLSearchParams(location.search);
+const initialCategory = params.get('category');
+if(initialCategory) activeCategory = initialCategory;
 
-async function saveSettings(){
-  await db.collection(FS_COLLECTION).doc(FS_DOC).set({settings}, {merge:true});
-}
-async function chunkAndWriteItems(itemsArray){
-  const CHUNK_MAX_BYTES = 850000;
-  const chunks = [];
-  let current = [], currentSize = 0;
-  itemsArray.forEach(it=>{
-    const size = byteLen(it);
-    if(current.length && currentSize + size > CHUNK_MAX_BYTES){ chunks.push(current); current = []; currentSize = 0; }
-    current.push(it); currentSize += size;
+function renderFilters(){
+  const cats = [...new Set(items.map(it => (it.category||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar'));
+  const wrap = document.getElementById('filters');
+  if(!cats.length){ wrap.innerHTML = ''; return; }
+  const allBtn = `<button class="filter-btn ${activeCategory==='all'?'active':''}" data-cat="all">الكل</button>`;
+  const catBtns = cats.map(c => `<button class="filter-btn ${activeCategory===c?'active':''}" data-cat="${c}">${c}</button>`).join('');
+  wrap.innerHTML = allBtn + catBtns;
+  wrap.querySelectorAll('.filter-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      activeCategory = btn.dataset.cat;
+      renderFilters();
+      renderGallery();
+    });
   });
-  if(current.length) chunks.push(current);
-  for(let i=0;i<chunks.length;i++){
-    await db.collection(FS_COLLECTION).doc(CHUNK_PREFIX+i).set({items: chunks[i]});
-  }
 }
 
-// ---------- auth ----------
-firebase.auth().onAuthStateChanged(user=>{
-  if(user){
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('whoEmail').textContent = user.email;
-    document.getElementById('currentAdminEmail').textContent = user.email;
-    loadSettingsAndFill();
-  } else {
-    document.getElementById('loginScreen').style.display = 'flex';
+function renderGallery(){
+  const grid = document.getElementById('galleryGrid');
+  const filtered = activeCategory === 'all' ? items : items.filter(it => (it.category||'').trim() === activeCategory);
+  if(!filtered.length){
+    grid.innerHTML = '<div class="empty-state">لا توجد صور بهذا القسم بعد.</div>';
+    return;
   }
+  grid.innerHTML = filtered.map(it => `
+    <div class="card" onclick="openLightbox('${it.img}')">
+      <div class="img-wrap"><img src="${it.img}" loading="lazy" alt="${(it.title||it.category||'رخام وحجر طبيعي')} - قيصر الشام"></div>
+      <div class="body">
+        <div class="title">${it.title || it.category || 'قطعة رخام وحجر'}</div>
+        <div class="meta">${[it.category, it.size, it.color].filter(Boolean).join(' · ')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openLightbox(imgUrl){
+  document.getElementById('lightboxImg').src = imgUrl;
+  document.getElementById('lightboxOverlay').classList.add('show');
+}
+function closeLightbox(){
+  document.getElementById('lightboxOverlay').classList.remove('show');
+}
+document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+document.getElementById('lightboxOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'lightboxOverlay') closeLightbox();
 });
-document.getElementById('btnDoLogin').addEventListener('click', ()=>{
-  const email = document.getElementById('loginUser').value.trim();
-  const pass = document.getElementById('loginPass').value;
-  document.getElementById('loginErr').style.display = 'none';
-  firebase.auth().signInWithEmailAndPassword(email, pass).catch(err=>{
-    console.error(err);
-    document.getElementById('loginErr').style.display = 'block';
+
+db.collection(FS_COLLECTION).onSnapshot((snap)=>{
+  let combined = [];
+  snap.forEach(doc=>{
+    if(doc.id.startsWith(CHUNK_PREFIX)) combined = combined.concat(doc.data().items || []);
   });
-});
-document.getElementById('loginPass').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('btnDoLogin').click(); });
-document.getElementById('btnLogout').addEventListener('click', ()=> firebase.auth().signOut());
-
-// ---------- load & fill ----------
-async function loadSettingsAndFill(){
-  try{
-    const doc = await db.collection(FS_COLLECTION).doc(FS_DOC).get();
-    settings = {...DEFAULT_SETTINGS, ...((doc.exists && doc.data().settings) || {})};
-  }catch(e){ console.error(e); }
-  document.getElementById('setHeroTitleMain').value = settings.heroTitleMain || '';
-  document.getElementById('setHeroTitleAccent').value = settings.heroTitleAccent || '';
-  document.getElementById('setHeroSubtitle').value = settings.heroSubtitle || '';
-  document.getElementById('setWhatsapp').value = settings.whatsapp || '';
-  document.getElementById('setAboutTitle').value = settings.aboutTitle || '';
-  document.getElementById('setAboutText').value = settings.aboutText || '';
-  document.getElementById('setAboutImgFile').value = '';
-  if(settings.aboutImg){
-    document.getElementById('aboutImgPreview').src = settings.aboutImg;
-    document.getElementById('aboutImgPreviewWrap').style.display = '';
-  } else {
-    document.getElementById('aboutImgPreviewWrap').style.display = 'none';
-  }
-  document.getElementById('setContactTagline').value = settings.contactTagline || '';
-  document.getElementById('setFacebook').value = settings.facebook || '';
-  document.getElementById('setInstagram').value = settings.instagram || '';
-  document.getElementById('setTiktok').value = settings.tiktok || '';
-  document.getElementById('setDomainExpiry').value = settings.domainExpiry || '';
-  renderDomainCountdown();
-}
-
-function renderDomainCountdown(){
-  const el = document.getElementById('domainCountdown');
-  if(!settings.domainExpiry){ el.textContent = 'لم يُحدَّد تاريخ بعد.'; return; }
-  const target = new Date(settings.domainExpiry + 'T00:00:00');
-  const today = new Date(); today.setHours(0,0,0,0);
-  const days = Math.round((target - today) / 86400000);
-  if(days > 30) el.innerHTML = `متبقي <b style="color:var(--gold-deep);">${days}</b> يوم على تجديد الدومين.`;
-  else if(days > 0) el.innerHTML = `⚠️ متبقي <b style="color:var(--danger);">${days}</b> يوم بس على تجديد الدومين.`;
-  else if(days === 0) el.innerHTML = `⚠️ <b style="color:var(--danger);">الدومين ينتهي اليوم!</b>`;
-  else el.innerHTML = `⛔ <b style="color:var(--danger);">الدومين متأخر عن التجديد بـ ${Math.abs(days)} يوم!</b>`;
-}
-
-// ---------- save handlers ----------
-document.getElementById('btnSaveHero').addEventListener('click', async ()=>{
-  settings.heroTitleMain = document.getElementById('setHeroTitleMain').value.trim() || DEFAULT_SETTINGS.heroTitleMain;
-  settings.heroTitleAccent = document.getElementById('setHeroTitleAccent').value.trim() || DEFAULT_SETTINGS.heroTitleAccent;
-  settings.heroSubtitle = document.getElementById('setHeroSubtitle').value.trim() || DEFAULT_SETTINGS.heroSubtitle;
-  await saveSettings();
-  toast('تم حفظ عنوان الصفحة الرئيسية');
-});
-
-document.getElementById('btnSaveAbout').addEventListener('click', async ()=>{
-  settings.aboutTitle = document.getElementById('setAboutTitle').value.trim() || DEFAULT_SETTINGS.aboutTitle;
-  settings.aboutText = document.getElementById('setAboutText').value.trim() || DEFAULT_SETTINGS.aboutText;
-  settings.contactTagline = document.getElementById('setContactTagline').value.trim() || DEFAULT_SETTINGS.contactTagline;
-  const file = document.getElementById('setAboutImgFile').files[0];
-  if(file){
-    try{
-      toast('جاري رفع صورة القسم...');
-      const storageRef = storage.ref('site/about.jpg');
-      await storageRef.put(file, { contentType: file.type || 'image/jpeg' });
-      settings.aboutImg = await storageRef.getDownloadURL();
-    }catch(e){ console.error(e); toast('تعذر رفع صورة القسم'); }
-  }
-  await saveSettings();
-  toast('تم حفظ قسم "من نحن"');
-});
-
-document.getElementById('btnSaveSocial').addEventListener('click', async ()=>{
-  settings.whatsapp = document.getElementById('setWhatsapp').value.trim();
-  settings.facebook = document.getElementById('setFacebook').value.trim();
-  settings.instagram = document.getElementById('setInstagram').value.trim();
-  settings.tiktok = document.getElementById('setTiktok').value.trim();
-  await saveSettings();
-  toast('تم حفظ روابط التواصل الاجتماعي');
-});
-
-document.getElementById('btnSaveDomain').addEventListener('click', async ()=>{
-  settings.domainExpiry = document.getElementById('setDomainExpiry').value;
-  await saveSettings();
-  renderDomainCountdown();
-  toast('تم حفظ تاريخ انتهاء الدومين');
-});
-
-// ---------- backup / restore ----------
-document.getElementById('btnExportBackup').addEventListener('click', async ()=>{
-  try{
-    const snap = await db.collection(FS_COLLECTION).get();
-    let items = [];
-    snap.forEach(doc=>{ if(doc.id.startsWith(CHUNK_PREFIX)) items = items.concat(doc.data().items || []); });
-    const backup = { type:'qaysar-alsham-backup', exportedAt: new Date().toISOString(), settings, items };
-    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `qaysar-alsham-backup-${new Date().toISOString().slice(0,10)}.json`;
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(url);
-    toast('تم تنزيل النسخة الاحتياطية');
-  }catch(e){ console.error(e); toast('تعذر إنشاء النسخة الاحتياطية'); }
-});
-document.getElementById('btnImportBackup').addEventListener('click', ()=>{
-  document.getElementById('importBackupFile').value = '';
-  document.getElementById('importBackupFile').click();
-});
-document.getElementById('importBackupFile').addEventListener('change', async (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  try{
-    const text = await file.text();
-    const backup = JSON.parse(text);
-    if(!backup || !Array.isArray(backup.items) || typeof backup.settings !== 'object'){
-      toast('هذا الملف مش نسخة احتياطية صالحة'); return;
-    }
-    if(!confirm('استرجاع هالنسخة رح يستبدل كل البيانات الحالية (الصور والإعدادات). متأكد بدك تكمل؟')) return;
-    const snap = await db.collection(FS_COLLECTION).get();
-    const oldChunkIds = [];
-    snap.forEach(doc => { if(doc.id.startsWith(CHUNK_PREFIX)) oldChunkIds.push(doc.id); });
-    for(const cid of oldChunkIds){ await db.collection(FS_COLLECTION).doc(cid).delete(); }
-    await chunkAndWriteItems(backup.items);
-    settings = {...DEFAULT_SETTINGS, ...backup.settings};
-    await db.collection(FS_COLLECTION).doc(FS_DOC).set({settings});
-    loadSettingsAndFill();
-    toast('تم استرجاع النسخة الاحتياطية بنجاح');
-  }catch(err){ console.error(err); toast('تعذّر قراءة أو استرجاع هذا الملف'); }
+  combined.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
+  items = combined;
+  renderFilters();
+  renderGallery();
+}, (err)=>{
+  console.error(err);
+  document.getElementById('galleryGrid').innerHTML = '<div class="empty-state">تعذر تحميل الأعمال حاليًا، حاول تحديث الصفحة.</div>';
 });
 </script>
 </body>
