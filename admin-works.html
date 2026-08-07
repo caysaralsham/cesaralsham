@@ -343,25 +343,27 @@ function startSync(){
 function getLogoImage(){
   if(window._logoImgCache) return Promise.resolve(window._logoImgCache);
   if(window._logoImgPromise) return window._logoImgPromise;
-  window._logoImgPromise = new Promise((res)=>{
-    const img = new Image();
-    img.onload = ()=>{ window._logoImgCache = img; res(img); };
-    img.onerror = ()=>{ console.error('logo failed to load'); res(img); };
-    img.src = LOGO_SRC;
-  });
+  const img = new Image();
+  img.src = LOGO_SRC;
+  window._logoImgPromise = (img.decode ? img.decode() : new Promise((res, rej)=>{
+    img.onload = res; img.onerror = rej;
+  }))
+    .then(()=>{ window._logoImgCache = img; return img; })
+    .catch((e)=>{ console.error('logo failed to load/decode', e); window._logoImgCache = img; return img; });
   return window._logoImgPromise;
 }
-// نحمّل اللوغو فورًا من فتح الصفحة، مش وقت رفع الصورة، حتى يكون جاهز 100% دايمًا
+// نحمّل اللوغو ونتأكد إنه اتفكّ (decode) بالكامل من فتح الصفحة، مش وقت رفع الصورة
 getLogoImage();
 async function drawWatermark(ctx, w, h){
   const logoImg = await getLogoImage();
+  const hasLogo = !!(logoImg && logoImg.naturalWidth > 0);
   const wmText = 'الجزائر · قيصر الشام للحجر والرخام · 0541.73.78.88';
   let fontSize = Math.max(11, Math.round(w * 0.022));
   ctx.font = `700 ${fontSize}px Tajawal, Arial`;
   let textW = ctx.measureText(wmText).width;
-  let logoH = fontSize * 2.4;
-  let logoW = logoImg.width * (logoH / logoImg.height);
-  const padX = 12, padY = 8, gap = 8;
+  let logoH = hasLogo ? fontSize * 2.4 : 0;
+  let logoW = hasLogo ? logoImg.width * (logoH / logoImg.height) : 0;
+  const padX = 12, padY = 8, gap = hasLogo ? 8 : 0;
   let boxW = textW + padX*2 + logoW + gap;
   const maxBoxW = w - 20;
   if(boxW > maxBoxW){
@@ -369,15 +371,17 @@ async function drawWatermark(ctx, w, h){
     fontSize = Math.max(8, Math.round(fontSize * scale));
     ctx.font = `700 ${fontSize}px Tajawal, Arial`;
     textW = ctx.measureText(wmText).width;
-    logoH = fontSize * 2.4;
-    logoW = logoImg.width * (logoH / logoImg.height);
+    logoH = hasLogo ? fontSize * 2.4 : 0;
+    logoW = hasLogo ? logoImg.width * (logoH / logoImg.height) : 0;
     boxW = textW + padX*2 + logoW + gap;
   }
   const boxH = Math.max(fontSize, logoH) + padY*2;
   const boxX = Math.max(10, w - boxW - 10);
   ctx.fillStyle = 'rgba(0,0,0,0.45)';
   ctx.fillRect(boxX, h - boxH - 10, boxW, boxH);
-  ctx.drawImage(logoImg, boxX + padX, h - boxH - 10 + (boxH - logoH)/2, logoW, logoH);
+  if(hasLogo){
+    ctx.drawImage(logoImg, boxX + padX, h - boxH - 10 + (boxH - logoH)/2, logoW, logoH);
+  }
   ctx.fillStyle = '#fff';
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'right';
