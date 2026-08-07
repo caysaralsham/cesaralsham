@@ -342,12 +342,17 @@ function startSync(){
 // ---------- watermark ----------
 function getLogoImage(){
   if(window._logoImgCache) return Promise.resolve(window._logoImgCache);
-  return new Promise((res)=>{
+  if(window._logoImgPromise) return window._logoImgPromise;
+  window._logoImgPromise = new Promise((res)=>{
     const img = new Image();
     img.onload = ()=>{ window._logoImgCache = img; res(img); };
+    img.onerror = ()=>{ console.error('logo failed to load'); res(img); };
     img.src = LOGO_SRC;
   });
+  return window._logoImgPromise;
 }
+// نحمّل اللوغو فورًا من فتح الصفحة، مش وقت رفع الصورة، حتى يكون جاهز 100% دايمًا
+getLogoImage();
 async function drawWatermark(ctx, w, h){
   const logoImg = await getLogoImage();
   const wmText = 'الجزائر · قيصر الشام للحجر والرخام · 0541.73.78.88';
