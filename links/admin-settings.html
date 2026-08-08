@@ -46,7 +46,10 @@
 
   hr{border:none; border-top:1px solid var(--line); margin:18px 0;}
 
-  #loginScreen{position:fixed; inset:0; background:var(--ink); display:flex; align-items:center; justify-content:center; z-index:500; padding:16px;}
+  #loginScreen{position:fixed; inset:0; background:var(--ink); display:none; align-items:center; justify-content:center; z-index:500; padding:16px;}
+#authLoading{position:fixed; inset:0; background:var(--ink); display:flex; align-items:center; justify-content:center; z-index:600;}
+#authLoading .spinner{width:36px; height:36px; border:3px solid rgba(255,255,255,.25); border-top-color:#fff; border-radius:50%; animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
   #loginScreen .box{background:#fff; border-radius:14px; width:100%; max-width:340px; padding:28px 24px; box-shadow:0 20px 60px rgba(0,0,0,.4);}
   #loginScreen h2{text-align:center; font-size:16px; margin:0 0 18px;}
   .err{color:var(--danger); font-size:12.5px; display:none; margin-bottom:8px;}
@@ -68,6 +71,7 @@
 </head>
 <body>
 
+<div id="authLoading"><div class="spinner"></div></div>
 <div id="loginScreen">
   <div class="box">
     <h2>دخول الإعدادات العامة</h2>
@@ -202,6 +206,7 @@ async function chunkAndWriteItems(itemsArray){
 
 // ---------- auth ----------
 firebase.auth().onAuthStateChanged(user=>{
+  document.getElementById('authLoading').style.display = 'none';
   if(user){
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('whoEmail').textContent = user.email;
