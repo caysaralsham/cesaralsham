@@ -130,10 +130,9 @@ document.getElementById('btnTest').addEventListener('click', async ()=>{
   const resultDiv = document.getElementById('testResult');
   resultDiv.innerHTML = '<div style="margin-top:12px;">⏳ عم أكتب قيمة تجريبية...</div>';
   try{
-    // 1) اكتبي قيمة تجريبية بحقل فيسبوك بس (نفس طريقة الحفظ الجزئي المصححة)
-    await db.collection(FS_COLLECTION).doc(FS_DOC).set(
-      { 'settings.facebook': testValue },
-      { merge: true }
+    // 1) اكتبي قيمة تجريبية بحقل فيسبوك بس (بنفس طريقة الحفظ الصحيحة: update بمسار متداخل)
+    await db.collection(FS_COLLECTION).doc(FS_DOC).update(
+      { 'settings.facebook': testValue }
     );
     resultDiv.innerHTML += '<div>✅ تم إرسال أمر الحفظ بدون أي خطأ.</div>';
 
