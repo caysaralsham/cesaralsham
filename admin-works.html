@@ -217,6 +217,42 @@ const storage = firebase.storage();
 
 const FS_COLLECTION = 'cesar_website';
 const FS_DOC = 'main';
+
+// نسخة احتياطية أسبوعية تلقائية (إعدادات + كل الصور) — بتنزّل ملف JSON
+// لمجلد التنزيلات (Downloads) أول مرة تفتحي فيها لوحة الإدارة كل أسبوع.
+const WEEKLY_BACKUP_KEY = 'qaysar_last_weekly_backup';
+async function runWeeklyBackupIfNeeded(){
+  try{
+    const last = localStorage.getItem(WEEKLY_BACKUP_KEY);
+    const now = Date.now();
+    const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+    if(last && (now - parseInt(last,10)) < oneWeekMs) return;
+    if(!items || items.length === 0) return; // لسا الصور ما حمّلت، منجرب بالمرة الجاية
+
+    const doc = await db.collection(FS_COLLECTION).doc(FS_DOC).get();
+    const currentSettings = (doc.exists && doc.data().settings) || {};
+    const backup = {
+      type: 'qaysar-alsham-backup',
+      exportedAt: new Date().toISOString(),
+      settings: currentSettings,
+      items: items
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `qaysar-alsham-backup-اسبوعي-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    localStorage.setItem(WEEKLY_BACKUP_KEY, String(now));
+    toast('تم إنشاء نسخة احتياطية أسبوعية تلقائية — تفقّدي مجلد التنزيلات');
+  }catch(e){
+    console.error('weekly backup failed', e);
+  }
+}
+
 const CHUNK_PREFIX = 'items_';
 const CHUNK_MAX_BYTES = 850000;
 
@@ -294,6 +330,7 @@ firebase.auth().onAuthStateChanged(user=>{
     fbReady = true;
     startSync();
     renderVisitStats();
+    setTimeout(runWeeklyBackupIfNeeded, 3000);
   } else {
     document.getElementById('loginScreen').style.display = 'flex';
     fbReady = false;
