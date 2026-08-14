@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>أداة تشخيص الإعدادات | قيصر الشام</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+  :root{ --ink:#111111; --gold:#B88A2A; --cream:#FAF9F7; --line:#ECE8E0; --danger:#A6453D; --ok:#3D7A5C; }
+  *{box-sizing:border-box;}
+  body{ font-family:Tahoma,Arial,sans-serif; background:var(--cream); margin:0; color:#222; }
+  #loginScreen{ position:fixed; inset:0; background:var(--ink); display:flex; align-items:center; justify-content:center; z-index:500; }
+  #loginScreen .box{ background:#fff; border-radius:14px; padding:30px 26px; width:100%; max-width:340px; }
+  #loginScreen h2{ font-size:16px; margin:0 0 16px; }
+  #loginScreen .field{ margin-bottom:12px; }
+  #loginScreen label{ font-size:12.5px; display:block; margin-bottom:5px; color:#666; }
+  #loginScreen input{ width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:7px; font-size:14px; }
+  #loginScreen .btn{ width:100%; background:var(--gold); color:#fff; border:none; padding:10px; border-radius:8px; font-size:14px; cursor:pointer; }
+  #loginScreen .err{ display:none; color:var(--danger); font-size:12.5px; margin-bottom:10px; }
+  .wrap{ max-width:720px; margin:0 auto; padding:30px 20px; }
+  h1{ font-size:20px; margin:0 0 20px; }
+  .panel{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:20px; margin-bottom:16px; }
+  .panel h2{ font-size:15px; margin:0 0 12px; }
+  .btn{ background:var(--gold); color:#fff; border:none; padding:11px 20px; border-radius:8px; font-size:14.5px; cursor:pointer; font-weight:700; margin-bottom:10px; }
+  .row{ display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--line); font-size:14px; }
+  .row:last-child{ border-bottom:none; }
+  .row b{ color:#555; }
+  .row span{ font-family:monospace; direction:ltr; text-align:left; }
+  .ok{ color:var(--ok); font-weight:700; }
+  .bad{ color:var(--danger); font-weight:700; }
+  #result{ display:none; }
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="box">
+    <h2>دخول — أداة التشخيص</h2>
+    <div class="field"><label>البريد الإلكتروني</label><input type="email" id="loginUser" autocomplete="username"></div>
+    <div class="field"><label>كلمة السر</label><input type="password" id="loginPass" autocomplete="current-password"></div>
+    <div id="loginErr" class="err">البريد الإلكتروني أو كلمة السر غير صحيحة</div>
+    <button class="btn" id="btnDoLogin">دخول</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <h1>أداة تشخيص الإعدادات</h1>
+
+  <div class="panel">
+    <h2>الخطوة ١: شوفي شو مخزّن فعليًا هلق</h2>
+    <button class="btn" id="btnCheck" disabled>افحصي الإعدادات الحالية</button>
+    <div id="currentValues"></div>
+  </div>
+
+  <div class="panel">
+    <h2>الخطوة ٢: اختبار حفظ حقيقي</h2>
+    <p style="font-size:13px; color:#666; margin-top:0;">هالزر بيكتب قيمة تجريبية بخانة فيسبوك، وبعدين يتأكد فورًا هل انحفظت فعليًا.</p>
+    <button class="btn" id="btnTest" disabled>اختبري الحفظ الآن</button>
+    <div id="testResult"></div>
+  </div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDi1Pn7guMnyc0CetV8Z9IUC-k0gtav2_8",
+  authDomain: "basel-7b29b.firebaseapp.com",
+  projectId: "basel-7b29b",
+  storageBucket: "basel-7b29b.firebasestorage.app",
+  messagingSenderId: "1025769465563",
+  appId: "1:1025769465563:web:53b5c9949dbb26364d8efe"
+};
+firebase.initializeApp(firebaseConfig);
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
+const db = firebase.firestore();
+const FS_COLLECTION = 'cesar_website';
+const FS_DOC = 'main';
+
+firebase.auth().onAuthStateChanged(user=>{
+  if(user){
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('btnCheck').disabled = false;
+    document.getElementById('btnTest').disabled = false;
+  } else {
+    document.getElementById('loginScreen').style.display = 'flex';
+  }
+});
+document.getElementById('btnDoLogin').addEventListener('click', ()=>{
+  const email = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  document.getElementById('loginErr').style.display = 'none';
+  firebase.auth().signInWithEmailAndPassword(email, pass).catch(err=>{
+    console.error(err);
+    document.getElementById('loginErr').style.display = 'block';
+  });
+});
+document.getElementById('loginPass').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('btnDoLogin').click(); });
+
+function fmtRow(label, val){
+  const has = val && val.trim && val.trim().length > 0;
+  return `<div class="row"><b>${label}</b><span class="${has?'ok':'bad'}">${has ? val : '(فاضي)'}</span></div>`;
+}
+
+document.getElementById('btnCheck').addEventListener('click', async ()=>{
+  const btn = document.getElementById('btnCheck');
+  btn.disabled = true; btn.textContent = 'جاري الفحص...';
+  try{
+    const doc = await db.collection(FS_COLLECTION).doc(FS_DOC).get();
+    const s = (doc.exists && doc.data().settings) || {};
+    document.getElementById('currentValues').innerHTML = `
+      <div style="margin-top:12px;">
+        ${fmtRow('فيسبوك', s.facebook)}
+        ${fmtRow('انستغرام', s.instagram)}
+        ${fmtRow('تيك توك', s.tiktok)}
+        ${fmtRow('تاريخ انتهاء الدومين', s.domainExpiry)}
+        ${fmtRow('عنوان الصفحة (hero)', s.heroTitleMain)}
+      </div>`;
+  }catch(e){
+    document.getElementById('currentValues').innerHTML = `<div class="bad" style="margin-top:12px;">تعذر الفحص: ${e.message}</div>`;
+  }
+  btn.disabled = false; btn.textContent = 'افحصي الإعدادات الحالية';
+});
+
+document.getElementById('btnTest').addEventListener('click', async ()=>{
+  const btn = document.getElementById('btnTest');
+  btn.disabled = true; btn.textContent = 'جاري الاختبار...';
+  const testValue = 'TEST-' + Date.now();
+  const resultDiv = document.getElementById('testResult');
+  resultDiv.innerHTML = '<div style="margin-top:12px;">⏳ عم أكتب قيمة تجريبية...</div>';
+  try{
+    // 1) اكتبي قيمة تجريبية بحقل فيسبوك بس (نفس طريقة الحفظ الجزئي المصححة)
+    await db.collection(FS_COLLECTION).doc(FS_DOC).set(
+      { 'settings.facebook': testValue },
+      { merge: true }
+    );
+    resultDiv.innerHTML += '<div>✅ تم إرسال أمر الحفظ بدون أي خطأ.</div>';
+
+    // 2) اقرأيها فورًا من جديد للتأكد
+    await new Promise(r => setTimeout(r, 800));
+    const doc2 = await db.collection(FS_COLLECTION).doc(FS_DOC).get();
+    const savedValue = (doc2.exists && doc2.data().settings && doc2.data().settings.facebook) || '';
+
+    if(savedValue === testValue){
+      resultDiv.innerHTML += `<div class="ok" style="margin-top:8px; font-size:16px;">🎉 نجح! القيمة انحفظت وانقرت صح: ${savedValue}</div>
+        <div style="margin-top:10px; font-size:13px; color:#666;">هالنتيجة معناها إنه الحفظ شغال 100% صح. لو موقعك برضه ما بيوري الروابط، المشكلة أكيد بصفحة العرض (index.html) مش بالحفظ.</div>`;
+    } else {
+      resultDiv.innerHTML += `<div class="bad" style="margin-top:8px; font-size:16px;">⚠️ فشل! كتبنا "${testValue}" بس رجع "${savedValue || '(فاضي)'}"</div>
+        <div style="margin-top:10px; font-size:13px; color:#666;">هالنتيجة معناها في مشكلة حقيقية بقواعد الأمان (Security Rules) أو بالاتصال نفسه.</div>`;
+    }
+  }catch(e){
+    console.error(e);
+    resultDiv.innerHTML += `<div class="bad" style="margin-top:8px;">❌ صار خطأ فعلي وقت الحفظ: <br><span style="font-family:monospace; font-size:12px;">${e.message}</span></div>
+      <div style="margin-top:10px; font-size:13px; color:#666;">هاد على الأغلب معناها قواعد الأمان (Firestore Security Rules) رافضة الكتابة الجزئية بهالشكل.</div>`;
+  }
+  btn.disabled = false; btn.textContent = 'اختبري الحفظ الآن';
+});
+</script>
+</body>
+</html>
