@@ -188,11 +188,18 @@ function byteLen(obj){ return JSON.stringify(obj).length; }
 
 async function saveSettings(fields){
   // نحفظ بس الحقول المحدّدة (مش الإعدادات كاملة)، حتى لو التحميل الأولي ما خلص لسا،
-  // ما ينمسح أي قسم تاني بالغلط.
+  // ما ينمسح أي قسم تاني بالغلط. نستخدم update() (مش set مع merge) لأنه الطريقة
+  // المضمونة 100% للتعامل الصحيح مع مسارات الحقول المتداخلة (settings.xxx).
   if(typeof fields !== 'object' || fields === null) fields = settings;
   const update = {};
   Object.keys(fields).forEach(k => { update['settings.' + k] = fields[k]; });
-  await db.collection(FS_COLLECTION).doc(FS_DOC).set(update, {merge:true});
+  const docRef = db.collection(FS_COLLECTION).doc(FS_DOC);
+  try{
+    await docRef.update(update);
+  }catch(e){
+    // لو المستند مش موجود أصلًا (حالة نادرة)، update() بترفض؛ نرجع لـ set بالكامل كحل بديل
+    await docRef.set({settings: {...DEFAULT_SETTINGS, ...settings, ...fields}}, {merge:true});
+  }
 }
 async function chunkAndWriteItems(itemsArray){
   const CHUNK_MAX_BYTES = 850000;
