@@ -197,7 +197,6 @@ async function saveSettings(fields){
   try{
     await docRef.update(update);
   }catch(e){
-    // لو المستند مش موجود أصلًا (حالة نادرة)، update() بترفض؛ نرجع لـ set بالكامل كحل بديل
     await docRef.set({settings: {...DEFAULT_SETTINGS, ...settings, ...fields}}, {merge:true});
   }
 }
