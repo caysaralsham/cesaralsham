@@ -728,11 +728,13 @@ function renderAdminList(){
   `).join('');
 }
 
-async function saveSettings(){
-  if(!fbReady) return;
-  try{
-    await db.collection(FS_COLLECTION).doc(FS_DOC).set({settings}, {merge:true});
-  }catch(e){ console.error(e); }
+async function saveSettings(fields){
+  // نحفظ بس الحقول المحدّدة (مش الإعدادات كاملة)، حتى لو التحميل الأولي ما خلص لسا،
+  // ما ينمسح أي قسم تاني بالغلط.
+  if(typeof fields !== 'object' || fields === null) fields = settings;
+  const update = {};
+  Object.keys(fields).forEach(k => { update['settings.' + k] = fields[k]; });
+  await db.collection(FS_COLLECTION).doc(FS_DOC).set(update, {merge:true});
 }
 
 function byteLen(obj){ return JSON.stringify(obj).length; }
@@ -1207,7 +1209,7 @@ document.getElementById('btnSaveSocial').addEventListener('click', async ()=>{
   settings.facebook = document.getElementById('setFacebook').value.trim();
   settings.instagram = document.getElementById('setInstagram').value.trim();
   settings.tiktok = document.getElementById('setTiktok').value.trim();
-  await saveSettings();
+  await saveSettings({whatsapp: settings.whatsapp, facebook: settings.facebook, instagram: settings.instagram, tiktok: settings.tiktok});
   renderSocialIcons();
   toast('تم حفظ روابط التواصل الاجتماعي');
 });
@@ -1216,7 +1218,7 @@ document.getElementById('btnSaveHero').addEventListener('click', async ()=>{
   settings.heroTitleMain = document.getElementById('setHeroTitleMain').value.trim() || DEFAULT_SETTINGS.heroTitleMain;
   settings.heroTitleAccent = document.getElementById('setHeroTitleAccent').value.trim() || DEFAULT_SETTINGS.heroTitleAccent;
   settings.heroSubtitle = document.getElementById('setHeroSubtitle').value.trim() || DEFAULT_SETTINGS.heroSubtitle;
-  await saveSettings();
+  await saveSettings({heroTitleMain: settings.heroTitleMain, heroTitleAccent: settings.heroTitleAccent, heroSubtitle: settings.heroSubtitle});
   renderHeroSection();
   toast('تم حفظ عنوان الصفحة الرئيسية');
 });
@@ -1239,14 +1241,16 @@ document.getElementById('btnSaveAbout').addEventListener('click', async ()=>{
     }
   }
 
-  await saveSettings();
+  const aboutFields = {aboutTitle: settings.aboutTitle, aboutText: settings.aboutText, contactTagline: settings.contactTagline};
+  if(settings.aboutImg) aboutFields.aboutImg = settings.aboutImg;
+  await saveSettings(aboutFields);
   renderAboutSection();
   toast('تم حفظ قسم "من نحن"');
 });
 
 document.getElementById('btnSaveDomain').addEventListener('click', async ()=>{
   settings.domainExpiry = document.getElementById('setDomainExpiry').value;
-  await saveSettings();
+  await saveSettings({domainExpiry: settings.domainExpiry});
   renderDomainCountdown();
   toast('تم حفظ تاريخ انتهاء الدومين');
 });
