@@ -439,7 +439,7 @@
 
       <hr style="margin:22px 0; border:none; border-top:1px solid var(--line);">
       <h4 style="margin:0 0 12px;">تجديد الدومين (النطاق)</h4>
-      <div class="field"><label>تاريخ انتهاء الدومين</label><input type="date" id="setDomainExpiry" lang="en" style="direction:ltr;"></div>
+      <div class="field"><label>تاريخ انتهاء الدومين</label><input type="text" id="setDomainExpiry" class="date-field" placeholder="YYYY-MM-DD" maxlength="10" inputmode="numeric" style="direction:ltr; text-align:right;"></div>
       <div id="domainCountdown" style="font-size:13px; color:var(--text-dim); margin-bottom:10px;"></div>
       <button class="btn btn-ghost" style="width:100%; justify-content:center;" id="btnSaveDomain">حفظ تاريخ الانتهاء</button>
 
@@ -463,6 +463,28 @@
 
 <div class="toast" id="toast"></div>
 
+<script>
+(function(){
+  function formatDateTyping(raw){
+    const digits = raw.replace(/\D/g,'').slice(0,8);
+    let out = digits;
+    if(digits.length > 4) out = digits.slice(0,4) + '-' + digits.slice(4);
+    if(digits.length > 6) out = digits.slice(0,4) + '-' + digits.slice(4,6) + '-' + digits.slice(6);
+    return out;
+  }
+  document.addEventListener('input', (e)=>{
+    if(!e.target.matches || !e.target.matches('input.date-field')) return;
+    const el = e.target;
+    const formatted = formatDateTyping(el.value);
+    if(formatted !== el.value){
+      const pos = el.selectionStart;
+      const lenDiff = formatted.length - el.value.length;
+      el.value = formatted;
+      try{ el.setSelectionRange(pos + lenDiff, pos + lenDiff); }catch(err){}
+    }
+  });
+})();
+</script>
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyDi1Pn7guMnyc0CetV8Z9IUC-k0gtav2_8",
@@ -711,8 +733,20 @@ const navRow = document.getElementById('navRow');
 burgerBtn.addEventListener('click', ()=>{
   navRow.classList.toggle('open');
 });
-navRow.querySelectorAll('nav a').forEach(a=>{
-  a.addEventListener('click', ()=>{ navRow.classList.remove('open'); });
+navRow.querySelectorAll('nav a[href^="#"]').forEach(a=>{
+  a.addEventListener('click', (e)=>{
+    e.preventDefault();
+    navRow.classList.remove('open');
+    const target = document.getElementById(a.getAttribute('href').slice(1));
+    if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
+  });
+});
+document.querySelectorAll('a.btn[href^="#"]').forEach(a=>{
+  a.addEventListener('click', (e)=>{
+    e.preventDefault();
+    const target = document.getElementById(a.getAttribute('href').slice(1));
+    if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
+  });
 });
 
 function renderAdminList(){
@@ -730,18 +764,11 @@ function renderAdminList(){
 
 async function saveSettings(fields){
   // نحفظ بس الحقول المحدّدة (مش الإعدادات كاملة)، حتى لو التحميل الأولي ما خلص لسا،
-  // ما ينمسح أي قسم تاني بالغلط. نستخدم update() (مش set مع merge) لأنه الطريقة
-  // المضمونة 100% للتعامل الصحيح مع مسارات الحقول المتداخلة (settings.xxx).
+  // ما ينمسح أي قسم تاني بالغلط.
   if(typeof fields !== 'object' || fields === null) fields = settings;
   const update = {};
   Object.keys(fields).forEach(k => { update['settings.' + k] = fields[k]; });
-  const docRef = db.collection(FS_COLLECTION).doc(FS_DOC);
-  try{
-    await docRef.update(update);
-  }catch(e){
-    // لو المستند مش موجود أصلًا (حالة نادرة)، update() بترفض؛ نرجع لـ set بالكامل كحل بديل
-    await docRef.set({settings: {...DEFAULT_SETTINGS, ...settings, ...fields}}, {merge:true});
-  }
+  await db.collection(FS_COLLECTION).doc(FS_DOC).set(update, {merge:true});
 }
 
 function byteLen(obj){ return JSON.stringify(obj).length; }
