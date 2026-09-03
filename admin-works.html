@@ -947,7 +947,7 @@ async function transcodeVideoToH264(file, onProgress){
     if(onProgress && ratio >= 0) onProgress(Math.max(0, Math.min(100, Math.round(ratio*100))));
   });
   ffmpeg.FS('writeFile', inputName, await fetchFile(file));
-  await ffmpeg.run('-i', inputName, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '28', '-c:a', 'aac', outputName);
+  await ffmpeg.run('-i', inputName, '-c:v', 'libx264', '-preset', 'faster', '-crf', '20', '-c:a', 'aac', '-b:a', '192k', outputName);
   const data = ffmpeg.FS('readFile', outputName);
   try{ ffmpeg.FS('unlink', inputName); ffmpeg.FS('unlink', outputName); }catch(e){}
   return new Blob([data.buffer], { type: 'video/mp4' });
