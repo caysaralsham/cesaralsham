@@ -682,10 +682,11 @@ function renderVideosTable(){
 }
 async function deleteVideo(id){
   if(!confirm('حذف هذا الفيديو؟')) return;
+  const target = videos.find(v => v.id === id);
   videos = videos.filter(v => v.id !== id);
   renderVideosTable();
   await removeVideoCloud(id);
-  try{ await storage.ref('gallery-videos/' + id + '.mp4').delete(); }catch(e){}
+  try{ if(target && target.ext) await storage.ref('gallery/' + id + '.' + target.ext).delete(); }catch(e){}
   toast('تم حذف الفيديو');
 }
 function renderVideoCategorySelectOptions(){
@@ -969,7 +970,7 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
   uploadBtn.disabled = true; uploadBtn.textContent = 'جاري الرفع...';
   try{
     const ext = (loadedVideoFile.name.split('.').pop() || 'mp4').toLowerCase();
-    const storageRef = storage.ref('gallery-videos/' + videoId + '.' + ext);
+    const storageRef = storage.ref('gallery/' + videoId + '.' + ext);
     await storageRef.put(loadedVideoFile, { contentType: loadedVideoFile.type || 'video/mp4' });
     const videoUrl = await storageRef.getDownloadURL();
     const newVideo = {
@@ -977,6 +978,7 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
       createdAt: Date.now(),
       title: document.getElementById('upVideoTitle').value.trim(),
       category: chosenCategory,
+      ext: ext,
       url: videoUrl
     };
     videos.unshift(newVideo);
