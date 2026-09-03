@@ -736,6 +736,25 @@ if('IntersectionObserver' in window){
     });
   }, {threshold:0.12});
   document.querySelectorAll('.reveal, .feature-card').forEach(el=> revealObserver.observe(el));
+
+  // تحديد الرابط الفعّال في القائمة العلوية حسب القسم الظاهر توا بالشاشة
+  const navLinksBySection = {};
+  document.querySelectorAll('#navRow nav a[href^="#"]').forEach(a=>{
+    navLinksBySection[a.getAttribute('href').slice(1)] = a;
+  });
+  const spySections = Object.keys(navLinksBySection).map(id=> document.getElementById(id)).filter(Boolean);
+  if(spySections.length){
+    const spyObserver = new IntersectionObserver((entries)=>{
+      entries.forEach(entry=>{
+        if(entry.isIntersecting){
+          Object.values(navLinksBySection).forEach(a=> a.classList.remove('active'));
+          const link = navLinksBySection[entry.target.id];
+          if(link) link.classList.add('active');
+        }
+      });
+    }, {rootMargin:'-40% 0px -55% 0px', threshold:0});
+    spySections.forEach(sec=> spyObserver.observe(sec));
+  }
 }
 
 const burgerBtn = document.getElementById('burgerBtn');
@@ -1011,7 +1030,19 @@ function startSync(){
     renderAboutSection();
     renderHomeShowcase();
     renderVideoShowcase();
+    reScrollToHashIfNeeded();
   }, (err)=>{ console.error(err); });
+}
+
+let didInitialHashScroll = false;
+function reScrollToHashIfNeeded(){
+  if(didInitialHashScroll) return;
+  const hash = location.hash.slice(1);
+  if(!hash) return;
+  const target = document.getElementById(hash);
+  if(!target) return;
+  didInitialHashScroll = true;
+  setTimeout(()=> target.scrollIntoView({behavior:'smooth', block:'start'}), 50);
 }
 
 function renderHeroSection(){
