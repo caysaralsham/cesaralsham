@@ -12,6 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <style>
   :root{
     --ink:#111111; --gold:#B88A2A; --gold-deep:#8F6A1F; --cream:#FFFFFF; --cream-2:#FAF9F7;
@@ -656,16 +657,30 @@ document.getElementById('watermarkFileInput').addEventListener('change', async (
 // ---------- upload ----------
 let loadedImage = null;
 let rotation = 0;
-document.getElementById('upFile').addEventListener('change', (e)=>{
+document.getElementById('upFile').addEventListener('change', async (e)=>{
   const file = e.target.files[0];
   if(!file) return;
+  const isHeic = /\.heic$/i.test(file.name) || /\.heif$/i.test(file.name) ||
+    file.type === 'image/heic' || file.type === 'image/heif';
+  let workingFile = file;
+  if(isHeic){
+    toast('جاري تحويل صورة الآيفون...');
+    try{
+      const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
+      workingFile = new File([convertedBlob], file.name.replace(/\.hei[cf]$/i, '.jpg'), { type: 'image/jpeg' });
+    }catch(err){
+      console.error('HEIC conversion failed', err);
+      toast('تعذر تحويل صورة الآيفون — جرب صورة أخرى');
+      return;
+    }
+  }
   const img = new Image();
   img.onload = ()=>{
     loadedImage = img; rotation = 0;
     document.getElementById('previewImg').src = img.src;
     document.getElementById('previewWrap').style.display = '';
   };
-  img.src = URL.createObjectURL(file);
+  img.src = URL.createObjectURL(workingFile);
 });
 document.getElementById('btnRotateLeft').addEventListener('click', ()=>{ rotation = (rotation - 90 + 360) % 360; document.getElementById('previewImg').style.transform = `rotate(${rotation}deg)`; });
 document.getElementById('btnRotateRight').addEventListener('click', ()=>{ rotation = (rotation + 90) % 360; document.getElementById('previewImg').style.transform = `rotate(${rotation}deg)`; });
