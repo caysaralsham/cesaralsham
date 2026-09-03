@@ -164,6 +164,12 @@
   <!-- ================= الفيديوهات ================= -->
   <section class="view" id="view-videos">
 
+    <div class="panel" style="max-width:560px;">
+      <h2>🎵 مكتبة الموسيقى (حتى 3 ملفات)</h2>
+      <div style="font-size:12px; color:var(--text-dim); margin-bottom:10px;">ارفع حتى 3 مقاطع موسيقى، ولما ترفع فيديو تختار وحدة منهم (أو بلا موسيقى).</div>
+      <div id="musicSlotsWrap"></div>
+    </div>
+
     <div class="panel">
       <h2>إضافة فيديو جديد</h2>
       <div class="field"><label>ملف الفيديو</label><input type="file" id="upVideoFile" accept="video/*"></div>
@@ -180,6 +186,12 @@
           </select>
           <input type="text" id="upVideoCategory" placeholder="اكتب اسم القسم" style="margin-top:8px;">
         </div>
+      </div>
+      <div class="field">
+        <label>الموسيقى (اختياري)</label>
+        <select id="upVideoMusicSelect">
+          <option value="">بلا موسيقى (يبقى صوت الفيديو الأصلي)</option>
+        </select>
       </div>
       <button class="btn" style="width:100%; justify-content:center;" id="btnUploadVideo">رفع الفيديو</button>
     </div>
@@ -365,6 +377,7 @@ firebase.auth().onAuthStateChanged(user=>{
     document.getElementById('whoEmail').textContent = user.email;
     fbReady = true;
     startSync();
+    loadMusicSlots();
     renderVisitStats();
     setTimeout(runWeeklyBackupIfNeeded, 3000);
   } else {
@@ -449,6 +462,14 @@ async function updateItemInCloud(updatedItem){
   const chunkId = chunkOf[updatedItem.id];
   if(!chunkId) return;
   const updated = (chunkCache[chunkId]||[]).map(it => it.id === updatedItem.id ? updatedItem : it);
+  try{ await db.collection(FS_COLLECTION).doc(chunkId).set({items: updated}); }
+  catch(e){ console.error(e); toast('تعذر حفظ التعديل'); }
+}
+async function updateVideoInCloud(updatedVideo){
+  if(!fbReady) return;
+  const chunkId = videoChunkOf[updatedVideo.id];
+  if(!chunkId) return;
+  const updated = (videoChunkCache[chunkId]||[]).map(v => v.id === updatedVideo.id ? updatedVideo : v);
   try{ await db.collection(FS_COLLECTION).doc(chunkId).set({items: updated}); }
   catch(e){ console.error(e); toast('تعذر حفظ التعديل'); }
 }
@@ -672,6 +693,7 @@ function renderVideosTable(){
       <td>${v.category||'<span style="color:var(--danger);">بدون قسم</span>'}</td>
       <td>
         <div class="row-actions">
+          <button class="btn btn-sm" onclick="editVideo('${v.id}')" title="تعديل">✎</button>
           <button class="btn btn-danger btn-sm" onclick="deleteVideo('${v.id}')" title="حذف">🗑</button>
         </div>
       </td>
@@ -679,6 +701,19 @@ function renderVideosTable(){
   });
   html += '</tbody></table>';
   wrap.innerHTML = html;
+}
+async function editVideo(id){
+  const v = videos.find(x => x.id === id);
+  if(!v) return;
+  const newTitle = prompt('عنوان الفيديو:', v.title || '');
+  if(newTitle === null) return;
+  const newCategory = prompt('القسم/التصنيف:', v.category || '');
+  if(newCategory === null) return;
+  const updated = { ...v, title: newTitle.trim(), category: newCategory.trim() };
+  videos = videos.map(x => x.id === id ? updated : x);
+  renderVideosTable();
+  await updateVideoInCloud(updated);
+  toast('تم حفظ التعديلات');
 }
 async function deleteVideo(id){
   if(!confirm('حذف هذا الفيديو؟')) return;
@@ -918,6 +953,105 @@ async function transcodeVideoToH264(file, onProgress){
   return new Blob([data.buffer], { type: 'video/mp4' });
 }
 
+// ---------- موسيقى ثابتة تتطبق تلقائيًا على كل فيديو جديد ----------
+// ---------- مكتبة موسيقى (حتى 3 مقاطع) تختار منها وقت رفع كل فيديو ----------
+let musicSlots = [null, null, null]; // each: {ext} أو null
+async function loadMusicSlots(){
+  try{
+    const doc = await db.collection(FS_COLLECTION).doc('site_config').get();
+    const saved = (doc.exists && Array.isArray(doc.data().musicSlots)) ? doc.data().musicSlots : [null, null, null];
+    musicSlots = [0,1,2].map(i => saved[i] || null);
+  }catch(e){ console.error(e); musicSlots = [null, null, null]; }
+  renderMusicSlots();
+  renderVideoMusicSelect();
+}
+async function saveMusicSlotsMeta(){
+  await db.collection(FS_COLLECTION).doc('site_config').set({ musicSlots }, { merge: true });
+}
+function renderMusicSlots(){
+  const wrap = document.getElementById('musicSlotsWrap');
+  wrap.innerHTML = musicSlots.map((slot, i)=>{
+    if(slot){
+      return `<div style="display:flex; align-items:center; gap:8px; padding:10px 0; border-bottom:1px solid var(--line);">
+        <div style="flex:1; font-size:13.5px;">🎵 موسيقى ${i+1} <span style="color:var(--text-dim); font-size:12px;">(.${slot.ext})</span></div>
+        <button class="btn btn-danger btn-sm" onclick="removeMusicSlot(${i})">حذف</button>
+      </div>`;
+    }
+    return `<div style="display:flex; align-items:center; gap:8px; padding:10px 0; border-bottom:1px solid var(--line);">
+      <div style="flex:1; font-size:13.5px; color:var(--text-dim);">موسيقى ${i+1} — فارغة</div>
+      <input type="file" accept="audio/*" id="musicSlotFile${i}" style="max-width:180px;">
+      <button class="btn btn-sm" onclick="setMusicSlot(${i})">رفع</button>
+    </div>`;
+  }).join('');
+}
+async function setMusicSlot(i){
+  const fileInput = document.getElementById('musicSlotFile' + i);
+  const file = fileInput.files[0];
+  if(!file){ toast('يرجى اختيار ملف موسيقى'); return; }
+  try{
+    const ext = (file.name.match(/\.\w+$/) || ['.mp3'])[0].slice(1).toLowerCase();
+    await storage.ref('gallery/fixed-music-' + i + '.' + ext).put(file, { contentType: file.type || 'audio/mpeg' });
+    musicSlots[i] = { ext };
+    await saveMusicSlotsMeta();
+    renderMusicSlots();
+    renderVideoMusicSelect();
+    toast('تم حفظ الموسيقى');
+  }catch(e){ console.error(e); toast('تعذر رفع الموسيقى'); }
+}
+async function removeMusicSlot(i){
+  const slot = musicSlots[i];
+  if(!slot) return;
+  if(!confirm('حذف هذه الموسيقى؟')) return;
+  try{
+    await storage.ref('gallery/fixed-music-' + i + '.' + slot.ext).delete();
+    musicSlots[i] = null;
+    await saveMusicSlotsMeta();
+    renderMusicSlots();
+    renderVideoMusicSelect();
+    toast('تم الحذف');
+  }catch(e){ console.error(e); toast('تعذر الحذف'); }
+}
+function renderVideoMusicSelect(){
+  const sel = document.getElementById('upVideoMusicSelect');
+  if(!sel) return;
+  const current = sel.value;
+  let html = '<option value="">بلا موسيقى (يبقى صوت الفيديو الأصلي)</option>';
+  musicSlots.forEach((slot, i)=>{ if(slot) html += `<option value="${i}">موسيقى ${i+1}</option>`; });
+  sel.innerHTML = html;
+  if([...sel.options].some(o=>o.value===current)) sel.value = current;
+}
+async function getMusicFileForSlot(i){
+  const slot = musicSlots[i];
+  if(!slot) return null;
+  const url = await storage.ref('gallery/fixed-music-' + i + '.' + slot.ext).getDownloadURL();
+  const blob = await (await fetch(url)).blob();
+  return new File([blob], 'music-' + i + '.' + slot.ext, { type: blob.type || 'audio/mpeg' });
+}
+
+async function replaceVideoAudio(videoFile, musicFile, onProgress){
+  const ffmpeg = await getFFmpegInstance();
+  const { fetchFile } = FFmpeg;
+  const videoExt = (videoFile.name.match(/\.\w+$/) || ['.mp4'])[0];
+  const musicExt = (musicFile.name.match(/\.\w+$/) || ['.mp3'])[0];
+  const videoIn = 'vin' + videoExt;
+  const musicIn = 'ain' + musicExt;
+  const outputName = 'muxed.mp4';
+  ffmpeg.setProgress(({ratio})=>{
+    if(onProgress && ratio >= 0) onProgress(Math.max(0, Math.min(100, Math.round(ratio*100))));
+  });
+  ffmpeg.FS('writeFile', videoIn, await fetchFile(videoFile));
+  ffmpeg.FS('writeFile', musicIn, await fetchFile(musicFile));
+  await ffmpeg.run(
+    '-i', videoIn, '-i', musicIn,
+    '-map', '0:v:0', '-map', '1:a:0',
+    '-c:v', 'copy', '-c:a', 'aac', '-shortest',
+    outputName
+  );
+  const data = ffmpeg.FS('readFile', outputName);
+  try{ ffmpeg.FS('unlink', videoIn); ffmpeg.FS('unlink', musicIn); ffmpeg.FS('unlink', outputName); }catch(e){}
+  return new Blob([data.buffer], { type: 'video/mp4' });
+}
+
 // ---------- video upload ----------
 let loadedVideoFile = null;
 let isConvertingVideo = false;
@@ -964,10 +1098,28 @@ document.getElementById('upVideoFile').addEventListener('change', async (e)=>{
 document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
   if(isConvertingVideo){ toast('استنى لحد ما يخلص تحويل الفيديو'); return; }
   if(!loadedVideoFile){ toast('يرجى اختيار فيديو'); return; }
+  const statusEl = document.getElementById('videoConvertStatus');
   const chosenCategory = document.getElementById('upVideoCategory').value.trim();
   const videoId = uid();
   const uploadBtn = document.getElementById('btnUploadVideo');
   uploadBtn.disabled = true; uploadBtn.textContent = 'جاري الرفع...';
+  const selectedSlot = document.getElementById('upVideoMusicSelect').value;
+  if(selectedSlot !== ''){
+    statusEl.style.display = 'block';
+    statusEl.textContent = 'جاري تجهيز الموسيقى...';
+    try{
+      const musicFile = await getMusicFileForSlot(Number(selectedSlot));
+      statusEl.textContent = 'جاري دمج الموسيقى مع الفيديو... 0%';
+      const muxedBlob = await replaceVideoAudio(loadedVideoFile, musicFile, (pct)=>{
+        statusEl.textContent = `جاري دمج الموسيقى مع الفيديو... ${pct}%`;
+      });
+      loadedVideoFile = new File([muxedBlob], loadedVideoFile.name.replace(/\.\w+$/, '') + '-music.mp4', { type: 'video/mp4' });
+      statusEl.textContent = 'تم دمج الموسيقى ✓';
+    }catch(err){
+      console.error('music mux failed', err);
+      statusEl.textContent = 'تعذر دمج الموسيقى — رح يترفع الفيديو بصوته الأصلي.';
+    }
+  }
   try{
     const ext = (loadedVideoFile.name.split('.').pop() || 'mp4').toLowerCase();
     const storageRef = storage.ref('gallery/' + videoId + '.' + ext);
@@ -986,6 +1138,8 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
     await saveNewVideo(newVideo);
     toast('تم رفع الفيديو بنجاح');
     document.getElementById('upVideoFile').value = '';
+    statusEl.style.display = 'none';
+    document.getElementById('upVideoMusicSelect').value = '';
     document.getElementById('videoPreviewWrap').style.display = 'none';
     loadedVideoFile = null;
     document.getElementById('upVideoTitle').value = '';
