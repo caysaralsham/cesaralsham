@@ -222,7 +222,7 @@
         <nav>
           <a href="#home" class="active">الرئيسية</a>
           <a href="works.html" id="navGallery">أعمالنا</a>
-          <a href="#videosSection">معرض الفيديو</a>
+          <a href="#videosSection" id="navVideos">معرض الفيديو</a>
           <a href="#about">من نحن</a>
           <a href="#contact">تواصل معنا</a>
         </nav>
@@ -284,8 +284,8 @@
   <div id="homeShowcase" style="max-width:1100px; margin:36px auto 0; display:grid; grid-template-columns:repeat(4,1fr); gap:14px; padding:0 24px;"></div>
 </section>
 
-<section class="section" id="videosSection" style="display:none;">
-  <h2 style="text-align:center; margin-bottom:24px;">معرض الفيديو</h2>
+<section class="section" id="videosSection">
+  <h2 id="videosSectionTitle" style="text-align:center; margin-bottom:24px;">معرض الفيديو</h2>
   <div id="videoShowcase" class="gallery-grid" style="max-width:1100px; margin:0 auto; padding:0 24px;"></div>
 </section>
 
@@ -1042,9 +1042,10 @@ function renderHomeShowcase(){
 function renderVideoShowcase(){
   const section = document.getElementById('videosSection');
   const wrap = document.getElementById('videoShowcase');
+  const title = document.getElementById('videosSectionTitle');
   if(!wrap || !section) return;
-  if(!videos.length){ section.style.display = 'none'; wrap.innerHTML = ''; return; }
-  section.style.display = '';
+  if(!videos.length){ wrap.innerHTML = ''; if(title) title.style.display = 'none'; return; }
+  if(title) title.style.display = '';
 
   const grouped = new Map(); // اسم القسم -> قائمة فيديوهات
   videos.forEach(v=>{
