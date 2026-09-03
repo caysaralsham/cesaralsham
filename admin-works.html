@@ -13,6 +13,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+<script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
 <style>
   :root{
     --ink:#111111; --gold:#B88A2A; --gold-deep:#8F6A1F; --cream:#FFFFFF; --cream-2:#FAF9F7;
@@ -116,6 +117,7 @@
 
   <div class="tabs">
     <div class="tab active" data-view="images">الصور</div>
+    <div class="tab" data-view="videos">الفيديوهات</div>
     <div class="tab" data-view="categories">الأقسام</div>
   </div>
 
@@ -156,6 +158,35 @@
     <div class="panel">
       <h2>كل الصور (<span id="itemsCount">0</span>)</h2>
       <div id="itemsTableWrap"></div>
+    </div>
+  </section>
+
+  <!-- ================= الفيديوهات ================= -->
+  <section class="view" id="view-videos">
+
+    <div class="panel">
+      <h2>إضافة فيديو جديد</h2>
+      <div class="field"><label>ملف الفيديو</label><input type="file" id="upVideoFile" accept="video/*"></div>
+      <div id="videoConvertStatus" style="display:none; font-size:12.5px; color:var(--brass-deep); margin-bottom:10px;"></div>
+      <div id="videoPreviewWrap" style="display:none; margin-bottom:14px;">
+        <video id="previewVideo" controls style="max-width:100%; max-height:260px; display:block; margin:0 auto; border-radius:8px; background:#000;"></video>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>عنوان الفيديو (اختياري)</label><input type="text" id="upVideoTitle"></div>
+        <div class="field">
+          <label>القسم / التصنيف (اختياري)</label>
+          <select id="upVideoCategorySelect">
+            <option value="__new__">➕ قسم جديد...</option>
+          </select>
+          <input type="text" id="upVideoCategory" placeholder="اكتب اسم القسم" style="margin-top:8px;">
+        </div>
+      </div>
+      <button class="btn" style="width:100%; justify-content:center;" id="btnUploadVideo">رفع الفيديو</button>
+    </div>
+
+    <div class="panel">
+      <h2>كل الفيديوهات (<span id="videosCount">0</span>)</h2>
+      <div id="videosTableWrap"></div>
     </div>
   </section>
 
@@ -255,6 +286,7 @@ async function runWeeklyBackupIfNeeded(){
 }
 
 const CHUNK_PREFIX = 'items_';
+const VCHUNK_PREFIX = 'videos_';
 const CHUNK_MAX_BYTES = 850000;
 
 const LOGO_SRC = "data:image/jpeg;base64,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";
@@ -262,6 +294,9 @@ const LOGO_SRC = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/7QCcUGhvdG9
 let items = [];
 let chunkCache = {};
 let chunkOf = {};
+let videos = [];
+let videoChunkCache = {};
+let videoChunkOf = {};
 let fbReady = false;
 let editingItemId = null;
 
@@ -418,10 +453,44 @@ async function updateItemInCloud(updatedItem){
   catch(e){ console.error(e); toast('تعذر حفظ التعديل'); }
 }
 
+// ---------- video sync (نفس أسلوب تخزين الصور، بس بمقاطع فيديو منفصلة) ----------
+async function saveNewVideo(video){
+  if(!fbReady) return;
+  try{
+    const ids = Object.keys(videoChunkCache).sort((a,b)=>
+      parseInt(a.slice(VCHUNK_PREFIX.length)) - parseInt(b.slice(VCHUNK_PREFIX.length)));
+    let targetId = ids.length ? ids[ids.length-1] : VCHUNK_PREFIX+'0';
+    const targetItems = videoChunkCache[targetId] || [];
+    const currentSize = targetItems.reduce((s,it)=>s+byteLen(it), 0);
+    if(targetItems.length && currentSize + byteLen(video) > CHUNK_MAX_BYTES){
+      const nextIndex = ids.length ? parseInt(targetId.slice(VCHUNK_PREFIX.length)) + 1 : 0;
+      targetId = VCHUNK_PREFIX + nextIndex;
+    }
+    await db.collection(FS_COLLECTION).doc(targetId).set(
+      { items: firebase.firestore.FieldValue.arrayUnion(video) },
+      { merge: true }
+    );
+  }catch(e){ console.error(e); toast('تعذر حفظ الفيديو على السحابة'); }
+}
+async function removeVideoCloud(id){
+  if(!fbReady) return;
+  const chunkId = videoChunkOf[id];
+  if(!chunkId) return;
+  const remaining = (videoChunkCache[chunkId]||[]).filter(it=>it.id !== id);
+  try{
+    if(remaining.length) await db.collection(FS_COLLECTION).doc(chunkId).set({items: remaining});
+    else await db.collection(FS_COLLECTION).doc(chunkId).delete();
+  }catch(e){ console.error(e); toast('تعذر حذف الفيديو من السحابة'); }
+}
+
 function startSync(){
   db.collection(FS_COLLECTION).onSnapshot((snap)=>{
     const itemChunks = {};
-    snap.forEach(doc=>{ if(doc.id.startsWith(CHUNK_PREFIX)) itemChunks[doc.id] = doc.data().items || []; });
+    const videoChunks = {};
+    snap.forEach(doc=>{
+      if(doc.id.startsWith(VCHUNK_PREFIX)) videoChunks[doc.id] = doc.data().items || [];
+      else if(doc.id.startsWith(CHUNK_PREFIX)) itemChunks[doc.id] = doc.data().items || [];
+    });
     chunkCache = itemChunks;
     chunkOf = {};
     let combined = [];
@@ -432,6 +501,17 @@ function startSync(){
     items = combined;
     renderItemsTable();
     renderCategoryFilters();
+    renderVideoCategorySelectOptions();
+
+    videoChunkCache = videoChunks;
+    videoChunkOf = {};
+    let combinedVideos = [];
+    Object.keys(videoChunks).forEach(cid=>{
+      videoChunks[cid].forEach(it=>{ videoChunkOf[it.id] = cid; combinedVideos.push(it); });
+    });
+    combinedVideos.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
+    videos = combinedVideos;
+    renderVideosTable();
   }, err=> console.error(err));
 }
 
@@ -578,6 +658,48 @@ async function deleteItem(id){
   try{ await storage.ref('gallery/' + id + '.jpg').delete(); }catch(e){}
   toast('تم الحذف');
 }
+
+// ---------- videos table ----------
+function renderVideosTable(){
+  document.getElementById('videosCount').textContent = videos.length;
+  const wrap = document.getElementById('videosTableWrap');
+  if(!videos.length){ wrap.innerHTML = '<div class="empty-state">لا توجد فيديوهات بعد.</div>'; return; }
+  let html = `<table><thead><tr><th>الفيديو</th><th>العنوان</th><th>القسم</th><th></th></tr></thead><tbody>`;
+  videos.forEach(v=>{
+    html += `<tr>
+      <td><video src="${v.url}" style="width:120px; height:70px; object-fit:cover; border-radius:6px; background:#000;" muted></video></td>
+      <td>${v.title||'—'}</td>
+      <td>${v.category||'<span style="color:var(--danger);">بدون قسم</span>'}</td>
+      <td>
+        <div class="row-actions">
+          <button class="btn btn-danger btn-sm" onclick="deleteVideo('${v.id}')" title="حذف">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+async function deleteVideo(id){
+  if(!confirm('حذف هذا الفيديو؟')) return;
+  videos = videos.filter(v => v.id !== id);
+  renderVideosTable();
+  await removeVideoCloud(id);
+  try{ await storage.ref('gallery-videos/' + id + '.mp4').delete(); }catch(e){}
+  toast('تم حذف الفيديو');
+}
+function renderVideoCategorySelectOptions(){
+  const sel = document.getElementById('upVideoCategorySelect');
+  if(!sel) return;
+  const cats = [...new Set(items.map(it => (it.category||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar'));
+  sel.innerHTML = '<option value="__new__">➕ قسم جديد...</option>' +
+    cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+}
+document.getElementById('upVideoCategorySelect').addEventListener('change', ()=>{
+  const sel = document.getElementById('upVideoCategorySelect'), input = document.getElementById('upVideoCategory');
+  if(sel.value === '__new__'){ input.value=''; input.style.display=''; input.focus(); }
+  else { input.value = sel.value; input.style.display = 'none'; }
+});
 
 // ---------- edit item modal ----------
 function openEditItem(id){
@@ -746,6 +868,130 @@ document.getElementById('btnUpload').addEventListener('click', async ()=>{
     }catch(e){ console.error(e); toast('تعذر رفع الصورة — حاول من جديد'); }
     finally{ uploadBtn.disabled = false; uploadBtn.textContent = 'رفع الصورة'; }
   }, 'image/jpeg', 0.85);
+});
+
+// ---------- video compatibility check + auto-conversion (لفيديوهات الآيفون HEVC) ----------
+let ffmpegInstance = null;
+async function getFFmpegInstance(){
+  if(ffmpegInstance) return ffmpegInstance;
+  const { createFFmpeg } = FFmpeg;
+  ffmpegInstance = createFFmpeg({
+    log: false,
+    corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
+  });
+  await ffmpegInstance.load();
+  return ffmpegInstance;
+}
+function canBrowserPlayVideo(file){
+  return new Promise((resolve)=>{
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.muted = true;
+    const url = URL.createObjectURL(file);
+    let settled = false;
+    const finish = (ok)=>{
+      if(settled) return;
+      settled = true;
+      URL.revokeObjectURL(url);
+      resolve(ok);
+    };
+    video.onloadedmetadata = ()=> finish(video.videoWidth > 0);
+    video.onerror = ()=> finish(false);
+    video.src = url;
+    setTimeout(()=> finish(false), 4000);
+  });
+}
+async function transcodeVideoToH264(file, onProgress){
+  const ffmpeg = await getFFmpegInstance();
+  const { fetchFile } = FFmpeg;
+  const inputExt = (file.name.match(/\.\w+$/) || ['.mov'])[0];
+  const inputName = 'input' + inputExt;
+  const outputName = 'output.mp4';
+  ffmpeg.setProgress(({ratio})=>{
+    if(onProgress && ratio >= 0) onProgress(Math.max(0, Math.min(100, Math.round(ratio*100))));
+  });
+  ffmpeg.FS('writeFile', inputName, await fetchFile(file));
+  await ffmpeg.run('-i', inputName, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '28', '-c:a', 'aac', outputName);
+  const data = ffmpeg.FS('readFile', outputName);
+  try{ ffmpeg.FS('unlink', inputName); ffmpeg.FS('unlink', outputName); }catch(e){}
+  return new Blob([data.buffer], { type: 'video/mp4' });
+}
+
+// ---------- video upload ----------
+let loadedVideoFile = null;
+let isConvertingVideo = false;
+document.getElementById('upVideoFile').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('videoConvertStatus');
+  const uploadBtn = document.getElementById('btnUploadVideo');
+  loadedVideoFile = file;
+  document.getElementById('videoPreviewWrap').style.display = 'none';
+  statusEl.style.display = 'block';
+  statusEl.textContent = 'جاري التحقق من توافق الفيديو مع المتصفح...';
+  isConvertingVideo = true;
+  uploadBtn.disabled = true;
+
+  const playable = await canBrowserPlayVideo(file);
+  if(!playable){
+    statusEl.textContent = 'هذا الفيديو بصيغة غير مدعومة مباشرة (شائع في فيديوهات الآيفون) — جاري تحويله تلقائيًا... 0%';
+    try{
+      const convertedBlob = await transcodeVideoToH264(file, (pct)=>{
+        statusEl.textContent = `جاري تحويل الفيديو... ${pct}% (قد يأخذ عدة دقائق حسب طول الفيديو وقوة الجهاز)`;
+      });
+      loadedVideoFile = new File([convertedBlob], file.name.replace(/\.\w+$/, '.mp4'), { type: 'video/mp4' });
+      statusEl.textContent = 'تم تحويل الفيديو بنجاح ✓';
+    }catch(err){
+      console.error('video transcode failed', err);
+      statusEl.textContent = 'تعذر تحويل الفيديو تلقائيًا — جرب فيديو آخر أو غيّر إعداد التصوير في الآيفون لصيغة "الأكثر توافقًا".';
+      loadedVideoFile = null;
+      isConvertingVideo = false;
+      uploadBtn.disabled = false;
+      return;
+    }
+  } else {
+    statusEl.style.display = 'none';
+  }
+
+  const previewVideo = document.getElementById('previewVideo');
+  previewVideo.src = URL.createObjectURL(loadedVideoFile);
+  document.getElementById('videoPreviewWrap').style.display = '';
+  isConvertingVideo = false;
+  uploadBtn.disabled = false;
+});
+
+document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
+  if(isConvertingVideo){ toast('استنى لحد ما يخلص تحويل الفيديو'); return; }
+  if(!loadedVideoFile){ toast('يرجى اختيار فيديو'); return; }
+  const chosenCategory = document.getElementById('upVideoCategory').value.trim();
+  const videoId = uid();
+  const uploadBtn = document.getElementById('btnUploadVideo');
+  uploadBtn.disabled = true; uploadBtn.textContent = 'جاري الرفع...';
+  try{
+    const ext = (loadedVideoFile.name.split('.').pop() || 'mp4').toLowerCase();
+    const storageRef = storage.ref('gallery-videos/' + videoId + '.' + ext);
+    await storageRef.put(loadedVideoFile, { contentType: loadedVideoFile.type || 'video/mp4' });
+    const videoUrl = await storageRef.getDownloadURL();
+    const newVideo = {
+      id: videoId,
+      createdAt: Date.now(),
+      title: document.getElementById('upVideoTitle').value.trim(),
+      category: chosenCategory,
+      url: videoUrl
+    };
+    videos.unshift(newVideo);
+    renderVideosTable();
+    await saveNewVideo(newVideo);
+    toast('تم رفع الفيديو بنجاح');
+    document.getElementById('upVideoFile').value = '';
+    document.getElementById('videoPreviewWrap').style.display = 'none';
+    loadedVideoFile = null;
+    document.getElementById('upVideoTitle').value = '';
+    document.getElementById('upVideoCategory').value = '';
+    document.getElementById('upVideoCategory').style.display = '';
+    document.getElementById('upVideoCategorySelect').value = '__new__';
+  }catch(e){ console.error(e); toast('تعذر رفع الفيديو — حاول من جديد'); }
+  finally{ uploadBtn.disabled = false; uploadBtn.textContent = 'رفع الفيديو'; }
 });
 </script>
 </body>
