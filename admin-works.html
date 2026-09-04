@@ -260,13 +260,7 @@
       </select>
       <input type="text" id="editVideoCategory" placeholder="اكتب اسم القسم" style="margin-top:8px;">
     </div>
-    <div class="field">
-      <label>الموسيقى</label>
-      <select id="editVideoMusicSelect">
-        <option value="__nochange__">بلا تغيير (خليها كيف ما هي)</option>
-      </select>
-      <div style="font-size:11px; color:var(--text-dim); margin-top:6px;">اختيار موسيقى هنا بيبدل صوت الفيديو الحالي بالكامل بالموسيقى الجديدة.</div>
-    </div>
+    <div style="font-size:11.5px; color:var(--text-dim); margin-bottom:10px;">لتغيير الموسيقى، احذف الفيديو وارفعه من جديد باختيار الموسيقى الجديدة.</div>
     <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:14px;">
       <button class="btn btn-ghost btn-sm" data-close="editVideoOverlay">إلغاء</button>
       <button class="btn btn-sm" id="btnSaveEditVideo">حفظ التعديلات</button>
@@ -761,11 +755,6 @@ function editVideo(id){
   const catInput = document.getElementById('editVideoCategory');
   if(v.category && cats.includes(v.category)){ sel.value = v.category; catInput.value = v.category; catInput.style.display = 'none'; }
   else { sel.value = '__new__'; catInput.value = v.category || ''; catInput.style.display = ''; }
-  const musicSel = document.getElementById('editVideoMusicSelect');
-  let musicHtml = '<option value="__nochange__">بلا تغيير (خليها كيف ما هي)</option>';
-  musicSlots.forEach((slot, i)=>{ if(slot) musicHtml += `<option value="${i}">موسيقى ${i+1}</option>`; });
-  musicSel.innerHTML = musicHtml;
-  musicSel.value = '__nochange__';
   document.getElementById('editVideoOverlay').classList.add('show');
 }
 document.getElementById('editVideoCategorySelect').addEventListener('change', ()=>{
@@ -781,60 +770,7 @@ document.getElementById('btnSaveEditVideo').addEventListener('click', async ()=>
   btn.disabled = true; btn.textContent = 'جاري الحفظ...';
   const newTitle = document.getElementById('editVideoTitle').value.trim();
   const newCategory = document.getElementById('editVideoCategory').value.trim();
-  const musicChoice = document.getElementById('editVideoMusicSelect').value;
-  let updated = { ...v, title: newTitle, category: newCategory };
-
-  if(musicChoice !== '__nochange__'){
-    btn.textContent = 'جاري تحميل الفيديو الحالي...';
-    let currentVideoFile;
-    try{
-      const res = await fetch(v.url);
-      if(!res.ok) throw new Error('fetch status ' + res.status);
-      const currentVideoBlob = await res.blob();
-      currentVideoFile = new File([currentVideoBlob], 'current.' + (v.ext||'mp4'), { type: currentVideoBlob.type || 'video/mp4' });
-    }catch(err){
-      console.error('fetch current video failed', err);
-      toast('تعذر تحميل الفيديو الحالي لتعديله — جرب من جديد');
-      btn.disabled = false; btn.textContent = 'حفظ التعديلات';
-      return;
-    }
-
-    let musicFile;
-    try{
-      musicFile = await getMusicFileForSlot(Number(musicChoice));
-      if(!musicFile) throw new Error('music slot empty');
-    }catch(err){
-      console.error('fetch music slot failed', err);
-      toast('تعذر تحميل ملف الموسيقى — جرب من جديد');
-      btn.disabled = false; btn.textContent = 'حفظ التعديلات';
-      return;
-    }
-
-    let muxedBlob;
-    try{
-      muxedBlob = await replaceVideoAudio(currentVideoFile, musicFile, (pct)=>{
-        btn.textContent = `جاري المعالجة... ${pct}%`;
-      });
-    }catch(err){
-      console.error('replaceVideoAudio failed', err);
-      toast('تعذر معالجة الفيديو بالموسيقى الجديدة — جرب من جديد');
-      btn.disabled = false; btn.textContent = 'حفظ التعديلات';
-      return;
-    }
-
-    try{
-      const newExt = 'mp4';
-      const storageRef = storage.ref('gallery/' + v.id + '.' + newExt);
-      await storageRef.put(muxedBlob, { contentType: 'video/mp4' });
-      const newUrl = await storageRef.getDownloadURL();
-      updated = { ...updated, url: newUrl, ext: newExt };
-    }catch(err){
-      console.error('reupload video failed', err);
-      toast('تعذر رفع الفيديو المعدّل — جرب من جديد');
-      btn.disabled = false; btn.textContent = 'حفظ التعديلات';
-      return;
-    }
-  }
+  const updated = { ...v, title: newTitle, category: newCategory };
 
   videos = videos.map(x => x.id === editingVideoId ? updated : x);
   renderVideosTable();
