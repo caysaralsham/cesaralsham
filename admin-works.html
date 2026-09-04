@@ -260,6 +260,13 @@
       </select>
       <input type="text" id="editVideoCategory" placeholder="اكتب اسم القسم" style="margin-top:8px;">
     </div>
+    <div class="field">
+      <label>الموسيقى</label>
+      <select id="editVideoMusicSelect">
+        <option value="__nochange__">بلا تغيير (خليها كيف ما هي)</option>
+      </select>
+      <div style="font-size:11px; color:var(--text-dim); margin-top:6px;">اختيار موسيقى هنا بيبدل صوت الفيديو الحالي بالكامل بالموسيقى الجديدة.</div>
+    </div>
     <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:14px;">
       <button class="btn btn-ghost btn-sm" data-close="editVideoOverlay">إلغاء</button>
       <button class="btn btn-sm" id="btnSaveEditVideo">حفظ التعديلات</button>
@@ -754,6 +761,11 @@ function editVideo(id){
   const catInput = document.getElementById('editVideoCategory');
   if(v.category && cats.includes(v.category)){ sel.value = v.category; catInput.value = v.category; catInput.style.display = 'none'; }
   else { sel.value = '__new__'; catInput.value = v.category || ''; catInput.style.display = ''; }
+  const musicSel = document.getElementById('editVideoMusicSelect');
+  let musicHtml = '<option value="__nochange__">بلا تغيير (خليها كيف ما هي)</option>';
+  musicSlots.forEach((slot, i)=>{ if(slot) musicHtml += `<option value="${i}">موسيقى ${i+1}</option>`; });
+  musicSel.innerHTML = musicHtml;
+  musicSel.value = '__nochange__';
   document.getElementById('editVideoOverlay').classList.add('show');
 }
 document.getElementById('editVideoCategorySelect').addEventListener('change', ()=>{
@@ -769,7 +781,31 @@ document.getElementById('btnSaveEditVideo').addEventListener('click', async ()=>
   btn.disabled = true; btn.textContent = 'جاري الحفظ...';
   const newTitle = document.getElementById('editVideoTitle').value.trim();
   const newCategory = document.getElementById('editVideoCategory').value.trim();
-  const updated = { ...v, title: newTitle, category: newCategory };
+  const musicChoice = document.getElementById('editVideoMusicSelect').value;
+  let updated = { ...v, title: newTitle, category: newCategory };
+
+  if(musicChoice !== '__nochange__'){
+    btn.textContent = 'جاري تجهيز الفيديو...';
+    try{
+      const currentVideoBlob = await (await fetch(v.url)).blob();
+      const currentVideoFile = new File([currentVideoBlob], 'current.' + (v.ext||'mp4'), { type: currentVideoBlob.type || 'video/mp4' });
+      const musicFile = await getMusicFileForSlot(Number(musicChoice));
+      const muxedBlob = await replaceVideoAudio(currentVideoFile, musicFile, (pct)=>{
+        btn.textContent = `جاري المعالجة... ${pct}%`;
+      });
+      const newExt = 'mp4';
+      const storageRef = storage.ref('gallery/' + v.id + '.' + newExt);
+      await storageRef.put(muxedBlob, { contentType: 'video/mp4' });
+      const newUrl = await storageRef.getDownloadURL();
+      updated = { ...updated, url: newUrl, ext: newExt };
+    }catch(err){
+      console.error('edit music reprocess failed', err);
+      toast('تعذر تغيير الموسيقى — جرب من جديد');
+      btn.disabled = false; btn.textContent = 'حفظ التعديلات';
+      return;
+    }
+  }
+
   videos = videos.map(x => x.id === editingVideoId ? updated : x);
   renderVideosTable();
   const saved = await updateVideoInCloud(updated);
@@ -1093,10 +1129,12 @@ function renderVideoMusicSelect(){
   const sel = document.getElementById('upVideoMusicSelect');
   if(!sel) return;
   const current = sel.value;
+  const firstSlotIndex = musicSlots.findIndex(s => s);
   let html = '<option value="">بلا موسيقى (يبقى صوت الفيديو الأصلي)</option>';
   musicSlots.forEach((slot, i)=>{ if(slot) html += `<option value="${i}">موسيقى ${i+1}</option>`; });
   sel.innerHTML = html;
-  if([...sel.options].some(o=>o.value===current)) sel.value = current;
+  if(current !== '' && [...sel.options].some(o=>o.value===current)) sel.value = current;
+  else if(firstSlotIndex !== -1) sel.value = String(firstSlotIndex);
 }
 async function getMusicFileForSlot(i){
   const slot = musicSlots[i];
@@ -1175,6 +1213,7 @@ async function replaceVideoAudio(videoFile, musicFile, onProgress){
     '-i', videoIn, '-i', musicIn,
     '-map', '0:v:0', '-map', '1:a:0',
     '-c:v', 'libx264', '-preset', 'faster', '-crf', '20',
+    '-af', 'volume=3.0',
     '-c:a', 'aac', '-b:a', '192k', '-shortest',
     outputName
   );
@@ -1291,7 +1330,7 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
     toast(problems.length ? `تم رفع الفيديو، لكن ${problems.join(' و')}` : 'تم رفع الفيديو بنجاح');
     document.getElementById('upVideoFile').value = '';
     statusEl.style.display = 'none';
-    document.getElementById('upVideoMusicSelect').value = '';
+    renderVideoMusicSelect();
     document.getElementById('upVideoWatermark').checked = false;
     document.getElementById('videoPreviewWrap').style.display = 'none';
     loadedVideoFile = null;
