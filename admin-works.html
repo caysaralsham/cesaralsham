@@ -272,6 +272,15 @@
 <div class="toast" id="toast"></div>
 
 <script>
+window.addEventListener('error', (e)=>{
+  console.error('window error', e.error || e.message);
+  alert('حدث خطأ غير متوقع في الصفحة:\n' + (e.message || 'unknown') + '\n(سطر: ' + e.lineno + ')');
+});
+window.addEventListener('unhandledrejection', (e)=>{
+  console.error('unhandled rejection', e.reason);
+  const msg = (e.reason && (e.reason.message || e.reason.toString())) || 'unknown';
+  alert('حدث خطأ غير متوقع (promise):\n' + msg);
+});
 const firebaseConfig = {
   apiKey: "AIzaSyDi1Pn7guMnyc0CetV8Z9IUC-k0gtav2_8",
   authDomain: "basel-7b29b.firebaseapp.com",
@@ -1185,10 +1194,11 @@ async function processVideoForUpload(videoFile, opts, onProgress){
   }
 
   if(opts.addWatermark){
-    args.push('-filter_complex', `[0:v][${badgeIdx}:v]overlay=main_w-overlay_w-10:main_h-overlay_h-10[vout]`);
+    args.push('-filter_complex', `[0:v]scale='min(1280,iw)':-2[scaled];[scaled][${badgeIdx}:v]overlay=main_w-overlay_w-10:main_h-overlay_h-10[vout]`);
     args.push('-map', '[vout]');
   } else {
-    args.push('-map', '0:v:0');
+    args.push('-filter_complex', `[0:v]scale='min(1280,iw)':-2[vout]`);
+    args.push('-map', '[vout]');
   }
   if(opts.musicFile){
     args.push('-map', `${musicIdx}:a:0`);
