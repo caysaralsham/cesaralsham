@@ -13,7 +13,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
-<script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
 <style>
   :root{
     --ink:#111111; --gold:#B88A2A; --gold-deep:#8F6A1F; --cream:#FFFFFF; --cream-2:#FAF9F7;
@@ -990,12 +990,20 @@ document.getElementById('btnUpload').addEventListener('click', async ()=>{
 let ffmpegInstance = null;
 async function getFFmpegInstance(){
   if(ffmpegInstance) return ffmpegInstance;
+  if(typeof FFmpeg === 'undefined'){
+    throw new Error('مكتبة معالجة الفيديو ما تحمّلتش (تأكد من الاتصال بالإنترنت وحاول تحديث الصفحة)');
+  }
   const { createFFmpeg } = FFmpeg;
   ffmpegInstance = createFFmpeg({
     log: false,
-    corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
+    corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
   });
-  await ffmpegInstance.load();
+  try{
+    await ffmpegInstance.load();
+  }catch(err){
+    ffmpegInstance = null;
+    throw new Error('تعذر تحميل محرك معالجة الفيديو — تأكد من الاتصال بالإنترنت وحاول من جديد');
+  }
   return ffmpegInstance;
 }
 function canBrowserPlayVideo(file){
@@ -1214,7 +1222,7 @@ document.getElementById('upVideoFile').addEventListener('change', async (e)=>{
       statusEl.textContent = 'تم تحويل الفيديو بنجاح ✓';
     }catch(err){
       console.error('video transcode failed', err);
-      statusEl.textContent = 'تعذر تحويل الفيديو تلقائيًا — جرب فيديو آخر أو غيّر إعداد التصوير في الآيفون لصيغة "الأكثر توافقًا".';
+      statusEl.textContent = (err && err.message) ? err.message : 'تعذر تحويل الفيديو تلقائيًا — جرب فيديو آخر أو غيّر إعداد التصوير في الآيفون لصيغة "الأكثر توافقًا".';
       loadedVideoFile = null;
       isConvertingVideo = false;
       uploadBtn.disabled = false;
@@ -1255,7 +1263,7 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
     }catch(err){
       console.error('music mux failed', err);
       musicMuxFailed = true;
-      statusEl.textContent = 'تعذر دمج الموسيقى — رح يترفع الفيديو بصوته الأصلي.';
+      statusEl.textContent = ((err && err.message) ? err.message + ' — ' : '') + 'رح يترفع الفيديو بصوته الأصلي.';
     }
   }
   let watermarkFailed = false;
@@ -1271,7 +1279,7 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
     }catch(err){
       console.error('watermark failed', err);
       watermarkFailed = true;
-      statusEl.textContent = 'تعذر إضافة الشعار — رح يترفع الفيديو بلا شعار.';
+      statusEl.textContent = ((err && err.message) ? err.message + ' — ' : '') + 'رح يترفع الفيديو بلا شعار.';
     }
   }
   try{
