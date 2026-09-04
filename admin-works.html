@@ -1290,7 +1290,7 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
     document.getElementById('upVideoCategory').value = '';
     document.getElementById('upVideoCategory').style.display = '';
     document.getElementById('upVideoCategorySelect').value = '__new__';
-  }catch(e){ console.error(e); toast('تعذر رفع الفيديو — حاول من جديد'); }
+  }catch(e){ console.error(e); toast('تعذر رفع الفيديو: ' + ((e && e.message) ? e.message : 'حاول من جديد')); }
   finally{ uploadBtn.disabled = false; uploadBtn.textContent = 'رفع الفيديو'; }
 });
 </script>
