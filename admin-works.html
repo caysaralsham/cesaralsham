@@ -1150,7 +1150,7 @@ async function getMusicFileForSlot(i){
 async function generateWatermarkBadge(){
   const logoImg = await getLogoImage();
   const hasLogo = !!(logoImg && logoImg.naturalWidth > 0);
-  const wmText = 'الجزائر · قيصر الشام للحجر والرخام · 0541.73.78.88';
+  const wmText = 'الجزائر · دالي إبراهيم · 0541.73.78.88';
   const fontSize = 26;
   const measureCanvas = document.createElement('canvas');
   const measureCtx = measureCanvas.getContext('2d');
@@ -1208,9 +1208,13 @@ async function processVideoForUpload(videoFile, opts, onProgress){
     musicIdx = nextIdx++;
   }
 
+  const lightAudioOnly = opts.musicFile && !opts.addWatermark && !opts.needsReencode;
+
   if(opts.addWatermark){
     args.push('-filter_complex', `[0:v]scale='min(1280,iw)':-2[scaled];[scaled][${badgeIdx}:v]overlay=main_w-overlay_w-10:main_h-overlay_h-10[vout]`);
     args.push('-map', '[vout]');
+  } else if(lightAudioOnly){
+    args.push('-map', '0:v:0');
   } else {
     args.push('-filter_complex', `[0:v]scale='min(1280,iw)':-2[vout]`);
     args.push('-map', '[vout]');
@@ -1221,7 +1225,12 @@ async function processVideoForUpload(videoFile, opts, onProgress){
   } else {
     args.push('-map', '0:a:0?');
   }
-  args.push('-c:v', 'libx264', '-preset', 'faster', '-crf', '20', '-c:a', 'aac', '-b:a', '192k');
+  if(lightAudioOnly){
+    args.push('-c:v', 'copy');
+  } else {
+    args.push('-c:v', 'libx264', '-preset', 'faster', '-crf', '20');
+  }
+  args.push('-c:a', 'aac', '-b:a', '192k');
   if(opts.musicFile) args.push('-shortest');
   args.push(outputName);
 
@@ -1292,7 +1301,7 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
         statusEl.textContent = 'جاري تجهيز الموسيقى...';
         musicFile = await getMusicFileForSlot(Number(selectedSlot));
       }
-      const processedBlob = await processVideoForUpload(loadedVideoFile, { addWatermark: wantsWatermark, musicFile }, (pct)=>{
+      const processedBlob = await processVideoForUpload(loadedVideoFile, { addWatermark: wantsWatermark, musicFile, needsReencode: videoNeedsReencode }, (pct)=>{
         statusEl.textContent = `جاري معالجة الفيديو... ${pct}%`;
       });
       loadedVideoFile = new File([processedBlob], loadedVideoFile.name.replace(/\.\w+$/, '') + '-final.mp4', { type: 'video/mp4' });
