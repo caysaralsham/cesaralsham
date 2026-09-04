@@ -214,6 +214,7 @@ function renderFilters(){
       activeCategory = btn.dataset.cat;
       renderFilters();
       renderGallery();
+      document.querySelector('.page-head').scrollIntoView({behavior:'smooth', block:'start'});
     });
   });
 }

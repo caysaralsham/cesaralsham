@@ -1044,7 +1044,8 @@ async function replaceVideoAudio(videoFile, musicFile, onProgress){
   await ffmpeg.run(
     '-i', videoIn, '-i', musicIn,
     '-map', '0:v:0', '-map', '1:a:0',
-    '-c:v', 'copy', '-c:a', 'aac', '-shortest',
+    '-c:v', 'libx264', '-preset', 'faster', '-crf', '20',
+    '-c:a', 'aac', '-b:a', '192k', '-shortest',
     outputName
   );
   const data = ffmpeg.FS('readFile', outputName);
@@ -1103,6 +1104,7 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
   const videoId = uid();
   const uploadBtn = document.getElementById('btnUploadVideo');
   uploadBtn.disabled = true; uploadBtn.textContent = 'جاري الرفع...';
+  let musicMuxFailed = false;
   const selectedSlot = document.getElementById('upVideoMusicSelect').value;
   if(selectedSlot !== ''){
     statusEl.style.display = 'block';
@@ -1117,6 +1119,7 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
       statusEl.textContent = 'تم دمج الموسيقى ✓';
     }catch(err){
       console.error('music mux failed', err);
+      musicMuxFailed = true;
       statusEl.textContent = 'تعذر دمج الموسيقى — رح يترفع الفيديو بصوته الأصلي.';
     }
   }
@@ -1136,7 +1139,7 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
     videos.unshift(newVideo);
     renderVideosTable();
     await saveNewVideo(newVideo);
-    toast('تم رفع الفيديو بنجاح');
+    toast(musicMuxFailed ? 'تم رفع الفيديو، لكن تعذر دمج الموسيقى — الفيديو رفع بصوته الأصلي' : 'تم رفع الفيديو بنجاح');
     document.getElementById('upVideoFile').value = '';
     statusEl.style.display = 'none';
     document.getElementById('upVideoMusicSelect').value = '';
