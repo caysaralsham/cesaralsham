@@ -785,22 +785,52 @@ document.getElementById('btnSaveEditVideo').addEventListener('click', async ()=>
   let updated = { ...v, title: newTitle, category: newCategory };
 
   if(musicChoice !== '__nochange__'){
-    btn.textContent = 'جاري تجهيز الفيديو...';
+    btn.textContent = 'جاري تحميل الفيديو الحالي...';
+    let currentVideoFile;
     try{
-      const currentVideoBlob = await (await fetch(v.url)).blob();
-      const currentVideoFile = new File([currentVideoBlob], 'current.' + (v.ext||'mp4'), { type: currentVideoBlob.type || 'video/mp4' });
-      const musicFile = await getMusicFileForSlot(Number(musicChoice));
-      const muxedBlob = await replaceVideoAudio(currentVideoFile, musicFile, (pct)=>{
+      const res = await fetch(v.url);
+      if(!res.ok) throw new Error('fetch status ' + res.status);
+      const currentVideoBlob = await res.blob();
+      currentVideoFile = new File([currentVideoBlob], 'current.' + (v.ext||'mp4'), { type: currentVideoBlob.type || 'video/mp4' });
+    }catch(err){
+      console.error('fetch current video failed', err);
+      toast('تعذر تحميل الفيديو الحالي لتعديله — جرب من جديد');
+      btn.disabled = false; btn.textContent = 'حفظ التعديلات';
+      return;
+    }
+
+    let musicFile;
+    try{
+      musicFile = await getMusicFileForSlot(Number(musicChoice));
+      if(!musicFile) throw new Error('music slot empty');
+    }catch(err){
+      console.error('fetch music slot failed', err);
+      toast('تعذر تحميل ملف الموسيقى — جرب من جديد');
+      btn.disabled = false; btn.textContent = 'حفظ التعديلات';
+      return;
+    }
+
+    let muxedBlob;
+    try{
+      muxedBlob = await replaceVideoAudio(currentVideoFile, musicFile, (pct)=>{
         btn.textContent = `جاري المعالجة... ${pct}%`;
       });
+    }catch(err){
+      console.error('replaceVideoAudio failed', err);
+      toast('تعذر معالجة الفيديو بالموسيقى الجديدة — جرب من جديد');
+      btn.disabled = false; btn.textContent = 'حفظ التعديلات';
+      return;
+    }
+
+    try{
       const newExt = 'mp4';
       const storageRef = storage.ref('gallery/' + v.id + '.' + newExt);
       await storageRef.put(muxedBlob, { contentType: 'video/mp4' });
       const newUrl = await storageRef.getDownloadURL();
       updated = { ...updated, url: newUrl, ext: newExt };
     }catch(err){
-      console.error('edit music reprocess failed', err);
-      toast('تعذر تغيير الموسيقى — جرب من جديد');
+      console.error('reupload video failed', err);
+      toast('تعذر رفع الفيديو المعدّل — جرب من جديد');
       btn.disabled = false; btn.textContent = 'حفظ التعديلات';
       return;
     }
