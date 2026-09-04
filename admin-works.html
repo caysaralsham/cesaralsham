@@ -991,7 +991,9 @@ let ffmpegInstance = null;
 async function getFFmpegInstance(){
   if(ffmpegInstance) return ffmpegInstance;
   if(typeof FFmpeg === 'undefined'){
-    throw new Error('مكتبة معالجة الفيديو ما تحمّلتش (تأكد من الاتصال بالإنترنت وحاول تحديث الصفحة)');
+    const msg = 'مكتبة معالجة الفيديو ما تحمّلتش (تأكد من الاتصال بالإنترنت وحاول تحديث الصفحة)';
+    alert(msg);
+    throw new Error(msg);
   }
   const { createFFmpeg } = FFmpeg;
   ffmpegInstance = createFFmpeg({
@@ -1002,7 +1004,10 @@ async function getFFmpegInstance(){
     await ffmpegInstance.load();
   }catch(err){
     ffmpegInstance = null;
-    throw new Error('تعذر تحميل محرك معالجة الفيديو — تأكد من الاتصال بالإنترنت وحاول من جديد');
+    console.error('ffmpeg load error (raw)', err);
+    const detail = (err && (err.message || err.toString())) || 'خطأ غير معروف';
+    alert('تعذر تحميل محرك معالجة الفيديو.\nتفاصيل الخطأ: ' + detail);
+    throw new Error('تعذر تحميل محرك معالجة الفيديو: ' + detail);
   }
   return ffmpegInstance;
 }
