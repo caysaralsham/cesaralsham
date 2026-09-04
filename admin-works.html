@@ -195,10 +195,6 @@
           <option value="">بلا موسيقى (يبقى صوت الفيديو الأصلي)</option>
         </select>
       </div>
-      <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; margin-bottom:14px; cursor:pointer;">
-        <input type="checkbox" id="upVideoWatermark" style="width:auto;" checked>
-        إضافة شعار الجزائر / قيصر الشام على هذا الفيديو
-      </label>
       <button class="btn" style="width:100%; justify-content:center;" id="btnUploadVideo">رفع الفيديو</button>
     </div>
 
@@ -1211,12 +1207,12 @@ async function processVideoForUpload(videoFile, opts, onProgress){
   const lightAudioOnly = opts.musicFile && !opts.addWatermark && !opts.needsReencode;
 
   if(opts.addWatermark){
-    args.push('-filter_complex', `[0:v]scale='min(1280,iw)':-2[scaled];[scaled][${badgeIdx}:v]overlay=main_w-overlay_w-10:main_h-overlay_h-10[vout]`);
+    args.push('-filter_complex', `[0:v]scale='min(640,iw)':-2[scaled];[scaled][${badgeIdx}:v]overlay=main_w-overlay_w-10:main_h-overlay_h-10[vout]`);
     args.push('-map', '[vout]');
   } else if(lightAudioOnly){
     args.push('-map', '0:v:0');
   } else {
-    args.push('-filter_complex', `[0:v]scale='min(1280,iw)':-2[vout]`);
+    args.push('-filter_complex', `[0:v]scale='min(640,iw)':-2[vout]`);
     args.push('-map', '[vout]');
   }
   if(opts.musicFile){
@@ -1289,10 +1285,9 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
 
   const selectedSlot = document.getElementById('upVideoMusicSelect').value;
   const wantsMusic = selectedSlot !== '';
-  const wantsWatermark = document.getElementById('upVideoWatermark').checked;
   let processingFailed = false;
 
-  if(videoNeedsReencode || wantsMusic || wantsWatermark){
+  if(videoNeedsReencode || wantsMusic){
     statusEl.style.display = 'block';
     statusEl.textContent = 'جاري تجهيز الفيديو...';
     try{
@@ -1301,7 +1296,7 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
         statusEl.textContent = 'جاري تجهيز الموسيقى...';
         musicFile = await getMusicFileForSlot(Number(selectedSlot));
       }
-      const processedBlob = await processVideoForUpload(loadedVideoFile, { addWatermark: wantsWatermark, musicFile, needsReencode: videoNeedsReencode }, (pct)=>{
+      const processedBlob = await processVideoForUpload(loadedVideoFile, { addWatermark: false, musicFile, needsReencode: videoNeedsReencode }, (pct)=>{
         statusEl.textContent = `جاري معالجة الفيديو... ${pct}%`;
       });
       loadedVideoFile = new File([processedBlob], loadedVideoFile.name.replace(/\.\w+$/, '') + '-final.mp4', { type: 'video/mp4' });
@@ -1334,7 +1329,6 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
     document.getElementById('upVideoFile').value = '';
     statusEl.style.display = 'none';
     renderVideoMusicSelect();
-    document.getElementById('upVideoWatermark').checked = true;
     document.getElementById('videoPreviewWrap').style.display = 'none';
     loadedVideoFile = null;
     document.getElementById('upVideoTitle').value = '';
