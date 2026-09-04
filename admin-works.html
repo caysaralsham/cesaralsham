@@ -272,6 +272,15 @@
 <div class="toast" id="toast"></div>
 
 <script>
+(function(){
+  try{
+    const cp = localStorage.getItem('videoProcessCheckpoint');
+    if(cp && !cp.includes('اكتملت المعالجة بنجاح')){
+      setTimeout(()=> alert('يبدو إن معالجة الفيديو السابقة توقفت (طاحت الصفحة) عند هالخطوة بالضبط:\n\n' + cp + '\n\nصوّر هالرسالة وابعتها.'), 500);
+    }
+    localStorage.removeItem('videoProcessCheckpoint');
+  }catch(e){}
+})();
 window.addEventListener('error', (e)=>{
   console.error('window error', e.error || e.message);
   alert('حدث خطأ غير متوقع في الصفحة:\n' + (e.message || 'unknown') + '\n(سطر: ' + e.lineno + ')');
@@ -1167,20 +1176,25 @@ async function generateWatermarkBadge(){
 }
 async function processVideoForUpload(videoFile, opts, onProgress){
   // opts: { addWatermark: bool, musicFile: File|null }
+  const mark = (step)=>{ try{ localStorage.setItem('videoProcessCheckpoint', step + ' | ' + new Date().toLocaleTimeString('ar')); }catch(e){} };
+  mark('بداية المعالجة');
   const ffmpeg = await getFFmpegInstance();
   const { fetchFile } = FFmpegUtil;
   const videoExt = (videoFile.name.match(/\.\w+$/) || ['.mp4'])[0];
   const videoIn = 'pvin' + videoExt;
   const outputName = 'processed.mp4';
 
+  mark('كتابة ملف الفيديو (حجم: ' + Math.round(videoFile.size/1024/1024) + ' MB)');
   await ffmpeg.writeFile(videoIn, await fetchFile(videoFile));
 
   const args = ['-i', videoIn];
   let nextIdx = 1, badgeIdx = -1, musicIdx = -1, badgeIn = null, musicIn = null;
 
   if(opts.addWatermark){
+    mark('توليد صورة الشعار');
     const badgeBlob = await generateWatermarkBadge();
     badgeIn = 'badge.png';
+    mark('كتابة ملف الشعار');
     await ffmpeg.writeFile(badgeIn, await fetchFile(badgeBlob));
     args.push('-i', badgeIn);
     badgeIdx = nextIdx++;
@@ -1188,6 +1202,7 @@ async function processVideoForUpload(videoFile, opts, onProgress){
   if(opts.musicFile){
     const musicExt = (opts.musicFile.name.match(/\.\w+$/) || ['.mp3'])[0];
     musicIn = 'pmin' + musicExt;
+    mark('كتابة ملف الموسيقى');
     await ffmpeg.writeFile(musicIn, await fetchFile(opts.musicFile));
     args.push('-i', musicIn);
     musicIdx = nextIdx++;
@@ -1211,14 +1226,18 @@ async function processVideoForUpload(videoFile, opts, onProgress){
   args.push(outputName);
 
   ffmpegProgressCallback = onProgress || null;
+  mark('بدء exec (المعالجة الفعلية) — الأوامر: ' + args.join(' '));
   await execWithTimeout(ffmpeg, args, 240000);
+  mark('انتهى exec، جاري قراءة الملف الناتج');
   const data = await ffmpeg.readFile(outputName);
+  mark('تمت القراءة، جاري التنظيف');
   try{
     await ffmpeg.deleteFile(videoIn);
     if(badgeIn) await ffmpeg.deleteFile(badgeIn);
     if(musicIn) await ffmpeg.deleteFile(musicIn);
     await ffmpeg.deleteFile(outputName);
   }catch(e){}
+  mark('اكتملت المعالجة بنجاح');
   ffmpegProgressCallback = null;
   return new Blob([data.buffer], { type: 'video/mp4' });
 }
