@@ -178,7 +178,8 @@
         <video id="previewVideo" controls style="max-width:100%; max-height:260px; display:block; margin:0 auto; border-radius:8px; background:#000;"></video>
       </div>
       <div class="grid2">
-        <div class="field"><label>عنوان الفيديو (اختياري)</label><input type="text" id="upVideoTitle"></div>
+        <div class="field"><label>عنوان الفيديو (اختياري)</label><input type="text" id="upVideoTitle" list="titleSuggestions"></div>
+        <datalist id="titleSuggestions"></datalist>
         <div class="field">
           <label>القسم / التصنيف (اختياري)</label>
           <select id="upVideoCategorySelect">
@@ -731,11 +732,24 @@ function renderVideoCategorySelectOptions(){
   sel.innerHTML = '<option value="__new__">➕ قسم جديد...</option>' +
     cats.map(c=>`<option value="${c}">${c}</option>`).join('');
 }
+function updateTitleSuggestions(){
+  const list = document.getElementById('titleSuggestions');
+  if(!list) return;
+  const cat = document.getElementById('upVideoCategory').value.trim();
+  if(!cat){ list.innerHTML = ''; return; }
+  const fromPhotos = items.filter(it => (it.category||'').trim() === cat).map(it => it.title).filter(Boolean);
+  const fromVideos = videos.filter(v => (v.category||'').trim() === cat).map(v => v.title).filter(Boolean);
+  const titles = [...new Set([...fromPhotos, ...fromVideos])];
+  list.innerHTML = titles.map(t => `<option value="${t}"></option>`).join('');
+}
 document.getElementById('upVideoCategorySelect').addEventListener('change', ()=>{
   const sel = document.getElementById('upVideoCategorySelect'), input = document.getElementById('upVideoCategory');
   if(sel.value === '__new__'){ input.value=''; input.style.display=''; input.focus(); }
   else { input.value = sel.value; input.style.display = 'none'; }
+  updateTitleSuggestions();
 });
+document.getElementById('upVideoCategory').addEventListener('input', updateTitleSuggestions);
+
 
 // ---------- edit item modal ----------
 function openEditItem(id){
