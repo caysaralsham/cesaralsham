@@ -118,6 +118,7 @@
     <div class="field"><label>فيسبوك</label><input type="text" id="setFacebook" placeholder="https://facebook.com/..."></div>
     <div class="field"><label>انستغرام</label><input type="text" id="setInstagram" placeholder="https://instagram.com/..."></div>
     <div class="field"><label>تيك توك</label><input type="text" id="setTiktok" placeholder="https://tiktok.com/@..."></div>
+    <div class="field"><label>يوتيوب</label><input type="text" id="setYoutube" placeholder="https://youtube.com/@..."></div>
     <button class="btn btn-ghost" id="btnSaveSocial">حفظ الروابط</button>
   </div>
 
@@ -189,7 +190,7 @@ const FS_DOC = 'main';
 const CHUNK_PREFIX = 'items_';
 
 const DEFAULT_SETTINGS = {
-  facebook:'', instagram:'', tiktok:'', whatsapp:'213541737888', domainExpiry:'',
+  facebook:'', instagram:'', tiktok:'', youtube:'', whatsapp:'213541737888', domainExpiry:'',
   heroTitleMain:'أرقى أنواع',
   heroTitleAccent:'الحجر والرخام',
   heroSubtitle:'تصاميم ونحت وتركيب بخبرة عالية — من ديالي إبراهيم، الجزائر، لكل بيت يستحق لمسة فخامة',
@@ -284,6 +285,7 @@ async function loadSettingsAndFill(){
   document.getElementById('setFacebook').value = settings.facebook || '';
   document.getElementById('setInstagram').value = settings.instagram || '';
   document.getElementById('setTiktok').value = settings.tiktok || '';
+  document.getElementById('setYoutube').value = settings.youtube || '';
   document.getElementById('setDomainExpiry').value = settings.domainExpiry || '';
   renderDomainCountdown();
 }
@@ -333,7 +335,8 @@ document.getElementById('btnSaveSocial').addEventListener('click', async ()=>{
   settings.facebook = document.getElementById('setFacebook').value.trim();
   settings.instagram = document.getElementById('setInstagram').value.trim();
   settings.tiktok = document.getElementById('setTiktok').value.trim();
-  await saveSettings({whatsapp: settings.whatsapp, facebook: settings.facebook, instagram: settings.instagram, tiktok: settings.tiktok});
+  settings.youtube = document.getElementById('setYoutube').value.trim();
+  await saveSettings({whatsapp: settings.whatsapp, facebook: settings.facebook, instagram: settings.instagram, tiktok: settings.tiktok, youtube: settings.youtube});
   toast('تم حفظ روابط التواصل الاجتماعي');
 });
 
