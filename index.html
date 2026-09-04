@@ -1090,7 +1090,7 @@ function renderVideoShowcase(){
 
   const videoCard = (v)=>`
     <div style="border-radius:10px; overflow:hidden; box-shadow:var(--shadow); aspect-ratio:16/9; background:#000;">
-      <video src="${v.url}" controls preload="metadata" style="width:100%; height:100%; object-fit:cover; display:block;"></video>
+      <video src="${v.url}" controls preload="metadata" style="width:100%; height:100%; object-fit:contain; background:#000; display:block;"></video>
       ${v.title ? `<div style="padding:8px 10px; font-size:13px; color:var(--ink); background:#fff;">${v.title}</div>` : ''}
     </div>`;
 
