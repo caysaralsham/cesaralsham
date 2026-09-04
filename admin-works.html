@@ -1004,7 +1004,7 @@ async function getFFmpegInstance(){
     if(ffmpegProgressCallback && progress >= 0) ffmpegProgressCallback(Math.max(0, Math.min(100, Math.round(progress*100))));
   });
   try{
-    const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd';
+    const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm';
     const ffmpegBaseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd';
     await ffmpeg.load({
       coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
