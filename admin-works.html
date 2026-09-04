@@ -990,6 +990,11 @@ document.getElementById('btnUpload').addEventListener('click', async ()=>{
 // ---------- video compatibility check + auto-conversion (لفيديوهات الآيفون HEVC) ----------
 let ffmpegInstance = null;
 let ffmpegProgressCallback = null;
+async function execWithTimeout(ffmpeg, args, timeoutMs){
+  const execPromise = ffmpeg.exec(args);
+  const timeout = new Promise((_, reject)=> setTimeout(()=> reject(new Error('انتهى الوقت — المعالجة أخذت وقت أطول من المتوقع (' + Math.round(timeoutMs/1000) + ' ثانية)، جرب فيديو أقصر أو أخف حجمًا')), timeoutMs));
+  await Promise.race([execPromise, timeout]);
+}
 async function getFFmpegInstance(){
   if(ffmpegInstance) return ffmpegInstance;
   if(typeof FFmpegWASM === 'undefined' || typeof FFmpegUtil === 'undefined'){
@@ -1006,11 +1011,15 @@ async function getFFmpegInstance(){
   try{
     const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm';
     const ffmpegBaseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd';
-    await ffmpeg.load({
-      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-      classWorkerURL: await toBlobURL(`${ffmpegBaseURL}/814.ffmpeg.js`, 'text/javascript'),
-    });
+    const loadWithTimeout = (async ()=>{
+      await ffmpeg.load({
+        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+        classWorkerURL: await toBlobURL(`${ffmpegBaseURL}/814.ffmpeg.js`, 'text/javascript'),
+      });
+    })();
+    const timeout = new Promise((_, reject)=> setTimeout(()=> reject(new Error('انتهى الوقت — محرك الفيديو ما ردّش بعد 90 ثانية')), 90000));
+    await Promise.race([loadWithTimeout, timeout]);
   }catch(err){
     console.error('ffmpeg load error (raw)', err);
     const detail = (err && (err.message || err.toString())) || 'خطأ غير معروف';
@@ -1047,7 +1056,7 @@ async function transcodeVideoToH264(file, onProgress){
   const outputName = 'output.mp4';
   ffmpegProgressCallback = onProgress || null;
   await ffmpeg.writeFile(inputName, await fetchFile(file));
-  await ffmpeg.exec(['-i', inputName, '-c:v', 'libx264', '-preset', 'faster', '-crf', '20', '-c:a', 'aac', '-b:a', '192k', outputName]);
+  await execWithTimeout(ffmpeg, ['-i', inputName, '-c:v', 'libx264', '-preset', 'faster', '-crf', '20', '-c:a', 'aac', '-b:a', '192k', outputName], 240000);
   const data = await ffmpeg.readFile(outputName);
   try{ await ffmpeg.deleteFile(inputName); await ffmpeg.deleteFile(outputName); }catch(e){}
   ffmpegProgressCallback = null;
@@ -1169,13 +1178,13 @@ async function addWatermarkToVideo(videoFile, onProgress){
   ffmpegProgressCallback = onProgress || null;
   await ffmpeg.writeFile(videoIn, await fetchFile(videoFile));
   await ffmpeg.writeFile(badgeIn, await fetchFile(badgeBlob));
-  await ffmpeg.exec([
+  await execWithTimeout(ffmpeg, [
     '-i', videoIn, '-i', badgeIn,
     '-filter_complex', '[0:v][1:v]overlay=main_w-overlay_w-10:main_h-overlay_h-10',
     '-c:v', 'libx264', '-preset', 'faster', '-crf', '20',
     '-c:a', 'copy',
     outputName
-  ]);
+  ], 240000);
   const data = await ffmpeg.readFile(outputName);
   try{ await ffmpeg.deleteFile(videoIn); await ffmpeg.deleteFile(badgeIn); await ffmpeg.deleteFile(outputName); }catch(e){}
   ffmpegProgressCallback = null;
@@ -1193,14 +1202,14 @@ async function replaceVideoAudio(videoFile, musicFile, onProgress){
   ffmpegProgressCallback = onProgress || null;
   await ffmpeg.writeFile(videoIn, await fetchFile(videoFile));
   await ffmpeg.writeFile(musicIn, await fetchFile(musicFile));
-  await ffmpeg.exec([
+  await execWithTimeout(ffmpeg, [
     '-i', videoIn, '-i', musicIn,
     '-map', '0:v:0', '-map', '1:a:0',
     '-c:v', 'libx264', '-preset', 'faster', '-crf', '20',
     '-af', 'volume=3.0',
     '-c:a', 'aac', '-b:a', '192k', '-shortest',
     outputName
-  ]);
+  ], 240000);
   const data = await ffmpeg.readFile(outputName);
   try{ await ffmpeg.deleteFile(videoIn); await ffmpeg.deleteFile(musicIn); await ffmpeg.deleteFile(outputName); }catch(e){}
   ffmpegProgressCallback = null;
