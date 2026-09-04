@@ -195,7 +195,7 @@
         </select>
       </div>
       <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; margin-bottom:14px; cursor:pointer;">
-        <input type="checkbox" id="upVideoWatermark" style="width:auto;">
+        <input type="checkbox" id="upVideoWatermark" style="width:auto;" checked>
         إضافة شعار الجزائر / قيصر الشام على هذا الفيديو
       </label>
       <button class="btn" style="width:100%; justify-content:center;" id="btnUploadVideo">رفع الفيديو</button>
@@ -1305,7 +1305,7 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
     document.getElementById('upVideoFile').value = '';
     statusEl.style.display = 'none';
     renderVideoMusicSelect();
-    document.getElementById('upVideoWatermark').checked = false;
+    document.getElementById('upVideoWatermark').checked = true;
     document.getElementById('videoPreviewWrap').style.display = 'none';
     loadedVideoFile = null;
     document.getElementById('upVideoTitle').value = '';
