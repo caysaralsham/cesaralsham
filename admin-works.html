@@ -694,8 +694,8 @@ function renderVideosTable(){
       <td>${v.category||'<span style="color:var(--danger);">بدون قسم</span>'}</td>
       <td>
         <div class="row-actions">
-          <button class="btn btn-sm" onclick="editVideo('${v.id}')" title="تعديل">✎</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteVideo('${v.id}')" title="حذف">🗑</button>
+          <button class="btn btn-sm btn-edit-video" data-video-id="${v.id}" title="تعديل">✎</button>
+          <button class="btn btn-danger btn-sm btn-delete-video" data-video-id="${v.id}" title="حذف">🗑</button>
         </div>
       </td>
     </tr>`;
@@ -703,6 +703,12 @@ function renderVideosTable(){
   html += '</tbody></table>';
   wrap.innerHTML = html;
 }
+document.getElementById('videosTableWrap').addEventListener('click', (e)=>{
+  const editBtn = e.target.closest('.btn-edit-video');
+  if(editBtn){ editVideo(editBtn.dataset.videoId); return; }
+  const delBtn = e.target.closest('.btn-delete-video');
+  if(delBtn){ deleteVideo(delBtn.dataset.videoId); return; }
+});
 async function editVideo(id){
   const v = videos.find(x => x.id === id);
   if(!v) return;
