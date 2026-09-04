@@ -194,6 +194,10 @@
           <option value="">بلا موسيقى (يبقى صوت الفيديو الأصلي)</option>
         </select>
       </div>
+      <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; margin-bottom:14px; cursor:pointer;">
+        <input type="checkbox" id="upVideoWatermark" style="width:auto;">
+        إضافة شعار الجزائر / قيصر الشام على هذا الفيديو
+      </label>
       <button class="btn" style="width:100%; justify-content:center;" id="btnUploadVideo">رفع الفيديو</button>
     </div>
 
@@ -240,6 +244,25 @@
     <div class="close-row">
       <button class="btn btn-ghost btn-sm" data-close="editItemOverlay">إلغاء</button>
       <button class="btn btn-sm" id="btnSaveEditItem">حفظ التعديلات</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="editVideoOverlay">
+  <div class="modal">
+    <h3>تعديل بيانات الفيديو</h3>
+    <video id="editVideoPreview" controls style="width:100%; max-height:180px; border-radius:8px; margin-bottom:14px; background:#000;"></video>
+    <div class="field"><label>عنوان الفيديو</label><input type="text" id="editVideoTitle"></div>
+    <div class="field">
+      <label>القسم / التصنيف</label>
+      <select id="editVideoCategorySelect">
+        <option value="__new__">➕ قسم جديد...</option>
+      </select>
+      <input type="text" id="editVideoCategory" placeholder="اكتب اسم القسم" style="margin-top:8px;">
+    </div>
+    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:14px;">
+      <button class="btn btn-ghost btn-sm" data-close="editVideoOverlay">إلغاء</button>
+      <button class="btn btn-sm" id="btnSaveEditVideo">حفظ التعديلات</button>
     </div>
   </div>
 </div>
@@ -718,19 +741,45 @@ document.getElementById('videosTableWrap').addEventListener('click', (e)=>{
   const delBtn = e.target.closest('.btn-delete-video');
   if(delBtn){ deleteVideo(delBtn.dataset.videoId); return; }
 });
-async function editVideo(id){
+let editingVideoId = null;
+function editVideo(id){
   const v = videos.find(x => x.id === id);
   if(!v) return;
-  const newTitle = prompt('عنوان الفيديو:', v.title || '');
-  if(newTitle === null) return;
-  const newCategory = prompt('القسم/التصنيف:', v.category || '');
-  if(newCategory === null) return;
-  const updated = { ...v, title: newTitle.trim(), category: newCategory.trim() };
-  videos = videos.map(x => x.id === id ? updated : x);
+  editingVideoId = id;
+  document.getElementById('editVideoPreview').src = v.url;
+  document.getElementById('editVideoTitle').value = v.title || '';
+  const cats = [...new Set(items.map(it => (it.category||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar'));
+  const sel = document.getElementById('editVideoCategorySelect');
+  sel.innerHTML = '<option value="__new__">➕ قسم جديد...</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  const catInput = document.getElementById('editVideoCategory');
+  if(v.category && cats.includes(v.category)){ sel.value = v.category; catInput.value = v.category; catInput.style.display = 'none'; }
+  else { sel.value = '__new__'; catInput.value = v.category || ''; catInput.style.display = ''; }
+  document.getElementById('editVideoOverlay').classList.add('show');
+}
+document.getElementById('editVideoCategorySelect').addEventListener('change', ()=>{
+  const sel = document.getElementById('editVideoCategorySelect'), input = document.getElementById('editVideoCategory');
+  if(sel.value === '__new__'){ input.value=''; input.style.display=''; input.focus(); }
+  else { input.value = sel.value; input.style.display = 'none'; }
+});
+document.getElementById('btnSaveEditVideo').addEventListener('click', async ()=>{
+  if(!editingVideoId) return;
+  const v = videos.find(x => x.id === editingVideoId);
+  if(!v) return;
+  const btn = document.getElementById('btnSaveEditVideo');
+  btn.disabled = true; btn.textContent = 'جاري الحفظ...';
+  const newTitle = document.getElementById('editVideoTitle').value.trim();
+  const newCategory = document.getElementById('editVideoCategory').value.trim();
+  const updated = { ...v, title: newTitle, category: newCategory };
+  videos = videos.map(x => x.id === editingVideoId ? updated : x);
   renderVideosTable();
   const saved = await updateVideoInCloud(updated);
-  if(saved) toast('تم حفظ التعديلات');
-}
+  btn.disabled = false; btn.textContent = 'حفظ التعديلات';
+  if(saved){
+    toast('تم حفظ التعديلات');
+    document.getElementById('editVideoOverlay').classList.remove('show');
+    editingVideoId = null;
+  }
+});
 async function deleteVideo(id){
   if(!confirm('حذف هذا الفيديو؟')) return;
   const target = videos.find(v => v.id === id);
@@ -1057,6 +1106,58 @@ async function getMusicFileForSlot(i){
   return new File([blob], 'music-' + i + '.' + slot.ext, { type: blob.type || 'audio/mpeg' });
 }
 
+async function generateWatermarkBadge(){
+  const logoImg = await getLogoImage();
+  const hasLogo = !!(logoImg && logoImg.naturalWidth > 0);
+  const wmText = 'الجزائر · قيصر الشام للحجر والرخام · 0541.73.78.88';
+  const fontSize = 26;
+  const measureCanvas = document.createElement('canvas');
+  const measureCtx = measureCanvas.getContext('2d');
+  measureCtx.font = `700 ${fontSize}px Tajawal, Arial`;
+  const textW = measureCtx.measureText(wmText).width;
+  const logoH = hasLogo ? fontSize * 2.4 : 0;
+  const logoW = hasLogo ? logoImg.width * (logoH / logoImg.height) : 0;
+  const padX = 14, padY = 10, gap = hasLogo ? 10 : 0;
+  const boxW = Math.ceil(textW + padX*2 + logoW + gap);
+  const boxH = Math.ceil(Math.max(fontSize, logoH) + padY*2);
+  const canvas = document.createElement('canvas');
+  canvas.width = boxW; canvas.height = boxH;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.fillRect(0, 0, boxW, boxH);
+  if(hasLogo) ctx.drawImage(logoImg, padX, (boxH - logoH)/2, logoW, logoH);
+  ctx.font = `700 ${fontSize}px Tajawal, Arial`;
+  ctx.fillStyle = '#fff';
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'right';
+  ctx.fillText(wmText, boxW - padX, boxH/2);
+  return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+}
+async function addWatermarkToVideo(videoFile, onProgress){
+  const ffmpeg = await getFFmpegInstance();
+  const { fetchFile } = FFmpeg;
+  const badgeBlob = await generateWatermarkBadge();
+  const videoExt = (videoFile.name.match(/\.\w+$/) || ['.mp4'])[0];
+  const videoIn = 'wmvin' + videoExt;
+  const badgeIn = 'badge.png';
+  const outputName = 'watermarked.mp4';
+  ffmpeg.setProgress(({ratio})=>{
+    if(onProgress && ratio >= 0) onProgress(Math.max(0, Math.min(100, Math.round(ratio*100))));
+  });
+  ffmpeg.FS('writeFile', videoIn, await fetchFile(videoFile));
+  ffmpeg.FS('writeFile', badgeIn, await fetchFile(badgeBlob));
+  await ffmpeg.run(
+    '-i', videoIn, '-i', badgeIn,
+    '-filter_complex', '[0:v][1:v]overlay=main_w-overlay_w-10:main_h-overlay_h-10',
+    '-c:v', 'libx264', '-preset', 'faster', '-crf', '20',
+    '-c:a', 'copy',
+    outputName
+  );
+  const data = ffmpeg.FS('readFile', outputName);
+  try{ ffmpeg.FS('unlink', videoIn); ffmpeg.FS('unlink', badgeIn); ffmpeg.FS('unlink', outputName); }catch(e){}
+  return new Blob([data.buffer], { type: 'video/mp4' });
+}
+
 async function replaceVideoAudio(videoFile, musicFile, onProgress){
   const ffmpeg = await getFFmpegInstance();
   const { fetchFile } = FFmpeg;
@@ -1152,6 +1253,22 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
       statusEl.textContent = 'تعذر دمج الموسيقى — رح يترفع الفيديو بصوته الأصلي.';
     }
   }
+  let watermarkFailed = false;
+  if(document.getElementById('upVideoWatermark').checked){
+    statusEl.style.display = 'block';
+    statusEl.textContent = 'جاري إضافة الشعار على الفيديو... 0%';
+    try{
+      const wmBlob = await addWatermarkToVideo(loadedVideoFile, (pct)=>{
+        statusEl.textContent = `جاري إضافة الشعار على الفيديو... ${pct}%`;
+      });
+      loadedVideoFile = new File([wmBlob], loadedVideoFile.name.replace(/\.\w+$/, '') + '-wm.mp4', { type: 'video/mp4' });
+      statusEl.textContent = 'تم إضافة الشعار ✓';
+    }catch(err){
+      console.error('watermark failed', err);
+      watermarkFailed = true;
+      statusEl.textContent = 'تعذر إضافة الشعار — رح يترفع الفيديو بلا شعار.';
+    }
+  }
   try{
     const ext = (loadedVideoFile.name.split('.').pop() || 'mp4').toLowerCase();
     const storageRef = storage.ref('gallery/' + videoId + '.' + ext);
@@ -1168,10 +1285,14 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
     videos.unshift(newVideo);
     renderVideosTable();
     await saveNewVideo(newVideo);
-    toast(musicMuxFailed ? 'تم رفع الفيديو، لكن تعذر دمج الموسيقى — الفيديو رفع بصوته الأصلي' : 'تم رفع الفيديو بنجاح');
+    const problems = [];
+    if(musicMuxFailed) problems.push('تعذر دمج الموسيقى');
+    if(watermarkFailed) problems.push('تعذر إضافة الشعار');
+    toast(problems.length ? `تم رفع الفيديو، لكن ${problems.join(' و')}` : 'تم رفع الفيديو بنجاح');
     document.getElementById('upVideoFile').value = '';
     statusEl.style.display = 'none';
     document.getElementById('upVideoMusicSelect').value = '';
+    document.getElementById('upVideoWatermark').checked = false;
     document.getElementById('videoPreviewWrap').style.display = 'none';
     loadedVideoFile = null;
     document.getElementById('upVideoTitle').value = '';
