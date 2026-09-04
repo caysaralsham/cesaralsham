@@ -996,7 +996,7 @@ async function getFFmpegInstance(){
   const { createFFmpeg } = FFmpeg;
   ffmpegInstance = createFFmpeg({
     log: false,
-    corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
+    corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core-st@0.11.1/dist/ffmpeg-core.js'
   });
   try{
     await ffmpegInstance.load();
