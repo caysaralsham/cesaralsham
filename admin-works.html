@@ -467,12 +467,21 @@ async function updateItemInCloud(updatedItem){
   catch(e){ console.error(e); toast('تعذر حفظ التعديل'); }
 }
 async function updateVideoInCloud(updatedVideo){
-  if(!fbReady) return;
-  const chunkId = videoChunkOf[updatedVideo.id];
-  if(!chunkId) return;
+  if(!fbReady) return false;
+  let chunkId = videoChunkOf[updatedVideo.id];
+  if(!chunkId){
+    // نبحث في كل المقاطع مباشرة كخطة احتياطية، حتى لو الخريطة المحفوظة ما كانتش محدثة
+    for(const cid of Object.keys(videoChunkCache)){
+      if((videoChunkCache[cid]||[]).some(v => v.id === updatedVideo.id)){ chunkId = cid; break; }
+    }
+  }
+  if(!chunkId){
+    toast('تعذر حفظ التعديل — الفيديو غير موجود، حدّث الصفحة وحاول من جديد');
+    return false;
+  }
   const updated = (videoChunkCache[chunkId]||[]).map(v => v.id === updatedVideo.id ? updatedVideo : v);
-  try{ await db.collection(FS_COLLECTION).doc(chunkId).set({items: updated}); }
-  catch(e){ console.error(e); toast('تعذر حفظ التعديل'); }
+  try{ await db.collection(FS_COLLECTION).doc(chunkId).set({items: updated}); return true; }
+  catch(e){ console.error(e); toast('تعذر حفظ التعديل'); return false; }
 }
 
 // ---------- video sync (نفس أسلوب تخزين الصور، بس بمقاطع فيديو منفصلة) ----------
@@ -719,8 +728,8 @@ async function editVideo(id){
   const updated = { ...v, title: newTitle.trim(), category: newCategory.trim() };
   videos = videos.map(x => x.id === id ? updated : x);
   renderVideosTable();
-  await updateVideoInCloud(updated);
-  toast('تم حفظ التعديلات');
+  const saved = await updateVideoInCloud(updated);
+  if(saved) toast('تم حفظ التعديلات');
 }
 async function deleteVideo(id){
   if(!confirm('حذف هذا الفيديو؟')) return;
