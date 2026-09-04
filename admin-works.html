@@ -1048,22 +1048,7 @@ function canBrowserPlayVideo(file){
     setTimeout(()=> finish(false), 4000);
   });
 }
-async function transcodeVideoToH264(file, onProgress){
-  const ffmpeg = await getFFmpegInstance();
-  const { fetchFile } = FFmpegUtil;
-  const inputExt = (file.name.match(/\.\w+$/) || ['.mov'])[0];
-  const inputName = 'input' + inputExt;
-  const outputName = 'output.mp4';
-  ffmpegProgressCallback = onProgress || null;
-  await ffmpeg.writeFile(inputName, await fetchFile(file));
-  await execWithTimeout(ffmpeg, ['-i', inputName, '-c:v', 'libx264', '-preset', 'faster', '-crf', '20', '-c:a', 'aac', '-b:a', '192k', outputName], 240000);
-  const data = await ffmpeg.readFile(outputName);
-  try{ await ffmpeg.deleteFile(inputName); await ffmpeg.deleteFile(outputName); }catch(e){}
-  ffmpegProgressCallback = null;
-  return new Blob([data.buffer], { type: 'video/mp4' });
-}
 
-// ---------- موسيقى ثابتة تتطبق تلقائيًا على كل فيديو جديد ----------
 // ---------- مكتبة موسيقى (حتى 3 مقاطع) تختار منها وقت رفع كل فيديو ----------
 let musicSlots = [null, null, null]; // each: {ext} أو null
 async function loadMusicSlots(){
@@ -1171,51 +1156,59 @@ async function generateWatermarkBadge(){
   ctx.fillText(wmText, boxW - padX, boxH/2);
   return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
 }
-async function addWatermarkToVideo(videoFile, onProgress){
+async function processVideoForUpload(videoFile, opts, onProgress){
+  // opts: { addWatermark: bool, musicFile: File|null }
   const ffmpeg = await getFFmpegInstance();
   const { fetchFile } = FFmpegUtil;
-  const badgeBlob = await generateWatermarkBadge();
   const videoExt = (videoFile.name.match(/\.\w+$/) || ['.mp4'])[0];
-  const videoIn = 'wmvin' + videoExt;
-  const badgeIn = 'badge.png';
-  const outputName = 'watermarked.mp4';
-  ffmpegProgressCallback = onProgress || null;
-  await ffmpeg.writeFile(videoIn, await fetchFile(videoFile));
-  await ffmpeg.writeFile(badgeIn, await fetchFile(badgeBlob));
-  await execWithTimeout(ffmpeg, [
-    '-i', videoIn, '-i', badgeIn,
-    '-filter_complex', '[0:v][1:v]overlay=main_w-overlay_w-10:main_h-overlay_h-10',
-    '-c:v', 'libx264', '-preset', 'faster', '-crf', '20',
-    '-c:a', 'copy',
-    outputName
-  ], 240000);
-  const data = await ffmpeg.readFile(outputName);
-  try{ await ffmpeg.deleteFile(videoIn); await ffmpeg.deleteFile(badgeIn); await ffmpeg.deleteFile(outputName); }catch(e){}
-  ffmpegProgressCallback = null;
-  return new Blob([data.buffer], { type: 'video/mp4' });
-}
+  const videoIn = 'pvin' + videoExt;
+  const outputName = 'processed.mp4';
 
-async function replaceVideoAudio(videoFile, musicFile, onProgress){
-  const ffmpeg = await getFFmpegInstance();
-  const { fetchFile } = FFmpegUtil;
-  const videoExt = (videoFile.name.match(/\.\w+$/) || ['.mp4'])[0];
-  const musicExt = (musicFile.name.match(/\.\w+$/) || ['.mp3'])[0];
-  const videoIn = 'vin' + videoExt;
-  const musicIn = 'ain' + musicExt;
-  const outputName = 'muxed.mp4';
-  ffmpegProgressCallback = onProgress || null;
   await ffmpeg.writeFile(videoIn, await fetchFile(videoFile));
-  await ffmpeg.writeFile(musicIn, await fetchFile(musicFile));
-  await execWithTimeout(ffmpeg, [
-    '-i', videoIn, '-i', musicIn,
-    '-map', '0:v:0', '-map', '1:a:0',
-    '-c:v', 'libx264', '-preset', 'faster', '-crf', '20',
-    '-af', 'volume=3.0',
-    '-c:a', 'aac', '-b:a', '192k', '-shortest',
-    outputName
-  ], 240000);
+
+  const args = ['-i', videoIn];
+  let nextIdx = 1, badgeIdx = -1, musicIdx = -1, badgeIn = null, musicIn = null;
+
+  if(opts.addWatermark){
+    const badgeBlob = await generateWatermarkBadge();
+    badgeIn = 'badge.png';
+    await ffmpeg.writeFile(badgeIn, await fetchFile(badgeBlob));
+    args.push('-i', badgeIn);
+    badgeIdx = nextIdx++;
+  }
+  if(opts.musicFile){
+    const musicExt = (opts.musicFile.name.match(/\.\w+$/) || ['.mp3'])[0];
+    musicIn = 'pmin' + musicExt;
+    await ffmpeg.writeFile(musicIn, await fetchFile(opts.musicFile));
+    args.push('-i', musicIn);
+    musicIdx = nextIdx++;
+  }
+
+  if(opts.addWatermark){
+    args.push('-filter_complex', `[0:v][${badgeIdx}:v]overlay=main_w-overlay_w-10:main_h-overlay_h-10[vout]`);
+    args.push('-map', '[vout]');
+  } else {
+    args.push('-map', '0:v:0');
+  }
+  if(opts.musicFile){
+    args.push('-map', `${musicIdx}:a:0`);
+    args.push('-af', 'volume=3.0');
+  } else {
+    args.push('-map', '0:a:0?');
+  }
+  args.push('-c:v', 'libx264', '-preset', 'faster', '-crf', '20', '-c:a', 'aac', '-b:a', '192k');
+  if(opts.musicFile) args.push('-shortest');
+  args.push(outputName);
+
+  ffmpegProgressCallback = onProgress || null;
+  await execWithTimeout(ffmpeg, args, 240000);
   const data = await ffmpeg.readFile(outputName);
-  try{ await ffmpeg.deleteFile(videoIn); await ffmpeg.deleteFile(musicIn); await ffmpeg.deleteFile(outputName); }catch(e){}
+  try{
+    await ffmpeg.deleteFile(videoIn);
+    if(badgeIn) await ffmpeg.deleteFile(badgeIn);
+    if(musicIn) await ffmpeg.deleteFile(musicIn);
+    await ffmpeg.deleteFile(outputName);
+  }catch(e){}
   ffmpegProgressCallback = null;
   return new Blob([data.buffer], { type: 'video/mp4' });
 }
@@ -1223,35 +1216,22 @@ async function replaceVideoAudio(videoFile, musicFile, onProgress){
 // ---------- video upload ----------
 let loadedVideoFile = null;
 let isConvertingVideo = false;
+let videoNeedsReencode = false;
 document.getElementById('upVideoFile').addEventListener('change', async (e)=>{
   const file = e.target.files[0];
   if(!file) return;
   const statusEl = document.getElementById('videoConvertStatus');
   const uploadBtn = document.getElementById('btnUploadVideo');
   loadedVideoFile = file;
+  videoNeedsReencode = false;
   document.getElementById('videoPreviewWrap').style.display = 'none';
   statusEl.style.display = 'block';
   statusEl.textContent = 'جاري التحقق من توافق الفيديو مع المتصفح...';
-  isConvertingVideo = true;
-  uploadBtn.disabled = true;
 
   const playable = await canBrowserPlayVideo(file);
   if(!playable){
-    statusEl.textContent = 'هذا الفيديو بصيغة غير مدعومة مباشرة (شائع في فيديوهات الآيفون) — جاري تحويله تلقائيًا... 0%';
-    try{
-      const convertedBlob = await transcodeVideoToH264(file, (pct)=>{
-        statusEl.textContent = `جاري تحويل الفيديو... ${pct}% (قد يأخذ عدة دقائق حسب طول الفيديو وقوة الجهاز)`;
-      });
-      loadedVideoFile = new File([convertedBlob], file.name.replace(/\.\w+$/, '.mp4'), { type: 'video/mp4' });
-      statusEl.textContent = 'تم تحويل الفيديو بنجاح ✓';
-    }catch(err){
-      console.error('video transcode failed', err);
-      statusEl.textContent = (err && err.message) ? err.message : 'تعذر تحويل الفيديو تلقائيًا — جرب فيديو آخر أو غيّر إعداد التصوير في الآيفون لصيغة "الأكثر توافقًا".';
-      loadedVideoFile = null;
-      isConvertingVideo = false;
-      uploadBtn.disabled = false;
-      return;
-    }
+    videoNeedsReencode = true;
+    statusEl.textContent = 'هذا الفيديو بصيغة غير مدعومة مباشرة (شائع في فيديوهات الآيفون) — رح يتحول تلقائيًا وقت الرفع.';
   } else {
     statusEl.style.display = 'none';
   }
@@ -1259,51 +1239,41 @@ document.getElementById('upVideoFile').addEventListener('change', async (e)=>{
   const previewVideo = document.getElementById('previewVideo');
   previewVideo.src = URL.createObjectURL(loadedVideoFile);
   document.getElementById('videoPreviewWrap').style.display = '';
-  isConvertingVideo = false;
-  uploadBtn.disabled = false;
 });
 
 document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
-  if(isConvertingVideo){ toast('استنى لحد ما يخلص تحويل الفيديو'); return; }
   if(!loadedVideoFile){ toast('يرجى اختيار فيديو'); return; }
   const statusEl = document.getElementById('videoConvertStatus');
   const chosenCategory = document.getElementById('upVideoCategory').value.trim();
   const videoId = uid();
   const uploadBtn = document.getElementById('btnUploadVideo');
   uploadBtn.disabled = true; uploadBtn.textContent = 'جاري الرفع...';
-  let musicMuxFailed = false;
+
   const selectedSlot = document.getElementById('upVideoMusicSelect').value;
-  if(selectedSlot !== ''){
+  const wantsMusic = selectedSlot !== '';
+  const wantsWatermark = document.getElementById('upVideoWatermark').checked;
+  let processingFailed = false;
+
+  if(videoNeedsReencode || wantsMusic || wantsWatermark){
     statusEl.style.display = 'block';
-    statusEl.textContent = 'جاري تجهيز الموسيقى...';
+    statusEl.textContent = 'جاري تجهيز الفيديو...';
     try{
-      const musicFile = await getMusicFileForSlot(Number(selectedSlot));
-      statusEl.textContent = 'جاري دمج الموسيقى مع الفيديو... 0%';
-      const muxedBlob = await replaceVideoAudio(loadedVideoFile, musicFile, (pct)=>{
-        statusEl.textContent = `جاري دمج الموسيقى مع الفيديو... ${pct}%`;
+      let musicFile = null;
+      if(wantsMusic){
+        statusEl.textContent = 'جاري تجهيز الموسيقى...';
+        musicFile = await getMusicFileForSlot(Number(selectedSlot));
+      }
+      const processedBlob = await processVideoForUpload(loadedVideoFile, { addWatermark: wantsWatermark, musicFile }, (pct)=>{
+        statusEl.textContent = `جاري معالجة الفيديو... ${pct}%`;
       });
-      loadedVideoFile = new File([muxedBlob], loadedVideoFile.name.replace(/\.\w+$/, '') + '-music.mp4', { type: 'video/mp4' });
-      statusEl.textContent = 'تم دمج الموسيقى ✓';
+      loadedVideoFile = new File([processedBlob], loadedVideoFile.name.replace(/\.\w+$/, '') + '-final.mp4', { type: 'video/mp4' });
+      statusEl.textContent = 'تم تجهيز الفيديو ✓';
     }catch(err){
-      console.error('music mux failed', err);
-      musicMuxFailed = true;
-      statusEl.textContent = ((err && err.message) ? err.message + ' — ' : '') + 'رح يترفع الفيديو بصوته الأصلي.';
-    }
-  }
-  let watermarkFailed = false;
-  if(document.getElementById('upVideoWatermark').checked){
-    statusEl.style.display = 'block';
-    statusEl.textContent = 'جاري إضافة الشعار على الفيديو... 0%';
-    try{
-      const wmBlob = await addWatermarkToVideo(loadedVideoFile, (pct)=>{
-        statusEl.textContent = `جاري إضافة الشعار على الفيديو... ${pct}%`;
-      });
-      loadedVideoFile = new File([wmBlob], loadedVideoFile.name.replace(/\.\w+$/, '') + '-wm.mp4', { type: 'video/mp4' });
-      statusEl.textContent = 'تم إضافة الشعار ✓';
-    }catch(err){
-      console.error('watermark failed', err);
-      watermarkFailed = true;
-      statusEl.textContent = ((err && err.message) ? err.message + ' — ' : '') + 'رح يترفع الفيديو بلا شعار.';
+      console.error('video processing failed', err);
+      processingFailed = true;
+      statusEl.textContent = (err && err.message) ? err.message : 'تعذر معالجة الفيديو — حاول من جديد';
+      uploadBtn.disabled = false; uploadBtn.textContent = 'رفع الفيديو';
+      return;
     }
   }
   try{
@@ -1322,10 +1292,7 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
     videos.unshift(newVideo);
     renderVideosTable();
     await saveNewVideo(newVideo);
-    const problems = [];
-    if(musicMuxFailed) problems.push('تعذر دمج الموسيقى');
-    if(watermarkFailed) problems.push('تعذر إضافة الشعار');
-    toast(problems.length ? `تم رفع الفيديو، لكن ${problems.join(' و')}` : 'تم رفع الفيديو بنجاح');
+    toast('تم رفع الفيديو بنجاح');
     document.getElementById('upVideoFile').value = '';
     statusEl.style.display = 'none';
     renderVideoMusicSelect();
