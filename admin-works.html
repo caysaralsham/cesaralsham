@@ -195,11 +195,6 @@
           <option value="">بلا موسيقى (يبقى صوت الفيديو الأصلي)</option>
         </select>
       </div>
-      <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; margin-bottom:6px; cursor:pointer;">
-        <input type="checkbox" id="upVideoWatermark" style="width:auto;">
-        إضافة شعار الجزائر / دالي إبراهيم على هذا الفيديو
-      </label>
-      <div style="font-size:11.5px; color:var(--text-dim); margin-bottom:14px;">ملاحظة: إضافة الشعار تقلل دقة الفيديو شوي وتاخذ وقت أطول بالمعالجة، عكس رفعه بلا شعار.</div>
       <button class="btn" style="width:100%; justify-content:center;" id="btnUploadVideo">رفع الفيديو</button>
     </div>
 
@@ -1148,35 +1143,8 @@ async function getMusicFileForSlot(i){
   return new File([blob], 'music-' + i + '.' + slot.ext, { type: blob.type || 'audio/mpeg' });
 }
 
-async function generateWatermarkBadge(){
-  const logoImg = await getLogoImage();
-  const hasLogo = !!(logoImg && logoImg.naturalWidth > 0);
-  const wmText = 'الجزائر · دالي إبراهيم · 0541.73.78.88';
-  const fontSize = 26;
-  const measureCanvas = document.createElement('canvas');
-  const measureCtx = measureCanvas.getContext('2d');
-  measureCtx.font = `700 ${fontSize}px Tajawal, Arial`;
-  const textW = measureCtx.measureText(wmText).width;
-  const logoH = hasLogo ? fontSize * 2.4 : 0;
-  const logoW = hasLogo ? logoImg.width * (logoH / logoImg.height) : 0;
-  const padX = 14, padY = 10, gap = hasLogo ? 10 : 0;
-  const boxW = Math.ceil(textW + padX*2 + logoW + gap);
-  const boxH = Math.ceil(Math.max(fontSize, logoH) + padY*2);
-  const canvas = document.createElement('canvas');
-  canvas.width = boxW; canvas.height = boxH;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = 'rgba(0,0,0,0.45)';
-  ctx.fillRect(0, 0, boxW, boxH);
-  if(hasLogo) ctx.drawImage(logoImg, padX, (boxH - logoH)/2, logoW, logoH);
-  ctx.font = `700 ${fontSize}px Tajawal, Arial`;
-  ctx.fillStyle = '#fff';
-  ctx.textBaseline = 'middle';
-  ctx.textAlign = 'right';
-  ctx.fillText(wmText, boxW - padX, boxH/2);
-  return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-}
 async function processVideoForUpload(videoFile, opts, onProgress){
-  // opts: { addWatermark: bool, musicFile: File|null }
+  // opts: { musicFile: File|null, needsReencode: bool }
   const mark = (step)=>{ try{ localStorage.setItem('videoProcessCheckpoint', step + ' | ' + new Date().toLocaleTimeString('ar')); }catch(e){} };
   mark('بداية المعالجة');
   const ffmpeg = await getFFmpegInstance();
@@ -1189,37 +1157,20 @@ async function processVideoForUpload(videoFile, opts, onProgress){
   await ffmpeg.writeFile(videoIn, await fetchFile(videoFile));
 
   const args = ['-i', videoIn];
-  let nextIdx = 1, badgeIdx = -1, musicIdx = -1, badgeIn = null, musicIn = null;
+  let musicIdx = -1, musicIn = null;
 
-  if(opts.addWatermark){
-    mark('توليد صورة الشعار');
-    const badgeBlob = await generateWatermarkBadge();
-    badgeIn = 'badge.png';
-    mark('كتابة ملف الشعار');
-    await ffmpeg.writeFile(badgeIn, await fetchFile(badgeBlob));
-    args.push('-i', badgeIn);
-    badgeIdx = nextIdx++;
-  }
   if(opts.musicFile){
     const musicExt = (opts.musicFile.name.match(/\.\w+$/) || ['.mp3'])[0];
     musicIn = 'pmin' + musicExt;
     mark('كتابة ملف الموسيقى');
     await ffmpeg.writeFile(musicIn, await fetchFile(opts.musicFile));
     args.push('-i', musicIn);
-    musicIdx = nextIdx++;
+    musicIdx = 1;
   }
 
-  const lightAudioOnly = opts.musicFile && !opts.addWatermark && !opts.needsReencode;
+  const lightAudioOnly = opts.musicFile && !opts.needsReencode;
 
-  if(opts.addWatermark){
-    args.push('-filter_complex', `[0:v]scale='min(640,iw)':-2[scaled];[scaled][${badgeIdx}:v]overlay=main_w-overlay_w-10:main_h-overlay_h-10[vout]`);
-    args.push('-map', '[vout]');
-  } else if(lightAudioOnly){
-    args.push('-map', '0:v:0');
-  } else {
-    args.push('-filter_complex', `[0:v]scale='min(1920,iw)':-2[vout]`);
-    args.push('-map', '[vout]');
-  }
+  args.push('-map', '0:v:0');
   if(opts.musicFile){
     args.push('-map', `${musicIdx}:a:0`);
     args.push('-af', 'volume=3.0');
@@ -1229,7 +1180,7 @@ async function processVideoForUpload(videoFile, opts, onProgress){
   if(lightAudioOnly){
     args.push('-c:v', 'copy');
   } else {
-    args.push('-c:v', 'libx264', '-preset', 'faster', '-crf', '20');
+    args.push('-c:v', 'libx264', '-preset', 'faster', '-crf', '18');
   }
   args.push('-c:a', 'aac', '-b:a', '192k');
   if(opts.musicFile) args.push('-shortest');
@@ -1243,7 +1194,6 @@ async function processVideoForUpload(videoFile, opts, onProgress){
   mark('تمت القراءة، جاري التنظيف');
   try{
     await ffmpeg.deleteFile(videoIn);
-    if(badgeIn) await ffmpeg.deleteFile(badgeIn);
     if(musicIn) await ffmpeg.deleteFile(musicIn);
     await ffmpeg.deleteFile(outputName);
   }catch(e){}
@@ -1290,10 +1240,9 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
 
   const selectedSlot = document.getElementById('upVideoMusicSelect').value;
   const wantsMusic = selectedSlot !== '';
-  const wantsWatermark = document.getElementById('upVideoWatermark').checked;
   let processingFailed = false;
 
-  if(videoNeedsReencode || wantsMusic || wantsWatermark){
+  if(videoNeedsReencode || wantsMusic){
     statusEl.style.display = 'block';
     statusEl.textContent = 'جاري تجهيز الفيديو...';
     try{
@@ -1302,7 +1251,7 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
         statusEl.textContent = 'جاري تجهيز الموسيقى...';
         musicFile = await getMusicFileForSlot(Number(selectedSlot));
       }
-      const processedBlob = await processVideoForUpload(loadedVideoFile, { addWatermark: wantsWatermark, musicFile, needsReencode: videoNeedsReencode }, (pct)=>{
+      const processedBlob = await processVideoForUpload(loadedVideoFile, { musicFile, needsReencode: videoNeedsReencode }, (pct)=>{
         statusEl.textContent = `جاري معالجة الفيديو... ${pct}%`;
       });
       loadedVideoFile = new File([processedBlob], loadedVideoFile.name.replace(/\.\w+$/, '') + '-final.mp4', { type: 'video/mp4' });
@@ -1335,7 +1284,6 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
     document.getElementById('upVideoFile').value = '';
     statusEl.style.display = 'none';
     renderVideoMusicSelect();
-    document.getElementById('upVideoWatermark').checked = false;
     document.getElementById('videoPreviewWrap').style.display = 'none';
     loadedVideoFile = null;
     document.getElementById('upVideoTitle').value = '';
