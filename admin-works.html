@@ -1132,11 +1132,15 @@ function renderVideoMusicSelect(){
   if(current !== '' && [...sel.options].some(o=>o.value===current)) sel.value = current;
   else if(firstSlotIndex !== -1) sel.value = String(firstSlotIndex);
 }
+async function withTimeout(promise, ms, msg){
+  const timeout = new Promise((_, reject)=> setTimeout(()=> reject(new Error(msg)), ms));
+  return Promise.race([promise, timeout]);
+}
 async function getMusicFileForSlot(i){
   const slot = musicSlots[i];
   if(!slot) return null;
-  const url = await storage.ref('gallery/fixed-music-' + i + '.' + slot.ext).getDownloadURL();
-  const blob = await (await fetch(url)).blob();
+  const url = await withTimeout(storage.ref('gallery/fixed-music-' + i + '.' + slot.ext).getDownloadURL(), 30000, 'انتهى الوقت — تعذر جلب رابط الموسيقى');
+  const blob = await withTimeout((async ()=> (await fetch(url)).blob())(), 30000, 'انتهى الوقت — تعذر تحميل ملف الموسيقى');
   return new File([blob], 'music-' + i + '.' + slot.ext, { type: blob.type || 'audio/mpeg' });
 }
 
@@ -1305,7 +1309,7 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
   try{
     const ext = (loadedVideoFile.name.split('.').pop() || 'mp4').toLowerCase();
     const storageRef = storage.ref('gallery/' + videoId + '.' + ext);
-    await storageRef.put(loadedVideoFile, { contentType: loadedVideoFile.type || 'video/mp4' });
+    await withTimeout(storageRef.put(loadedVideoFile, { contentType: loadedVideoFile.type || 'video/mp4' }), 180000, 'انتهى الوقت — تعذر رفع الفيديو للسحابة (تأكد من الاتصال)');
     const videoUrl = await storageRef.getDownloadURL();
     const newVideo = {
       id: videoId,
