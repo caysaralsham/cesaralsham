@@ -571,6 +571,7 @@ const DEFAULT_SETTINGS = {
 
 let items = [];
 let settings = {...DEFAULT_SETTINGS};
+const SETTINGS_CACHE_KEY = 'cesar_settings_cache_v1';
 let fbReady = false;
 
 function toast(msg){
@@ -991,6 +992,7 @@ function startSync(){
     });
 
     settings = {...DEFAULT_SETTINGS, ...((mainDoc && mainDoc.settings) || {})};
+    try{ localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(settings)); }catch(e){}
 
     // ترحيل تلقائي: لو لسا في بيانات قديمة (كل الصور بمستند واحد)، ننقلها
     // للنظام الموزّع الجديد مرة وحدة بس.
@@ -1117,6 +1119,19 @@ function renderAboutSection(){
 // حتى تظهر المعرض للزوار. التسجيل الحقيقي (Email/Password) بيصير بس لما
 // الأدمن يفتح لوحة الإدارة.
 fbReady = true;
+
+// عرض فوري من آخر نسخة محفوظة بالمتصفح (لو موجودة) قبل ما نستنى Firestore،
+// هذا يمنع "الومضة" (النص/الأيقونات الفارغة تتغير فجأة) عند أي زيارة بعد الأولى.
+try{
+  const cached = localStorage.getItem(SETTINGS_CACHE_KEY);
+  if(cached){
+    settings = {...DEFAULT_SETTINGS, ...JSON.parse(cached)};
+    renderSocialIcons();
+    renderHeroSection();
+    renderAboutSection();
+  }
+}catch(e){}
+
 startSync();
 
 // ---------- overlay open/close ----------
