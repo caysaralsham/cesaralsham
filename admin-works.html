@@ -305,13 +305,19 @@ const FS_DOC = 'main';
 // نسخة احتياطية أسبوعية تلقائية (إعدادات + كل الصور) — بتنزّل ملف JSON
 // لمجلد التنزيلات (Downloads) أول مرة تفتحي فيها لوحة الإدارة كل أسبوع.
 const WEEKLY_BACKUP_KEY = 'qaysar_last_weekly_backup';
+let isRunningWeeklyBackup = false;
 async function runWeeklyBackupIfNeeded(){
   try{
+    if(isRunningWeeklyBackup) return; // منع تشغيل الفنكشن مرتين بنفس الوقت (onAuthStateChanged ممكن يطلق أكتر من مرة)
     const last = localStorage.getItem(WEEKLY_BACKUP_KEY);
     const now = Date.now();
     const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
     if(last && (now - parseInt(last,10)) < oneWeekMs) return;
     if(!items || items.length === 0) return; // لسا الصور ما حمّلت، منجرب بالمرة الجاية
+
+    isRunningWeeklyBackup = true;
+    // نسجّل إنو النسخة صارت فورًا (قبل ما نكمل)، حتى إذا انطلق نفس الفنكشن بنفس الثواني ما يعيد التنزيل
+    localStorage.setItem(WEEKLY_BACKUP_KEY, String(now));
 
     const doc = await db.collection(FS_COLLECTION).doc(FS_DOC).get();
     const currentSettings = (doc.exists && doc.data().settings) || {};
@@ -330,10 +336,11 @@ async function runWeeklyBackupIfNeeded(){
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    localStorage.setItem(WEEKLY_BACKUP_KEY, String(now));
     toast('تم إنشاء نسخة احتياطية أسبوعية تلقائية — تفقّدي مجلد التنزيلات');
   }catch(e){
     console.error('weekly backup failed', e);
+  }finally{
+    isRunningWeeklyBackup = false;
   }
 }
 
