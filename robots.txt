@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /admin-works.html
 
 Sitemap: https://cesar-alcham.com/sitemap.xml
