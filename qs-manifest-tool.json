@@ -1,8 +1,9 @@
 {
+  "id": "/logo-tool.html",
   "name": "قيصر الشام - أداة اللوغو",
-  "short_name": "قيصر الشام",
+  "short_name": "أداة اللوغو",
   "start_url": "logo-tool.html",
-  "scope": "/",
+  "scope": "/logo-tool.html",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#0a0a0a",
