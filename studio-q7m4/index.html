@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>مرسم ديكور</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#111111">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="مرسم ديكور">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FAF9F7; --panel:#FFFFFF; --ink:#111111; --muted:#666666; --line:#ECE8E0;
+  --accent:#B88A2A; --accent-deep:#8F6A1F; --accent-ink:#FFFFFF; --head:#111111; --sheet:#FFFFFF; --sheet-line:#2B2722;
+  --shadow:0 10px 30px rgba(17,17,17,.06); --radius:20px;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#141414;--panel:#1E1E1E;--ink:#F2EFE8;--muted:#A8A399;--line:#2E2B26;--accent:#C9A04A;--accent-deep:#B88A2A;--accent-ink:#111;--head:#0B0B0B;--sheet:#FBFAF7;--shadow:0 10px 30px rgba(0,0,0,.35)}
+}
+:root[data-theme="dark"]{--bg:#141414;--panel:#1E1E1E;--ink:#F2EFE8;--muted:#A8A399;--line:#2E2B26;--accent:#C9A04A;--accent-deep:#B88A2A;--accent-ink:#111;--head:#0B0B0B;--sheet:#FBFAF7;--shadow:0 10px 30px rgba(0,0,0,.35)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Cairo","Tajawal",Tahoma,Arial,sans-serif;font-size:15px;line-height:1.6}
+.top{background:var(--head);color:#fff}
+.top .wrap{max-width:1320px;margin:0 auto;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.top h1{margin:0;font-size:clamp(1.5rem,3vw,2rem);font-weight:900;line-height:1.2}
+.top h1 span{color:var(--accent)}
+.top p{margin:4px 0 0;display:flex;flex-wrap:wrap;gap:4px 16px;font-size:.88rem;color:#CFC8B8}
+.top p a{color:#fff;text-decoration:none;font-weight:700}
+.tabbar{background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+.tabs{max-width:1320px;margin:0 auto;padding:10px 20px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.tabs button{font:inherit;font-weight:700;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:7px 18px;cursor:pointer;white-space:nowrap;flex:0 0 auto;font-size:.95rem}
+.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+main{max-width:1320px;margin:0 auto;padding:20px;display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:8px 20px 18px}
+.ctrl{padding:11px 0;border-bottom:1px solid var(--line)}
+.ctrl:last-of-type{border-bottom:0}
+.ctrl .row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+.ctrl label,.ctrl .lbl{font-size:.9rem;font-weight:700}
+.ctrl output{font-size:.85rem;color:var(--accent-deep);font-weight:700;white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--accent);direction:ltr}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{font:inherit;font-size:.85rem;padding:5px 12px;border-radius:10px;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--panel)}
+.mats{display:flex;flex-wrap:wrap;gap:8px}
+.sw{width:40px;height:40px;border-radius:50%;cursor:pointer;border:2px solid transparent;padding:0;background:radial-gradient(circle at 35% 30%,var(--c) 0 45%,var(--d) 100%);box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+.sw[aria-pressed="true"]{border-color:var(--accent);outline:2px solid var(--panel);outline-offset:-4px}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.reset{margin-top:12px;font:inherit;font-size:.85rem;background:transparent;color:var(--muted);border:1px dashed var(--line);border-radius:12px;padding:7px 12px;cursor:pointer;width:100%}
+.ph{margin:14px 0 0;padding-top:12px;border-top:2px solid var(--accent);font-size:1rem;font-weight:800;color:var(--accent-deep)}
+.ph:first-child{border-top:0;padding-top:4px}
+.numw{display:flex;align-items:center;gap:4px}
+.num{width:78px;font:inherit;font-size:.88rem;font-weight:700;color:var(--accent-deep);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:2px 6px;direction:ltr;text-align:center}
+.numw small{font-size:.75rem;color:var(--muted)}
+.ai{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:14px}
+.airow{display:flex;gap:8px;flex-wrap:wrap}
+.airow textarea{flex:1 1 260px;font:inherit;font-size:.95rem;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);resize:vertical;min-height:46px}
+.aiout{margin:8px 2px 0;font-size:.92rem;min-height:1.2em;white-space:pre-wrap}
+.aiout.err{color:#A6453D}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.btn{font:inherit;font-weight:700;font-size:.92rem;padding:9px 20px;border-radius:14px;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink);white-space:nowrap}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.wa{background:#1F8F55;border-color:#1F8F55;color:#fff}
+.btn:disabled{opacity:.5;cursor:wait}
+.sheet{background:var(--sheet);color:#1A1A1A;border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.frame{border:1.5px solid var(--sheet-line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.ttl{display:flex;justify-content:space-between;align-items:baseline;gap:10px;border-bottom:2px solid #B88A2A;padding-bottom:8px;flex-wrap:wrap}
+.ttl b{font-size:1.1rem;font-weight:900}
+.ttl span{font-size:.85rem;color:#5D5850}
+#draw{width:100%;height:auto;max-height:68vh;display:block}
+.block{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));border-top:1.5px solid var(--sheet-line);margin:0}
+.block div{padding:8px 10px;border-inline-start:1px solid #E2DDD2}
+.block div:first-child{border-inline-start:0}
+.block dt{font-size:.78rem;color:#6B655B}
+.block dd{margin:0;font-weight:800;font-size:1.02rem}
+.note{font-size:.84rem;color:#A6453D;min-height:1em;margin:0}
+.hint{font-size:.8rem;color:var(--muted);margin:10px 4px 0}
+.tt{margin:6px 0 4px;font-size:.88rem;font-weight:800}
+.tw{overflow-x:auto}
+#tbl table{border-collapse:collapse;width:100%;font-size:.86rem;min-width:420px}
+#tbl th,#tbl td{border:1px solid #E2DDD2;padding:5px 8px;text-align:center}
+#tbl th{background:#F5F1E8;font-weight:800}
+#tbl tr.sel td{background:rgba(184,138,42,.16);font-weight:800}
+.toast{position:fixed;inset-inline:0;bottom:calc(18px + env(safe-area-inset-bottom,0px));margin:auto;width:max-content;max-width:90%;background:#111;color:#fff;padding:10px 18px;border-radius:14px;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .25s;z-index:40}
+.toast.on{opacity:1}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:20px;z-index:30}
+.modal.on{display:flex}
+.modal img{max-width:100%;max-height:75vh;border-radius:10px;background:#fff}
+.modal > p{color:#fff;margin:0;text-align:center}
+.box{background:var(--panel);color:var(--ink);border-radius:var(--radius);padding:22px;width:min(440px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow)}
+.box h2{margin:0;font-size:1.15rem;font-weight:800}
+.box label{display:flex;flex-direction:column;gap:4px;font-size:.88rem;font-weight:700}
+.box input,.box select{font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.box input.ltr{direction:ltr}
+.box small{color:var(--muted);font-weight:400;line-height:1.6}
+.req{color:#A6453D}
+.ferr{color:#A6453D;font-size:.85rem;margin:0;min-height:1em}
+.masked{-webkit-text-security:disc}
+@media (max-width:860px){main{grid-template-columns:1fr}.stage{order:-1}#draw{max-height:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div>
+    <h1>مرسم <span>ديكور</span></h1>
+    <p><span>قيصر الشام للحجر والرخام</span><span>الجزائر، دالي إبراهيم</span><a href="tel:0541737888" dir="ltr">0541737888</a></p>
+  </div>
+</div></header>
+<div class="tabbar"><nav class="tabs" role="tablist" id="tabs"></nav></div>
+<main>
+  <section class="panel" id="panel" aria-label="الإعدادات"></section>
+  <section class="stage">
+    <div class="ai" id="aiBox" hidden>
+      <div class="airow">
+        <textarea id="aiIn" rows="1" placeholder="اكتب شو بدك تعدّل، مثلاً: خلّي الواجهة 3 طوابق والشبابيك مدببة بلون بيج غامق"></textarea>
+        <button class="btn primary" id="aiGo">نفّذ</button>
+        <button class="btn" id="aiUndo" disabled>تراجع</button>
+        <button class="btn" id="aiSet" hidden aria-label="إعدادات الذكاء الاصطناعي">إعدادات</button>
+      </div>
+      <p class="aiout" id="aiOut" role="status"></p>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="saveBtn">حفظ صورة</button>
+      <button class="btn wa" id="shareBtn">إرسال واتساب</button>
+    </div>
+    <div class="sheet">
+      <div class="frame">
+        <div class="ttl"><b id="tCompany"></b><span id="tProject"></span></div>
+        <svg id="draw" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="الرسم"></svg>
+        <p class="note" id="note"></p>
+        <dl class="block" id="stats"></dl>
+        <div id="tbl"></div>
+      </div>
+    </div>
+    <p class="hint">القياسات بالسنتيمتر والرسم تقريبي للعرض على الزبون، وليس مخططاً تنفيذياً.</p>
+  </section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+<div class="modal" id="setModal"><div class="box">
+  <h2>إعدادات الذكاء الاصطناعي</h2>
+  <label>المزوّد<select id="apiProv"><option value="gemini">Google Gemini (مجاني)</option><option value="anthropic">Anthropic Claude (مدفوع)</option></select></label>
+  <label>المفتاح<input id="apiKey" class="ltr masked" type="text" name="ai_k_x" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="الصق المفتاح هون"><small>المفتاح بينحفظ على هالجهاز بس، وما بينرفع على الموقع.</small></label>
+  <label>الموديل<input id="apiModel" class="ltr" name="ai_m_x" autocomplete="off" spellcheck="false"></label>
+  <div style="display:flex;gap:8px"><button class="btn primary" id="setSave">حفظ</button><button class="btn" id="setClose">إلغاء</button></div>
+</div></div>
+<div class="modal" id="cliModal"><div class="box" role="dialog" aria-modal="true" aria-labelledby="cliT">
+  <h2 id="cliT">معلومات الزبون</h2>
+  <label>اسم الزبون <span class="req">*</span><input id="cName" name="cl_nm_x" autocomplete="off" autocapitalize="words"></label>
+  <label>الهاتف<input id="cPhone" class="ltr" name="cl_ph_x" type="tel" inputmode="tel" autocomplete="off"></label>
+  <label>العنوان<input id="cAddr" name="cl_ad_x" autocomplete="off"></label>
+  <p class="ferr" id="cErr" role="alert"></p>
+  <div style="display:flex;gap:8px"><button class="btn primary" id="cGo">حفظ صورة</button><button class="btn" id="cCancel">إلغاء</button></div>
+</div></div>
+<div class="modal" id="modal"><img id="mImg" alt="صورة التصميم"><p>اضغط مطوّلاً على الصورة واختر حفظ أو مشاركة</p><button class="btn" id="mClose">إغلاق</button></div>
+
+<script>
+const MATS={
+  beigeL:{name:'بيج فاتح',c:'#ECE0C8',d:'#CDBB98',v:'#B5A07A',n:4,o:.45},
+  beigeD:{name:'بيج غامق',c:'#C6A97E',d:'#9C8159',v:'#7E6442',n:4,o:.5},
+  italian:{name:'رمادي على أبيض',c:'#F4F3F0',d:'#CFCFCB',v:'#7E868C',n:6,o:.7},
+  brown:{name:'بني غامق',c:'#5D4434',d:'#3B2A1F',v:'#CDAE89',n:7,o:.5},
+  black:{name:'أسود',c:'#2B2D2F',d:'#141516',v:'#8A8D90',n:4,o:.35}
+};
+const INK='#2B3238', DIM='#9C3A25', WATER='#4F9BC2', BRASS='#B08A3E', IRON='#1E1F21';
+let LW=1, FS=10;
+const f=n=>Math.round(n*100)/100;
+function setScale(S){LW=S/650;FS=S/30;}
+const M=k=>`url(#p-${MATS[k]?k:'beigeL'})`;
+const fmt=v=>v>=300?(v/100).toFixed(2)+' م':Math.round(v)+' سم';
+const R=(x,y,w,h,fill,sw=LW,extra='')=>`<rect x="${f(x)}" y="${f(y)}" width="${f(Math.max(0,w))}" height="${f(Math.max(0,h))}" fill="${fill}" stroke="${INK}" stroke-width="${f(sw)}" ${extra}/>`;
+const P=(d,fill,sw=LW,extra='')=>`<path d="${d}" fill="${fill}" stroke="${INK}" stroke-width="${f(sw)}" stroke-linejoin="round" ${extra}/>`;
+const L=(x1,y1,x2,y2,c=INK,sw=LW,extra='')=>`<line x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}" stroke="${c}" stroke-width="${f(sw)}" ${extra}/>`;
+const C=(cx,cy,r,fill,sw=LW,extra='')=>`<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r)}" fill="${fill}" stroke="${INK}" stroke-width="${f(sw)}" ${extra}/>`;
+const T=(x,y,txt,size,anchor='middle',color=DIM)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="${anchor}" font-size="${f(size)}" fill="${color}" font-family="Cairo,Tahoma,sans-serif">${txt}</text>`;
+let uid=0;const nid=p=>p+(++uid);
+
+function seeded(s){return()=>{s=(s*16807)%2147483647;return(s-1)/2147483646}}
+function buildPatterns(){
+  let out='';let seed=7;
+  for(const k in MATS){
+    const m=MATS[k],rnd=seeded(seed+=13),W=180,H=120;
+    let p=`<pattern id="p-${k}" patternUnits="userSpaceOnUse" width="${W}" height="${H}"><rect width="${W}" height="${H}" fill="${m.c}"/>`;
+    for(let i=0;i<m.n;i++){
+      let x=rnd()*W,y=rnd()*H,d=`M${f(x)} ${f(y)}`;
+      for(let j=0;j<3;j++){const nx=x+40+rnd()*50,ny=y+(rnd()-.4)*50;d+=` Q${f((x+nx)/2+rnd()*20-10)} ${f((y+ny)/2+rnd()*20-10)} ${f(nx)} ${f(ny)}`;x=nx;y=ny;}
+      p+=`<path d="${d}" stroke="${m.v}" stroke-width="${f(.5+rnd()*.9)}" fill="none" opacity="${m.o}"/>`;
+    }
+    out+=p+'</pattern>';
+  }
+  return out;
+}
+const PATTERNS=buildPatterns();
+
+function dimH(x1,x2,y,label){
+  const t=FS*.3;
+  return L(x1,y,x2,y,DIM,LW*.9)+L(x1,y-t*2,x1,y+t*2,DIM,LW*.9)+L(x2,y-t*2,x2,y+t*2,DIM,LW*.9)+
+  L(x1-t,y+t,x1+t,y-t,DIM,LW*1.6)+L(x2-t,y+t,x2+t,y-t,DIM,LW*1.6)+T((x1+x2)/2,y-FS*.4,label,FS);
+}
+function dimV(y1,y2,x,label){
+  const t=FS*.3,mid=(y1+y2)/2;
+  return L(x,y1,x,y2,DIM,LW*.9)+L(x-t*2,y1,x+t*2,y1,DIM,LW*.9)+L(x-t*2,y2,x+t*2,y2,DIM,LW*.9)+
+  L(x-t,y1+t,x+t,y1-t,DIM,LW*1.6)+L(x-t,y2+t,x+t,y2-t,DIM,LW*1.6)+
+  `<text transform="translate(${f(x-FS*.45)} ${f(mid)}) rotate(-90)" text-anchor="middle" font-size="${f(FS)}" fill="${DIM}" font-family="Cairo,Tahoma,sans-serif">${label}</text>`;
+}
+function shapePath(cx,w,top,bottom,type){
+  const x1=cx-w/2,x2=cx+w/2,h=bottom-top;
+  if(type==='arch'){const r=Math.min(w/2,h*.95),sp=top+r;return `M${f(x1)} ${f(bottom)}L${f(x1)} ${f(sp)}A${f(w/2)} ${f(r)} 0 0 1 ${f(x2)} ${f(sp)}L${f(x2)} ${f(bottom)}Z`}
+  if(type==='pointed'){const rise=Math.min(w*.7,h*.95),sp=top+rise;
+    return `M${f(x1)} ${f(bottom)}L${f(x1)} ${f(sp)}C${f(x1)} ${f(sp-rise*.55)} ${f(cx-w*.12)} ${f(top+rise*.1)} ${f(cx)} ${f(top)}C${f(cx+w*.12)} ${f(top+rise*.1)} ${f(x2)} ${f(sp-rise*.55)} ${f(x2)} ${f(sp)}L${f(x2)} ${f(bottom)}Z`}
+  return `M${f(x1)} ${f(bottom)}L${f(x1)} ${f(top)}L${f(x2)} ${f(top)}L${f(x2)} ${f(bottom)}Z`;
+}
+function springY(w,top,bottom,type){const h=bottom-top;if(type==='arch')return top+Math.min(w/2,h*.95);if(type==='pointed')return top+Math.min(w*.7,h*.95);return top+h*.32}
+function coursesBlock(x,y,w,h,fill,cH=40,sl=80){
+  const id=nid('cb');let g=`<rect x="${f(x)}" y="${f(y)}" width="${f(w)}" height="${f(h)}" fill="${fill}"/>`,c=0;
+  for(let yy=y+h;yy>y;yy-=cH,c++){
+    g+=L(x,yy,x+w,yy,'rgba(30,25,20,.35)',LW*.5);
+    const off=(c%2)*sl/2;
+    for(let xx=x+off;xx<x+w;xx+=sl)if(xx>x)g+=L(xx,yy,xx,Math.max(y,yy-cH),'rgba(30,25,20,.35)',LW*.5);
+  }
+  return `<clipPath id="${id}"><rect x="${f(x)}" y="${f(y)}" width="${f(w)}" height="${f(h)}"/></clipPath><g clip-path="url(#${id})">${g}</g>`;
+}
+function rosette(cx,cy,r,sw=LW*.6){
+  let o=C(cx,cy,r,'none',sw);
+  for(let k=0;k<8;k++)o+=`<ellipse cx="${f(cx)}" cy="${f(cy-r*.5)}" rx="${f(r*.17)}" ry="${f(r*.42)}" transform="rotate(${k*45} ${f(cx)} ${f(cy)})" fill="none" stroke="${INK}" stroke-width="${f(sw)}"/>`;
+  return o+C(cx,cy,r*.15,'none',sw);
+}
+function column(cx,yb,h,w,style,m){
+  let o='';
+  if(style==='vase'){
+    const bh=h*.08,th=h*.05,cap=h*.07,ring=h*.04;
+    o+=R(cx-w/2,yb-bh,w,bh,m);
+    o+=R(cx-w*.42,yb-bh-th,w*.84,th,m,LW,`rx="${f(th/2)}"`);
+    const y0=yb-bh-th,y1=yb-h+cap+ring,H=y0-y1,r0=w*.3,rb=w*.46,rn=w*.16,rt=w*.25;
+    o+=P(`M${f(cx-r0)} ${f(y0)}C${f(cx-rb-w*.06)} ${f(y0-H*.22)} ${f(cx-rn)} ${f(y0-H*.5)} ${f(cx-rn)} ${f(y0-H*.76)}C${f(cx-rn)} ${f(y0-H*.9)} ${f(cx-rt)} ${f(y1+H*.04)} ${f(cx-rt)} ${f(y1)}L${f(cx+rt)} ${f(y1)}C${f(cx+rt)} ${f(y1+H*.04)} ${f(cx+rn)} ${f(y0-H*.9)} ${f(cx+rn)} ${f(y0-H*.76)}C${f(cx+rn)} ${f(y0-H*.5)} ${f(cx+rb+w*.06)} ${f(y0-H*.22)} ${f(cx+r0)} ${f(y0)}Z`,m);
+    o+=R(cx-w*.32,y1-ring,w*.64,ring,m,LW,`rx="${f(ring/2)}"`);
+    o+=R(cx-w*.42,yb-h,w*.84,cap,m);
+  }else if(style==='classic'){
+    const bh=h*.07,tor=h*.05,cap=h*.06,ab=h*.05,sw=w*.52;
+    o+=R(cx-w/2,yb-bh,w,bh,m);
+    o+=R(cx-w*.4,yb-bh-tor,w*.8,tor,m,LW,`rx="${f(tor/2)}"`);
+    o+=R(cx-sw/2,yb-h+cap+ab,sw,h-bh-tor-cap-ab,m);
+    for(const t of[.32,.68]){const y=yb-bh-tor-(h-bh-tor-cap-ab)*t;o+=R(cx-sw*.58,y-h*.015,sw*1.16,h*.03,m,LW*.7)}
+    o+=P(`M${f(cx-sw*.5)} ${f(yb-h+cap+ab)}L${f(cx-w*.45)} ${f(yb-h+ab)}L${f(cx+w*.45)} ${f(yb-h+ab)}L${f(cx+sw*.5)} ${f(yb-h+cap+ab)}Z`,m);
+    o+=R(cx-w/2,yb-h,w,ab,m);
+  }else{
+    const bh=h*.07,cap=h*.07,sw=w*.56;
+    o+=R(cx-w/2,yb-bh,w,bh,m);
+    o+=R(cx-sw/2,yb-h+cap,sw,h-bh-cap,m);
+    for(const t of[-.25,0,.25])o+=L(cx+sw*t,yb-bh-3,cx+sw*t,yb-h+cap+3,INK,LW*.5);
+    o+=R(cx-w/2,yb-h,w,cap,m);
+  }
+  return o;
+}
+
+/* ---------- fountain ---------- */
+const BD={d:[200,140,95,65,45,32],t:[16,14,12,10,8,7],h:[70,50,40,35,30,25]};
+function drawFountain(s){
+  const n=+s.tiers,pool=+s.pool,PW=+s.poolW,PH=+s.poolH,m=M(s.mat),m2=M(s.mat2),st=s.bowlStyle;
+  const B=[];let y=pool?-PH:-15;
+  for(let i=0;i<n;i++){
+    const b={d:+s['d'+(i+1)],t:+s['t'+(i+1)],h:+s['h'+(i+1)]};
+    const prev=B[i-1];
+    b.cw=Math.max(10,Math.min(50,b.d*.2,prev?prev.cw*.95:99));
+    b.colBot=prev?prev.rimTop+prev.t*.6:y;
+    b.colTop=(prev?prev.rimTop:y)-b.h;
+    b.belly=st==='flat'?b.d*.05:b.d*.12;
+    b.bottom=b.colTop;b.rimTop=b.colTop-b.t-b.belly;
+    B.push(b);
+  }
+  const last=B[n-1],fr=Math.max(5,Math.min(18,last.d*.1));
+  const finBot=last.rimTop+last.t*.5;
+  const finTop=s.finial==='ball'?finBot-fr*.8-fr*2:s.finial==='pine'?finBot-fr*.8-fr*3:last.rimTop;
+  const H=-finTop,baseW=Math.max(B[0].cw*2.6,40);
+  const Wmax=Math.max(pool?PW:baseW,...B.map(b=>b.d));
+  const S=Math.max(Wmax,H);setScale(S);
+  let o='';
+  if(!pool){o+=R(-baseW/2,-8,baseW,8,m)+R(-baseW*.4,-15,baseW*.8,7,m)}
+  for(const b of B)o+=column(0,b.colBot,b.colBot-b.colTop,b.cw,s.colStyle,m);
+  if(s.finial==='ball'){o+=R(-fr*.3,finBot-fr*.8,fr*.6,fr*.8,m)+C(0,finBot-fr*.8-fr,fr,m)}
+  if(s.finial==='pine'){
+    o+=R(-fr*.35,finBot-fr*.8,fr*.7,fr*.8,m);
+    o+=`<ellipse cx="0" cy="${f(finBot-fr*.8-fr*1.5)}" rx="${f(fr*.75)}" ry="${f(fr*1.5)}" fill="${m}" stroke="${INK}" stroke-width="${f(LW)}"/>`;
+    for(let k=1;k<4;k++){const yy=finBot-fr*.8-fr*3+k*fr*.75;o+=`<path d="M${f(-fr*.6)} ${f(yy)}Q0 ${f(yy+fr*.35)} ${f(fr*.6)} ${f(yy)}" fill="none" stroke="${INK}" stroke-width="${f(LW*.5)}"/>`}
+  }
+  for(const b of B){
+    const top=b.rimTop,rb=top+b.t,bot=b.bottom,d2=b.d/2,fw=b.cw*.45;
+    if(st==='flat')o+=P(`M${f(-d2)} ${f(rb)}L${f(-fw-(d2-fw)*.25)} ${f(bot)}L${f(fw+(d2-fw)*.25)} ${f(bot)}L${f(d2)} ${f(rb)}Z`,m);
+    else o+=P(`M${f(-d2*.98)} ${f(rb-1)}C${f(-d2)} ${f(rb+(bot-rb)*.75)} ${f(-fw-b.d*.12)} ${f(bot)} ${f(-fw)} ${f(bot)}L${f(fw)} ${f(bot)}C${f(fw+b.d*.12)} ${f(bot)} ${f(d2)} ${f(rb+(bot-rb)*.75)} ${f(d2*.98)} ${f(rb-1)}Z`,m);
+    if(st==='lobed'){
+      const nl=Math.max(5,Math.round(b.d/22)),lw=b.d/nl;
+      let d=`M${f(-d2)} ${f(top)}L${f(d2)} ${f(top)}L${f(d2)} ${f(top+b.t*.55)}`;
+      for(let i=0;i<nl;i++)d+=`Q${f(d2-(i+.5)*lw)} ${f(top+b.t*1.4)} ${f(d2-(i+1)*lw)} ${f(top+b.t*.55)}`;
+      o+=P(d+'Z',m);
+    }else{
+      o+=R(-d2,top,b.d,b.t,m);
+      o+=L(-d2,top+b.t*.35,d2,top+b.t*.35,INK,LW*.5);
+    }
+    o+=T(-d2-FS*.3,top+b.t*.8,`Ø${b.d} × ${b.t}`,FS*.62,'end');
+  }
+  if(+s.water){
+    for(let i=n-1;i>=0;i--){
+      const b=B[i],lo=B[i-1];
+      const target=lo?lo.rimTop+lo.t*.3:(pool?-PH+4:null);
+      if(target===null)continue;
+      const y0=b.rimTop+b.t*.4,drop=target-y0,d2=b.d/2;
+      const lim=lo?Math.max(d2+3,lo.d/2*.9):Math.max(d2+3,PW/2-14);
+      for(const sd of[-1,1])for(const j of[0,1]){
+        const x1=sd*Math.min(d2+6+drop*.22+j*4,lim);
+        o+=`<path d="M${f(sd*(d2-j*3))} ${f(y0)}Q${f(sd*(d2+drop*.16))} ${f(y0+drop*.1)} ${f(x1)} ${f(target)}" fill="none" stroke="${WATER}" stroke-width="${f(LW*2)}" opacity="${j?.45:.75}" stroke-linecap="round"/>`;
+      }
+    }
+    const jt=finTop,jh=Math.min(40,S*.08);
+    for(const sd of[-1,1])o+=`<path d="M0 ${f(jt)}Q${f(sd*jh*.5)} ${f(jt-jh)} ${f(sd*last.d*.33)} ${f(last.rimTop)}" fill="none" stroke="${WATER}" stroke-width="${f(LW*1.8)}" opacity=".7" stroke-linecap="round"/>`;
+  }
+  if(pool){
+    const st2=s.poolStyle;
+    if(st2==='mold'){o+=R(-PW/2+2,-10,PW-4,10,m2)+R(-PW/2+8,-PH+12,PW-16,PH-22,m2)+R(-PW/2,-PH+6,PW,6,m2)+R(-PW/2-5,-PH,PW+10,6,m2)}
+    else{o+=R(-PW/2+4,-8,PW-8,8,m2)+R(-PW/2+8,-PH+10,PW-16,PH-18,m2)+R(-PW/2,-PH,PW,10,m2)}
+    const segs=Math.max(2,Math.round((PW-16)/90));
+    for(let k=0;k<segs;k++){
+      const x0=-PW/2+8+(PW-16)*k/segs,w=(PW-16)/segs;
+      if(k)o+=L(x0,-PH+12,x0,-10,INK,LW*.6);
+      if(st2==='panels'&&PH>35){
+        o+=R(x0+8,-PH+18,w-16,PH-36,'rgba(0,0,0,.05)',LW*.6);
+        o+=R(x0+13,-PH+23,w-26,PH-46,'none',LW*.4);
+        const cx=x0+w/2,cy=-PH/2-1,q=Math.min(w*.12,(PH-46)*.3);
+        o+=P(`M${f(cx)} ${f(cy-q)}L${f(cx+q)} ${f(cy)}L${f(cx)} ${f(cy+q)}L${f(cx-q)} ${f(cy)}Z`,'none',LW*.5);
+      }
+    }
+  }
+  o+=dimV(0,-H,Wmax/2+S*.08,fmt(H));
+  if(pool)o+=dimH(-PW/2,PW/2,S*.09,fmt(PW))+dimV(0,-PH,-PW/2-S*.06,fmt(PH));
+  const stats=[['الارتفاع الكلي',fmt(H)]];
+  if(pool)stats.push(['الحوض',PW+' × '+PH+' سم']);
+  B.forEach((b,i)=>stats.push(['الصحن '+(i+1),'Ø'+b.d+' × '+b.t+' سم']));
+  return{svg:o,box:[-Wmax/2-S*.2,Wmax/2+S*.12,finTop-(+s.water?S*.1:0)-S*.05,S*.14],stats,
+    note:pool&&B[0].d>PW-16?'الصحن الأول أعرض من الحوض، كبّر الحوض أو صغّر الصحن.':''};
+}
+
+/* ---------- basin (jurn) ---------- */
+function drawJurn(s){
+  const sh=s.shape,Ln=+s.L,Wp=sh==='round'?Ln:+s.W,H=+s.H,rim=+s.rim,m=M(s.mat);
+  const S=Math.max(Ln,H+Math.max(25,H*.35)+Wp+20);setScale(S);
+  const gapR=Math.max(25,H*.35)+FS*2,pTop=-H-gapR-Wp;
+  let o='';
+  // elevation
+  const lip=Math.max(3,H*.1),base=s.base==='plinth'?6:0,bw=s.sides==='straight'?Ln:s.sides==='taper'?Ln*.76:Ln*.62;
+  const yTop=-H,yL=-H+lip,yB=-base;
+  if(base)o+=R(-bw/2-4,-base,bw+8,base,m);
+  let body;
+  if(s.sides==='round')body=`M${f(-Ln/2)} ${f(yL)}L${f(Ln/2)} ${f(yL)}C${f(Ln/2)} ${f(yL+(yB-yL)*.6)} ${f(bw/2+Ln*.08)} ${f(yB)} ${f(bw/2)} ${f(yB)}L${f(-bw/2)} ${f(yB)}C${f(-bw/2-Ln*.08)} ${f(yB)} ${f(-Ln/2)} ${f(yL+(yB-yL)*.6)} ${f(-Ln/2)} ${f(yL)}Z`;
+  else body=`M${f(-Ln/2)} ${f(yL)}L${f(Ln/2)} ${f(yL)}L${f(bw/2)} ${f(yB)}L${f(-bw/2)} ${f(yB)}Z`;
+  o+=P(body,m);
+  const id=nid('jb');o+=`<clipPath id="${id}"><path d="${body}"/></clipPath><g clip-path="url(#${id})">`;
+  for(const t of[.62,.8,.92]){for(const sd of[-1,1]){const xa=sd*Ln/2*t,xb=sd*bw/2*t;o+=L(xa,yL,xb,yB,'rgba(30,25,20,.18)',LW*.6)}}
+  if(s.deco==='flute'){for(let k=1;k<12;k++){const t=k/12,xa=-Ln/2+Ln*t,xb=-bw/2+bw*t;o+=`<path d="M${f(xa)} ${f(yL)}Q${f(xa*.94)} ${f(yL+(yB-yL)*.6)} ${f(xb)} ${f(yB)}" fill="none" stroke="${INK}" stroke-width="${f(LW*.6)}" opacity=".7"/>`}}
+  if(s.deco==='band'){
+    const by=yL+Math.min(10,H*.14);o+=L(-Ln/2,by,Ln/2,by,INK,LW*.6);
+    const r=Math.min(3,H*.04);for(let x=-Ln/2+r*2.5;x<Ln/2-r;x+=r*3)o+=C(x,(yL+by)/2,r,'none',LW*.4);
+    const cy=(by+yB)/2,rr=Math.min((yB-by)*.36,bw*.22);if(rr>3)o+=rosette(0,cy,rr);
+  }
+  o+='</g>';
+  o+=R(-Ln/2-1.5,yTop,Ln+3,lip,m);
+  o+=L(-Ln/2,yTop+lip*.4,Ln/2,yTop+lip*.4,INK,LW*.5);
+  // plan
+  const cy=pTop+Wp/2;let outer,inner;
+  if(sh==='half'){
+    outer=`M${f(-Ln/2)} ${f(pTop)}A${f(Ln/2)} ${f(Wp)} 0 0 0 ${f(Ln/2)} ${f(pTop)}Z`;
+    inner=`M${f(-Ln/2+rim)} ${f(pTop+rim)}A${f(Ln/2-rim)} ${f(Wp-2*rim)} 0 0 0 ${f(Ln/2-rim)} ${f(pTop+rim)}Z`;
+  }else{
+    const rx=Ln/2,ry=Wp/2;
+    outer=`M${f(-rx)} ${f(cy)}A${f(rx)} ${f(ry)} 0 1 0 ${f(rx)} ${f(cy)}A${f(rx)} ${f(ry)} 0 1 0 ${f(-rx)} ${f(cy)}Z`;
+    inner=`M${f(-rx+rim)} ${f(cy)}A${f(rx-rim)} ${f(ry-rim)} 0 1 0 ${f(rx-rim)} ${f(cy)}A${f(rx-rim)} ${f(ry-rim)} 0 1 0 ${f(-rx+rim)} ${f(cy)}Z`;
+  }
+  if(sh==='half'){o+=L(-Ln/2-15,pTop,Ln/2+15,pTop,INK,LW*2.2);for(let x=-Ln/2-12;x<Ln/2+15;x+=6)o+=L(x,pTop,x+4,pTop-4,INK,LW*.5,'opacity=".5"')}
+  o+=P(outer,m)+P(inner,'rgba(80,120,140,.18)',LW*.7);
+  const dcy=sh==='half'?pTop+Wp*.45:cy;o+=C(0,dcy,Math.max(1.5,Math.min(Ln,Wp)*.035),'#555',LW*.5);
+  o+=T(Ln/2+S*.04,pTop+Wp/2,'مسقط',FS*.7,'start','#5D656B')+T(Ln/2+S*.04,-H/2,'واجهة',FS*.7,'start','#5D656B');
+  o+=dimH(-Ln/2,Ln/2,S*.1,fmt(Ln))+dimV(0,-H,-Ln/2-S*.06,fmt(H))+dimV(pTop+Wp,pTop,-Ln/2-S*.06,fmt(Wp));
+  const vol=Ln*Wp*H/1e6;
+  return{svg:o,box:[-Ln/2-S*.14,Ln/2+S*.18,pTop-S*.06,S*.14],
+    stats:[['الطول',fmt(Ln)],['العرض',fmt(Wp)],['الارتفاع',fmt(H)],['البلوك الخام',Ln+'×'+Wp+'×'+H+' سم'],['حجم الحجر الخام',vol.toFixed(3)+' م³']],
+    note:sh==='round'?'بالشكل المدور العرض نفس الطول.':''};
+}
+
+/* ---------- facade ---------- */
+function drawFacade(s){
+  const W=+s.W,F=+s.floors,FH=+s.floorH,cols=+s.cols,ch=+s.cornice?40:0;
+  const H=F*FH,Ht=H+ch,fence=+s.fence,gW=+s.gW,pW=+s.pW,ped=+s.ped;
+  const fL=fence?Math.max(+s.fL,gW+4*pW+(ped?100+pW:0)+40):0,fx0=W/2-fL/2,fx1=W/2+fL/2;
+  const xmin=fence?Math.min(0,fx0):0,xmax=fence?Math.max(W,fx1):W;
+  const S=Math.max(xmax-xmin,Ht);setScale(S);
+  const A=M(s.mat),B=M(s.mat2),ab=s.pattern==='ablaq',pl=+s.plinth?50:0,J='rgba(30,25,20,.5)';
+  const wid=nid('wall');
+  let o=`<clipPath id="${wid}"><rect x="0" y="${-H}" width="${W}" height="${H}"/></clipPath>`,g='';
+  if(s.pattern==='plain')g+=`<rect x="0" y="${-H}" width="${W}" height="${H-pl}" fill="${A}"/>`;
+  else{
+    const cH=+s.course,sl=+s.slab;let y=pl,c=0;
+    while(y<H){
+      const hh=Math.min(cH,H-y),fill=ab&&c%2?B:A;
+      g+=`<rect x="0" y="${f(-(y+hh))}" width="${W}" height="${f(hh)}" fill="${fill}"/>`+L(0,-(y+hh),W,-(y+hh),J,LW*.5);
+      const off=s.pattern==='grid'?0:(c%2)*sl/2;
+      for(let x=off;x<W;x+=sl)if(x>0)g+=L(x,-y,x,-(y+hh),J,LW*.5);
+      y+=hh;c++;
+    }
+  }
+  if(pl){g+=`<rect x="0" y="${-pl}" width="${W}" height="${pl}" fill="${M('black')}"/>`;for(let x=100;x<W;x+=100)g+=L(x,0,x,-pl,'rgba(255,255,255,.25)',LW*.5);g+=L(0,-pl,W,-pl,INK,LW*.8)}
+  o+=`<g clip-path="url(#${wid})">${g}</g><rect x="0" y="${-H}" width="${W}" height="${H}" fill="none" stroke="${INK}" stroke-width="${f(LW*1.4)}"/>`;
+  if(+s.bands)for(let k=1;k<F;k++)o+=R(-4,-(k*FH+7),W+8,14,B);
+  const door=+s.door,ent=s.entry,nSt=door?+s.steps:0,stH=16,dBase=nSt*stH,dw=+s.dw,dh=Math.max(180,Math.min(270,FH-40-dBase));
+  const colW=28,entHalf=dw/2+15+(ent!=='simple'?20+colW+10:0);
+  const wh=Math.max(60,Math.min(+s.wh,FH-120)),ww=Math.max(30,Math.min(+s.ww,W/cols-40));
+  let open=0,count=0;const balc=[];
+  for(let fl=0;fl<F;fl++){
+    const sill=fl*FH+(fl===0?Math.max(90,pl+30):90);
+    for(let i=0;i<cols;i++){
+      const cx=W/cols*(i+.5);
+      if(fl===0&&door&&Math.abs(cx-W/2)<entHalf+ww/2+25)continue;
+      const top=-(sill+wh),bot=-sill;
+      o+=P(shapePath(cx,ww+24,top-12,bot,s.win),B)+P(shapePath(cx,ww,top,bot,s.win),'#43525D');
+      const sp=springY(ww,top,bot,s.win);
+      o+=L(cx,bot,cx,s.win==='rect'?top:sp,'#C9D2D8',LW*.8)+L(cx-ww/2,sp,cx+ww/2,sp,'#C9D2D8',LW*.8);
+      o+=R(cx-ww/2-20,bot,ww+40,9,B);
+      open+=ww*wh;count++;
+      if(fl>0&&+s.balc)balc.push([cx,fl*FH]);
+    }
+  }
+  for(const [cx,yl] of balc){
+    const bw=ww+90,x0=cx-bw/2,top=-(yl+92),bot=-yl;
+    o+=R(x0-6,bot,bw+12,14,B);
+    const n=Math.floor((bw-10)/15);
+    for(let k=0;k<n;k++){const bx=x0+5+(k+.5)*(bw-10)/n,b1=bot-12,t1=top+10,hh=b1-t1;
+      o+=P(`M${f(bx-2.5)} ${f(b1)}C${f(bx-6.5)} ${f(b1-hh*.3)} ${f(bx-4.5)} ${f(b1-hh*.62)} ${f(bx-2)} ${f(b1-hh*.85)}L${f(bx-3)} ${f(t1)}L${f(bx+3)} ${f(t1)}L${f(bx+2)} ${f(b1-hh*.85)}C${f(bx+4.5)} ${f(b1-hh*.62)} ${f(bx+6.5)} ${f(b1-hh*.3)} ${f(bx+2.5)} ${f(b1)}Z`,B,LW*.5)}
+    o+=R(x0,bot-12,bw,12,B)+R(x0-4,top,bw+8,10,B);
+  }
+  if(door){
+    const dx=W/2;
+    for(let i=0;i<nSt;i++){const w=dw+160+(nSt-1-i)*50;o+=R(dx-w/2,-(i+1)*stH,w,stH,B)}
+    if(ent!=='simple'){
+      const ch2=dh+15;
+      for(const sd of[-1,1])o+=column(dx+sd*(dw/2+15+20+colW/2),-dBase,ch2,colW*1.3,'classic',B);
+      const bx=dw/2+15+20+colW+12,by=-(dBase+ch2);
+      o+=R(dx-bx,by-24,bx*2,24,B)+L(dx-bx,by-16,dx+bx,by-16,INK,LW*.5);
+      if(ent==='portico'){const ph=bx*.38;o+=P(`M${f(dx-bx-8)} ${f(by-24)}L${f(dx)} ${f(by-24-ph)}L${f(dx+bx+8)} ${f(by-24)}Z`,B)+P(`M${f(dx-bx+16)} ${f(by-29)}L${f(dx)} ${f(by-24-ph+11)}L${f(dx+bx-16)} ${f(by-29)}Z`,'none',LW*.5)}
+    }
+    const dtype=s.win==='rect'?'rect':s.win;
+    o+=P(shapePath(dx,dw+30,-(dBase+dh+15),-dBase,dtype),B)+P(shapePath(dx,dw,-(dBase+dh),-dBase,dtype),'#5B3F2C');
+    o+=L(dx,-dBase,dx,-(dBase+dh*.8),'#2E2018',LW);
+    o+=R(dx-dw/2+14,-(dBase+dh*.55),dw/2-24,dh*.4,'none',LW*.6)+R(dx+10,-(dBase+dh*.55),dw/2-24,dh*.4,'none',LW*.6);
+    open+=dw*dh;
+  }
+  if(ch){o+=R(-6,-(H+ch*.55),W+12,ch*.55,B);o+=R(-16,-Ht,W+32,ch*.45,B)}
+  // fence
+  let fenceArea=0,coping=0,pcount=0;
+  if(fence){
+    const fH=+s.fH,FM=M(s.fmat),rail=s.ftype==='rail',hs=rail?fH*.5:fH,pH=fH+30,gx0=W/2-gW/2,gx1=W/2+gW/2;
+    let pillars=[fx0,gx0-pW,gx1,fx1-pW];
+    if(ped)pillars.push(gx1+pW+100);
+    if(+s.mid){
+      const add=(a,b)=>{const len=b-a,k=Math.floor(len/320);for(let i=1;i<=k;i++){const x=a+len*i/(k+1)-pW/2;pillars.push(x)}};
+      add(fx0+pW,gx0-pW);add(ped?gx1+2*pW+100:gx1+pW,fx1-pW);
+    }
+    pillars=[...new Set(pillars.map(x=>Math.round(x)))].sort((a,b)=>a-b);
+    const openings=[[gx0,gx1]];if(ped)openings.push([gx1+pW,gx1+pW+100]);
+    for(let i=0;i<pillars.length-1;i++){
+      const a=pillars[i]+pW,b=pillars[i+1];if(b-a<5)continue;
+      if(openings.some(([x0,x1])=>Math.abs(x0-a)<2&&Math.abs(x1-b)<2))continue;
+      o+=coursesBlock(a,-hs,b-a,hs,FM,40,80)+R(a,-hs,b-a,hs,'none',LW);
+      o+=R(a-3,-hs-8,b-a+6,8,B);
+      fenceArea+=(b-a)*hs;coping+=b-a;
+      if(rail){
+        let rr=L(a,-fH,b,-fH,IRON,LW*1.6)+L(a,-hs-14,b,-hs-14,IRON,LW*1.2);
+        for(let x=a+8;x<b-4;x+=12)rr+=L(x,-hs-8,x,-fH-6,IRON,LW*1.1)+P(`M${f(x-2)} ${f(-fH-6)}L${f(x)} ${f(-fH-11)}L${f(x+2)} ${f(-fH-6)}Z`,IRON,LW*.4);
+        o+=rr;
+      }
+    }
+    const gate=(x0,x1,gh,arch)=>{
+      const w=x1-x0,rise=arch?w*.12:0,id=nid('gt');
+      const d=arch?`M${f(x0)} 0L${f(x0)} ${f(-gh)}Q${f((x0+x1)/2)} ${f(-gh-rise*2)} ${f(x1)} ${f(-gh)}L${f(x1)} 0Z`:`M${f(x0)} 0L${f(x0)} ${f(-gh)}L${f(x1)} ${f(-gh)}L${f(x1)} 0Z`;
+      let gg=`<clipPath id="${id}"><path d="${d}"/></clipPath><g clip-path="url(#${id})"><rect x="${f(x0)}" y="${f(-gh-rise*2)}" width="${f(w)}" height="${f(gh+rise*2)}" fill="rgba(25,25,25,.12)"/>`;
+      for(let x=x0+6;x<x1;x+=11)gg+=L(x,0,x,-gh-rise*2,IRON,LW*1.1);
+      gg+=L(x0,-gh*.15,x1,-gh*.15,IRON,LW*1.4)+L(x0,-gh*.78,x1,-gh*.78,IRON,LW*1.4)+'</g>';
+      return gg+`<path d="${d}" fill="none" stroke="${IRON}" stroke-width="${f(LW*2.2)}"/>`+(w>150?L((x0+x1)/2,0,(x0+x1)/2,-gh-rise,IRON,LW*1.6):'');
+    };
+    o+=gate(gx0,gx1,fH-10,s.gtype==='arch');
+    if(ped)o+=gate(gx1+pW,gx1+pW+100,fH-20,s.gtype==='arch');
+    for(const x of pillars){
+      const cx=x+pW/2;pcount++;
+      o+=R(x,-pH,pW,pH,FM)+R(x+6,-pH+16,pW-12,pH-32,'none',LW*.5);
+      o+=R(x-6,-pH-12,pW+12,12,B)+R(x-2,-pH-4,pW+4,4,B,LW*.5);
+      const tp=-pH-12;
+      if(s.pCap==='ball')o+=R(cx-pW*.2,tp-6,pW*.4,6,B)+C(cx,tp-6-pW*.28,pW*.28,B);
+      if(s.pCap==='pyr')o+=P(`M${f(x-2)} ${f(tp)}L${f(cx)} ${f(tp-pW*.6)}L${f(x+pW+2)} ${f(tp)}Z`,B);
+      if(s.pCap==='lamp'){const lw=pW*.42,lh=pW*.5;o+=R(cx-3,tp-8,6,8,IRON)+R(cx-lw/2,tp-8-lh,lw,lh,'#F3D98A')+L(cx,tp-8,cx,tp-8-lh,IRON,LW*.6)+P(`M${f(cx-lw/2-4)} ${f(tp-8-lh)}L${f(cx)} ${f(tp-8-lh-lw*.5)}L${f(cx+lw/2+4)} ${f(tp-8-lh)}Z`,IRON)}
+      fenceArea+=pW*pH;
+    }
+    o+=dimH(fx0,fx1,S*.15,fmt(fL))+dimV(0,-fH,fx0-S*.04,fmt(fH));
+  }
+  o+=dimH(0,W,S*.07,fmt(W))+dimV(0,-Ht,xmax+S*.06,fmt(Ht))+dimV(0,-FH,(fence?Math.min(0,fx0)-S*.13:-S*.06),fmt(FH));
+  const tot=W*H/1e4,op=open/1e4;
+  const stats=[['مساحة الواجهة',tot.toFixed(1)+' م²'],['مساحة الفتحات',op.toFixed(1)+' م²'],['تغليف الواجهة تقريباً',(tot-op).toFixed(1)+' م²'],['عدد الشبابيك',count]];
+  if(fence)stats.push(['تلبيس السور (وجه واحد)',(fenceArea/1e4).toFixed(1)+' م²'],['طربوش السور',(coping/100).toFixed(1)+' م.ط'],['أعمدة السور',pcount]);
+  return{svg:o,box:[xmin-S*(fence?.18:.11),xmax+S*.12,-Ht-S*.05,S*(fence?.2:.12)],stats,
+    note:(+s.ww>ww||+s.wh>wh)?'صغّرتُ الشبابيك لتتسع في الواجهة.':''};
+}
+
+/* ---------- window ---------- */
+function drawWindow(s){
+  const ow=+s.ow,oh=+s.oh,fr=+s.fr,top=s.top,m=M(s.mat);
+  const pil=s.pil!=='none',pw=pil?Math.max(16,fr*1.3):0;
+  const hwF=ow/2+fr,hw=hwF+pw+(pil?6:0)+10;
+  const frameTop=-(oh+fr),keyH=s.key!=='none'?fr*.5:0;
+  const crownH={none:0,flat:20,cons:30,tri:hw*.38+12,seg:hw*.28+12,broken:hw*.38+12+fr}[s.crown];
+  const apron=s.sill==='apron'?50:s.sill==='corb'?30:0;
+  const wallX=hw+60,wallTop=frameTop-keyH-crownH-60,wallBot=40+apron;
+  const S=Math.max(wallX*2,wallBot-wallTop);setScale(S);
+  let o=coursesBlock(-wallX,wallTop,wallX*2,wallBot-wallTop,M(s.wall));
+  o+=`<rect x="${f(-wallX)}" y="${f(wallTop)}" width="${f(wallX*2)}" height="${f(wallBot-wallTop)}" fill="none" stroke="${INK}" stroke-width="${f(LW)}"/>`;
+  if(pil)for(const sd of[-1,1]){
+    const x=sd>0?hwF+3:-hwF-3-pw;
+    if(s.pil==='col')o+=column(x+pw/2,0,-frameTop,pw*1.15,'classic',m);
+    else{
+      o+=R(x,frameTop,pw,-frameTop,m)+R(x-3,frameTop,pw+6,8,m)+R(x-3,-8,pw+6,8,m);
+      if(s.pil==='fluted')for(const t of[.25,.5,.75])o+=R(x+pw*t-1.2,frameTop+14,2.4,-frameTop-28,'rgba(0,0,0,.12)',LW*.4,'rx="1.2"');
+    }
+  }
+  if(s.fstyle==='ears'&&top==='rect'){const e=fr*.45;for(const sd of[-1,1])o+=R(sd>0?hwF:-hwF-e,frameTop,e,fr*1.7,m)}
+  o+=P(shapePath(0,ow+2*fr,frameTop,0,top),m);
+  if(s.fstyle!=='plain'){o+=P(shapePath(0,ow+fr*1.2,-(oh+fr*.6),0,top),'none',LW*.5)+P(shapePath(0,ow+fr*.5,-(oh+fr*.25),0,top),'none',LW*.5)}
+  const gid=nid('gl');
+  o+=`<clipPath id="${gid}"><path d="${shapePath(0,ow,-oh,0,top)}"/></clipPath>`+P(shapePath(0,ow,-oh,0,top),'#43525D');
+  const sp=springY(ow,-oh,0,top);
+  let gl=L(0,0,0,top==='rect'?-oh:sp,'#C9D2D8',LW)+L(-ow/2,sp,ow/2,sp,'#C9D2D8',LW);
+  if(+s.grill){for(let x=-ow/2+ow/6;x<ow/2;x+=ow/6)gl+=L(x,0,x,-oh,'#1C1C1C',LW*1.1);for(let y=-15;y>-oh;y-=22)gl+=L(-ow/2,y,ow/2,y,'#1C1C1C',LW*.8)}
+  o+=`<g clip-path="url(#${gid})">${gl}</g>`;
+  if(+s.corners&&top==='rect')for(const sd of[-1,1]){const cx=sd*(ow/2+fr/2);o+=R(cx-fr/2,frameTop,fr,fr,m)+rosette(cx,frameTop+fr/2,fr*.36,LW*.45)}
+  if(s.key!=='none'){
+    const kt=frameTop-keyH,kb=top==='rect'?-oh:-oh+2,a=fr*.95,b=fr*.58;
+    o+=P(`M${f(-a)} ${f(kt)}L${f(a)} ${f(kt)}L${f(b)} ${f(kb)}L${f(-b)} ${f(kb)}Z`,m);
+    if(s.key==='carved'){o+=P(`M${f(-a*.7)} ${f(kt+3)}L${f(a*.7)} ${f(kt+3)}L${f(b*.65)} ${f(kb-3)}L${f(-b*.65)} ${f(kb-3)}Z`,'none',LW*.45);
+      const cy=(kt+kb)/2;o+=`<ellipse cx="0" cy="${f(cy)}" rx="${f(b*.32)}" ry="${f((kb-kt)*.3)}" fill="none" stroke="${INK}" stroke-width="${f(LW*.45)}"/>`+L(0,cy-(kb-kt)*.3,0,cy+(kb-kt)*.3,INK,LW*.4)}
+  }
+  const yc=frameTop-keyH;
+  if(s.crown!=='none'){
+    o+=R(-hw,yc-10,hw*2,10,m);
+    if(s.crown==='flat')o+=R(-hw-6,yc-20,hw*2+12,10,m);
+    if(s.crown==='cons'){
+      for(const sd of[-1,1]){const x=sd*(hw-8),cw=14,chh=34;
+        o+=P(`M${f(x-cw/2)} ${f(yc-10)}L${f(x+cw/2)} ${f(yc-10)}L${f(x+cw/2)} ${f(yc-10+chh*.35)}Q${f(x+cw/2)} ${f(yc-10+chh)} ${f(x-cw*.1)} ${f(yc-10+chh)}L${f(x-cw/2)} ${f(yc-10+chh)}Z`,m)+C(x+cw*.05,yc-10+chh*.72,cw*.22,'none',LW*.5);}
+      o+=R(-hw-10,yc-22,hw*2+20,12,m)+R(-hw-14,yc-28,hw*2+28,6,m);
+    }
+    if(s.crown==='tri'){const a=yc-10-hw*.38;o+=P(`M${f(-hw-6)} ${f(yc-10)}L0 ${f(a)}L${f(hw+6)} ${f(yc-10)}Z`,m)+P(`M${f(-hw+18)} ${f(yc-14)}L0 ${f(a+10)}L${f(hw-18)} ${f(yc-14)}Z`,'none',LW*.5)}
+    if(s.crown==='seg')o+=P(`M${f(-hw-6)} ${f(yc-10)}Q0 ${f(yc-10-hw*.56)} ${f(hw+6)} ${f(yc-10)}Z`,m);
+    if(s.crown==='broken'){
+      const a=yc-10-hw*.38,g=hw*.28;
+      for(const sd of[-1,1]){const xo=sd*(hw+6),xi=sd*g,yi=yc-10-(hw*.38)*(1-g/(hw+6));
+        o+=P(`M${f(xo)} ${f(yc-10)}L${f(xi)} ${f(yi)}L${f(xi)} ${f(yi+10)}L${f(xo-sd*16)} ${f(yc-10)}Z`,m)}
+      const ub=yc-10;o+=R(-fr*.5,ub-fr*1.2,fr,fr*1.2,m)+C(0,ub-fr*1.2-fr*.45,fr*.45,m);
+    }
+  }
+  o+=R(-hw,0,hw*2,10,m)+R(-hw+8,10,hw*2-16,4,m);
+  if(s.sill==='corb')for(const sd of[-1,1]){const x=sd*(hwF-6),cw=14;o+=P(`M${f(x-cw/2)} 14L${f(x+cw/2)} 14L${f(x+cw/2)} 22Q${f(x+cw/2)} 40 ${f(x)} 40Q${f(x-cw/2)} 40 ${f(x-cw/2)} 22Z`,m)}
+  if(s.sill==='apron'){o+=R(-hwF,14,hwF*2,38,m)+R(-hwF+8,20,hwF*2-16,26,'none',LW*.5);const q=9;o+=P(`M0 ${33-q}L${q*2} 33L0 ${33+q}L${-q*2} 33Z`,'none',LW*.5)+C(0,33,3,'none',LW*.4)}
+  o+=dimH(-ow/2,ow/2,wallBot+S*.06,fmt(ow))+dimH(-hw,hw,wallBot+S*.14,fmt(hw*2))+dimV(0,-oh,wallX+S*.06,fmt(oh));
+  const area=((ow+2*fr)*(oh+fr)-ow*oh+2*pw*(oh+fr)+hw*2*(14+crownH*.6)+(apron?hwF*2*40:0))/1e4;
+  return{svg:o,noGround:true,box:[-wallX-S*.05,wallX+S*.12,wallTop-S*.04,wallBot+S*.19],
+    stats:[['فتحة الشباك',ow+' × '+oh+' سم'],['العرض الكلي',fmt(hw*2)],['عرض الحلق',fr+' سم'],['حجر الإطار تقريباً',area.toFixed(2)+' م²']],
+    note:top!=='rect'&&(s.fstyle==='ears'||+s.corners)?'الأذنين والوردات بالزوايا بيبينوا بس مع الرأس المستقيم.':''};
+}
+
+/* ---------- fireplace ---------- */
+function drawFireplace(s){
+  const W=+s.W,H=+s.H,st=s.style,ov=+s.overH;
+  const ow=Math.min(+s.ow,W-40),oh=Math.min(+s.oh,H-30),Ht=H+ov,S=Math.max(W+40,Ht);setScale(S);
+  const m=M(s.mat),m2=M(s.mat2);let o='';
+  if(ov>0){const pw=st==='modern'?W:W*.82;o+=R(-pw/2,-Ht,pw,ov,m);if(st!=='modern')o+=R(-pw/2+12,-Ht+12,pw-24,ov-24,'none',LW*.6);else o+=L(0,-Ht,0,-H,'rgba(30,25,20,.35)',LW*.6)}
+  if(st==='modern'){
+    o+=R(-W/2,-H,W,H,m)+L(-ow/2-7,-H,-ow/2-7,-oh-7,'rgba(30,25,20,.4)',LW*.6)+L(ow/2+7,-H,ow/2+7,-oh-7,'rgba(30,25,20,.4)',LW*.6);
+  }else{
+    const leg=Math.max(18,(W-ow)/2*.7);
+    o+=R(-W/2,-H+8,W,H-8,m);
+    for(const sd of[-1,1]){const x=sd<0?-W/2:W/2-leg;o+=R(x+4,-oh,leg-8,oh,'none',LW*.5)+R(x-2,-H+8,leg+4,9,m)}
+    o+=R(-W*.14,-H+16,W*.28,Math.max(10,(H-oh)-28),'none',LW*.6);
+    o+=R(-W/2-10,-H,W+20,9,m)+R(-W/2-3,-12,W+6,12,m);
+  }
+  o+=R(-ow/2-7,-(oh+7),ow+14,oh+7,m2);
+  o+=R(-ow/2,-oh,ow,oh-4,'#2A2422');
+  o+=R(-ow/2-9,-4,ow+18,4,M(s.mat3),LW*.9);
+  if(+s.fire){
+    o+=R(-ow*.3,-11,ow*.6,7,'#5A3A26')+R(-ow*.22,-17,ow*.44,6,'#6B4630');
+    const fh=Math.min(oh*.55,40);
+    for(const [x,h,c] of [[-ow*.12,fh*.8,'#E0782F'],[0,fh,'#F0A03A'],[ow*.12,fh*.7,'#E0782F'],[0,fh*.55,'#F7D36A']])
+      o+=`<path d="M${f(x-ow*.08)} -16Q${f(x-ow*.09)} ${f(-16-h*.5)} ${f(x)} ${f(-16-h)}Q${f(x+ow*.09)} ${f(-16-h*.5)} ${f(x+ow*.08)} -16Z" fill="${c}" opacity=".9"/>`;
+  }
+  if(+s.hearth)o+=R(-W/2-20,-3,W+40,3,m2);
+  o+=dimH(-W/2,W/2,S*.08,fmt(W))+dimH(-ow/2,ow/2,S*.15,fmt(ow))+dimV(0,-H,W/2+20+S*.06,fmt(H))+dimV(0,-oh,-W/2-20-S*.05,fmt(oh));
+  if(ov>0)o+=dimV(0,-Ht,W/2+20+S*.13,fmt(Ht));
+  const area=(W*H-ow*oh+(ov>0?(st==='modern'?W:W*.82)*ov:0))/1e4;
+  return{svg:o,box:[-W/2-20-S*.11,W/2+20+S*(ov>0?.17:.11),-Ht-S*.05,S*.19],
+    stats:[['المقاس الكلي',W+' × '+Ht+' سم'],['فتحة النار',ow+' × '+oh+' سم'],['رخام تحت النار',(ow+18)+' × 4 سم'],['مساحة التلبيس تقريباً',area.toFixed(2)+' م²']],
+    note:(ow<+s.ow||oh<+s.oh)?'صغّرتُ فتحة النار لتتسع ضمن الإطار.':''};
+}
+
+/* ---------- floor ---------- */
+const TILES=['30','40','60','80','60x120'];
+const tileWH=t=>{const [a,b]=t.split('x').map(Number);return[a,b||a]};
+function tabloGeom(s,RW,RL){
+  if(!+s.tablo)return null;
+  const fw=+s.fw,tw=+s.tW,tl=s.tshape==='rect'?+s.tL:tw,cx=RW/2,cy=RL/2;
+  if(s.tshape==='circ')return{type:'circ',cx,cy,r:tw/2+fw,ri:tw/2,fw,tw,tl};
+  return{type:'rect',cx,cy,x0:cx-tw/2-fw,x1:cx+tw/2+fw,y0:cy-tl/2-fw,y1:cy+tl/2+fw,fw,tw,tl};
+}
+function tileVsTab(x,y,w,h,t){
+  if(!t)return 'out';
+  if(t.type==='rect'){
+    if(x>=t.x0&&x+w<=t.x1&&y>=t.y0&&y+h<=t.y1)return 'in';
+    if(x<t.x1&&x+w>t.x0&&y<t.y1&&y+h>t.y0)return 'cut';return 'out';
+  }
+  const cs=[[x,y],[x+w,y],[x,y+h],[x+w,y+h]];
+  if(cs.every(([a,b])=>Math.hypot(a-t.cx,b-t.cy)<=t.r))return 'in';
+  const nx=Math.max(x,Math.min(t.cx,x+w)),ny=Math.max(y,Math.min(t.cy,y+h));
+  return Math.hypot(nx-t.cx,ny-t.cy)<t.r?'cut':'out';
+}
+function gridStart(c,lo,t){return c-t/2-Math.ceil((c-t/2-lo)/t)*t}
+function countTiles(fx,fy,fw,fl,tw,th,cx,cy,tab){
+  let full=0,cut=0;const sx=gridStart(cx,fx,tw),sy=gridStart(cy,fy,th);
+  for(let y=sy;y<fy+fl;y+=th)for(let x=sx;x<fx+fw;x+=tw){
+    const x0=Math.max(x,fx),x1=Math.min(x+tw,fx+fw),y0=Math.max(y,fy),y1=Math.min(y+th,fy+fl);
+    if(x1-x0<.5||y1-y0<.5)continue;
+    let part=x0>x+.01||x1<x+tw-.01||y0>y+.01||y1<y+th-.01;
+    const v=tileVsTab(x,y,tw,th,tab);if(v==='in')continue;if(v==='cut')part=true;
+    part?cut++:full++;
+  }
+  return{full,cut};
+}
+function drawFloor(s){
+  const RW=+s.RW,RL=+s.RL,b=+s.border?+s.bw:0,pat=s.pat,[tw,th]=tileWH(s.tile);
+  const S=Math.max(RW,RL)+30;setScale(S);
+  const A=M(s.mat),A2=M(s.mat2),J='rgba(30,25,20,.45)',jw=LW*.5,tab=tabloGeom(s,RW,RL);
+  let o=R(-15,-15,RW+30,RL+30,'#3A3F44');
+  o+=`<rect x="0" y="0" width="${RW}" height="${RL}" fill="${b?M(s.bmat):A}"/>`;
+  const fx=b,fy=b,fw=RW-2*b,fl=RL-2*b,cx=RW/2,cy=RL/2;
+  let g='';const tile=(x,y,w,h,fill)=>{g+=`<rect x="${f(x)}" y="${f(y)}" width="${f(w)}" height="${f(h)}" fill="${fill}" stroke="${J}" stroke-width="${f(jw)}"/>`};
+  if(pat==='diag'){
+    const D=Math.hypot(fw,fl),st=gridStart(0,-D/2,tw);let rows='';const save=g;g='';
+    for(let y=st,j=0;y<D/2;y+=tw,j++)for(let x=st,i=0;x<D/2;x+=tw,i++)tile(cx+x,cy+y,tw,tw,A);
+    rows=g;g=save+`<g transform="rotate(45 ${f(cx)} ${f(cy)})">${rows}</g>`;
+  }else{
+    const sx=gridStart(cx,fx,tw),sy=gridStart(cy,fy,th);
+    for(let y=sy,j=0;y<fy+fl;y+=th,j++){
+      const off=pat==='offset'&&j%2?-tw/2:0;
+      for(let x=sx+off,i=0;x<fx+fw;x+=tw,i++)tile(x,y,tw,th,pat==='chess'&&(i+j)%2?A2:A);
+    }
+  }
+  const fid=nid('fl');
+  o+=`<clipPath id="${fid}"><rect x="${fx}" y="${fy}" width="${fw}" height="${fl}"/></clipPath><g clip-path="url(#${fid})">${g}</g>`;
+  if(b)o+=`<rect x="${fx}" y="${fy}" width="${fw}" height="${fl}" fill="none" stroke="${INK}" stroke-width="${f(LW*.8)}"/>`;
+  let tArea=0,frArea=0,frLen=0,tOuter=0;
+  if(tab){
+    const TM=M(s.tmat),FM=M(s.fmat);
+    let innerD;
+    if(tab.type==='circ'){
+      o+=C(cx,cy,tab.r,FM);innerD=`M${f(cx-tab.ri)} ${f(cy)}A${f(tab.ri)} ${f(tab.ri)} 0 1 0 ${f(cx+tab.ri)} ${f(cy)}A${f(tab.ri)} ${f(tab.ri)} 0 1 0 ${f(cx-tab.ri)} ${f(cy)}Z`;
+      tArea=Math.PI*tab.ri*tab.ri;tOuter=Math.PI*tab.r*tab.r;frLen=2*Math.PI*(tab.ri+tab.fw/2);
+    }else{
+      o+=R(tab.x0,tab.y0,tab.x1-tab.x0,tab.y1-tab.y0,FM);
+      innerD=`M${f(cx-tab.tw/2)} ${f(cy-tab.tl/2)}h${f(tab.tw)}v${f(tab.tl)}h${f(-tab.tw)}Z`;
+      tArea=tab.tw*tab.tl;tOuter=(tab.x1-tab.x0)*(tab.y1-tab.y0);frLen=2*(tab.tw+tab.tl)+4*tab.fw;
+    }
+    frArea=tOuter-tArea;
+    const tid=nid('tb');let d=`<rect x="${f(cx-tab.tw/2-2)}" y="${f(cy-tab.tl/2-2)}" width="${f(tab.tw+4)}" height="${f(tab.tl+4)}" fill="${TM}"/>`;
+    const w=tab.tw,h=tab.tl,x0=cx-w/2,y0=cy-h/2;
+    if(s.tdes==='star'){const q=Math.min(w,h)*.3;
+      d+=C(cx,cy,q*1.35,'none',LW*.6);
+      for(const a of[0,45])d+=`<rect x="${f(cx-q)}" y="${f(cy-q)}" width="${f(q*2)}" height="${f(q*2)}" transform="rotate(${a} ${f(cx)} ${f(cy)})" fill="${FM}" stroke="${INK}" stroke-width="${f(LW*.7)}"/>`;
+      d+=C(cx,cy,q*.45,TM,LW*.7);}
+    if(s.tdes==='chess'){const n=Math.max(3,Math.round(Math.min(w,h)/30)),cs=Math.min(w,h)/n;
+      for(let j=0;j*cs<h;j++)for(let i=0;i*cs<w;i++)if((i+j)%2)d+=`<rect x="${f(x0+i*cs)}" y="${f(y0+j*cs)}" width="${f(cs)}" height="${f(cs)}" fill="${FM}"/>`;}
+    if(s.tdes==='diamond'){d+=P(`M${f(cx)} ${f(y0)}L${f(x0+w)} ${f(cy)}L${f(cx)} ${f(y0+h)}L${f(x0)} ${f(cy)}Z`,FM,LW*.7)+P(`M${f(cx)} ${f(cy-h*.25)}L${f(cx+w*.25)} ${f(cy)}L${f(cx)} ${f(cy+h*.25)}L${f(cx-w*.25)} ${f(cy)}Z`,TM,LW*.7)}
+    o+=`<clipPath id="${tid}"><path d="${innerD}"/></clipPath><g clip-path="url(#${tid})">${d}</g>`+P(innerD,'none',LW*.8);
+    const lab=tab.type==='circ'?'Ø'+tab.tw:tab.tw+'×'+tab.tl;
+    const ty=tab.type==='circ'?cy-tab.r:tab.y0;
+    o+=T(cx,ty-FS*.4,'تابلو '+lab+' + كادر '+tab.fw,FS*.75);
+  }
+  o+=`<rect x="0" y="0" width="${RW}" height="${RL}" fill="none" stroke="${INK}" stroke-width="${f(LW*1.4)}"/>`;
+  o+=dimH(0,RW,RL+15+S*.06,fmt(RW))+dimV(RL,0,RW+15+S*.06,fmt(RL));
+  const room=RW*RL/1e4,field=(fw*fl-(tab?tOuter:0))/1e4;
+  const stats=[['مساحة الغرفة',room.toFixed(2)+' م²'],['مساحة البلاط',field.toFixed(2)+' م²']];
+  if(tab)stats.push(['التابلو',(tArea/1e4).toFixed(2)+' م²'],['الكادر',(frLen/100).toFixed(2)+' م.ط ('+(frArea/1e4).toFixed(2)+' م²)']);
+  if(b)stats.push(['البردورة',(2*(RW+RL-2*b)/100).toFixed(2)+' م.ط ('+((RW*RL-fw*fl)/1e4).toFixed(2)+' م²)']);
+  const rows=TILES.map(t=>{const [a,c]=tileWH(t),r=countTiles(fx,fy,fw,fl,a,c,cx,cy,tab),tot=Math.ceil((r.full+r.cut)*(pat==='diag'?1.15:1.05));
+    return{sel:t===s.tile,cells:[a+'×'+c,r.full,r.cut,tot,(tot*a*c/1e4).toFixed(2)+' م²']}});
+  return{svg:o,noGround:true,box:[-15-S*.04,RW+15+S*.12,-15-S*.06,RL+15+S*.12],stats,
+    table:{title:'خيارات القص للبلاط (التركيب يبدأ من نص الغرفة)',head:['المقاس','قطع كاملة','قطع مقصوصة','المطلوب مع الاحتياط','الكمية'],rows},
+    note:pat==='diag'?'احتياط 15٪ للتركيب القطري.':'محسوب مع 5٪ احتياط للكسر.'};
+}
+
+/* ---------- schemas ---------- */
+const YN=[[1,'نعم'],[0,'لا']];
+const head=label=>({type:'head',label});
+const fountainCtrls=[
+  head('الحوض'),
+  {id:'pool',label:'الحوض الخارجي',type:'seg',options:[[1,'مع حوض'],[0,'بدون حوض']],val:1},
+  {id:'poolW',label:'عرض الحوض',type:'range',min:150,max:600,step:10,val:320,show:s=>+s.pool},
+  {id:'poolH',label:'ارتفاع جدار الحوض',type:'range',min:30,max:100,step:5,val:50,show:s=>+s.pool},
+  {id:'poolStyle',label:'شكل جدار الحوض',type:'seg',options:[['plain','سادة'],['mold','بكورنيش'],['panels','بحشوات منحوتة']],val:'mold',show:s=>+s.pool},
+  {id:'mat2',label:'مادة الحوض',type:'mat',val:'beigeD',show:s=>+s.pool},
+  head('الصحون والأعمدة'),
+  {id:'tiers',label:'عدد الصحون',type:'seg',options:[[1,'1'],[2,'2'],[3,'3'],[4,'4'],[5,'5'],[6,'6']],val:3},
+  {id:'bowlStyle',label:'شكل الصحون',type:'seg',options:[['cup','كاس'],['flat','مسطح'],['lobed','حافة مزخرفة']],val:'cup'},
+  {id:'colStyle',label:'شكل الأعمدة',type:'seg',options:[['vase','بلستر'],['classic','كلاسيك بحلقات'],['straight','مستقيم مخدد']],val:'vase'}
+];
+for(let k=1;k<=6;k++)fountainCtrls.push(
+  {type:'head',label:'الصحن '+k,show:s=>+s.tiers>=k},
+  {id:'d'+k,label:'قطر الصحن',type:'range',min:30,max:300,step:5,val:BD.d[k-1],show:s=>+s.tiers>=k},
+  {id:'t'+k,label:'سماكة الصحن',type:'range',min:4,max:40,step:1,val:BD.t[k-1],show:s=>+s.tiers>=k},
+  {id:'h'+k,label:'ارتفاع العمود تحته',type:'range',min:15,max:150,step:5,val:BD.h[k-1],show:s=>+s.tiers>=k});
+fountainCtrls.push(head('إضافات'),
+  {id:'finial',label:'التاج العلوي',type:'seg',options:[['ball','كرة'],['pine','كوز'],['none','بدون']],val:'pine'},
+  {id:'water',label:'إظهار الماء',type:'seg',options:YN,val:1},
+  {id:'mat',label:'مادة الصحون والأعمدة',type:'mat',val:'italian'});
+
+const SCHEMAS={
+  fountain:{title:'نافورة',draw:drawFountain,controls:fountainCtrls},
+  jurn:{title:'جرن',draw:drawJurn,controls:[
+    {id:'shape',label:'شكل الجرن',type:'seg',options:[['half','نص دائرة'],['round','دائرة'],['oval','بيضوي']],val:'half'},
+    {id:'L',label:'الطول',type:'range',min:30,max:100,step:1,val:60},
+    {id:'W',label:'العرض',type:'range',min:20,max:50,step:1,val:35,show:s=>s.shape!=='round'},
+    {id:'H',label:'الارتفاع',type:'range',min:20,max:70,step:1,val:40},
+    {id:'rim',label:'سماكة الحافة',type:'range',min:3,max:10,step:.5,val:6},
+    {id:'sides',label:'الجوانب',type:'seg',options:[['straight','مستقيمة'],['taper','مايلة'],['round','مدورة']],val:'round'},
+    {id:'deco',label:'الزخرفة',type:'seg',options:[['none','بدون'],['flute','تضليع'],['band','حزام ووردة']],val:'band'},
+    {id:'base',label:'القاعدة',type:'seg',options:[['none','بدون'],['plinth','قاعدة صغيرة']],val:'none'},
+    {id:'mat',label:'المادة',type:'mat',val:'italian'}]},
+  facade:{title:'واجهة',draw:drawFacade,controls:[
+    head('البناء'),
+    {id:'W',label:'عرض الواجهة',type:'range',min:400,max:2500,step:50,val:1200},
+    {id:'floors',label:'عدد الطوابق',type:'seg',options:[[1,'1'],[2,'2'],[3,'3'],[4,'4'],[5,'5']],val:2},
+    {id:'floorH',label:'ارتفاع الطابق',type:'range',min:280,max:420,step:10,val:330},
+    {id:'plinth',label:'قاعدة سوداء',type:'seg',options:YN,val:1},
+    {id:'bands',label:'أحزمة بين الطوابق',type:'seg',options:YN,val:1},
+    {id:'cornice',label:'كورنيش علوي',type:'seg',options:YN,val:1},
+    head('الشبابيك'),
+    {id:'cols',label:'عدد الشبابيك في الطابق',type:'range',min:1,max:8,step:1,val:4,unit:''},
+    {id:'win',label:'شكل الشباك',type:'seg',options:[['rect','مستطيل'],['arch','قوس'],['pointed','مدبّب']],val:'arch'},
+    {id:'ww',label:'عرض الشباك',type:'range',min:60,max:180,step:10,val:110},
+    {id:'wh',label:'ارتفاع الشباك',type:'range',min:100,max:240,step:10,val:160},
+    {id:'balc',label:'بلكونات بدرابزين حجر (الطوابق العليا)',type:'seg',options:YN,val:0},
+    head('المدخل'),
+    {id:'door',label:'باب رئيسي',type:'seg',options:YN,val:1},
+    {id:'entry',label:'شكل المدخل',type:'seg',options:[['simple','بسيط'],['columns','بعمودين'],['portico','عمودين ومثلث']],val:'portico',show:s=>+s.door},
+    {id:'dw',label:'عرض الباب',type:'range',min:100,max:260,step:10,val:160,show:s=>+s.door},
+    {id:'steps',label:'درجات المدخل',type:'seg',options:[[0,'0'],[1,'1'],[2,'2'],[3,'3'],[4,'4']],val:2,show:s=>+s.door},
+    head('التغليف'),
+    {id:'pattern',label:'نمط التغليف',type:'seg',options:[['course','مداميك'],['ablaq','أبلق'],['grid','شبكة'],['plain','بدون فواصل']],val:'course'},
+    {id:'course',label:'ارتفاع المدماك',type:'range',min:20,max:80,step:5,val:40,show:s=>s.pattern!=='plain'},
+    {id:'slab',label:'طول البلاطة',type:'range',min:40,max:160,step:10,val:80,show:s=>s.pattern!=='plain'},
+    {id:'mat',label:'المادة الأساسية',type:'mat',val:'beigeL'},
+    {id:'mat2',label:'المادة الثانية (الأبلق والإطارات)',type:'mat',val:'beigeD'},
+    head('السور الخارجي'),
+    {id:'fence',label:'سور خارجي',type:'seg',options:YN,val:0},
+    {id:'fL',label:'طول السور',type:'range',min:600,max:4000,step:50,val:1600,show:s=>+s.fence},
+    {id:'fH',label:'ارتفاع السور',type:'range',min:100,max:350,step:10,val:220,show:s=>+s.fence},
+    {id:'fT',label:'سماكة السور',type:'range',min:15,max:50,step:5,val:25,show:s=>+s.fence},
+    {id:'ftype',label:'نوع السور',type:'seg',options:[['solid','حجر مصمت'],['rail','حجر وحديد']],val:'solid',show:s=>+s.fence},
+    {id:'gW',label:'عرض البوابة',type:'range',min:100,max:600,step:10,val:350,show:s=>+s.fence},
+    {id:'gtype',label:'شكل البوابة',type:'seg',options:[['rect','مستقيمة'],['arch','قوس']],val:'arch',show:s=>+s.fence},
+    {id:'ped',label:'باب مشاة جنب البوابة',type:'seg',options:YN,val:1,show:s=>+s.fence},
+    {id:'pW',label:'عرض العمود',type:'range',min:40,max:100,step:5,val:60,show:s=>+s.fence},
+    {id:'pCap',label:'رأس العمود',type:'seg',options:[['ball','كرة'],['pyr','هرم'],['flat','مسطح'],['lamp','فانوس']],val:'lamp',show:s=>+s.fence},
+    {id:'mid',label:'أعمدة وسطية',type:'seg',options:YN,val:1,show:s=>+s.fence},
+    {id:'fmat',label:'مادة السور',type:'mat',val:'beigeL',show:s=>+s.fence}]},
+  window:{title:'نافذة',draw:drawWindow,controls:[
+    head('الفتحة'),
+    {id:'ow',label:'عرض الفتحة',type:'range',min:60,max:220,step:5,val:110},
+    {id:'oh',label:'ارتفاع الفتحة',type:'range',min:90,max:280,step:5,val:170},
+    {id:'top',label:'رأس الشباك',type:'seg',options:[['rect','مستقيم'],['arch','قوس'],['pointed','مدبّب']],val:'rect'},
+    {id:'grill',label:'حماية حديد',type:'seg',options:YN,val:0},
+    head('النحت'),
+    {id:'fr',label:'عرض الحلق',type:'range',min:8,max:35,step:1,val:16},
+    {id:'fstyle',label:'شكل الحلق',type:'seg',options:[['plain','سادة'],['mold','محفور بخطوط'],['ears','بأذنين']],val:'ears'},
+    {id:'corners',label:'وردات بالزوايا',type:'seg',options:YN,val:0},
+    {id:'key',label:'حجر المفتاح',type:'seg',options:[['none','بدون'],['plain','سادة'],['carved','منحوت']],val:'carved'},
+    {id:'pil',label:'جوانب الشباك',type:'seg',options:[['none','بدون'],['plain','عضادات سادة'],['fluted','عضادات مخددة'],['col','أعمدة']],val:'fluted'},
+    {id:'crown',label:'التاج فوق الشباك',type:'seg',options:[['none','بدون'],['flat','طنف'],['cons','طنف بكوابيل'],['tri','مثلث'],['broken','مثلث مكسور'],['seg','قوس']],val:'cons'},
+    {id:'sill',label:'تحت الشباك',type:'seg',options:[['plain','عتبة سادة'],['corb','عتبة بكوابيل'],['apron','لوح منحوت']],val:'apron'},
+    {id:'mat',label:'مادة الإطار',type:'mat',val:'italian'},
+    {id:'wall',label:'مادة الحائط',type:'mat',val:'beigeL'}]},
+  fireplace:{title:'شمينيه',draw:drawFireplace,controls:[
+    {id:'style',label:'الطراز',type:'seg',options:[['classic','كلاسيك'],['modern','حديث']],val:'classic'},
+    {id:'W',label:'العرض الكلي',type:'range',min:100,max:260,step:5,val:170},
+    {id:'H',label:'ارتفاع الرف',type:'range',min:90,max:160,step:5,val:120},
+    {id:'ow',label:'عرض فتحة النار',type:'range',min:50,max:150,step:5,val:90},
+    {id:'oh',label:'ارتفاع فتحة النار',type:'range',min:50,max:120,step:5,val:75},
+    {id:'overH',label:'لوح فوق الرف',type:'range',min:0,max:150,step:10,val:0},
+    {id:'hearth',label:'عتبة أرضية أمامها',type:'seg',options:YN,val:1},
+    {id:'fire',label:'إظهار النار',type:'seg',options:YN,val:1},
+    {id:'mat',label:'المادة الأساسية',type:'mat',val:'beigeL'},
+    {id:'mat2',label:'مادة الإطار الداخلي',type:'mat',val:'brown'},
+    {id:'mat3',label:'رخام تحت النار (4 سم)',type:'mat',val:'italian'}]},
+  floor:{title:'أرضية',draw:drawFloor,controls:[
+    head('الغرفة'),
+    {id:'RW',label:'عرض الغرفة',type:'range',min:200,max:1500,step:10,val:500},
+    {id:'RL',label:'طول الغرفة',type:'range',min:200,max:1500,step:10,val:600},
+    head('البلاط'),
+    {id:'tile',label:'قياس البلاطة',type:'seg',options:[['30','30×30'],['40','40×40'],['60','60×60'],['80','80×80'],['60x120','60×120']],val:'60'},
+    {id:'pat',label:'طريقة التركيب',type:'seg',options:[['straight','مستقيم'],['offset','متناوب'],['chess','شطرنج'],['diag','قطري']],val:'straight'},
+    {id:'mat',label:'مادة البلاط',type:'mat',val:'beigeL'},
+    {id:'mat2',label:'اللون الثاني للشطرنج',type:'mat',val:'brown',show:s=>s.pat==='chess'},
+    head('التابلو بالوسط'),
+    {id:'tablo',label:'تابلو بالوسط',type:'seg',options:YN,val:1},
+    {id:'tshape',label:'شكل التابلو',type:'seg',options:[['sq','مربع'],['rect','مستطيل'],['circ','مدور']],val:'sq',show:s=>+s.tablo},
+    {id:'tW',label:'عرض التابلو (أو القطر)',type:'range',min:40,max:400,step:5,val:120,show:s=>+s.tablo},
+    {id:'tL',label:'طول التابلو',type:'range',min:40,max:500,step:5,val:180,show:s=>+s.tablo&&s.tshape==='rect'},
+    {id:'tdes',label:'رسمة التابلو',type:'seg',options:[['plain','سادة'],['star','نجمة'],['chess','شطرنج'],['diamond','معيّن']],val:'star',show:s=>+s.tablo},
+    {id:'tmat',label:'مادة التابلو',type:'mat',val:'italian',show:s=>+s.tablo},
+    {id:'fw',label:'عرض الكادر',type:'range',min:0,max:25,step:1,val:8,show:s=>+s.tablo},
+    {id:'fmat',label:'مادة الكادر والرسمة',type:'mat',val:'black',show:s=>+s.tablo},
+    head('البردورة'),
+    {id:'border',label:'بردورة على حواف الغرفة',type:'seg',options:YN,val:0},
+    {id:'bw',label:'عرض البردورة',type:'range',min:10,max:60,step:5,val:20,show:s=>+s.border},
+    {id:'bmat',label:'مادة البردورة',type:'mat',val:'brown',show:s=>+s.border}]}
+};
+const defaults=k=>Object.fromEntries(SCHEMAS[k].controls.filter(c=>c.id).map(c=>[c.id,c.val]));
+const state={};for(const k in SCHEMAS)state[k]=defaults(k);
+let tab='fountain',lastR=null;
+
+const tabsEl=document.getElementById('tabs'),panel=document.getElementById('panel');
+tabsEl.innerHTML=Object.entries(SCHEMAS).map(([k,s])=>`<button role="tab" data-k="${k}">${s.title}</button>`).join('');
+tabsEl.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;tab=b.dataset.k;buildPanel();render();updTitle()});
+
+const unitOf=c=>c.unit===undefined?'سم':c.unit;
+function buildPanel(){
+  [...tabsEl.children].forEach(b=>b.setAttribute('aria-selected',b.dataset.k===tab));
+  const st=state[tab];
+  panel.innerHTML=SCHEMAS[tab].controls.filter(c=>!c.show||c.show(st)).map(c=>{
+    if(c.type==='head')return `<h3 class="ph">${c.label}</h3>`;
+    const v=st[c.id];
+    if(c.type==='range')return `<div class="ctrl"><div class="row"><label for="c-${c.id}">${c.label}</label><span class="numw"><input class="num" type="number" inputmode="decimal" id="n-${c.id}" data-id="${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${v}"><small>${unitOf(c)}</small></span></div><input type="range" id="c-${c.id}" data-id="${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${v}"></div>`;
+    if(c.type==='seg')return `<div class="ctrl"><div class="row"><span class="lbl">${c.label}</span></div><div class="seg">${c.options.map(([ov,ol])=>`<button data-id="${c.id}" data-v="${ov}" aria-pressed="${String(ov)===String(v)}">${ol}</button>`).join('')}</div></div>`;
+    return `<div class="ctrl"><div class="row"><span class="lbl">${c.label}</span><output id="o-${c.id}">${MATS[v]?MATS[v].name:''}</output></div><div class="mats">${Object.entries(MATS).map(([mk,m])=>`<button class="sw" title="${m.name}" aria-label="${m.name}" data-id="${c.id}" data-v="${mk}" style="--c:${m.c};--d:${m.d}" aria-pressed="${mk===v}"></button>`).join('')}</div></div>`;
+  }).join('')+`<button class="reset" id="reset">إرجاع القيم الافتراضية</button>`;
+}
+const ctrlOf=id=>SCHEMAS[tab].controls.find(x=>x.id===id);
+panel.addEventListener('input',e=>{
+  const t=e.target;if(t.type!=='range'&&t.type!=='number')return;
+  const c=ctrlOf(t.dataset.id),v=parseFloat(t.value);if(isNaN(v))return;
+  if(t.type==='number'&&(v<c.min||v>c.max))return;
+  state[tab][c.id]=v;
+  const other=document.getElementById((t.type==='range'?'n-':'c-')+c.id);if(other)other.value=v;
+  render();
+});
+panel.addEventListener('change',e=>{
+  const t=e.target;if(t.type!=='number')return;
+  const c=ctrlOf(t.dataset.id);let v=parseFloat(t.value);if(isNaN(v))v=state[tab][c.id];
+  v=Math.min(c.max,Math.max(c.min,v));t.value=v;state[tab][c.id]=v;document.getElementById('c-'+c.id).value=v;render();
+});
+panel.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.id==='reset'){state[tab]=defaults(tab);buildPanel();render();return}
+  const id=b.dataset.id;if(!id)return;
+  state[tab][id]=b.dataset.v;
+  const c=ctrlOf(id);
+  if(c.type==='seg'){const y=window.scrollY,ps=panel.scrollTop;buildPanel();window.scrollTo(0,y);panel.scrollTop=ps}
+  else{b.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));const out=document.getElementById('o-'+id);if(out)out.textContent=MATS[b.dataset.v].name}
+  render();
+});
+
+function render(){
+  uid=0;
+  const r=SCHEMAS[tab].draw(state[tab]);lastR=r;
+  const [x0,x1,y0,y1]=r.box,S=Math.max(x1-x0,y1-y0);
+  let ground=r.noGround?'':L(x0,0,x1,0,INK,LW*2.2);
+  const step=S/45,hl=S/55;
+  if(!r.noGround)for(let x=x0+step/2;x<x1;x+=step)ground+=L(x,hl*.15,x-hl*.6,hl,INK,LW*.5,'opacity=".5"');
+  const svg=document.getElementById('draw');
+  svg.setAttribute('viewBox',`${f(x0)} ${f(y0)} ${f(x1-x0)} ${f(y1-y0)}`);
+  svg.setAttribute('aria-label','رسم '+SCHEMAS[tab].title);
+  svg.innerHTML=`<defs>${PATTERNS}</defs>${ground}${r.svg}`;
+  document.getElementById('stats').innerHTML=r.stats.map(([k,v])=>`<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+  document.getElementById('note').textContent=r.note||'';
+  const tb=document.getElementById('tbl');
+  tb.innerHTML=r.table?`<p class="tt">${r.table.title}</p><div class="tw"><table><thead><tr>${r.table.head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${r.table.rows.map(rw=>`<tr${rw.sel?' class="sel"':''}>${rw.cells.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`:'';
+}
+
+/* ---------- title, save & share ---------- */
+const $=id=>document.getElementById(id);
+const CO={name:'قيصر الشام للحجر والرخام',addr:'الجزائر، دالي إبراهيم',phone:'0541737888',app:'مرسم ديكور'};
+let cust={name:'',phone:'',addr:''};
+const p2=n=>String(n).padStart(2,'0');
+function today(sep='/'){const d=new Date();return p2(d.getDate())+sep+p2(d.getMonth()+1)+sep+d.getFullYear()}
+function updTitle(){$('tCompany').textContent=CO.name;$('tProject').textContent=SCHEMAS[tab].title+'   '+today()}
+let toastT;function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),3500)}
+
+async function makePNG(){
+  await document.fonts.ready;
+  const svg=$('draw'),vb=svg.viewBox.baseVal,W=1600,dh=Math.round(W*vb.height/vb.width);
+  const clone=svg.cloneNode(true);clone.setAttribute('width',W);clone.setAttribute('height',dh);
+  const url='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(clone));
+  const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
+  const head=190,cb=110,stats=[...$('stats').children].map(d=>[d.querySelector('dt').textContent,d.querySelector('dd').textContent]);
+  const note=$('note').textContent,tb=lastR&&lastR.table,pad=50;
+  const rowsS=Math.ceil(stats.length/4),foot=40+rowsS*110+(note?50:0)+(tb?90+tb.rows.length*44:0)+70;
+  const c=document.createElement('canvas');c.width=W+pad*2;c.height=head+cb+dh+foot+30;
+  const x=c.getContext('2d'),F='"Cairo","Tajawal",Tahoma,sans-serif',RX=c.width-pad,LX=pad;
+  x.fillStyle='#FFFFFF';x.fillRect(0,0,c.width,c.height);
+  x.fillStyle='#111111';x.fillRect(0,0,c.width,head);
+  x.fillStyle='#B88A2A';x.fillRect(0,head-8,c.width,8);
+  x.direction='rtl';x.textAlign='right';
+  x.fillStyle='#FFFFFF';x.font='900 58px '+F;x.fillText(CO.name,RX,90);
+  x.fillStyle='#CFC8B8';x.font='600 30px '+F;x.fillText(CO.addr,RX,145);
+  x.direction='ltr';x.textAlign='left';
+  x.fillStyle='#B88A2A';x.font='800 40px '+F;x.fillText(CO.phone,LX,145);
+  x.direction='rtl';x.textAlign='left';x.fillStyle='#FFFFFF';x.font='800 34px '+F;x.fillText(CO.app+'  |  '+SCHEMAS[tab].title,LX,85);
+  // customer band
+  const cy=head;x.fillStyle='#F5F1E8';x.fillRect(0,cy,c.width,cb);
+  x.textAlign='right';x.direction='rtl';
+  const parts=[['الزبون',cust.name],['الهاتف',cust.phone],['العنوان',cust.addr]].filter(p=>p[1]);
+  let px=RX;
+  parts.forEach(([k,v])=>{x.font='600 26px '+F;x.fillStyle='#6B655B';x.fillText(k,px,cy+45);x.font='800 34px '+F;x.fillStyle='#111';x.fillText(v,px,cy+88);px-=Math.max(x.measureText(v).width,120)+90});
+  x.textAlign='left';x.font='600 26px '+F;x.fillStyle='#6B655B';x.fillText('التاريخ',LX,cy+45);
+  x.direction='ltr';x.font='800 34px '+F;x.fillStyle='#111';x.fillText(today(),LX,cy+88);x.direction='rtl';
+  x.drawImage(img,pad,head+cb+20,W,dh);
+  let y=head+cb+dh+40;x.fillStyle='#B88A2A';x.fillRect(pad,y,W,3);
+  const cw=W/4;x.textAlign='right';
+  stats.forEach(([k,v],i)=>{const r=Math.floor(i/4),col=i%4,rx=RX-col*cw-10,yy=y+r*110;x.fillStyle='#6B655B';x.font='600 26px '+F;x.fillText(k,rx,yy+48);x.fillStyle='#111';x.font='800 36px '+F;x.fillText(v,rx,yy+96)});
+  y+=rowsS*110+20;
+  if(note){x.fillStyle='#A6453D';x.font='600 26px '+F;x.fillText(note,RX,y+20);y+=50}
+  if(tb){y+=20;x.fillStyle='#111';x.font='800 30px '+F;x.fillText(tb.title,RX,y);y+=50;
+    const cwT=W/tb.head.length;x.font='800 24px '+F;x.fillStyle='#6B655B';tb.head.forEach((h,i)=>x.fillText(h,RX-i*cwT-10,y));
+    tb.rows.forEach(r=>{y+=44;x.font=(r.sel?'800':'500')+' 27px '+F;x.fillStyle=r.sel?'#8F6A1F':'#111';r.cells.forEach((v,i)=>x.fillText(String(v),RX-i*cwT-10,y))})}
+  x.fillStyle='#F5F1E8';x.fillRect(0,c.height-60,c.width,60);
+  x.fillStyle='#6B655B';x.font='600 22px '+F;x.textAlign='right';x.fillText('القياسات بالسنتيمتر، والرسم تقريبي للعرض',RX,c.height-22);
+  return await new Promise(r=>c.toBlob(r,'image/png'));
+}
+function fileName(){return [SCHEMAS[tab].title,cust.name,today('-')].filter(Boolean).join(' - ')+'.png'}
+function showModal(blob){$('mImg').src=URL.createObjectURL(blob);$('modal').classList.add('on')}
+$('mClose').onclick=()=>$('modal').classList.remove('on');
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+async function saveBlob(blob){
+  const file=new File([blob],fileName(),{type:'image/png'});
+  if(isIOS&&navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file]});return true}catch(e){if(e.name==='AbortError')return false}
+  }
+  const u=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=u;a.download=fileName();document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(u),4000);toast('تم حفظ الصورة');return true;
+}
+async function busy(btn,fn){btn.disabled=true;try{await fn()}catch(e){toast('تعذّر تجهيز الصورة، حاول مرة ثانية')}btn.disabled=false}
+let pending='save';
+function askCustomer(kind){
+  pending=kind;$('cGo').textContent=kind==='share'?'إرسال واتساب':'حفظ صورة';
+  $('cName').value=cust.name;$('cPhone').value=cust.phone;$('cAddr').value=cust.addr;$('cErr').textContent='';
+  $('cliModal').classList.add('on');setTimeout(()=>$('cName').focus(),50);
+}
+$('saveBtn').onclick=()=>askCustomer('save');
+$('shareBtn').onclick=()=>askCustomer('share');
+$('cCancel').onclick=()=>$('cliModal').classList.remove('on');
+['cName','cPhone','cAddr'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('cGo').click()}}));
+$('cGo').onclick=()=>{
+  const n=$('cName').value.trim();
+  if(!n){$('cErr').textContent='اكتب اسم الزبون أول، هاد الحقل إجباري.';$('cName').focus();return}
+  cust={name:n,phone:$('cPhone').value.trim(),addr:$('cAddr').value.trim()};
+  $('cliModal').classList.remove('on');
+  if(pending==='save')busy($('saveBtn'),async()=>{await saveBlob(await makePNG())});
+  else busy($('shareBtn'),async()=>{
+    const blob=await makePNG(),file=new File([blob],fileName(),{type:'image/png'});
+    const text=CO.name+'\n'+SCHEMAS[tab].title+' - '+cust.name+'\n'+CO.phone;
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      try{await navigator.share({files:[file],text});return}catch(e){if(e.name==='AbortError')return}
+    }
+    const ok=await saveBlob(blob);
+    if(ok&&!$('modal').classList.contains('on'))toast('اختر واتساب من قائمة المشاركة، أو أرسل الصورة من المعرض');
+  });
+};
+
+/* ---------- AI assistant ---------- */
+let sampleFn=null,aiMode=null;const hist=[],undoStack=[];
+const LS={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+(async()=>{
+  await Promise.resolve();
+  if(window.claude&&claude.use){
+    try{sampleFn=await claude.use('sample')}catch(e){}
+    if(sampleFn){aiMode='claude';$('aiBox').hidden=false}
+  }else{
+    aiMode='api';$('aiBox').hidden=false;$('aiSet').hidden=false;
+    loadSet();
+  }
+})();
+$('aiSet').onclick=()=>$('setModal').classList.add('on');
+$('setClose').onclick=()=>$('setModal').classList.remove('on');
+const DEFM={gemini:'gemini-flash-latest',anthropic:'claude-haiku-4-5-20251001'};
+function loadSet(){const pv=LS.get('stone-prov')||'gemini';$('apiProv').value=pv;$('apiKey').value=LS.get('stone-key-'+pv)||'';$('apiModel').value=LS.get('stone-model-'+pv)||DEFM[pv]}
+$('apiProv').onchange=()=>{const pv=$('apiProv').value;$('apiKey').value=LS.get('stone-key-'+pv)||'';$('apiModel').value=LS.get('stone-model-'+pv)||DEFM[pv]};
+$('setSave').onclick=()=>{const pv=$('apiProv').value;LS.set('stone-prov',pv);LS.set('stone-key-'+pv,$('apiKey').value.trim());LS.set('stone-model-'+pv,$('apiModel').value.trim()||DEFM[pv]);$('setModal').classList.remove('on');toast('تم الحفظ')};
+
+function schemaText(){
+  return Object.entries(SCHEMAS).map(([k,sc])=>`- ${k} (${sc.title}): `+sc.controls.filter(c=>c.id).map(c=>
+    c.type==='range'?`${c.id}="${c.label}" رقم ${c.min}-${c.max}${c.unit===''?'':' سم'}`:
+    c.type==='seg'?`${c.id}="${c.label}" واحد من {${c.options.map(o=>o[0]+'='+o[1]).join(', ')}}`:
+    `${c.id}="${c.label}" مادة`).join('؛ ')).join('\n');
+}
+function buildPrompt(msg){
+  const stats=[...$('stats').children].map(d=>d.querySelector('dt').textContent+': '+d.querySelector('dd').textContent).join('، ');
+  return `أنت مساعد داخل أداة رسم لأعمال الرخام والحجر الطبيعي. المستخدم صاحب ورشة تغليف وحجر، رجل، ويكتب بالعامية الشامية. مهمتك تحويل طلبه لتعديلات على إعدادات الأداة.
+
+أنواع التصاميم وإعداداتها:
+${schemaText()}
+
+المواد (للإعدادات من نوع مادة استعمل المفتاح): ${Object.entries(MATS).map(([k,m])=>k+'='+m.name).join(', ')}
+
+التصميم المفتوح حالياً: ${tab} (${SCHEMAS[tab].title})
+إعداداته الحالية: ${JSON.stringify(state[tab])}
+النتائج المحسوبة حالياً: ${stats}
+${hist.length?'آخر الطلبات:\n'+hist.slice(-4).map(h=>'المستخدم: '+h.u+'\nأنت: '+h.a).join('\n'):''}
+
+القواعد:
+- رد فقط بـ JSON بهالشكل: {"tab":"مفتاح التصميم","set":{"id":قيمة},"reply":"رد قصير"}
+- حوّل الأمتار لسنتيمتر. القيم لازم تكون ضمن الحدود والخيارات المذكورة فقط.
+- ضع في set فقط الإعدادات اللي بدها تتغير. ابقَ على نفس التصميم إلا إذا طلب نوع تاني.
+- إذا طلب شي ما بتقدر الأداة تعمله، خلي set فاضي واشرح باختصار شو الممكن.
+- إذا سأل سؤال (حساب، نصيحة بالقياسات أو الألوان)، جاوب بالـ reply.
+- الـ reply جملة أو جملتين بالعامية الشامية، بصيغة المذكر.
+
+طلب المستخدم: ${msg}`;
+}
+async function callAI(prompt){
+  if(aiMode==='claude')return await sampleFn.json(prompt,{modelTier:'quick',cache:false});
+  const pv=LS.get('stone-prov')||'gemini',key=LS.get('stone-key-'+pv),model=LS.get('stone-model-'+pv)||DEFM[pv];
+  if(!key){loadSet();$('setModal').classList.add('on');throw{code:'nokey'}}
+  let t;
+  if(pv==='gemini'){
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':key},
+      body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{responseMimeType:'application/json',temperature:.4}})});
+    const d=await r.json();
+    if(!r.ok)throw{code:r.status===429?'quota':'api',message:(d.error&&d.error.message)||r.status};
+    t=((d.candidates||[])[0]?.content?.parts||[]).map(p=>p.text||'').join('');
+  }else{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model,max_tokens:800,messages:[{role:'user',content:prompt}]})});
+    const d=await r.json();
+    if(!r.ok)throw{code:'api',message:(d.error&&d.error.message)||r.status};
+    t=d.content.map(c=>c.text||'').join('');
+  }
+  t=t.replace(/```json|```/g,'').trim();
+  return JSON.parse(t.slice(t.indexOf('{'),t.lastIndexOf('}')+1));
+}
+function applyAI(res){
+  const tk=SCHEMAS[res.tab]?res.tab:tab,set=res.set||{};let n=0;
+  undoStack.push({tab,st:JSON.parse(JSON.stringify(state))});
+  for(const [id,raw] of Object.entries(set)){
+    const c=SCHEMAS[tk].controls.find(x=>x.id===id);if(!c)continue;
+    if(c.type==='range'){let v=+raw;if(isNaN(v))continue;v=Math.min(c.max,Math.max(c.min,Math.round(v/c.step)*c.step));state[tk][id]=v;n++}
+    else if(c.type==='seg'){const o=c.options.find(o=>String(o[0])===String(raw)||o[1]===raw);if(o){state[tk][id]=String(o[0]);n++}}
+    else{const k=MATS[raw]?raw:Object.keys(MATS).find(k=>MATS[k].name===raw);if(k){state[tk][id]=k;n++}}
+  }
+  if(!n&&tk===tab){undoStack.pop()}
+  else{tab=tk;buildPanel();render();updTitle()}
+  $('aiUndo').disabled=!undoStack.length;
+}
+const errText=e=>({not_granted:'لازم توافق على استعمال الذكاء الاصطناعي لما يطلب منك.',rate_limited:'كتير طلبات ورا بعض، استنى شوي وجرّب.',nokey:'حط المفتاح من الإعدادات أول.',quota:'خلص الحد المجاني لهلق، جرّب بعد شوي أو بكرة.',api:'في مشكلة بالمفتاح أو الحساب: '+(e.message||'')}[e.code]||'ما فهمت الرد، جرّب تكتب الطلب بطريقة تانية.');
+async function runAI(){
+  const msg=$('aiIn').value.trim();if(!msg)return;
+  const out=$('aiOut');out.classList.remove('err');out.textContent='عم فكّر...';$('aiGo').disabled=true;
+  try{
+    const res=await callAI(buildPrompt(msg));
+    applyAI(res);out.textContent=res.reply||'تم.';hist.push({u:msg,a:res.reply||''});$('aiIn').value='';
+  }catch(e){out.classList.add('err');out.textContent=errText(e||{})}
+  $('aiGo').disabled=false;
+}
+$('aiGo').onclick=runAI;
+$('aiIn').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();runAI()}});
+$('aiUndo').onclick=()=>{const u=undoStack.pop();if(!u)return;Object.assign(state,u.st);tab=u.tab;buildPanel();render();updTitle();$('aiUndo').disabled=!undoStack.length;$('aiOut').textContent='رجّعت التعديل.'};
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+buildPanel();render();updTitle();
+</script>
+</body>
+</html>
