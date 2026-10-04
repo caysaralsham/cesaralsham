@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>قيصر الشام</title>
+
+<link rel="manifest" href="qs-manifest-home.json">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="قيصر الشام">
+<link rel="apple-touch-icon" href="qs-apple-touch-icon.png">
+<link rel="icon" href="qs-icon-192.png">
+
+<style>
+  :root {
+    --gold: #d4af37;
+    --bg: #0a0a0a;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: var(--bg);
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    color: #fff;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+    padding: 24px;
+    padding-top: calc(24px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    gap: 28px;
+  }
+  .logo {
+    width: 140px;
+    height: auto;
+    filter: drop-shadow(0 4px 14px rgba(212,175,55,0.35));
+  }
+  .title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--gold);
+    text-align: center;
+    margin: 0;
+  }
+  .btns {
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 10px;
+  }
+  a.btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-decoration: none;
+    color: #0a0a0a;
+    background: linear-gradient(135deg, #f3d46a, var(--gold));
+    padding: 18px 20px;
+    border-radius: 14px;
+    font-size: 18px;
+    font-weight: 700;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+    transition: transform 0.15s ease;
+  }
+  a.btn:active {
+    transform: scale(0.97);
+  }
+  a.btn.secondary {
+    background: transparent;
+    color: var(--gold);
+    border: 2px solid var(--gold);
+    box-shadow: none;
+  }
+  .hint {
+    font-size: 12px;
+    color: #999;
+    text-align: center;
+    max-width: 320px;
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+  <img class="logo" src="qs-icon-512.png" alt="قيصر الشام">
+  <h1 class="title">قيصر الشام للحجر والرخام</h1>
+
+  <div class="btns">
+    <a class="btn" href="/index.html">🌐 الموقع</a>
+    <a class="btn secondary" href="/admin-works.html">⚙️ لوحة التحكم</a>
+  </div>
+
+  <div class="hint">اختر وجهتك — رح تبقى داخل نفس التطبيق بدون الرجوع للمتصفح.</div>
+
+<script>
+if ('serviceWorker' in navigator) {
+  // لا نسجل service worker هنا؛ الصفحة بسيطة وتعتمد على تصفح مباشر
+}
+</script>
+</body>
+</html>
