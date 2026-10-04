@@ -3,7 +3,7 @@
   "name": "قيصر الشام",
   "short_name": "قيصر الشام",
   "start_url": "qs-home.html",
-  "scope": "/",
+  "scope": "/qs-home.html",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#0a0a0a",
