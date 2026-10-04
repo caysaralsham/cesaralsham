@@ -154,7 +154,8 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 <div class="modal" id="setModal"><div class="box">
   <h2>إعدادات الذكاء الاصطناعي</h2>
   <label>المزوّد<select id="apiProv"><option value="gemini">Google Gemini (مجاني)</option><option value="anthropic">Anthropic Claude (مدفوع)</option></select></label>
-  <label>المفتاح<input id="apiKey" class="ltr masked" type="text" name="ai_k_x" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="الصق المفتاح هون"><small>المفتاح بينحفظ على هالجهاز بس، وما بينرفع على الموقع.</small></label>
+  <label>المفتاح <button type="button" class="btn" id="keyEye" style="padding:2px 10px;font-size:.8rem;align-self:flex-start">إظهار المفتاح</button><input id="apiKey" class="ltr masked" type="text" name="ai_k_x" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="الصق المفتاح هون"><small>المفتاح بينحفظ على هالجهاز بس، وما بينرفع على الموقع.</small></label>
+  <small id="keyInfo"></small>
   <label>الموديل<input id="apiModel" class="ltr" name="ai_m_x" autocomplete="off" spellcheck="false"></label>
   <div style="display:flex;gap:8px"><button class="btn primary" id="setSave">حفظ</button><button class="btn" id="setClose">إلغاء</button></div>
 </div></div>
@@ -1396,12 +1397,14 @@ const LS={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:
     loadSet();
   }
 })();
-$('aiSet').onclick=()=>$('setModal').classList.add('on');
+function keyInfo(){const pv=$('apiProv').value,k=LS.get('stone-key-'+pv)||'';$('keyInfo').textContent=k?('المفتاح المحفوظ بيبلّش بـ '+k.slice(0,4)+' وبيخلص بـ '+k.slice(-4)+'، الموديل: '+(LS.get('stone-model-'+pv)||DEFM[pv])):'ما في مفتاح محفوظ لهلق.'}
+$('aiSet').onclick=()=>{loadSet();keyInfo();$('setModal').classList.add('on')};
+$('keyEye').onclick=()=>{const m=$('apiKey').classList.toggle('masked');$('keyEye').textContent=m?'إظهار المفتاح':'إخفاء المفتاح'};
 $('setClose').onclick=()=>$('setModal').classList.remove('on');
-const DEFM={gemini:'gemini-flash-latest',anthropic:'claude-haiku-4-5-20251001'};
+const DEFM={gemini:'gemini-3.6-flash',anthropic:'claude-haiku-4-5-20251001'};
 function loadSet(){const pv=LS.get('stone-prov')||'gemini';$('apiProv').value=pv;$('apiKey').value=LS.get('stone-key-'+pv)||'';$('apiModel').value=LS.get('stone-model-'+pv)||DEFM[pv]}
-$('apiProv').onchange=()=>{const pv=$('apiProv').value;$('apiKey').value=LS.get('stone-key-'+pv)||'';$('apiModel').value=LS.get('stone-model-'+pv)||DEFM[pv]};
-$('setSave').onclick=()=>{const pv=$('apiProv').value;LS.set('stone-prov',pv);LS.set('stone-key-'+pv,$('apiKey').value.trim());LS.set('stone-model-'+pv,$('apiModel').value.trim()||DEFM[pv]);$('setModal').classList.remove('on');toast('تم الحفظ')};
+$('apiProv').onchange=()=>{const pv=$('apiProv').value;$('apiKey').value=LS.get('stone-key-'+pv)||'';$('apiModel').value=LS.get('stone-model-'+pv)||DEFM[pv];keyInfo()};
+$('setSave').onclick=()=>{const pv=$('apiProv').value;LS.set('stone-prov',pv);LS.set('stone-key-'+pv,$('apiKey').value.trim());LS.set('stone-model-'+pv,$('apiModel').value.trim()||DEFM[pv]);keyInfo();$('setModal').classList.remove('on');toast('تم الحفظ')};
 
 function schemaText(){
   return Object.entries(SCHEMAS).map(([k,sc])=>`- ${k} (${sc.title}): `+flat(k).map(c=>
@@ -1467,7 +1470,7 @@ function applyAI(res){
   else{tab=tk;buildPanel();render();updTitle()}
   $('aiUndo').disabled=!undoStack.length;
 }
-const errText=e=>({not_granted:'لازم توافق على استعمال الذكاء الاصطناعي لما يطلب منك.',rate_limited:'كتير طلبات ورا بعض، استنى شوي وجرّب.',nokey:'حط المفتاح من الإعدادات أول.',quota:'خلص الحد المجاني لهلق، جرّب بعد شوي أو بكرة.',api:'في مشكلة بالمفتاح أو الحساب: '+(e.message||'')}[e.code]||'ما فهمت الرد، جرّب تكتب الطلب بطريقة تانية.');
+const errText=e=>({not_granted:'لازم توافق على استعمال الذكاء الاصطناعي لما يطلب منك.',rate_limited:'كتير طلبات ورا بعض، استنى شوي وجرّب.',nokey:'حط المفتاح من الإعدادات أول.',quota:'خلص الحد المجاني لهلق، جرّب بعد شوي أو بكرة.',api:(/prepay|billing|credits/i.test(e.message||'')?'حساب Google بيقول إن رصيد الدفع المسبق بالمشروع خلص. جرّب مفتاح من مشروع تاني أو موديل gemini-3.6-flash. التفاصيل: ':'في مشكلة بالمفتاح أو الحساب: ')+(e.message||'')}[e.code]||'ما فهمت الرد، جرّب تكتب الطلب بطريقة تانية.');
 async function runAI(){
   const msg=$('aiIn').value.trim();if(!msg)return;
   const out=$('aiOut');out.classList.remove('err');out.textContent='عم فكّر...';$('aiGo').disabled=true;
