@@ -177,6 +177,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     </div>
     <div class="actions">
       <button id="processBtn">معالجة الصور</button>
+      <button id="shareAllBtn" disabled>📤 حفظ/مشاركة الكل دفعة واحدة (الأفضل لآيفون)</button>
       <button id="downloadAllBtn" class="secondary" disabled>حفظ الكل (بنفس الأسماء الأصلية)</button>
       <button id="downloadZipBtn" class="secondary" disabled>تنزيل الكل (ZIP)</button>
       <span class="saved-badge" id="savedBadge">✓ تم حفظ إعداداتك، رح تظهر تلقائياً في المرة الجاية</span>
@@ -217,6 +218,7 @@ const sizeVal = document.getElementById('sizeVal');
 const opacityVal = document.getElementById('opacityVal');
 const marginVal = document.getElementById('marginVal');
 const processBtn = document.getElementById('processBtn');
+const shareAllBtn = document.getElementById('shareAllBtn');
 const downloadAllBtn = document.getElementById('downloadAllBtn');
 const downloadZipBtn = document.getElementById('downloadZipBtn');
 const statusEl = document.getElementById('status');
@@ -571,6 +573,41 @@ async function processAll() {
   processBtn.disabled = false;
   downloadZipBtn.disabled = okResults.length === 0;
   downloadAllBtn.disabled = okResults.length === 0;
+  shareAllBtn.disabled = okResults.length === 0;
+}
+
+// مشاركة/حفظ كل الصور دفعة واحدة عبر قائمة المشاركة المباشرة للمتصفح (Web Share API)
+// على آيفون، هذا يفتح قائمة "مشاركة" فوراً بضغطة واحدة، وفيها خيار "حفظ X صور" يحفظهم
+// كلهم دفعة واحدة بمكتبة الصور مباشرة — بدون المرور بملف ZIP أو تطبيق الملفات إطلاقاً.
+async function shareAllPhotos() {
+  const okResults = processedResults.filter(r => r.status === 'ok' || r.status === 'original_no_logo');
+  if (!okResults.length) return;
+
+  if (!navigator.share || !navigator.canShare) {
+    statusEl.textContent = 'المشاركة المباشرة غير مدعومة بهذا المتصفح. جرّب زر "حفظ الكل" أو "تنزيل الكل (ZIP)" بدلاً منه.';
+    return;
+  }
+
+  shareAllBtn.disabled = true;
+  statusEl.textContent = 'جارٍ تجهيز الصور للمشاركة...';
+  try {
+    const files = okResults.map(r => new File([r.blob], r.name, { type: r.blob.type || 'image/png' }));
+    const shareData = { files };
+    if (!navigator.canShare(shareData)) {
+      throw new Error('المتصفح ما يدعم مشاركة هالعدد أو هالنوع من الملفات دفعة واحدة. جرّب عدد أقل من الصور، أو استخدم زر \"تنزيل الكل (ZIP)\".');
+    }
+    await navigator.share(shareData);
+    statusEl.textContent = 'تم فتح قائمة المشاركة. اختر "حفظ الصور" لحفظهم كلهم دفعة واحدة بمكتبة الصور.';
+  } catch (err) {
+    if (err && err.name === 'AbortError') {
+      statusEl.textContent = 'تم إلغاء المشاركة.';
+    } else {
+      console.error('فشل المشاركة', err);
+      statusEl.textContent = `تعذّرت المشاركة: ${err.message || 'خطأ غير معروف'}. جرّب زر "حفظ الكل" أو "تنزيل الكل (ZIP)" بدلاً منه.`;
+    }
+  } finally {
+    shareAllBtn.disabled = false;
+  }
 }
 
 async function downloadAllIndividually() {
@@ -631,6 +668,7 @@ async function downloadZip() {
 }
 
 processBtn.addEventListener('click', processAll);
+shareAllBtn.addEventListener('click', shareAllPhotos);
 downloadAllBtn.addEventListener('click', downloadAllIndividually);
 downloadZipBtn.addEventListener('click', downloadZip);
 
