@@ -167,7 +167,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   <p class="ferr" id="cErr" role="alert"></p>
   <div style="display:flex;gap:8px"><button class="btn primary" id="cGo">حفظ صورة</button><button class="btn" id="cCancel">إلغاء</button></div>
 </div></div>
-<div class="modal" id="modal"><img id="mImg" alt="صورة التصميم"><p>اضغط مطوّلاً على الصورة واختر حفظ أو مشاركة</p><button class="btn" id="mClose">إغلاق</button></div>
+<div class="modal" id="modal"><img id="mImg" alt="صورة التصميم"><p id="mTip">اضغط مطوّلاً على الصورة واختر حفظ</p><div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><button class="btn primary" id="mShare">حفظ بالاستديو أو مشاركة</button><button class="btn" id="mClose">إغلاق</button></div></div>
 
 <script>
 const MATS={
@@ -1344,14 +1344,19 @@ async function makePNG(){
   return await new Promise(r=>c.toBlob(r,'image/png'));
 }
 function fileName(){return [SCHEMAS[tab].title,cust.name,today('-')].filter(Boolean).join(' - ')+'.png'}
-function showModal(blob){$('mImg').src=URL.createObjectURL(blob);$('modal').classList.add('on')}
+const UA=navigator.userAgent,IS_IOS=/iPad|iPhone|iPod/.test(UA)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1),IS_AND=/Android/i.test(UA),IS_MOB=IS_IOS||IS_AND;
+let mFile=null;
+function showModal(blob){
+  mFile=new File([blob],fileName(),{type:'image/png'});
+  $('mImg').src=URL.createObjectURL(blob);
+  $('mTip').textContent=IS_IOS?'اضغط مطوّلاً على الصورة واختر «إضافة إلى الصور»، أو اضغط الزر واختر «حفظ الصورة».':IS_AND?'اضغط مطوّلاً على الصورة واختر «تنزيل الصورة»، فبتنحفظ بالاستديو (المعرض).':'اضغط على الصورة بالزر اليمين واختر «حفظ الصورة».';
+  $('mShare').hidden=!(navigator.canShare&&navigator.canShare({files:[mFile]}));
+  $('modal').classList.add('on');
+}
+$('mShare').onclick=async()=>{try{await navigator.share({files:[mFile]})}catch(e){if(e.name!=='AbortError')toast('اضغط مطوّلاً على الصورة لحفظها')}};
 $('mClose').onclick=()=>$('modal').classList.remove('on');
-const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 async function saveBlob(blob){
-  const file=new File([blob],fileName(),{type:'image/png'});
-  if(isIOS&&navigator.canShare&&navigator.canShare({files:[file]})){
-    try{await navigator.share({files:[file]});return true}catch(e){if(e.name==='AbortError')return false}
-  }
+  if(IS_MOB){showModal(blob);return true}
   const u=URL.createObjectURL(blob),a=document.createElement('a');
   a.href=u;a.download=fileName();document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(u),4000);toast('تم حفظ الصورة');return true;
