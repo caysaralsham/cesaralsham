@@ -276,13 +276,14 @@ function column(cx,yb,h,w,style,m){
 }
 
 /* ---------- fountain ---------- */
-const BD={d:[200,140,95,65,45,32],t:[16,14,12,10,8,7],b:[24,17,11,8,6,4],h:[70,50,40,35,30,25]};
+const BD={d:[200,140,95,65,45,32],t:[16,14,12,10,8,8],b:[24,17,11,8,6,4],h:[110,50,40,35,30,25],c:[40,28,20,14,10,8]};
 function drawFountain(s){
   const n=Math.max(1,Math.min(6,+s.tiers)),pool=+s.pool,PW=+s.poolW,PH=+s.poolH,m=M(s.mat),m2=M(s.mat2),st=s.bowlStyle;
   const baseH=15,B=[];let y=pool?-PH:-baseH;
   for(let i=0;i<n;i++){
     const k=i+1,b={d:+s['d'+k],t:+s['t'+k],b:+s['b'+k],h:+s['h'+k]},prev=B[i-1];
-    b.cw=Math.max(10,Math.min(50,b.d*.2,prev?prev.cw*.95:99));
+    b.cw=+s['c'+k]||Math.max(8,b.d*.2);
+    if(!prev&&pool){b.h=Math.max(b.h,PH+10);y=0}
     b.base=prev?prev.rimTop:y;
     b.colBot=prev?prev.rimTop+prev.t*.6:y;
     b.colTop=b.base-b.h;b.bottom=b.colTop;b.rimTop=b.colTop-b.b-b.t;
@@ -351,16 +352,16 @@ function drawFountain(s){
   const xc=Wmax/2+S*.06,small=FS*.62;
   const seg=(y1,y2,lab)=>{if(Math.abs(y1-y2)<.5)return '';const t=FS*.22,mid=(y1+y2)/2;
     return L(xc,y1,xc,y2,DIM,LW*.8)+L(xc-t*2,y1,xc+t*2,y1,DIM,LW*.8)+L(xc-t*2,y2,xc+t*2,y2,DIM,LW*.8)+T(xc+FS*.35,mid+small*.35,lab,small,'start')};
-  o+=seg(0,pool?-PH:-baseH,(pool?PH:baseH)+'');
+  if(!pool)o+=seg(0,-baseH,baseH+'');
   for(const b of B){o+=seg(b.base,b.colTop,b.h+'');o+=seg(b.colTop,b.rimTop,(b.t+b.b)+'')}
   if(finH)o+=seg(finBot,finTop,Math.round(finH)+'');
   o+=dimV(0,-H,Wmax/2+S*.2,fmt(H));
-  if(pool)o+=dimH(-PW/2,PW/2,S*.09,fmt(PW));
+  if(pool)o+=dimH(-PW/2,PW/2,S*.09,fmt(PW))+dimV(0,-PH,-Wmax/2-S*.05,fmt(PH));
   const stats=[['الارتفاع الكلي',fmt(H)]];
   if(pool)stats.push(['الحوض',PW+' × '+PH+' سم']);
   B.forEach((b,i)=>stats.push(['الصحن '+(i+1),'Ø'+b.d+' سماكة '+b.t+' عمق '+b.b]));
   return{svg:o,box:[-Wmax/2-S*.12,Wmax/2+S*.24,finTop-(+s.water?S*.1:0)-S*.05,S*.14],stats,
-    note:(pool&&B[0].d>PW-16?'الصحن الأول أعرض من الحوض. ':'')+'الأرقام على اليمين: ارتفاع كل عمود وكل صحن (سماكة + عمق) بالسنتيمتر.'};
+    note:(pool&&B[0].d>PW-16?'الصحن الأول أعرض من الحوض. ':'')+(pool&&+s.h1<PH+10?'العمود الأول لازم يطلع من الحوض، فطوّلته. ':'')+(pool?'العمود الأول بيبلّش من أرض الحوض. ':'')+'الأرقام على اليمين: ارتفاع كل عمود وكل صحن (سماكة + عمق) بالسنتيمتر.'};
 }
 
 /* ---------- facade ---------- */
@@ -762,12 +763,20 @@ function panelDesign(des,cx,cy,w,h,TMk,FMk){
 }
 
 /* ---------- floor ---------- */
-const TILES=['30','40','60','80','60x120'];
-const tileWH=t=>{const [a,b]=t.split('x').map(Number);return[a,b||a]};
-function tabloGeom(s,RW,RL){
+const STD_TILES=[[30,30],[40,40],[60,60],[80,80],[30,60],[60,120]];
+function tileWH(s){
+  let a,b;
+  if(s.tile==='custom'){a=+s.cw1;b=+s.cl1}
+  else{const p=String(s.tile).split('x').map(Number);a=p[0];b=p[1]||p[0]}
+  if(a!==b&&s.dir==='v')return[Math.min(a,b),Math.max(a,b)];
+  return[Math.max(a,b),Math.min(a,b)];
+}
+function tabloGeom(s,RW,RL,b){
   if(!+s.tablo)return null;
-  const fw=+s.fw,sh=s.tshape,iw=+s.tW,ih=(sh==='rect'||sh==='oval')?+s.tL:iw;
-  return{sh,cx:RW/2,cy:RL/2,iw,ih,ow:iw+2*fw,oh:ih+2*fw,fw};
+  const fw=+s.fw,sh=s.tshape==='sq'?'rect':s.tshape==='circ'?'oval':s.tshape,iw=+s.tW,ih=+s.tL,ow=iw+2*fw,oh=ih+2*fw;
+  const mx=Math.max(0,(RW-2*b-ow)/2),my=Math.max(0,(RL-2*b-oh)/2);
+  const dx=Math.max(-mx,Math.min(mx,+s.tX||0)),dy=Math.max(-my,Math.min(my,+s.tY||0));
+  return{sh,cx:RW/2+dx,cy:RL/2+dy,iw,ih,ow,oh,fw,moved:dx!==(+s.tX||0)||dy!==(+s.tY||0)};
 }
 function tileVsTab(x,y,w,h,t){
   if(!t)return 'out';
@@ -781,16 +790,27 @@ function tileVsTab(x,y,w,h,t){
   return ins(nx,ny)?'cut':'out';
 }
 function gridStart(c,lo,t){return c-t/2-Math.ceil((c-t/2-lo)/t)*t}
-function countTiles(fx,fy,fw,fl,tw,th,cx,cy,tab){
-  let full=0,cut=0;const sx=gridStart(cx,fx,tw),sy=gridStart(cy,fy,th);
-  for(let y=sy;y<fy+fl;y+=th)for(let x=sx;x<fx+fw;x+=tw){
-    const x0=Math.max(x,fx),x1=Math.min(x+tw,fx+fw),y0=Math.max(y,fy),y1=Math.min(y+th,fy+fl);
-    if(x1-x0<.5||y1-y0<.5)continue;
-    let part=x0>x+.01||x1<x+tw-.01||y0>y+.01||y1<y+th-.01;
-    const v=tileVsTab(x,y,tw,th,tab);if(v==='in')continue;if(v==='cut')part=true;
-    part?cut++:full++;
+function layTiles(fx,fy,fw,fl,tw,th,cx,cy,offset,tab){
+  const out=[],sx=gridStart(cx,fx,tw),sy=gridStart(cy,fy,th);
+  for(let y=sy,j=0;y<fy+fl-.01;y+=th,j++){
+    const off=offset&&j%2?-tw/2:0;
+    for(let x=sx+off,i=0;x<fx+fw-.01;x+=tw,i++){
+      const x0=Math.max(x,fx),x1=Math.min(x+tw,fx+fw),y0=Math.max(y,fy),y1=Math.min(y+th,fy+fl);
+      if(x1-x0<.5||y1-y0<.5)continue;
+      const v=tileVsTab(x,y,tw,th,tab);if(v==='in')continue;
+      const edge=x0>x+.01||x1<x+tw-.01||y0>y+.01||y1<y+th-.01;
+      out.push({x,y,i,j,kind:v==='cut'?'tab':edge?'edge':'full',pw:x1-x0,ph:y1-y0});
+    }
   }
-  return{full,cut};
+  return out;
+}
+function tileSummary(tiles,tw,th){
+  let full=0,tab=0;const g={};
+  for(const t of tiles){if(t.kind==='full')full++;else if(t.kind==='tab')tab++;else{const k=Math.round(t.pw)+'×'+Math.round(t.ph);g[k]=(g[k]||0)+1}}
+  const per=(a,b)=>Math.max(1,Math.floor(tw/a+1e-6)*Math.floor(th/b+1e-6),Math.floor(tw/b+1e-6)*Math.floor(th/a+1e-6));
+  const rows=Object.entries(g).map(([k,n])=>{const [a,b]=k.split('×').map(Number),p=per(a,b);return{size:k,count:n,per:p,tiles:Math.ceil(n/p)}}).sort((x,y)=>y.count-x.count);
+  const edgeTiles=rows.reduce((s,r)=>s+r.tiles,0),cut=rows.reduce((s,r)=>s+r.count,0)+tab,need=full+edgeTiles+tab;
+  return{full,tab,rows,cut,need,total:Math.ceil(need*1.05)};
 }
 function keyBand(len,h,col){
   const u=h*.95,sw=Math.max(LW,h*.08);let d=`M0 ${f(h*.08)}L${f(len)} ${f(h*.08)}M0 ${f(h*.92)}L${f(len)} ${f(h*.92)}`;
@@ -798,20 +818,24 @@ function keyBand(len,h,col){
   return `<path d="${d}" fill="none" stroke="${col}" stroke-width="${f(sw)}" stroke-linejoin="miter"/>`;
 }
 function drawFloor(s){
-  const RW=+s.RW,RL=+s.RL,b=+s.border?+s.bw:0,pat=s.pat,[tw,th]=tileWH(s.tile);
+  const RW=+s.RW,RL=+s.RL,b=+s.border?+s.bw:0,free=s.tile==='free',pat=free?'free':s.pat,[tw,th]=tileWH(s);
   const S=Math.max(RW,RL)+30;setScale(S);
-  const A=M(s.mat),A2=M(s.mat2),J='rgba(30,25,20,.45)',jw=LW*.5,tab=tabloGeom(s,RW,RL),bst=s.bstyle;
+  const A=M(s.mat),A2=M(s.mat2),J='rgba(30,25,20,.5)',jw=LW*.55,tab=tabloGeom(s,RW,RL,b),bst=s.bstyle;
   let o=R(-15,-15,RW+30,RL+30,'#3A3F44');
-  o+=`<rect x="0" y="0" width="${RW}" height="${RL}" fill="${b?(bst==='plain'?M(s.bmat):A):A}"/>`;
-  const fx=b,fy=b,fw=RW-2*b,fl=RL-2*b,cx=RW/2,cy=RL/2;
-  let g='';const tile=(x,y,w,h,fill)=>{g+=`<rect x="${f(x)}" y="${f(y)}" width="${f(w)}" height="${f(h)}" fill="${fill}" stroke="${J}" stroke-width="${f(jw)}"/>`};
-  if(pat==='diag'){
+  o+=`<rect x="0" y="0" width="${RW}" height="${RL}" fill="${b&&bst==='plain'?M(s.bmat):A}"/>`;
+  const fx=b,fy=b,fw=RW-2*b,fl=RL-2*b,cx=RW/2,cy=RL/2,offset=pat==='offset';
+  let g='',tiles=null;const tile=(x,y,w,h,fill)=>{g+=`<rect x="${f(x)}" y="${f(y)}" width="${f(w)}" height="${f(h)}" fill="${fill}" stroke="${J}" stroke-width="${f(jw)}"/>`};
+  if(free){
+    const W=+s.fwid,mn=Math.min(+s.fmin,+s.fmax),mx=Math.max(+s.fmin,+s.fmax),rnd=seeded(97);
+    for(let y=fy,j=0;y<fy+fl;y+=W,j++){let x=fx-rnd()*mn;while(x<fx+fw){const l=Math.round(mn+rnd()*(mx-mn));tile(x,y,l,W,A);x+=l}}
+  }else if(pat==='diag'){
     const D=Math.hypot(fw,fl),st=gridStart(0,-D/2,tw);const save=g;g='';
     for(let y=st;y<D/2;y+=tw)for(let x=st;x<D/2;x+=tw)tile(cx+x,cy+y,tw,tw,A);
     g=save+`<g transform="rotate(45 ${f(cx)} ${f(cy)})">${g}</g>`;
   }else{
-    const sx=gridStart(cx,fx,tw),sy=gridStart(cy,fy,th);
-    for(let y=sy,j=0;y<fy+fl;y+=th,j++){const off=pat==='offset'&&j%2?-tw/2:0;for(let x=sx+off,i=0;x<fx+fw;x+=tw,i++)tile(x,y,tw,th,pat==='chess'&&(i+j)%2?A2:A)}
+    tiles=layTiles(fx,fy,fw,fl,tw,th,cx,cy,offset,null);
+    for(const t of tiles){const fill=pat==='chess'&&(t.i+t.j)%2?A2:A;tile(t.x,t.y,tw,th,fill)}
+    if(+s.showCuts)for(const t of layTiles(fx,fy,fw,fl,tw,th,cx,cy,offset,tab))if(t.kind!=='full'){const x0=Math.max(t.x,fx),y0=Math.max(t.y,fy);g+=`<rect x="${f(x0)}" y="${f(y0)}" width="${f(t.pw)}" height="${f(t.ph)}" fill="rgba(200,60,40,.18)"/>`}
   }
   const fid=nid('fl');
   o+=`<clipPath id="${fid}"><rect x="${fx}" y="${fy}" width="${fw}" height="${fl}"/></clipPath><g clip-path="url(#${fid})">${g}</g>`;
@@ -819,31 +843,52 @@ function drawFloor(s){
     const BM=M(s.bmat),col=(MATS[s.bmat]||MATS.brown).c;
     if(bst==='lines'){const t=Math.max(2,b*.18);
       const ring=(i)=>`<path d="M${f(i)} ${f(i)}H${f(RW-i)}V${f(RL-i)}H${f(i)}Z M${f(i+t)} ${f(i+t)}V${f(RL-i-t)}H${f(RW-i-t)}V${f(i+t)}Z" fill="${BM}" fill-rule="evenodd" stroke="${INK}" stroke-width="${f(LW*.4)}"/>`;
-      o+=ring(b*.12)+ring(b*.7-t);}
+      o+=ring(b*.12)+ring(b*.7-t)}
     if(bst==='key')o+=`<g>${keyBand(RW,b,col)}</g><g transform="translate(${RW} ${RL}) rotate(180)">${keyBand(RW,b,col)}</g><g transform="translate(0 ${RL}) rotate(-90)">${keyBand(RL,b,col)}</g><g transform="translate(${RW} 0) rotate(90)">${keyBand(RL,b,col)}</g>`;
     o+=`<rect x="${fx}" y="${fy}" width="${fw}" height="${fl}" fill="none" stroke="${INK}" stroke-width="${f(LW*.8)}"/>`;
   }
   let tArea=0,frArea=0,frLen=0,tOuter=0;
   if(tab){
-    const {sh,iw,ih,ow,oh}=tab,innerD=shapeD(cx,cy,iw,ih,sh);
-    o+=P(shapeD(cx,cy,ow,oh,sh),M(s.fmat));
+    const {sh,iw,ih,ow,oh}=tab,tx=tab.cx,ty=tab.cy,innerD=shapeD(tx,ty,iw,ih,sh);
+    o+=P(shapeD(tx,ty,ow,oh,sh),M(s.fmat));
     tArea=shapeArea(iw,ih,sh);tOuter=shapeArea(ow,oh,sh);frArea=tOuter-tArea;frLen=shapePerim((iw+ow)/2,(ih+oh)/2,sh);
     const tid=nid('tb');
-    o+=`<clipPath id="${tid}"><path d="${innerD}"/></clipPath><g clip-path="url(#${tid})">${panelDesign(s.tdes,cx,cy,iw,ih,s.tmat,s.fmat)}</g>`+P(innerD,'none',LW*.8);
-    const lab=(sh==='circ'?'Ø'+iw:iw+'×'+ih);
-    o+=T(cx,cy-oh/2-FS*.4,'تابلو '+lab+' + كادر '+tab.fw,FS*.75);
+    o+=`<clipPath id="${tid}"><path d="${innerD}"/></clipPath><g clip-path="url(#${tid})">${panelDesign(s.tdes,tx,ty,iw,ih,s.tmat,s.fmat)}</g>`+P(innerD,'none',LW*.8);
+    o+=T(tx,ty-oh/2-FS*.4,'تابلو '+iw+'×'+ih+' + كادر '+tab.fw,FS*.72);
+    const lft=tx-ow/2,top=ty-oh/2;
+    if(lft>1)o+=dimH(0,lft,ty,fmt(lft));
+    if(top>1)o+=dimV(top,0,tx,fmt(top));
   }
   o+=`<rect x="0" y="0" width="${RW}" height="${RL}" fill="none" stroke="${INK}" stroke-width="${f(LW*1.4)}"/>`;
   o+=dimH(0,RW,RL+15+S*.06,fmt(RW))+dimV(RL,0,RW+15+S*.06,fmt(RL));
-  const room=RW*RL/1e4,field=(fw*fl-(tab?tOuter:0))/1e4;
-  const stats=[['مساحة الغرفة',room.toFixed(2)+' م²'],['مساحة البلاط',field.toFixed(2)+' م²']];
-  if(tab)stats.push(['التابلو',(tArea/1e4).toFixed(2)+' م²'],['الكادر',(frLen/100).toFixed(2)+' م.ط ('+(frArea/1e4).toFixed(2)+' م²)']);
+  const room=RW*RL/1e4,fieldCm=fw*fl-(tab?tOuter:0),field=fieldCm/1e4;
+  const stats=[['مساحة الغرفة',room.toFixed(2)+' م²'],['مساحة البلاط الصافية',field.toFixed(2)+' م²']];
+  if(tab)stats.push(['التابلو',(tArea/1e4).toFixed(2)+' م²'],['الكادر',(frLen/100).toFixed(2)+' م.ط ('+(frArea/1e4).toFixed(2)+' م²)'],['بُعد التابلو عن الحيط','يسار '+Math.round(tab.cx-tab.ow/2)+'، فوق '+Math.round(tab.cy-tab.oh/2)+' سم']);
   if(b)stats.push(['البردورة',(2*(RW+RL-2*b)/100).toFixed(2)+' م.ط ('+((RW*RL-fw*fl)/1e4).toFixed(2)+' م²)']);
-  const rows=TILES.map(t=>{const [a,c]=tileWH(t),r=countTiles(fx,fy,fw,fl,a,c,cx,cy,tab),tot=Math.ceil((r.full+r.cut)*(pat==='diag'?1.15:1.05));
-    return{sel:t===s.tile,cells:[a+'×'+c,r.full,r.cut,tot,(tot*a*c/1e4).toFixed(2)+' م²']}});
-  return{svg:o,noGround:true,box:[-15-S*.04,RW+15+S*.12,-15-S*.06,RL+15+S*.12],stats,
-    table:{title:'خيارات القص للبلاط (التركيب يبدأ من نص الغرفة)',head:['المقاس','قطع كاملة','قطع مقصوصة','المطلوب مع الاحتياط','الكمية'],rows},
-    note:pat==='diag'?'احتياط 15٪ للتركيب القطري.':'محسوب مع 5٪ احتياط للكسر.'};
+  const tables=[];let note='';
+  if(free){
+    const W=+s.fwid,ml=fieldCm/W/100;
+    tables.push({title:'رخام بطول مفتوح',head:['عرض الشريحة','الأطوال','المتر الطولي','الكمية مع 7٪ احتياط'],rows:[{sel:true,cells:[W+' سم',Math.min(+s.fmin,+s.fmax)+' لـ '+Math.max(+s.fmin,+s.fmax)+' سم',(ml*1.07).toFixed(1)+' م.ط',(field*1.07).toFixed(2)+' م²']}]});
+    note='بالطول المفتوح الحساب بالمتر الطولي والمتر المربع، والأطوال بالرسم توضيحية.';
+  }else if(pat==='diag'){
+    const rows=[...STD_TILES].map(([a,c])=>{const n=Math.ceil(fieldCm/(a*a)*1.15);return{sel:a===tw&&c===th,cells:[a+'×'+a,'-','-',n,(n*a*a/1e4).toFixed(2)+' م²']}});
+    tables.push({title:'التركيب القطري (حساب بالمساحة مع 15٪ قص وكسر)',head:['المقاس','كاملة','مقصوصة','البلاطات المطلوبة','الكمية'],rows});
+    note='بالقطري بيتحسب البلاط المربع بس.';
+  }else{
+    const sm=tileSummary(layTiles(fx,fy,fw,fl,tw,th,cx,cy,offset,tab),tw,th);
+    const br=[{cells:['قطع كاملة',tw+'×'+th,sm.full,1,sm.full]}];
+    sm.rows.forEach(r=>br.push({cells:['مقصوصة على الحيط',r.size,r.count,r.per,r.tiles]}));
+    if(sm.tab)br.push({cells:['حوالين التابلو','غير منتظمة',sm.tab,1,sm.tab]});
+    br.push({sel:true,cells:['المجموع مع 5٪ احتياط','','','',sm.total+' بلاطة = '+(sm.total*tw*th/1e4).toFixed(2)+' م²']});
+    tables.push({title:'تفصيل القص لبلاط '+tw+'×'+th,head:['القطعة','المقاس','العدد','من كل بلاطة','البلاطات'],rows:br});
+    const list=STD_TILES.map(([a,c])=>a===c?[a,c]:(s.dir==='v'?[Math.min(a,c),Math.max(a,c)]:[Math.max(a,c),Math.min(a,c)]));
+    if(!list.some(([a,c])=>a===tw&&c===th))list.push([tw,th]);
+    tables.push({title:'مقارنة المقاسات (البلاطات المقصوصة لنفس العرض بتطلع من بلاطة وحدة إذا بتساع)',head:['المقاس','كاملة','مقصوصة','البلاطات المطلوبة','الكمية'],
+      rows:list.map(([a,c])=>{const q=tileSummary(layTiles(fx,fy,fw,fl,a,c,cx,cy,offset,tab),a,c);return{sel:a===tw&&c===th,cells:[a+'×'+c,q.full,q.cut,q.total,(q.total*a*c/1e4).toFixed(2)+' م²']}})});
+    note='التركيب بيبلّش من نص الغرفة، فالقطع المقصوصة بتطلع متساوية على الحيطان. '+(+s.showCuts?'القطع المقصوصة ملوّنة بالأحمر.':'');
+  }
+  if(tab&&tab.moved)note+=' التابلو وصل لحد الحيط، ما بيتحرك أكتر.';
+  return{svg:o,noGround:true,box:[-15-S*.04,RW+15+S*.12,-15-S*.06,RL+15+S*.12],stats,tables,note};
 }
 
 /* ---------- wall tablo ---------- */
@@ -1008,12 +1053,13 @@ const fountainCtrls=[
 ];
 fountainCtrls.push({id:'tiers',label:'عدد الصحون',type:'counter',min:1,max:6,val:3,addLabel:'إضافة صحن',remLabel:'حذف آخر صحن'});
 for(let k=1;k<=6;k++)fountainCtrls.push({type:'group',gid:'b'+k,show:s=>+s.tiers>=k,
-  title:s=>'الصحن '+k+': قطر '+s['d'+k]+' × سماكة '+s['t'+k],
+  title:s=>'الصحن '+k+': قطر '+s['d'+k]+'، سماكة '+s['t'+k]+'، عمود '+s['c'+k],
   items:[
-  {id:'d'+k,label:'قطر الصحن',type:'range',min:30,max:500,step:5,val:BD.d[k-1]},
-  {id:'t'+k,label:'سماكة الحافة',type:'range',min:3,max:40,step:1,val:BD.t[k-1]},
+  {id:'d'+k,label:'قطر الصحن',type:'range',min:20,max:500,step:1,val:BD.d[k-1]},
+  {id:'t'+k,label:'سماكة الحافة',type:'range',min:8,max:40,step:1,val:BD.t[k-1]},
   {id:'b'+k,label:'عمق الصحن تحت الحافة',type:'range',min:0,max:80,step:1,val:BD.b[k-1]},
-  {id:'h'+k,label:'ارتفاع العمود تحته',type:'range',min:10,max:200,step:5,val:BD.h[k-1]}]});
+  {id:'h'+k,label:k===1?'ارتفاع العمود الأول (من أرض الحوض)':'ارتفاع العمود تحته',type:'range',min:10,max:300,step:1,val:BD.h[k-1]},
+  {id:'c'+k,label:'عرض العمود',type:'range',min:6,max:100,step:1,val:BD.c[k-1]}]});
 fountainCtrls.push(head('إضافات'),
   {id:'finial',label:'التاج العلوي',type:'seg',options:[['ball','كرة'],['pine','كوز'],['none','بدون']],val:'pine'},
   {id:'water',label:'إظهار الماء',type:'seg',options:YN,val:1},
@@ -1126,15 +1172,24 @@ const SCHEMAS={
     {id:'RW',label:'عرض الغرفة',type:'range',min:200,max:1500,step:10,val:500},
     {id:'RL',label:'طول الغرفة',type:'range',min:200,max:1500,step:10,val:600},
     head('البلاط'),
-    {id:'tile',label:'قياس البلاطة',type:'seg',options:[['30','30×30'],['40','40×40'],['60','60×60'],['80','80×80'],['60x120','60×120']],val:'60'},
-    {id:'pat',label:'طريقة التركيب',type:'seg',options:[['straight','مستقيم'],['offset','متناوب'],['chess','شطرنج'],['diag','قطري']],val:'straight'},
+    {id:'tile',label:'قياس البلاطة',type:'seg',options:[['30','30×30'],['40','40×40'],['60','60×60'],['80','80×80'],['30x60','30×60'],['60x120','60×120'],['custom','مقاس آخر'],['free','طول مفتوح']],val:'60'},
+    {id:'cw1',label:'عرض البلاطة',type:'range',min:10,max:150,step:1,val:40,show:s=>s.tile==='custom'},
+    {id:'cl1',label:'طول البلاطة',type:'range',min:10,max:200,step:1,val:80,show:s=>s.tile==='custom'},
+    {id:'fwid',label:'عرض الشريحة',type:'range',min:10,max:100,step:1,val:40,show:s=>s.tile==='free'},
+    {id:'fmin',label:'أقصر قطعة',type:'range',min:20,max:200,step:5,val:40,show:s=>s.tile==='free'},
+    {id:'fmax',label:'أطول قطعة',type:'range',min:30,max:300,step:5,val:120,show:s=>s.tile==='free'},
+    {id:'dir',label:'اتجاه البلاط',type:'seg',options:[['h','الطول مع عرض الغرفة'],['v','الطول مع طول الغرفة']],val:'h',show:s=>['30x60','60x120','custom'].includes(s.tile)},
+    {id:'pat',label:'طريقة التركيب',type:'seg',options:[['straight','مستقيم'],['offset','متناوب'],['chess','شطرنج'],['diag','قطري']],val:'straight',show:s=>s.tile!=='free'},
+    {id:'showCuts',label:'لوّن القطع المقصوصة',type:'seg',options:YN,val:1,show:s=>s.tile!=='free'&&s.pat!=='diag'},
     {id:'mat',label:'مادة البلاط',type:'mat',val:'beigeL'},
-    {id:'mat2',label:'اللون الثاني للشطرنج',type:'mat',val:'brown',show:s=>s.pat==='chess'},
-    head('التابلو بالوسط'),
-    {id:'tablo',label:'تابلو بالوسط',type:'seg',options:YN,val:1},
-    {id:'tshape',label:'شكل التابلو',type:'seg',options:[['sq','مربع'],['rect','مستطيل'],['circ','مدور'],['oval','بيضاوي'],['oct','مثمن']],val:'sq',show:s=>+s.tablo},
-    {id:'tW',label:'عرض التابلو (أو القطر)',type:'range',min:40,max:400,step:5,val:120,show:s=>+s.tablo},
-    {id:'tL',label:'طول التابلو',type:'range',min:40,max:500,step:5,val:180,show:s=>+s.tablo&&(s.tshape==='rect'||s.tshape==='oval')},
+    {id:'mat2',label:'اللون الثاني للشطرنج',type:'mat',val:'brown',show:s=>s.pat==='chess'&&s.tile!=='free'},
+    head('التابلو'),
+    {id:'tablo',label:'تابلو بالأرض',type:'seg',options:YN,val:1},
+    {id:'tshape',label:'شكل التابلو',type:'seg',options:[['rect','مستطيل أو مربع'],['oval','بيضاوي أو مدور'],['oct','مثمن']],val:'rect',show:s=>+s.tablo},
+    {id:'tW',label:'عرض التابلو',type:'range',min:40,max:600,step:5,val:120,show:s=>+s.tablo},
+    {id:'tL',label:'طول التابلو',type:'range',min:40,max:800,step:5,val:120,show:s=>+s.tablo},
+    {id:'tX',label:'تحريك يمين (+) أو يسار (−)',type:'range',min:-700,max:700,step:5,val:0,show:s=>+s.tablo},
+    {id:'tY',label:'تحريك لتحت (+) أو لفوق (−)',type:'range',min:-700,max:700,step:5,val:0,show:s=>+s.tablo},
     {id:'tdes',label:'رسمة التابلو',type:'seg',options:[['plain','سادة'],['floral','نباتي خفيف'],['star16','نجمة 16'],['star','نجمة 8'],['chess','شطرنج'],['diamond','معيّن']],val:'floral',show:s=>+s.tablo},
     {id:'tmat',label:'مادة التابلو',type:'mat',val:'italian',show:s=>+s.tablo},
     {id:'fw',label:'عرض الكادر',type:'range',min:0,max:25,step:1,val:8,show:s=>+s.tablo},
@@ -1233,8 +1288,8 @@ function render(){
   svg.innerHTML=`<defs>${PATTERNS}</defs>${ground}${r.svg}`;
   document.getElementById('stats').innerHTML=r.stats.map(([k,v])=>`<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
   document.getElementById('note').textContent=r.note||'';
-  const tb=document.getElementById('tbl');
-  tb.innerHTML=r.table?`<p class="tt">${r.table.title}</p><div class="tw"><table><thead><tr>${r.table.head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${r.table.rows.map(rw=>`<tr${rw.sel?' class="sel"':''}>${rw.cells.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`:'';
+  const tb=document.getElementById('tbl'),tbs=r.tables||(r.table?[r.table]:[]);
+  tb.innerHTML=tbs.map(t=>`<p class="tt">${t.title}</p><div class="tw"><table><thead><tr>${t.head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${t.rows.map(rw=>`<tr${rw.sel?' class="sel"':''}>${rw.cells.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`).join('');
 }
 
 /* ---------- title, save & share ---------- */
@@ -1253,8 +1308,8 @@ async function makePNG(){
   const url='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(clone));
   const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
   const head=190,cb=110,stats=[...$('stats').children].map(d=>[d.querySelector('dt').textContent,d.querySelector('dd').textContent]);
-  const note=$('note').textContent,tb=lastR&&lastR.table,pad=50;
-  const rowsS=Math.ceil(stats.length/4),foot=40+rowsS*110+(note?50:0)+(tb?90+tb.rows.length*44:0)+70;
+  const note=$('note').textContent,tbs=lastR?(lastR.tables||(lastR.table?[lastR.table]:[])):[],pad=50;
+  const rowsS=Math.ceil(stats.length/4),foot=40+rowsS*110+(note?50:0)+tbs.reduce((a,t)=>a+100+t.rows.length*44,0)+70;
   const c=document.createElement('canvas');c.width=W+pad*2;c.height=head+cb+dh+foot+30;
   const x=c.getContext('2d'),F='"Cairo","Tajawal",Tahoma,sans-serif',RX=c.width-pad,LX=pad;
   x.fillStyle='#FFFFFF';x.fillRect(0,0,c.width,c.height);
@@ -1280,9 +1335,9 @@ async function makePNG(){
   stats.forEach(([k,v],i)=>{const r=Math.floor(i/4),col=i%4,rx=RX-col*cw-10,yy=y+r*110;x.fillStyle='#6B655B';x.font='600 26px '+F;x.fillText(k,rx,yy+48);x.fillStyle='#111';x.font='800 36px '+F;x.fillText(v,rx,yy+96)});
   y+=rowsS*110+20;
   if(note){x.fillStyle='#A6453D';x.font='600 26px '+F;x.fillText(note,RX,y+20);y+=50}
-  if(tb){y+=20;x.fillStyle='#111';x.font='800 30px '+F;x.fillText(tb.title,RX,y);y+=50;
+  for(const tb of tbs){y+=20;x.fillStyle='#111';x.font='800 30px '+F;x.textAlign='right';x.fillText(tb.title,RX,y);y+=50;
     const cwT=W/tb.head.length;x.font='800 24px '+F;x.fillStyle='#6B655B';tb.head.forEach((h,i)=>x.fillText(h,RX-i*cwT-10,y));
-    tb.rows.forEach(r=>{y+=44;x.font=(r.sel?'800':'500')+' 27px '+F;x.fillStyle=r.sel?'#8F6A1F':'#111';r.cells.forEach((v,i)=>x.fillText(String(v),RX-i*cwT-10,y))})}
+    tb.rows.forEach(r=>{y+=44;x.font=(r.sel?'800':'500')+' 26px '+F;x.fillStyle=r.sel?'#8F6A1F':'#111';r.cells.forEach((v,i)=>x.fillText(String(v),RX-i*cwT-10,y))});y+=30}
   x.fillStyle='#F5F1E8';x.fillRect(0,c.height-60,c.width,60);
   x.fillStyle='#6B655B';x.font='600 22px '+F;x.textAlign='right';x.fillText('القياسات بالسنتيمتر، والرسم تقريبي للعرض',RX,c.height-22);
   return await new Promise(r=>c.toBlob(r,'image/png'));
