@@ -157,6 +157,8 @@ input[type=range]{height:16px}
 .ttl b{font-size:.95rem}
 .ttl span{font-size:.75rem}
 .drawwrap{position:relative}
+.stage{direction:ltr}
+.stage>*{direction:rtl}
 #draw{max-height:calc(100vh - 260px);touch-action:pan-y}
 #draw [data-drag]{touch-action:none}
 .inset{position:absolute;top:4px;left:4px;width:24%;min-width:120px;background:rgba(255,255,255,.92);border:1px solid #B88A2A;border-radius:8px;padding:4px}
@@ -1020,7 +1022,7 @@ function drawWallTablo(s){
   const A=M(s.wmat),J='rgba(30,25,20,.5)';
   let o=`<rect x="0" y="${-WH}" width="${WW}" height="${WH}" fill="${A}"/>`;
   const tab=full?null:{sh,cx,cy,ow,oh};
-  let g='';const tiles=layTiles(0,-WH,WW,WH,pw,ph,WW/2,-ph/2,s.wpat==='offset',null);
+  let g='';const tiles=s.wpat==='plain'?[]:layTiles(0,-WH,WW,WH,pw,ph,WW/2,-ph/2,s.wpat==='offset',null);
   for(const t of tiles)g+=`<rect x="${f(t.x)}" y="${f(t.y)}" width="${f(pw)}" height="${f(ph)}" fill="none" stroke="${J}" stroke-width="${f(LW*.5)}"/>`;
   const cid=nid('wc');
   o+=`<clipPath id="${cid}"><rect x="0" y="${-WH}" width="${WW}" height="${WH}"/></clipPath><g clip-path="url(#${cid})">${g}</g>`+R(0,-WH,WW,WH,'none',LW*1.2);
@@ -1352,10 +1354,10 @@ const SCHEMAS={
     {id:'tX',label:'تحريك يمين (+) أو يسار (−)',type:'range',min:-700,max:700,step:5,val:0,show:s=>+s.tablo},
     {id:'tY',label:'تحريك لتحت (+) أو لفوق (−)',type:'range',min:-700,max:700,step:1,val:0,show:s=>+s.tablo},
     {type:'action',act:'center',label:'↺ رجّع التابلو للنص',show:s=>+s.tablo},
-    {id:'tdes',label:'رسمة التابلو',type:'seg',options:[['plain','سادة'],['floral','نباتي خفيف'],['star16','نجمة 16'],['star','نجمة 8'],['chess','شطرنج'],['diamond','معيّن']],val:'floral',show:s=>+s.tablo},
+    {id:'tdes',label:'رسمة التابلو',type:'seg',options:[['plain','سادة'],['floral','نباتي خفيف'],['star16','نجمة 16'],['star','نجمة 8'],['chess','شطرنج'],['diamond','معيّن']],val:'plain',show:s=>+s.tablo},
     {id:'tmat',label:'مادة التابلو',type:'mat',val:'italian',show:s=>+s.tablo},
-    {id:'fw',label:'عرض الكادر',type:'range',min:0,max:25,step:1,val:8,show:s=>+s.tablo},
-    {id:'gap',label:'بُعد الكادر عن التابلو',type:'range',min:0,max:60,step:1,val:15,show:s=>+s.tablo},
+    {id:'fw',label:'عرض الكادر',type:'range',min:0,max:25,step:1,val:0,show:s=>+s.tablo},
+    {id:'gap',label:'بُعد الكادر عن التابلو',type:'range',min:0,max:60,step:1,val:0,show:s=>+s.tablo},
     {id:'gmat',label:'رخام الفاصل',type:'mat',val:'italian',show:s=>+s.tablo&&+s.gap>0},
     {id:'stripL',label:'طول قطعة الكادر',type:'range',min:30,max:300,step:5,val:200,show:s=>+s.tablo},
     {id:'fmat',label:'مادة الكادر والرسمة',type:'mat',val:'black',show:s=>+s.tablo},
@@ -1371,7 +1373,7 @@ const SCHEMAS={
     {id:'wmat',label:'مادة الحائط',type:'mat',val:'beigeL'},
     {id:'pw',label:'عرض قطعة الحائط',type:'range',min:10,max:200,step:1,val:80},
     {id:'ph',label:'ارتفاع قطعة الحائط',type:'range',min:10,max:200,step:1,val:40},
-    {id:'wpat',label:'التركيب',type:'seg',options:[['straight','مستقيم'],['offset','متناوب']],val:'offset'},
+    {id:'wpat',label:'شكل الحائط',type:'seg',options:[['plain','سادة'],['straight','قطع مستقيم'],['offset','قطع متناوب']],val:'plain'},
     head('التابلو'),
     {id:'full',label:'التابلو',type:'seg',options:[[0,'لوحة بالحائط'],[1,'يغطي كل الحائط']],val:0},
     {id:'tshape',label:'الشكل',type:'seg',options:[['rect','مستطيل'],['arch','قوس من فوق'],['stadium','طرفين مدورين'],['oval','بيضاوي'],['oct','مثمن']],val:'rect',show:s=>!+s.full},
@@ -1380,12 +1382,12 @@ const SCHEMAS={
     {id:'posX',label:'تحريك يمين (+) أو يسار (−)',type:'range',min:-700,max:700,step:1,val:0,show:s=>!+s.full},
     {id:'posY',label:'ارتفاعه عن الأرض',type:'range',min:0,max:400,step:1,val:80,show:s=>!+s.full},
     {type:'action',act:'center',label:'↺ رجّع التابلو للنص',show:s=>!+s.full},
-    {id:'tdes',label:'الرسمة',type:'seg',options:[['plain','سادة'],['leaves','أوراق موز'],['roses','ورد'],['baroque','زخرفة كلاسيك'],['geo','هندسي'],['star16','نجمة 16'],['floral','نباتي خفيف']],val:'baroque'},
+    {id:'tdes',label:'الرسمة',type:'seg',options:[['plain','سادة'],['leaves','أوراق موز'],['roses','ورد'],['baroque','زخرفة كلاسيك'],['geo','هندسي'],['star16','نجمة 16'],['floral','نباتي خفيف']],val:'plain'},
     {id:'tmat',label:'مادة التابلو',type:'mat',val:'beigeL'},
     {id:'dmat',label:'لون الرسمة (للنجمة والنباتي)',type:'mat',val:'brown',show:s=>['star16','floral'].includes(s.tdes)},
     head('الكادر'),
-    {id:'fw',label:'عرض الكادر البارز',type:'range',min:0,max:30,step:1,val:10},
-    {id:'gap',label:'بُعد الكادر عن التابلو',type:'range',min:0,max:60,step:1,val:15,show:s=>!+s.full},
+    {id:'fw',label:'عرض الكادر البارز',type:'range',min:0,max:30,step:1,val:0},
+    {id:'gap',label:'بُعد الكادر عن التابلو',type:'range',min:0,max:60,step:1,val:0,show:s=>!+s.full},
     {id:'gmat',label:'رخام الفاصل',type:'mat',val:'italian',show:s=>!+s.full&&+s.gap>0},
     {id:'stripL',label:'طول قطعة الكادر',type:'range',min:30,max:300,step:5,val:200,show:s=>!+s.full},
     {id:'fstyle',label:'شكل الكادر',type:'seg',options:[['plain','سادة'],['double','بدرجتين']],val:'double',show:s=>+s.fw>0},
@@ -1509,9 +1511,9 @@ let toastT;function toast(m){const t=$('toast');t.textContent=m;t.classList.add(
 
 async function makePNG(){
   await document.fonts.ready;
-  const mode=pngMode,F='"Cairo","Tajawal",Tahoma,sans-serif',pad=60,W=1600;
+  const mode=pngMode,F='"Cairo","Tajawal",Tahoma,sans-serif',pad=60,W=1800;
   const svg=$('draw'),vb=svg.viewBox.baseVal;
-  let dw=W,dh=Math.round(W*vb.height/vb.width);const maxH=1700;if(dh>maxH){dh=maxH;dw=Math.round(maxH*vb.width/vb.height)}
+  let dw=W,dh=Math.round(W*vb.height/vb.width);const maxH=2600;if(dh>maxH){dh=maxH;dw=Math.round(maxH*vb.width/vb.height)}
   const clone=svg.cloneNode(true);clone.setAttribute('width',dw*2);clone.setAttribute('height',dh*2);
   if(mode==='clean')clone.querySelectorAll('.dim').forEach(n=>n.remove());
   const toImg=el=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(el))});
