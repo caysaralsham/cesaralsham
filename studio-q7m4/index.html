@@ -220,6 +220,7 @@ input[type=range]{height:16px}
   <label>اسم الزبون <span class="req">*</span><input id="cName" name="cl_nm_x" autocomplete="off" autocapitalize="words"></label>
   <label>الهاتف<input id="cPhone" class="ltr" name="cl_ph_x" type="tel" inputmode="tel" autocomplete="off"></label>
   <label>العنوان<input id="cAddr" name="cl_ad_x" autocomplete="off"></label>
+  <div><span style="font-size:.85rem;font-weight:700">شو تحط بالصورة؟</span><div class="seg" id="cMode" style="margin-top:6px"><button data-m="full" aria-pressed="true">الرسم مع كل التفاصيل</button><button data-m="dims" aria-pressed="false">الرسم مع القياسات بس</button><button data-m="clean" aria-pressed="false">الرسم بس</button></div></div>
   <p class="ferr" id="cErr" role="alert"></p>
   <div style="display:flex;gap:8px"><button class="btn primary" id="cGo">حفظ صورة</button><button class="btn" id="cCancel">إلغاء</button></div>
 </div></div>
@@ -236,7 +237,7 @@ const MATS={
 const INK='#2B3238', DIM='#9C3A25', WATER='#4F9BC2', BRASS='#B08A3E', IRON='#1E1F21';
 let LW=1, FS=10;
 const f=n=>Math.round(n*100)/100;
-function setScale(S){LW=S/650;FS=S/30;}
+function setScale(S){LW=S/650;FS=S/38;}
 const M=k=>`url(#p-${MATS[k]?k:'beigeL'})`;
 const fmt=v=>Math.round(v)+' سم';
 const R=(x,y,w,h,fill,sw=LW,extra='')=>`<rect x="${f(x)}" y="${f(y)}" width="${f(Math.max(0,w))}" height="${f(Math.max(0,h))}" fill="${fill}" stroke="${INK}" stroke-width="${f(sw)}" ${extra}/>`;
@@ -266,14 +267,14 @@ const PATTERNS=buildPatterns();
 
 function dimH(x1,x2,y,label){
   const t=FS*.3;
-  return L(x1,y,x2,y,DIM,LW*.9)+L(x1,y-t*2,x1,y+t*2,DIM,LW*.9)+L(x2,y-t*2,x2,y+t*2,DIM,LW*.9)+
-  L(x1-t,y+t,x1+t,y-t,DIM,LW*1.6)+L(x2-t,y+t,x2+t,y-t,DIM,LW*1.6)+T((x1+x2)/2,y-FS*.4,label,FS);
+  return '<g class="dim">'+L(x1,y,x2,y,DIM,LW*.9)+L(x1,y-t*2,x1,y+t*2,DIM,LW*.9)+L(x2,y-t*2,x2,y+t*2,DIM,LW*.9)+
+  L(x1-t,y+t,x1+t,y-t,DIM,LW*1.6)+L(x2-t,y+t,x2+t,y-t,DIM,LW*1.6)+T((x1+x2)/2,y-FS*.4,label,FS)+'</g>';
 }
 function dimV(y1,y2,x,label){
   const t=FS*.3,mid=(y1+y2)/2;
-  return L(x,y1,x,y2,DIM,LW*.9)+L(x-t*2,y1,x+t*2,y1,DIM,LW*.9)+L(x-t*2,y2,x+t*2,y2,DIM,LW*.9)+
+  return '<g class="dim">'+L(x,y1,x,y2,DIM,LW*.9)+L(x-t*2,y1,x+t*2,y1,DIM,LW*.9)+L(x-t*2,y2,x+t*2,y2,DIM,LW*.9)+
   L(x-t,y1+t,x+t,y1-t,DIM,LW*1.6)+L(x-t,y2+t,x+t,y2-t,DIM,LW*1.6)+
-  `<text transform="translate(${f(x-FS*.45)} ${f(mid)}) rotate(-90)" text-anchor="middle" font-size="${f(FS)}" fill="${DIM}" font-family="Cairo,Tahoma,sans-serif">${label}</text>`;
+  `<text transform="translate(${f(x-FS*.45)} ${f(mid)}) rotate(-90)" text-anchor="middle" font-size="${f(FS)}" fill="${DIM}" font-family="Cairo,Tahoma,sans-serif">${label}</text></g>`;
 }
 function shapePath(cx,w,top,bottom,type){
   const x1=cx-w/2,x2=cx+w/2,h=bottom-top;
@@ -380,7 +381,7 @@ function drawFountain(s){
   if(!pool)o+=R(-baseW/2,-8,baseW,8,m)+R(-baseW*.4,-baseH,baseW*.8,7,m);
   for(const b of B)o+=column(0,b.colBot,b.colBot-b.colTop,b.cw,b.cs,m);
   o+=finial();
-  for(const b of B){o+=bowl(b,false);o+=T(-b.d/2-FS*.3,b.rimTop+b.t*.6,`Ø${b.d}`,FS*.62,'end')}
+  for(const b of B){o+=bowl(b,false);o+='<g class="dim">'+T(-b.d/2-FS*.3,b.rimTop+b.t*.6,`Ø${b.d}`,FS*.62,'end')+'</g>'}
   if(+s.water){
     for(let i=n-1;i>=0;i--){
       const b=B[i],lo=B[i-1],target=lo?lo.rimTop+lo.t*.25:(pool?-PH+4:null);
@@ -411,7 +412,7 @@ function drawFountain(s){
   }
   const xc=Wmax/2+S*.06,small=FS*.62;
   const seg=(y1,y2,lab)=>{if(Math.abs(y1-y2)<.5)return '';const t=FS*.22,mid=(y1+y2)/2;
-    return L(xc,y1,xc,y2,DIM,LW*.8)+L(xc-t*2,y1,xc+t*2,y1,DIM,LW*.8)+L(xc-t*2,y2,xc+t*2,y2,DIM,LW*.8)+T(xc+FS*.35,mid+small*.35,lab,small,'start')};
+    return '<g class="dim">'+L(xc,y1,xc,y2,DIM,LW*.8)+L(xc-t*2,y1,xc+t*2,y1,DIM,LW*.8)+L(xc-t*2,y2,xc+t*2,y2,DIM,LW*.8)+T(xc+FS*.35,mid+small*.35,lab,small,'start')+'</g>'};
   if(!pool)o+=seg(0,-baseH,baseH+'');
   for(const b of B){o+=seg(b.base,b.colTop,b.h+'');o+=seg(b.colTop,b.rimTop,b.t+'')}
   if(finH)o+=seg(finBot,finTop,Math.round(finH)+'');
@@ -1508,47 +1509,44 @@ let toastT;function toast(m){const t=$('toast');t.textContent=m;t.classList.add(
 
 async function makePNG(){
   await document.fonts.ready;
-  const svg=$('draw'),vb=svg.viewBox.baseVal,W=1600,dh=Math.round(W*vb.height/vb.width);
-  const clone=svg.cloneNode(true);clone.setAttribute('width',W);clone.setAttribute('height',dh);
-  const url='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(clone));
-  const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
-  const head=190,cb=110,stats=[...$('stats').children].map(d=>[d.querySelector('dt').textContent,d.querySelector('dd').textContent]);
-  const note=$('note').textContent,tbs=lastR?(lastR.tables||(lastR.table?[lastR.table]:[])):[],pad=50;
-  const rowsS=Math.ceil(stats.length/4),foot=40+rowsS*110+(note?50:0)+tbs.reduce((a,t)=>a+100+t.rows.length*44,0)+70;
-  const c=document.createElement('canvas');c.width=W+pad*2;c.height=head+cb+dh+foot+30;
-  const x=c.getContext('2d'),F='"Cairo","Tajawal",Tahoma,sans-serif',RX=c.width-pad,LX=pad;
+  const mode=pngMode,F='"Cairo","Tajawal",Tahoma,sans-serif',pad=60,W=1600;
+  const svg=$('draw'),vb=svg.viewBox.baseVal;
+  let dw=W,dh=Math.round(W*vb.height/vb.width);const maxH=1700;if(dh>maxH){dh=maxH;dw=Math.round(maxH*vb.width/vb.height)}
+  const clone=svg.cloneNode(true);clone.setAttribute('width',dw*2);clone.setAttribute('height',dh*2);
+  if(mode==='clean')clone.querySelectorAll('.dim').forEach(n=>n.remove());
+  const toImg=el=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(el))});
+  const img=await toImg(clone);
+  const stats=mode==='full'?[...$('stats').children].map(d=>[d.querySelector('dt').textContent,d.querySelector('dd').textContent]):[];
+  const tbs=mode==='full'&&lastR?(lastR.tables||(lastR.table?[lastR.table]:[])):[];
+  const head=190,cb=110,mc=document.createElement('canvas').getContext('2d');
+  mc.font='700 30px '+F;const colW=(W-40)/2;
+  const lines=stats.map(([k,v])=>k+': '+v),oneCol=lines.some(t=>mc.measureText(t).width>colW-30);
+  const statRows=oneCol?lines.length:Math.ceil(lines.length/2);
+  const foot=(stats.length?40+statRows*52:0)+tbs.reduce((a,t)=>a+110+t.rows.length*46,0)+80;
+  const c=document.createElement('canvas');c.width=W+pad*2;c.height=head+cb+dh+60+foot;
+  const x=c.getContext('2d'),RX=c.width-pad,LX=pad;
   x.fillStyle='#FFFFFF';x.fillRect(0,0,c.width,c.height);
-  x.fillStyle='#111111';x.fillRect(0,0,c.width,head);
-  x.fillStyle='#B88A2A';x.fillRect(0,head-8,c.width,8);
-  x.direction='rtl';x.textAlign='right';
-  x.fillStyle='#FFFFFF';x.font='900 58px '+F;x.fillText(CO.name,RX,90);
+  x.fillStyle='#111111';x.fillRect(0,0,c.width,head);x.fillStyle='#B88A2A';x.fillRect(0,head-8,c.width,8);
+  x.direction='rtl';x.textAlign='right';x.fillStyle='#FFFFFF';x.font='900 58px '+F;x.fillText(CO.name,RX,90);
   x.fillStyle='#CFC8B8';x.font='600 30px '+F;x.fillText(CO.addr,RX,145);
-  x.direction='ltr';x.textAlign='left';
-  x.fillStyle='#B88A2A';x.font='800 40px '+F;x.fillText(CO.phone,LX,145);
+  x.direction='ltr';x.textAlign='left';x.fillStyle='#B88A2A';x.font='800 40px '+F;x.fillText(CO.phone,LX,145);
   x.direction='rtl';x.textAlign='left';x.fillStyle='#FFFFFF';x.font='800 34px '+F;x.fillText(CO.app+'  |  '+SCHEMAS[tab].title,LX,85);
-  // customer band
-  const cy=head;x.fillStyle='#F5F1E8';x.fillRect(0,cy,c.width,cb);
-  x.textAlign='right';x.direction='rtl';
-  const parts=[['الزبون',cust.name],['الهاتف',cust.phone],['العنوان',cust.addr]].filter(p=>p[1]);
-  let px=RX;
-  parts.forEach(([k,v])=>{x.font='600 26px '+F;x.fillStyle='#6B655B';x.fillText(k,px,cy+45);x.font='800 34px '+F;x.fillStyle='#111';x.fillText(v,px,cy+88);px-=Math.max(x.measureText(v).width,120)+90});
-  x.textAlign='left';x.font='600 26px '+F;x.fillStyle='#6B655B';x.fillText('التاريخ',LX,cy+45);
-  x.direction='ltr';x.font='800 34px '+F;x.fillStyle='#111';x.fillText(today(),LX,cy+88);x.direction='rtl';
-  x.drawImage(img,pad,head+cb+20,W,dh);
-  if(lastR&&lastR.inset){try{const isv=$('inset'),vb2=isv.viewBox.baseVal,iw=Math.round(W*.26),ih=Math.round(iw*vb2.height/vb2.width),cl=isv.cloneNode(true);cl.setAttribute('width',iw);cl.setAttribute('height',ih);
-    const im2=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(cl))});
-    const ix=pad+12,iy=head+cb+30;x.fillStyle='#FFFFFF';x.fillRect(ix-8,iy-34,iw+16,ih+42);x.strokeStyle='#B88A2A';x.lineWidth=2;x.strokeRect(ix-8,iy-34,iw+16,ih+42);
-    x.drawImage(im2,ix,iy,iw,ih);x.fillStyle='#6B655B';x.font='600 22px "Cairo",Tahoma,sans-serif';x.textAlign='center';x.direction='rtl';x.fillText(lastR.inset.label,ix+iw/2,iy-10);x.textAlign='right'}catch(e){}}
-  let y=head+cb+dh+40;x.fillStyle='#B88A2A';x.fillRect(pad,y,W,3);
-  const cw=W/4;x.textAlign='right';
-  stats.forEach(([k,v],i)=>{const r=Math.floor(i/4),col=i%4,rx=RX-col*cw-10,yy=y+r*110;x.fillStyle='#6B655B';x.font='600 26px '+F;x.fillText(k,rx,yy+48);x.fillStyle='#111';x.font='800 36px '+F;x.fillText(v,rx,yy+96)});
-  y+=rowsS*110+20;
-  if(note){x.fillStyle='#A6453D';x.font='600 26px '+F;x.fillText(note,RX,y+20);y+=50}
-  for(const tb of tbs){y+=20;x.fillStyle='#111';x.font='800 30px '+F;x.textAlign='right';x.fillText(tb.title,RX,y);y+=50;
-    const cwT=W/tb.head.length;x.font='800 24px '+F;x.fillStyle='#6B655B';tb.head.forEach((h,i)=>x.fillText(h,RX-i*cwT-10,y));
-    tb.rows.forEach(r=>{y+=44;x.font=(r.sel?'800':'500')+' 26px '+F;x.fillStyle=r.sel?'#8F6A1F':'#111';r.cells.forEach((v,i)=>x.fillText(String(v),RX-i*cwT-10,y))});y+=30}
-  x.fillStyle='#F5F1E8';x.fillRect(0,c.height-60,c.width,60);
-  x.fillStyle='#6B655B';x.font='600 22px '+F;x.textAlign='right';x.fillText('القياسات بالسنتيمتر، والرسم تقريبي للعرض',RX,c.height-22);
+  const cy=head;x.fillStyle='#F5F1E8';x.fillRect(0,cy,c.width,cb);x.textAlign='right';x.direction='rtl';
+  let px=RX;[['الزبون',cust.name],['الهاتف',cust.phone],['العنوان',cust.addr]].filter(p=>p[1]).forEach(([k,v])=>{x.font='600 26px '+F;x.fillStyle='#6B655B';x.fillText(k,px,cy+45);x.font='800 34px '+F;x.fillStyle='#111';x.fillText(v,px,cy+88);px-=Math.max(x.measureText(v).width,120)+90});
+  x.textAlign='left';x.font='600 26px '+F;x.fillStyle='#6B655B';x.fillText('التاريخ',LX,cy+45);x.direction='ltr';x.font='800 34px '+F;x.fillStyle='#111';x.fillText(today(),LX,cy+88);x.direction='rtl';
+  const dx=pad+(W-dw)/2,dy=head+cb+30;x.drawImage(img,dx,dy,dw,dh);
+  if(lastR&&lastR.inset&&mode!=='clean'){try{const isv=$('inset'),vb2=isv.viewBox.baseVal,iw=Math.round(Math.min(W*.26,dw*.4)),ih=Math.round(iw*vb2.height/vb2.width),cl=isv.cloneNode(true);cl.setAttribute('width',iw*2);cl.setAttribute('height',ih*2);
+    const im2=await toImg(cl);const ix=pad+12,iy=dy+40;x.fillStyle='#FFFFFF';x.fillRect(ix-8,iy-34,iw+16,ih+42);x.strokeStyle='#B88A2A';x.lineWidth=2;x.strokeRect(ix-8,iy-34,iw+16,ih+42);
+    x.drawImage(im2,ix,iy,iw,ih);x.fillStyle='#6B655B';x.font='600 22px '+F;x.textAlign='center';x.fillText(lastR.inset.label,ix+iw/2,iy-10);x.textAlign='right'}catch(e){}}
+  let y=dy+dh+30;
+  if(stats.length){x.fillStyle='#B88A2A';x.fillRect(pad,y,W,3);y+=10;x.textAlign='right';
+    lines.forEach((t,i)=>{const col=oneCol?0:i%2,row=oneCol?i:Math.floor(i/2),rx=RX-col*(colW+40),yy=y+40+row*52;const k=stats[i][0];
+      x.font='600 28px '+F;x.fillStyle='#6B655B';x.fillText(k+':',rx,yy);const kw=x.measureText(k+': ').width;x.font='800 30px '+F;x.fillStyle='#111';x.fillText(stats[i][1],rx-kw,yy)});
+    y+=40+statRows*52}
+  for(const tb of tbs){y+=24;x.fillStyle='#111';x.font='800 30px '+F;x.textAlign='right';x.fillText(tb.title,RX,y+10);y+=56;
+    const cwT=W/tb.head.length;x.fillStyle='#F5F1E8';x.fillRect(pad,y-34,W,46);x.font='800 24px '+F;x.fillStyle='#6B655B';tb.head.forEach((h,i)=>x.fillText(h,RX-i*cwT-10,y));
+    tb.rows.forEach(r=>{y+=46;x.font=(r.sel?'800':'500')+' 26px '+F;x.fillStyle=r.sel?'#8F6A1F':'#111';r.cells.forEach((v,i)=>x.fillText(String(v),RX-i*cwT-10,y))});y+=20}
+  x.fillStyle='#F5F1E8';x.fillRect(0,c.height-60,c.width,60);x.fillStyle='#6B655B';x.font='600 22px '+F;x.textAlign='right';x.fillText('القياسات بالسنتيمتر، والرسم تقريبي للعرض',RX,c.height-22);
   return await new Promise(r=>c.toBlob(r,'image/png'));
 }
 function fileName(){return [SCHEMAS[tab].title,cust.name,today('-')].filter(Boolean).join(' - ')+'.png'}
@@ -1579,6 +1577,7 @@ function askCustomer(kind){
 $('saveBtn').onclick=()=>askCustomer('save');
 $('shareBtn').onclick=()=>askCustomer('share');
 $('cCancel').onclick=()=>$('cliModal').classList.remove('on');
+let pngMode='full';$('cMode').onclick=e=>{const b=e.target.closest('button');if(!b)return;pngMode=b.dataset.m;$('cMode').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))};
 ['cName','cPhone','cAddr'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('cGo').click()}}));
 $('cGo').onclick=()=>{
   const n=$('cName').value.trim();
