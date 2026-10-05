@@ -238,7 +238,7 @@ let LW=1, FS=10;
 const f=n=>Math.round(n*100)/100;
 function setScale(S){LW=S/650;FS=S/30;}
 const M=k=>`url(#p-${MATS[k]?k:'beigeL'})`;
-const fmt=v=>v>=300?(v/100).toFixed(2)+' م':Math.round(v)+' سم';
+const fmt=v=>v>=100?(+(v/100).toFixed(2))+' م':Math.round(v)+' سم';
 const R=(x,y,w,h,fill,sw=LW,extra='')=>`<rect x="${f(x)}" y="${f(y)}" width="${f(Math.max(0,w))}" height="${f(Math.max(0,h))}" fill="${fill}" stroke="${INK}" stroke-width="${f(sw)}" ${extra}/>`;
 const P=(d,fill,sw=LW,extra='')=>`<path d="${d}" fill="${fill}" stroke="${INK}" stroke-width="${f(sw)}" stroke-linejoin="round" ${extra}/>`;
 const L=(x1,y1,x2,y2,c=INK,sw=LW,extra='')=>`<line x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}" stroke="${c}" stroke-width="${f(sw)}" ${extra}/>`;
@@ -444,7 +444,7 @@ function drawFacade(s){
   const H=F*FH,Ht=H+ch,fence=+s.fence,gW=+s.gW,pW=+s.pW,ped=+s.ped;
   const fL=fence?Math.max(+s.fL,gW+4*pW+(ped?100+pW:0)+40):0,fx0=W/2-fL/2,fx1=W/2+fL/2;
   const xmin=fence?Math.min(0,fx0):0,xmax=fence?Math.max(W,fx1):W;
-  const S=Math.max(xmax-xmin,Ht+(s.roof==='tile'?Math.min(W*.16,170):s.roof==='parapet'?85:0));setScale(S);
+  const S=Math.max(xmax-xmin,Ht+(s.roof==='tile'?Math.min(W*.16,170):s.roof==='parapet'?85:s.roof==='cren'?45:0));setScale(S);
   const A=M(s.mat),B=M(s.mat2),ab=s.pattern==='ablaq',pl=+s.plinth?50:0,J='rgba(30,25,20,.5)';
   const wid=nid('wall');
   let o=`<clipPath id="${wid}"><rect x="0" y="${-H}" width="${W}" height="${H}"/></clipPath>`,g='';
@@ -476,6 +476,7 @@ function drawFacade(s){
       o+=P(shapePath(cx,ww+24,top-12,bot,s.win),B)+P(shapePath(cx,ww,top,bot,s.win),'#43525D');
       const sp=springY(ww,top,bot,s.win);
       o+=L(cx,bot,cx,s.win==='rect'?top:sp,'#C9D2D8',LW*.8)+L(cx-ww/2,sp,cx+ww/2,sp,'#C9D2D8',LW*.8);
+      if(s.win==='wide')for(const t of[-.25,.25])o+=L(cx+ww*t,bot,cx+ww*t,top,'#C9D2D8',LW*.8);
       o+=R(cx-ww/2-20,bot,ww+40,9,B);
       open+=ww*wh;count++;
       if(fl>0&&+s.balc)balc.push([cx,fl*FH]);
@@ -485,6 +486,7 @@ function drawFacade(s){
   for(const [cx,yl] of balc){
     const bw=ww+90,x0=cx-bw/2,top=-(yl+92),bot=-yl;
     o+=R(x0-6,bot,bw+12,14,B);
+    if(s.rail==='glass'){o+=R(x0,top+4,bw,bot-top-4,'rgba(150,200,230,.35)',LW*.8)+R(x0-3,top,bw+6,5,'#9AA3A9');for(let x=x0+bw/3;x<x0+bw-5;x+=bw/3)o+=L(x,top+5,x,bot,'#9AA3A9',LW*.6);continue}
     if(s.rail==='iron'){let r=R(x0,bot-8,bw,8,B)+L(x0,top+6,x0+bw,top+6,IRON,LW*1.8)+L(x0,top+20,x0+bw,top+20,IRON,LW);for(let x=x0+6;x<x0+bw;x+=11)r+=L(x,bot-8,x,top+6,IRON,LW*1.1);for(let x=x0+bw/4;x<x0+bw;x+=bw/4)r+=`<circle cx="${f(x)}" cy="${f((top+bot)/2)}" r="9" fill="none" stroke="${IRON}" stroke-width="${f(LW)}"/>`;o+=r;continue}
     const n=Math.floor((bw-10)/15);
     for(let k=0;k<n;k++){const bx=x0+5+(k+.5)*(bw-10)/n,b1=bot-12,t1=top+10,hh=b1-t1;
@@ -518,6 +520,7 @@ function drawFacade(s){
   if(s.roof==='tile'){roofH=Math.min(W*.16,170);const x0=-40,x1=W+40,t0=W*.22,t1=W*.78;o+=P(`M${f(x0)} ${f(-Ht)}L${f(t0)} ${f(-Ht-roofH)}L${f(t1)} ${f(-Ht-roofH)}L${f(x1)} ${f(-Ht)}Z`,'#A9563A');
     for(let y=-Ht-12;y>-Ht-roofH;y-=12){const k=(-Ht-y)/roofH;o+=L(x0+(t0-x0)*k,y,x1-(x1-t1)*k,y,'#7E3B26',LW*.6)}
     o+=L(t0,-Ht-roofH,t1,-Ht-roofH,'#5E2B1B',LW*2)}
+  if(s.roof==='cren'){roofH=45;o+=R(-8,-Ht-10,W+16,10,B);for(let x=0;x<W-20;x+=56){o+=P(`M${f(x+8)} ${f(-Ht-10)}L${f(x+8)} ${f(-Ht-30)}L${f(x+18)} ${f(-Ht-30)}L${f(x+18)} ${f(-Ht-38)}L${f(x+28)} ${f(-Ht-45)}L${f(x+38)} ${f(-Ht-38)}L${f(x+38)} ${f(-Ht-30)}L${f(x+48)} ${f(-Ht-30)}L${f(x+48)} ${f(-Ht-10)}Z`,B)}}
   if(s.roof==='parapet'){roofH=85;const top=-Ht-roofH;o+=R(-10,-Ht-10,W+20,10,B)+R(-14,top,W+28,12,B);
     for(let x=10;x<W-5;x+=17){const bx=x,b1=-Ht-10,t1=top+12,hh=b1-t1;o+=P(`M${f(bx-2.5)} ${f(b1)}C${f(bx-6.5)} ${f(b1-hh*.3)} ${f(bx-4.5)} ${f(b1-hh*.62)} ${f(bx-2)} ${f(b1-hh*.85)}L${f(bx-3)} ${f(t1)}L${f(bx+3)} ${f(t1)}L${f(bx+2)} ${f(b1-hh*.85)}C${f(bx+4.5)} ${f(b1-hh*.62)} ${f(bx+6.5)} ${f(b1-hh*.3)} ${f(bx+2.5)} ${f(b1)}Z`,B,LW*.5)}}
   // fence
@@ -578,10 +581,10 @@ function drawFacade(s){
 function drawWindow(s){
   const ow=+s.ow,oh=+s.oh,fr=+s.fr,top=s.top,m=M(s.mat);
   const pil=s.pil!=='none',pw=pil?Math.max(16,fr*1.3):0;
-  const hwF=ow/2+fr,hw=hwF+pw+(pil?6:0)+10,ext=hw+({none:0,flat:6,cons:14,tri:6,seg:6,broken:6,shellb:6,cart:0}[s.crown]||0);
+  const hwF=ow/2+fr,hw=hwF+pw+(pil?6:0)+10,ext=hw+({none:0,flat:6,cons:14,tri:6,seg:6,broken:6,shellb:6,cart:0,crest:14}[s.crown]||0);
   const frameTop=-(oh+fr),keyH=s.key!=='none'?fr*.5:0;
-  const crownH={none:0,flat:20,cons:30,tri:hw*.38+12,seg:hw*.28+12,broken:hw*.38+12+fr,shellb:hw*.34+14,cart:hw*.5+14}[s.crown];
-  const apron=s.sill==='apron'?50:(s.sill==='corb'||s.sill==='corb3')?30:0;
+  const crownH={none:0,flat:20,cons:30,tri:hw*.38+12,seg:hw*.28+12,broken:hw*.38+12+fr,shellb:hw*.34+14,cart:hw*.5+14,crest:hw*.55+30}[s.crown];
+  const apron=s.sill==='apron'?50:s.sill==='corbshell'?50:(s.sill==='corb'||s.sill==='corb3')?30:0;
   const wallX=ext+60,wallTop=frameTop-keyH-crownH-60,wallBot=40+apron;
   const S=Math.max(wallX*2,wallBot-wallTop);setScale(S);
   let o=coursesBlock(-wallX,wallTop,wallX*2,wallBot-wallTop,M(s.wall));
@@ -591,12 +594,15 @@ function drawWindow(s){
     if(s.pil==='col')o+=column(x+pw/2,0,-frameTop,pw*1.15,'classic',m);
     else{
       o+=R(x,frameTop,pw,-frameTop,m)+R(x-3,frameTop,pw+6,8,m)+R(x-3,-8,pw+6,8,m);
+      if(s.pil==='carved'){o+=acanthus(x+pw/2,frameTop+pw*1.4,pw,pw*1.3);for(let k=0;k<3;k++)o+=leaf(x+pw/2,frameTop+pw*1.5+k*pw*.55,pw*.5,pw*.15,90,RELIEF,2);o+=acanthus(x+pw/2,-10,pw,pw*.9)}
       if(s.pil==='fluted')for(const t of[.25,.5,.75])o+=R(x+pw*t-1.2,frameTop+14,2.4,-frameTop-28,'rgba(0,0,0,.12)',LW*.4,'rx="1.2"');
     }
   }
   if(s.fstyle==='ears'&&top==='rect'){const e=fr*.45;for(const sd of[-1,1])o+=R(sd>0?hwF:-hwF-e,frameTop,e,fr*1.7,m)}
   o+=P(shapePath(0,ow+2*fr,frameTop,0,top),m);
-  if(s.fstyle!=='plain'){o+=P(shapePath(0,ow+fr*1.2,-(oh+fr*.6),0,top),'none',LW*.5)+P(shapePath(0,ow+fr*.5,-(oh+fr*.25),0,top),'none',LW*.5)}
+  if(s.fstyle==='vine'){const bw=fr;for(const sd of[-1,1]){const xc=sd*(ow/2+bw/2);let d=`M${f(xc)} -4`;const hh=oh-8,n=Math.max(3,Math.round(hh/(bw*1.4)));for(let i=0;i<n;i++){const y1=-4-hh*(i+1)/n,s2=i%2?1:-1;d+=`Q${f(xc+s2*bw*.3)} ${f(-4-hh*(i+.5)/n)} ${f(xc)} ${f(y1)}`;o+=leaf(xc,-4-hh*(i+.5)/n,bw*.42,bw*.13,s2>0?-35:-145,RELIEF,2)}o+=carve(d,LW*.5)}
+    if(top==='rect')o+=scrollBand(-ow/2,ow/2,-oh-fr/2,fr*.8)}
+  if(s.fstyle!=='plain'&&s.fstyle!=='vine'){o+=P(shapePath(0,ow+fr*1.2,-(oh+fr*.6),0,top),'none',LW*.5)+P(shapePath(0,ow+fr*.5,-(oh+fr*.25),0,top),'none',LW*.5)}
   const gid=nid('gl');
   o+=`<clipPath id="${gid}"><path d="${shapePath(0,ow,-oh,0,top)}"/></clipPath>`+P(shapePath(0,ow,-oh,0,top),'#43525D');
   const sp=springY(ow,-oh,0,top);
@@ -632,6 +638,11 @@ function drawWindow(s){
       o+=shell(0,cyy-hw*.15,hw*.12,m);
       for(const sd of[-1,1]){o+=carve(spiral(sd*hw*.42,yc-10-hw*.14,hw*.12,1.4,sd),LW*.6);o+=leaf(sd*hw*.22,yc-12,hw*.42,hw*.1,sd>0?-12:-168,RELIEF,3);o+=leaf(sd*hw*.6,yc-12,hw*.38,hw*.09,sd>0?-35:-145,RELIEF,3);o+=rosette(sd*hw*.8,yc-10-hw*.1,hw*.07,LW*.35)}
     }
+    if(s.crown==='crest'){
+      o+=R(-hw-12,yc-22,hw*2+24,12,m)+R(-hw-16,yc-28,hw*2+32,6,m);const by=yc-28,ch=hw*.55;
+      o+=P(`M${f(-ch*.4)} ${f(by)}Q${f(-ch*.5)} ${f(by-ch*.7)} 0 ${f(by-ch*.85)}Q${f(ch*.5)} ${f(by-ch*.7)} ${f(ch*.4)} ${f(by)}Z`,m)+`<ellipse cx="0" cy="${f(by-ch*.4)}" rx="${f(ch*.18)}" ry="${f(ch*.22)}" fill="${RELIEF}" stroke="${INK}" stroke-width="${f(LW*.5)}"/>`+shell(0,by-ch*.8,ch*.2,m);
+      for(const sd of[-1,1]){o+=carve(spiral(sd*ch*.62,by-ch*.3,ch*.2,1.4,sd),LW*.6);o+=rose(sd*ch*1.05,by-ch*.25,ch*.16);o+=leaf(sd*ch*.42,by-2,ch*.7,ch*.14,sd>0?-12:-168,RELIEF,3);o+=leaf(sd*ch*1.3,by-2,ch*.5,ch*.12,sd>0?-25:-155,RELIEF,3)}
+    }
     if(s.crown==='seg')o+=P(`M${f(-hw-6)} ${f(yc-10)}Q0 ${f(yc-10-hw*.56)} ${f(hw+6)} ${f(yc-10)}Z`,m);
     if(s.crown==='broken'){
       const a=yc-10-hw*.38,g=hw*.28;
@@ -642,6 +653,7 @@ function drawWindow(s){
   }
   o+=R(-hw,0,hw*2,10,m)+R(-hw+8,10,hw*2-16,4,m);
   if(s.sill==='corb')for(const sd of[-1,1]){const x=sd*(hwF-6),cw=14;o+=P(`M${f(x-cw/2)} 14L${f(x+cw/2)} 14L${f(x+cw/2)} 22Q${f(x+cw/2)} 40 ${f(x)} 40Q${f(x-cw/2)} 40 ${f(x-cw/2)} 22Z`,m)}
+  if(s.sill==='corbshell')for(const sd of[-1,1]){const x=sd*(hwF-10),cw=22;o+=P(`M${f(x-cw/2)} 14L${f(x+cw/2)} 14L${f(x+cw/2)} 24Q${f(x+cw/2)} 58 ${f(x)} 60Q${f(x-cw/2)} 58 ${f(x-cw/2)} 24Z`,m)+shell(x,40,cw*.38,m)+C(x,18,4,'none',LW*.5)}
   if(s.sill==='corb3')for(const x of[-hwF+12,0,hwF-12])o+=R(x-7,14,14,16,m)+L(x-7,20,x+7,20,INK,LW*.4);
   if(s.sill==='apron'){o+=R(-hwF,14,hwF*2,38,m)+R(-hwF+8,20,hwF*2-16,26,'none',LW*.5);const q=9;o+=P(`M0 ${33-q}L${q*2} 33L0 ${33+q}L${-q*2} 33Z`,'none',LW*.5)+C(0,33,3,'none',LW*.4)}
   o+=dimH(-ow/2,ow/2,wallBot+S*.06,fmt(ow))+dimH(-ext,ext,wallBot+S*.14,fmt(ext*2))+dimV(0,-oh,wallX+S*.06,fmt(oh));
@@ -671,18 +683,18 @@ function drawFireplace(s){
   }
   o+=R(-ow/2-7,-(oh+7),ow+14,oh+7,m2)+R(-ow/2,-oh,ow,oh-5,'#2A2422')+R(-ow/2-7,-5,ow+14,5,M(s.mat3),LW*.9);
   if(+s.fire){
-    o+=R(-ow*.3,-11,ow*.6,7,'#5A3A26')+R(-ow*.22,-17,ow*.44,6,'#6B4630');
+    o+=R(-ow*.3,-12,ow*.6,7,'#5A3A26')+R(-ow*.22,-18,ow*.44,6,'#6B4630');
     const fh=Math.min(oh*.55,40);
     for(const [x,h,c] of [[-ow*.12,fh*.8,'#E0782F'],[0,fh,'#F0A03A'],[ow*.12,fh*.7,'#E0782F'],[0,fh*.55,'#F7D36A']])
-      o+=`<path d="M${f(x-ow*.08)} -16Q${f(x-ow*.09)} ${f(-16-h*.5)} ${f(x)} ${f(-16-h)}Q${f(x+ow*.09)} ${f(-16-h*.5)} ${f(x+ow*.08)} -16Z" fill="${c}" opacity=".9"/>`;
+      o+=`<path d="M${f(x-ow*.08)} -18Q${f(x-ow*.09)} ${f(-16-h*.5)} ${f(x)} ${f(-16-h)}Q${f(x+ow*.09)} ${f(-16-h*.5)} ${f(x+ow*.08)} -18Z" fill="${c}" opacity=".9"/>`;
   }
   if(hl)o+=R(-hl/2,-3,hl,3,m2);
-  o+=dimH(-W/2,W/2,S*.08,fmt(W))+dimH(-ow/2,ow/2,S*.15,fmt(ow))+dimV(0,-H,W/2+20+S*.06,fmt(H))+dimV(0,-oh,-W/2-20-S*.05,fmt(oh));
-  if(ov>0)o+=dimV(0,-Ht,W/2+20+S*.13,fmt(Ht));
+  o+=dimH(-W/2,W/2,S*.08,fmt(W))+dimH(-ow/2,ow/2,S*.15,fmt(ow))+(ov>0?dimV(0,-H,W/2+20+S*.06,fmt(H)):'')+dimV(0,-oh,-W/2-20-S*.05,fmt(oh));
+  o+=dimV(0,-Ht,W/2+20+S*.13,'الكامل '+fmt(Ht));
   const area=(W*H-ow*oh+(ov>0?(st==='modern'?W:W-40)*ov:0))/1e4;
-  const stats=[['المقاس الكلي',W+' × '+Ht+' سم'],['فتحة النار',ow+' × '+oh+' سم'],['كادر تحت النار',(ow+14)+' × 5 سم'],['مساحة التلبيس تقريباً',area.toFixed(2)+' م²']];
+  const stats=[['الارتفاع الكامل',fmt(Ht)],['المقاس الكلي',W+' × '+Ht+' سم'],['فتحة النار',ow+' × '+oh+' سم'],['كادر تحت النار',(ow+14)+' × 5 سم'],['مساحة التلبيس تقريباً',area.toFixed(2)+' م²']];
   if(hl)stats.push(['العتبة الأرضية','طول '+hl+' سم']);
-  return{svg:o,box:[-W/2-20-S*.11,W/2+20+S*(ov>0?.17:.11),-Ht-S*.05,S*.19],stats,
+  return{svg:o,box:[-W/2-20-S*.11,W/2+20+S*.19,-Ht-S*.05,S*.19],stats,
     note:(ow<+s.ow||oh<+s.oh)?'صغّرتُ فتحة النار لتتسع ضمن الإطار.':''};
 }
 
@@ -935,7 +947,7 @@ function drawFloor(s){
   if(tab){
     const {sh,iw,ih,ow,oh,gap}=tab,tx=tab.cx,ty=tab.cy,innerD=shapeD(tx,ty,iw,ih,sh),gw=iw+2*gap,gh=ih+2*gap;
     o+=`<g data-drag="floor" style="cursor:grab">`+P(shapeD(tx,ty,ow,oh,sh),M(s.fmat));
-    if(gap>0)o+=P(shapeD(tx,ty,gw,gh,sh),A,LW*.6);
+    if(gap>0)o+=P(shapeD(tx,ty,gw,gh,sh),M(s.gmat||s.mat),LW*.6);
     tArea=shapeArea(iw,ih,sh);tOuter=shapeArea(ow,oh,sh);frArea=tOuter-shapeArea(gw,gh,sh);frLen=shapePerim((gw+ow)/2,(gh+oh)/2,sh);
     const tid=nid('tb');
     o+=`<clipPath id="${tid}"><path d="${innerD}"/></clipPath><g clip-path="url(#${tid})">${panelDesign(s.tdes,tx,ty,iw,ih,s.tmat,s.fmat)}</g>`+P(innerD,'none',LW*.8)+'</g>';
@@ -948,9 +960,10 @@ function drawFloor(s){
   o+=dimH(0,RW,RL+15+S*.06,fmt(RW))+dimV(RL,0,RW+15+S*.06,fmt(RL));
   const room=RW*RL/1e4,fieldCm=fw*fl-(tab?tOuter:0),field=fieldCm/1e4;
   const stats=[['مساحة الغرفة',room.toFixed(2)+' م²'],['مساحة البلاط الصافية',field.toFixed(2)+' م²']];
-  if(tab)stats.push(['التابلو',(tArea/1e4).toFixed(2)+' م²'],['الكادر',(frLen/100).toFixed(2)+' م.ط ('+(frArea/1e4).toFixed(2)+' م²)'],['بُعد التابلو عن الحيط','يسار '+Math.round(tab.cx-tab.ow/2)+'، فوق '+Math.round(tab.cy-tab.oh/2)+' سم']);
+  if(tab)stats.push(['التابلو',(tArea/1e4).toFixed(2)+' م²'],['الكادر',(frLen/100).toFixed(2)+' م.ط ('+(frArea/1e4).toFixed(2)+' م²)'],['بُعد التابلو عن الحيط','يسار '+fmt(tab.cx-tab.ow/2)+'، فوق '+fmt(tab.cy-tab.oh/2)+(Math.abs(tab.cx-RW/2)<.5&&Math.abs(tab.cy-RL/2)<.5?' (بالنص)':'')]);
   if(b)stats.push(['البردورة',(2*(RW+RL-2*b)/100).toFixed(2)+' م.ط ('+((RW*RL-fw*fl)/1e4).toFixed(2)+' م²)']);
   const tables=[];let note='';
+  if(tab)tables.push(stripTable(tab.iw,tab.ih,tab.sh,tab.fw,tab.gap,+s.stripL||200));
   if(free){
     const W=+s.fwid,ml=fieldCm/W/100;
     tables.push({title:'رخام بطول مفتوح',head:['عرض الشريحة','الأطوال','المتر الطولي','الكمية مع 7٪ احتياط'],rows:[{sel:true,cells:[W+' سم',Math.min(+s.fmin,+s.fmax)+' لـ '+Math.max(+s.fmin,+s.fmax)+' سم',(ml*1.07).toFixed(1)+' م.ط',(field*1.07).toFixed(2)+' م²']}]});
@@ -977,6 +990,14 @@ function drawFloor(s){
   return{svg:o,noGround:true,box:[-15-S*.04,RW+15+S*.12,-15-S*.06,RL+15+S*.12],stats,tables,note};
 }
 
+function stripTable(iw,ih,sh,fw,gap,L){
+  const rows=[],sidesCount=(w,h)=>(sh==='oval')?Math.ceil(shapePerim(w,h,sh)/L):(sh==='oct'?(()=>{const c=octC(w,h);return 2*Math.ceil((w-2*c)/L)+2*Math.ceil((h-2*c)/L)+4*Math.ceil(c*Math.SQRT2/L)})():2*Math.ceil(w/L)+2*Math.ceil(h/L));
+  rows.push({cells:['التابلو',iw+' × '+ih+' سم','-','-']});
+  if(gap>0){const w=iw+gap,h=ih+gap;rows.push({cells:['فاصل رخام سادة بين التابلو والكادر',gap+' سم',(shapePerim(w,h,sh)/100).toFixed(2)+' م.ط',sidesCount(w,h)]})}
+  if(fw>0){const w=iw+2*gap+fw,h=ih+2*gap+fw;rows.push({cells:['الكادر',fw+' سم',(shapePerim(w,h,sh)/100).toFixed(2)+' م.ط',sidesCount(w,h)]})}
+  rows.push({sel:true,cells:['المقاس الخارجي الكلي',(iw+2*(gap+fw))+' × '+(ih+2*(gap+fw))+' سم','-','-']});
+  return{title:'قياسات التابلو والكادر (قطع بطول '+fmt(L)+')',head:['القطعة','العرض','الطول الكلي','عدد القطع'],rows};
+}
 /* ---------- wall tablo ---------- */
 function drawWallTablo(s){
   const WW=+s.WW,WH=+s.WH,full=+s.full,fw=+s.fw,gap=full?0:+s.gap,sh=full?'rect':s.tshape,pw=+s.pw,ph=+s.ph;
@@ -1000,7 +1021,7 @@ function drawWallTablo(s){
   o+=`<clipPath id="${cid}"><rect x="0" y="${-WH}" width="${WW}" height="${WH}"/></clipPath><g clip-path="url(#${cid})">${g}</g>`+R(0,-WH,WW,WH,'none',LW*1.2);
   o+=`<g data-drag="wall" style="cursor:grab">`;
   if(fw>0){o+=P(shapeD(cx,cy,ow,oh,sh),M(s.fmat));if(s.fstyle==='double')o+=P(shapeD(cx,cy,ow-fw,oh-fw,sh),'none',LW*.5)}
-  if(gap>0)o+=P(shapeD(cx,cy,gw,gh,sh),A,LW*.6);
+  if(gap>0)o+=P(shapeD(cx,cy,gw,gh,sh),M(s.gmat||s.wmat),LW*.6);
   const innerD=shapeD(cx,cy,iw,ih,sh),id=nid('wt');
   o+=`<clipPath id="${id}"><path d="${innerD}"/></clipPath><g clip-path="url(#${id})">${panelDesign(s.tdes,cx,cy,iw,ih,s.tmat,s.dmat)}</g>`+P(innerD,'none',LW*.8)+'</g>';
   o+=dimH(0,WW,S*.08,fmt(WW))+dimV(0,-WH,WW+S*.05,fmt(WW>0?WH:WH));
@@ -1013,8 +1034,9 @@ function drawWallTablo(s){
   const wall=WW*WH/1e4,ta=shapeArea(iw,ih,sh)/1e4,oa=shapeArea(ow,oh,sh)/1e4,fa=fw>0?(shapeArea(ow,oh,sh)-shapeArea(gw,gh,sh))/1e4:0,per=shapePerim(gw+fw,gh+fw,sh)/100;
   const stats=[['مساحة الحائط',wall.toFixed(2)+' م²'],['التابلو',iw+' × '+ih+' سم ('+ta.toFixed(2)+' م²)']];
   if(fw>0)stats.push(['الكادر','عرض '+fw+'، بُعد '+gap+' سم، '+per.toFixed(2)+' م.ط ('+fa.toFixed(2)+' م²)']);
-  if(!full)stats.push(['مكان التابلو','من اليسار '+Math.round(cx-ow/2)+'، من الأرض '+Math.round(-(cy+oh/2))+' سم']);
+  if(!full){const cen=Math.abs(cx-WW/2)<.5&&Math.abs(-(cy+oh/2)-(WH-oh)/2)<1;stats.push(['مكان التابلو','من اليسار '+fmt(cx-ow/2)+'، من الأرض '+fmt(-(cy+oh/2))+(cen?' (بالنص)':'')])}
   const tables=[];
+  if(!full&&(fw>0||gap>0))tables.push(stripTable(iw,ih,sh,fw,gap,+s.stripL||200));
   if(!full){
     const sm=tileSummary(layTiles(0,-WH,WW,WH,pw,ph,WW/2,-ph/2,s.wpat==='offset',tab),pw,ph);
     const br=[{cells:['قطع كاملة',pw+'×'+ph,sm.full,1,sm.full]}];
@@ -1022,6 +1044,8 @@ function drawWallTablo(s){
     if(sm.tab)br.push({cells:['حوالين التابلو','غير منتظمة',sm.tab,1,sm.tab]});
     br.push({sel:true,cells:['المجموع مع 5٪ احتياط','','','',sm.total+' قطعة = '+(sm.total*pw*ph/1e4).toFixed(2)+' م²']});
     tables.push({title:'تلبيس الحائط حوالين التابلو بقطع '+pw+'×'+ph+' (التركيب من الأرض ونص الحائط)',head:['القطعة','المقاس','العدد','من كل قطعة','القطع المطلوبة'],rows:br});
+    const list=[[60,30],[80,40],[120,60]];if(!list.some(([a,b])=>a===pw&&b===ph))list.push([pw,ph]);
+    tables.push({title:'3 خيارات لقياس حجر الحائط',head:['المقاس','كاملة','مقصوصة','القطع المطلوبة','الكمية'],rows:list.map(([a,b])=>{const q=tileSummary(layTiles(0,-WH,WW,WH,a,b,WW/2,-b/2,s.wpat==='offset',tab),a,b);return{sel:a===pw&&b===ph,cells:[a+'×'+b,q.full,q.cut,q.total,(q.total*a*b/1e4).toFixed(2)+' م²']}})});
   }
   return{svg:o,box:[-S*.12,WW+S*.12,Math.min(-WH,cy-oh/2-S*.08)-S*.06,S*.14],stats,tables,
     note:(!full&&(+s.tW>iw||+s.tH>ih)?'صغّرتُ التابلو ليتسع بالحائط. ':'')+(moved?'التابلو وصل لحد الحائط. ':'')+(full?'':'اسحب التابلو بإيدك لتحركه.')};
@@ -1032,7 +1056,7 @@ function drawDoor(s){
   const dw=+s.dw,dh=+s.dh,jw=+s.jw,fh=s.frieze==='none'?0:+s.fh,nSt=+s.steps,stH=16,yb=-nSt*stH,m=M(s.mat),top=s.top;
   const capH=s.cap==='none'?0:Math.max(18,jw*.9),cols=+s.cols,cw=32,colGap=cols?30+cw:0;
   const ox=dw/2+jw,yS=yb-dh-(top==='arch'?jw*.6:0),yTop=yS-jw*.4;
-  const frY0=yTop-fh,crownH={none:0,cornice:22,dentil:30,ped:ox*.45+20,cped:ox*.5+20,crest:ox*.55+20}[s.crown];
+  const frY0=yTop-fh,crownH={none:0,cornice:22,dentil:30,seg:ox*.3+22,ped:ox*.45+20,cped:ox*.5+20,crest:ox*.55+20}[s.crown];
   const totH=-(frY0-crownH),X=ox+colGap+70,wallTop=frY0-crownH-50;
   const S=Math.max(X*2,-wallTop+20);setScale(S);
   let o=coursesBlock(-X,wallTop,X*2,-wallTop,M(s.wall),45,90)+R(-X,wallTop,X*2,-wallTop,'none',LW);
@@ -1047,6 +1071,8 @@ function drawDoor(s){
       o+=C(ccx,ccy,q*.35,RELIEF,LW*.45);for(let k=0;k<4;k++){const a=k*Math.PI/2+Math.PI/4;o+=P(leafPath(ccx,ccy,q*1.2,q*.38,a*180/Math.PI),RELIEF,LW*.4)}}
     const bTop=s.base==='carved'?jb-Math.min(jw*1.4,dh*.25):jb;
     if(s.jamb==='fluted')for(const t of[.25,.5,.75])o+=R(x0+jw*t-jw*.06,jt+10,jw*.12,bTop-jt-20,'rgba(0,0,0,.12)',LW*.4,`rx="${f(jw*.06)}"`);
+    if(s.jamb==='panel')o+=R(x0+jw*.18,jt+12,jw*.64,bTop-jt-24,'rgba(0,0,0,.06)',LW*.5)+R(x0+jw*.26,jt+18,jw*.48,bTop-jt-36,'none',LW*.4);
+    if(s.jamb==='rope')for(const ex of[x0+jw*.12,x0+jw*.88])for(let yy=jt+6;yy<bTop-6;yy+=jw*.22)o+=carve(`M${f(ex-jw*.07)} ${f(yy+jw*.1)}Q${f(ex)} ${f(yy+jw*.02)} ${f(ex+jw*.07)} ${f(yy-jw*.08)}`,LW*.6);
     if(s.jamb==='carved'){const xc=x0+jw/2,hh=bTop-jt-10;let d=`M${f(xc)} ${f(bTop-5)}`;const n=Math.max(3,Math.round(hh/(jw*1.1)));
       for(let i=0;i<n;i++){const y1=bTop-5-hh*(i+1)/n,sd2=i%2?1:-1;d+=`Q${f(xc+sd2*jw*.32)} ${f(bTop-5-hh*(i+.5)/n)} ${f(xc)} ${f(y1)}`;
         o+=leaf(xc,bTop-5-hh*(i+.5)/n,jw*.38,jw*.12,sd2>0?-30:-150,RELIEF,2);o+=carve(spiral(xc-sd2*jw*.22,bTop-5-hh*(i+.3)/n,jw*.12,1.2,sd2),LW*.4)}
@@ -1066,6 +1092,7 @@ function drawDoor(s){
   const fx0=-ox-5,fwid=2*ox+10;
   if(fh){o+=R(fx0,frY0,fwid,fh,m);
     if(s.frieze==='scroll')o+=scrollBand(fx0+8,fx0+fwid-8,frY0+fh/2,fh*.8);
+    if(s.frieze==='leaves'){const n2=Math.max(3,Math.round(fwid/(fh*1.1)));for(let i=0;i<n2;i++){const xx=fx0+fwid*(i+.5)/n2;o+=acanthus(xx,frY0+fh-3,fh*.95,fh*.8)}}
     if(s.frieze==='shell'){o+=shell(0,frY0+fh*.85,fh*.62);for(const sd of[-1,1]){o+=carve(`M${f(sd*fh*.7)} ${f(frY0+fh*.7)}Q${f(sd*ox*.45)} ${f(frY0+fh*.15)} ${f(sd*ox*.85)} ${f(frY0+fh*.55)}`,LW*.6);o+=carve(spiral(sd*ox*.82,frY0+fh*.5,fh*.2,1.3,sd),LW*.5);for(const t of[.35,.6])o+=leaf(sd*ox*t,frY0+fh*.55,fh*.45,fh*.12,sd>0?-25:-155,RELIEF,3)}}}
   if(+s.key){const kt=frY0+(fh?fh*.1:0),kb=yS+(top==='arch'?2:0),a=jw*.5,bb=jw*.32;o+=P(`M${f(-a)} ${f(Math.min(kt,kb-10))}L${f(a)} ${f(Math.min(kt,kb-10))}L${f(bb)} ${f(kb)}L${f(-bb)} ${f(kb)}Z`,m)}
   // crown
@@ -1076,6 +1103,7 @@ function drawDoor(s){
     if(s.crown==='dentil')o+=R(-cx0-10,cy0-30,cx0*2+20,8,m);
     if(s.crown==='ped'||s.crown==='cped'){const ph=s.crown==='ped'?ox*.42:ox*.48;o+=P(`M${f(-cx0-8)} ${f(cy0-22)}L0 ${f(cy0-22-ph)}L${f(cx0+8)} ${f(cy0-22)}Z`,m)+P(`M${f(-cx0+14)} ${f(cy0-26)}L0 ${f(cy0-22-ph+12)}L${f(cx0-14)} ${f(cy0-26)}Z`,'none',LW*.5);
       if(s.crown==='cped'){o+=shell(0,cy0-30,ph*.32);for(const sd of[-1,1]){o+=carve(`M${f(sd*ph*.35)} ${f(cy0-34)}Q${f(sd*cx0*.4)} ${f(cy0-30-ph*.45)} ${f(sd*cx0*.7)} ${f(cy0-32)}`,LW*.55);o+=leaf(sd*cx0*.45,cy0-32,ph*.4,ph*.1,sd>0?-20:-160,RELIEF,3);o+=carve(spiral(sd*cx0*.68,cy0-38,ph*.09,1.3,sd),LW*.45)}}}
+    if(s.crown==='seg'){o+=P(`M${f(-cx0-8)} ${f(cy0-22)}Q0 ${f(cy0-22-ox*.6)} ${f(cx0+8)} ${f(cy0-22)}Z`,m)+carve(`M${f(-cx0+12)} ${f(cy0-25)}Q0 ${f(cy0-22-ox*.48)} ${f(cx0-12)} ${f(cy0-25)}`,LW*.5)}
     if(s.crown==='crest'){const ch=ox*.5,yy=cy0-22;o+=P(`M${f(-ch*.35)} ${f(yy)}Q${f(-ch*.42)} ${f(yy-ch*.6)} 0 ${f(yy-ch*.75)}Q${f(ch*.42)} ${f(yy-ch*.6)} ${f(ch*.35)} ${f(yy)}Z`,m)+`<ellipse cx="0" cy="${f(yy-ch*.35)}" rx="${f(ch*.18)}" ry="${f(ch*.22)}" fill="${RELIEF}" stroke="${INK}" stroke-width="${f(LW*.5)}"/>`+shell(0,yy-ch*.72,ch*.18);
       for(const sd of[-1,1]){o+=carve(spiral(sd*ch*.6,yy-ch*.25,ch*.18,1.4,sd),LW*.55);o+=leaf(sd*ch*.38,yy-2,ch*.6,ch*.12,sd>0?-15:-165,RELIEF,3);o+=leaf(sd*ch*.85,yy-2,ch*.45,ch*.1,sd>0?-40:-140,RELIEF,2)}}
   }
@@ -1164,6 +1192,8 @@ const fountainCtrls=[
   {id:'mat2',label:'رخام الحوض',type:'mat',val:'beigeD',show:s=>+s.pool},
   head('النافورة'),
   {id:'tiers',label:'عدد الصحون',type:'counter',min:1,max:6,val:3,addLabel:'إضافة صحن',remLabel:'حذف آخر صحن'},
+  {id:'auto',label:'الأعمدة 2 وما فوق',type:'seg',options:[[1,'تلقائي حسب الارتفاع الكلي'],[0,'يدوي']],val:1},
+  {id:'Htot',label:'الارتفاع الكلي',type:'range',min:60,max:800,step:1,val:330,show:s=>+s.auto},
   {id:'finial',label:'التاج',type:'seg',options:[['ball','كرة'],['pine','كوز'],['none','بدون']],val:'pine'},
   {id:'water',label:'الماء',type:'seg',options:YN,val:1},
   {id:'mat',label:'رخام النافورة',type:'mat',val:'italian'}];
@@ -1188,11 +1218,17 @@ const SCHEMAS={
     {id:'H',label:'الارتفاع',type:'range',min:20,max:70,step:1,val:30},
     {id:'rim',label:'سماكة الحافة',type:'range',min:3,max:10,step:.5,val:5},
     {id:'deco',label:'الزخرفة',type:'seg',options:[['none','بدون'],['petals','أوراق كبيرة'],['flute','تضليع'],['band','حزام محفور']],val:'none'},
-    {id:'base',label:'القاعدة',type:'seg',options:[['none','بدون'],['plinth','مع قاعدة']],val:'plinth'},
+    {id:'base',label:'القاعدة',type:'seg',options:[['none','بدون'],['plinth','مع قاعدة']],val:'none'},
     {id:'baseW',label:'عرض القاعدة',type:'range',min:10,max:100,step:1,val:30,show:s=>s.base==='plinth'},
     {id:'baseH',label:'ارتفاع القاعدة',type:'range',min:2,max:30,step:1,val:6,show:s=>s.base==='plinth'},
     {id:'mat',label:'المادة',type:'mat',val:'italian'}]},
   facade:{title:'واجهة',draw:drawFacade,controls:[
+    head('نوع التصميم'),
+    {id:'style',label:'اختار النوع وبعدين عدّل',type:'seg',options:[['classic','كلاسيك'],['neo','نيو كلاسيك'],['modern','مودرن'],['arabic','عربي إسلامي']],val:'classic',preset:{
+      classic:{win:'arch',roof:'tile',quoins:1,cornice:1,bands:1,door:1,entry:'portico',pattern:'course',course:40,slab:80,balc:1,rail:'stone',panels:0,plinth:1,mat:'beigeL',mat2:'beigeD',ww:110,wh:160},
+      neo:{win:'rect',roof:'parapet',quoins:0,cornice:1,bands:1,door:1,entry:'pilaster',pattern:'course',course:40,slab:80,balc:1,rail:'iron',panels:1,plinth:1,mat:'beigeL',mat2:'italian',ww:110,wh:170},
+      modern:{win:'wide',roof:'flat',quoins:0,cornice:0,bands:0,door:1,entry:'simple',pattern:'grid',course:60,slab:120,balc:1,rail:'glass',panels:0,plinth:0,mat:'italian',mat2:'black',ww:180,wh:170},
+      arabic:{win:'pointed',roof:'cren',quoins:0,cornice:1,bands:1,door:1,entry:'columns',pattern:'ablaq',course:35,slab:70,balc:1,rail:'stone',panels:0,plinth:1,mat:'beigeL',mat2:'beigeD',ww:100,wh:170}}},
     head('البناء'),
     {id:'W',label:'عرض الواجهة',type:'range',min:400,max:2500,step:10,val:1300},
     {id:'floors',label:'عدد الطوابق',type:'seg',options:[[1,'1'],[2,'2'],[3,'3'],[4,'4'],[5,'5']],val:2},
@@ -1200,16 +1236,16 @@ const SCHEMAS={
     {id:'plinth',label:'قاعدة سوداء',type:'seg',options:YN,val:1},
     {id:'bands',label:'أحزمة بين الطوابق',type:'seg',options:YN,val:1},
     {id:'cornice',label:'كورنيش علوي',type:'seg',options:YN,val:1},
-    {id:'roof',label:'السطح',type:'seg',options:[['flat','عادي'],['parapet','درابزين حجر'],['tile','قرميد']],val:'tile'},
+    {id:'roof',label:'السطح',type:'seg',options:[['flat','عادي'],['parapet','درابزين حجر'],['tile','قرميد'],['cren','شرفات عربية']],val:'tile'},
     {id:'quoins',label:'حجر زوايا',type:'seg',options:YN,val:1},
     {id:'garage',label:'باب كراج',type:'seg',options:YN,val:0},
     head('الشبابيك'),
     {id:'cols',label:'عدد الشبابيك في الطابق',type:'range',min:1,max:8,step:1,val:4,unit:''},
-    {id:'win',label:'شكل الشباك',type:'seg',options:[['rect','مستطيل'],['arch','قوس'],['pointed','مدبّب']],val:'arch'},
-    {id:'ww',label:'عرض الشباك',type:'range',min:60,max:180,step:10,val:110},
+    {id:'win',label:'شكل الشباك',type:'seg',options:[['rect','مستطيل'],['wide','عريض حديث'],['arch','قوس'],['pointed','مدبّب']],val:'arch'},
+    {id:'ww',label:'عرض الشباك',type:'range',min:60,max:300,step:10,val:110},
     {id:'wh',label:'ارتفاع الشباك',type:'range',min:100,max:240,step:10,val:160},
     {id:'balc',label:'بلكونات (الطوابق العليا)',type:'seg',options:YN,val:1},
-    {id:'rail',label:'الدرابزين',type:'seg',options:[['stone','حجر'],['iron','حديد']],val:'stone',show:s=>+s.balc},
+    {id:'rail',label:'الدرابزين',type:'seg',options:[['stone','حجر'],['iron','حديد'],['glass','زجاج']],val:'stone',show:s=>+s.balc},
     {id:'panels',label:'لوحات منحوتة تحت الشبابيك',type:'seg',options:YN,val:0},
     head('المدخل'),
     {id:'door',label:'باب رئيسي',type:'seg',options:YN,val:1},
@@ -1244,15 +1280,15 @@ const SCHEMAS={
     {id:'steps',label:'درجات',type:'seg',options:[[0,'0'],[1,'1'],[2,'2'],[3,'3']],val:1},
     head('العضادات'),
     {id:'jw',label:'عرض العضادة',type:'range',min:20,max:80,step:1,val:42},
-    {id:'jamb',label:'شكل العضادة',type:'seg',options:[['plain','سادة'],['fluted','مخددة'],['carved','منحوتة أغصان']],val:'fluted'},
+    {id:'jamb',label:'شكل العضادة',type:'seg',options:[['plain','سادة'],['fluted','مخددة'],['panel','حشوة غائرة'],['rope','حبل مجدول'],['carved','منحوتة أغصان']],val:'fluted'},
     {id:'cap',label:'تاج العضادة',type:'seg',options:[['none','بدون'],['plain','سادة'],['carved','منحوت']],val:'carved'},
     {id:'base',label:'قاعدة العضادة',type:'seg',options:[['plain','سادة'],['carved','منحوتة']],val:'carved'},
     {id:'cols',label:'أعمدة مستقلة جنب الباب',type:'seg',options:YN,val:0},
     head('فوق الباب'),
-    {id:'frieze',label:'الجبهة',type:'seg',options:[['none','بدون'],['plain','سادة'],['scroll','أغصان'],['shell','صدفة وأغصان']],val:'shell'},
+    {id:'frieze',label:'الجبهة',type:'seg',options:[['none','بدون'],['plain','سادة'],['scroll','أغصان'],['shell','صدفة وأغصان'],['leaves','أوراق أكانتس']],val:'shell'},
     {id:'fh',label:'ارتفاع الجبهة',type:'range',min:20,max:100,step:1,val:45,show:s=>s.frieze!=='none'},
     {id:'key',label:'حجر مفتاح',type:'seg',options:YN,val:0},
-    {id:'crown',label:'التاج',type:'seg',options:[['none','بدون'],['cornice','كورنيش'],['dentil','كورنيش بأسنان'],['ped','مثلث'],['cped','مثلث منحوت'],['crest','تاج منحوت']],val:'dentil'},
+    {id:'crown',label:'التاج',type:'seg',options:[['none','بدون'],['cornice','كورنيش'],['dentil','كورنيش بأسنان'],['seg','قوس'],['ped','مثلث'],['cped','مثلث منحوت'],['crest','تاج منحوت']],val:'dentil'},
     {id:'mat',label:'مادة الإطار',type:'mat',val:'beigeL'},
     {id:'smat',label:'مادة الدرج',type:'mat',val:'black'},
     {id:'wall',label:'مادة الحائط',type:'mat',val:'beigeD'}]},
@@ -1264,12 +1300,12 @@ const SCHEMAS={
     {id:'grill',label:'حماية حديد',type:'seg',options:YN,val:0},
     head('النحت'),
     {id:'fr',label:'عرض الحلق',type:'range',min:8,max:35,step:1,val:16},
-    {id:'fstyle',label:'شكل الحلق',type:'seg',options:[['plain','سادة'],['mold','محفور بخطوط'],['ears','بأذنين']],val:'ears'},
+    {id:'fstyle',label:'شكل الحلق',type:'seg',options:[['plain','سادة'],['mold','محفور بخطوط'],['ears','بأذنين'],['vine','نحت نباتي']],val:'ears'},
     {id:'corners',label:'زينة الحلق',type:'seg',options:[['none','بدون'],['ros','وردات بالزوايا'],['discs','دوائر غامقة']],val:'none'},
     {id:'key',label:'حجر المفتاح',type:'seg',options:[['none','بدون'],['plain','سادة'],['carved','منحوت']],val:'carved'},
-    {id:'pil',label:'جوانب الشباك',type:'seg',options:[['none','بدون'],['plain','عضادات سادة'],['fluted','عضادات مخددة'],['col','أعمدة']],val:'fluted'},
-    {id:'crown',label:'التاج فوق الشباك',type:'seg',options:[['none','بدون'],['flat','طنف'],['cons','طنف بكوابيل'],['tri','مثلث'],['broken','مثلث مكسور'],['shellb','مكسور بصدفة'],['cart','تاج منحوت'],['seg','قوس']],val:'cons'},
-    {id:'sill',label:'تحت الشباك',type:'seg',options:[['plain','عتبة سادة'],['corb','كابوليين'],['corb3','3 كوابيل صغيرة'],['apron','لوح منحوت']],val:'apron'},
+    {id:'pil',label:'جوانب الشباك',type:'seg',options:[['none','بدون'],['plain','عضادات سادة'],['fluted','عضادات مخددة'],['carved','عضادات بأوراق'],['col','أعمدة']],val:'fluted'},
+    {id:'crown',label:'التاج فوق الشباك',type:'seg',options:[['none','بدون'],['flat','طنف'],['cons','طنف بكوابيل'],['tri','مثلث'],['broken','مثلث مكسور'],['shellb','مكسور بصدفة'],['cart','تاج منحوت'],['crest','تاج نباتي كبير'],['seg','قوس']],val:'cons'},
+    {id:'sill',label:'تحت الشباك',type:'seg',options:[['plain','عتبة سادة'],['corb','كابوليين'],['corb3','3 كوابيل صغيرة'],['corbshell','كوابيل بصدفة'],['apron','لوح منحوت']],val:'apron'},
     {id:'mat',label:'مادة الإطار',type:'mat',val:'italian'},
     {id:'wall',label:'مادة الحائط',type:'mat',val:'beigeL'}]},
   fireplace:{title:'شمينيه',draw:drawFireplace,controls:[
@@ -1306,11 +1342,14 @@ const SCHEMAS={
     {id:'tW',label:'عرض التابلو',type:'range',min:40,max:600,step:5,val:120,show:s=>+s.tablo},
     {id:'tL',label:'طول التابلو',type:'range',min:40,max:800,step:5,val:120,show:s=>+s.tablo},
     {id:'tX',label:'تحريك يمين (+) أو يسار (−)',type:'range',min:-700,max:700,step:5,val:0,show:s=>+s.tablo},
-    {id:'tY',label:'تحريك لتحت (+) أو لفوق (−)',type:'range',min:-700,max:700,step:5,val:0,show:s=>+s.tablo},
+    {id:'tY',label:'تحريك لتحت (+) أو لفوق (−)',type:'range',min:-700,max:700,step:1,val:0,show:s=>+s.tablo},
+    {type:'action',act:'center',label:'↺ رجّع التابلو للنص',show:s=>+s.tablo},
     {id:'tdes',label:'رسمة التابلو',type:'seg',options:[['plain','سادة'],['floral','نباتي خفيف'],['star16','نجمة 16'],['star','نجمة 8'],['chess','شطرنج'],['diamond','معيّن']],val:'floral',show:s=>+s.tablo},
     {id:'tmat',label:'مادة التابلو',type:'mat',val:'italian',show:s=>+s.tablo},
     {id:'fw',label:'عرض الكادر',type:'range',min:0,max:25,step:1,val:8,show:s=>+s.tablo},
-    {id:'gap',label:'بُعد الكادر عن التابلو',type:'range',min:0,max:60,step:1,val:0,show:s=>+s.tablo},
+    {id:'gap',label:'بُعد الكادر عن التابلو',type:'range',min:0,max:60,step:1,val:15,show:s=>+s.tablo},
+    {id:'gmat',label:'رخام الفاصل',type:'mat',val:'italian',show:s=>+s.tablo&&+s.gap>0},
+    {id:'stripL',label:'طول قطعة الكادر',type:'range',min:30,max:300,step:5,val:200,show:s=>+s.tablo},
     {id:'fmat',label:'مادة الكادر والرسمة',type:'mat',val:'black',show:s=>+s.tablo},
     head('البردورة'),
     {id:'border',label:'بردورة على حواف الغرفة',type:'seg',options:YN,val:0},
@@ -1332,12 +1371,15 @@ const SCHEMAS={
     {id:'tH',label:'ارتفاع التابلو',type:'range',min:40,max:500,step:5,val:140,show:s=>!+s.full},
     {id:'posX',label:'تحريك يمين (+) أو يسار (−)',type:'range',min:-700,max:700,step:1,val:0,show:s=>!+s.full},
     {id:'posY',label:'ارتفاعه عن الأرض',type:'range',min:0,max:400,step:1,val:80,show:s=>!+s.full},
+    {type:'action',act:'center',label:'↺ رجّع التابلو للنص',show:s=>!+s.full},
     {id:'tdes',label:'الرسمة',type:'seg',options:[['plain','سادة'],['leaves','أوراق موز'],['roses','ورد'],['baroque','زخرفة كلاسيك'],['geo','هندسي'],['star16','نجمة 16'],['floral','نباتي خفيف']],val:'baroque'},
     {id:'tmat',label:'مادة التابلو',type:'mat',val:'beigeL'},
     {id:'dmat',label:'لون الرسمة (للنجمة والنباتي)',type:'mat',val:'brown',show:s=>['star16','floral'].includes(s.tdes)},
     head('الكادر'),
     {id:'fw',label:'عرض الكادر البارز',type:'range',min:0,max:30,step:1,val:10},
-    {id:'gap',label:'بُعد الكادر عن التابلو',type:'range',min:0,max:60,step:1,val:0,show:s=>!+s.full},
+    {id:'gap',label:'بُعد الكادر عن التابلو',type:'range',min:0,max:60,step:1,val:15,show:s=>!+s.full},
+    {id:'gmat',label:'رخام الفاصل',type:'mat',val:'italian',show:s=>!+s.full&&+s.gap>0},
+    {id:'stripL',label:'طول قطعة الكادر',type:'range',min:30,max:300,step:5,val:200,show:s=>!+s.full},
     {id:'fstyle',label:'شكل الكادر',type:'seg',options:[['plain','سادة'],['double','بدرجتين']],val:'double',show:s=>+s.fw>0},
     {id:'fmat',label:'مادة الكادر',type:'mat',val:'beigeD',show:s=>+s.fw>0}]}
 };
@@ -1351,12 +1393,15 @@ tabsEl.innerHTML=Object.entries(SCHEMAS).map(([k,s])=>`<button role="tab" data-k
 tabsEl.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;tab=b.dataset.k;buildPanel();render();updTitle()});
 
 const unitOf=c=>c.unit===undefined?'سم':c.unit;
+const isM=c=>c.type==='range'&&c.max>=500&&c.min>=0&&(c.unit===undefined);
+function setNum(id,v){const el=document.getElementById('n-'+id);if(el)el.value=el.dataset.m?+(v/100).toFixed(2):v;const r=document.getElementById('c-'+id);if(r)r.value=v}
 function ctrlHTML(c,st){
   if(c.type==='head')return `<h3 class="ph">${c.label}</h3>`;
   if(c.type==='group')return `<details class="grp" data-g="${c.gid}"${openG.has(c.gid)?' open':''}><summary id="gs-${c.gid}">${c.title(st)}</summary>${c.items.map(x=>ctrlHTML(x,st)).join('')}</details>`;
   const v=st[c.id];
   if(c.type==='counter')return `<div class="ctrl full"><div class="row"><span class="lbl">${c.label}</span><output>${v}</output></div><div class="seg"><button data-act="inc" data-id="${c.id}"${+v>=c.max?' disabled':''}>+ ${c.addLabel}</button><button data-act="dec" data-id="${c.id}"${+v<=c.min?' disabled':''}>− ${c.remLabel}</button></div></div>`;
-  if(c.type==='range')return `<div class="ctrl"><div class="row"><label for="c-${c.id}">${c.label}</label><span class="numw"><input class="num" type="number" inputmode="decimal" id="n-${c.id}" data-id="${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${v}"><small>${unitOf(c)}</small></span></div><input type="range" id="c-${c.id}" data-id="${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${v}"></div>`;
+  if(c.type==='action')return `<div class="ctrl full"><button class="btn sm" data-act="${c.act}">${c.label}</button></div>`;
+  if(c.type==='range'){const mt=isM(c),k=mt?100:1;return `<div class="ctrl"><div class="row"><label for="c-${c.id}">${c.label}</label><span class="numw"><input class="num" type="number" inputmode="decimal" id="n-${c.id}" data-id="${c.id}"${mt?' data-m="1"':''} min="${c.min/k}" max="${c.max/k}" step="${c.step/k}" value="${+(v/k).toFixed(2)}"><small>${mt?'م':unitOf(c)}</small></span></div><input type="range" id="c-${c.id}" data-id="${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${v}"></div>`;}
   if(c.type==='seg')return `<div class="ctrl full"><div class="row"><span class="lbl">${c.label}</span></div><div class="seg">${c.options.map(([ov,ol])=>`<button data-id="${c.id}" data-v="${ov}" aria-pressed="${String(ov)===String(v)}">${ol}</button>`).join('')}</div></div>`;
   return `<div class="ctrl full"><div class="row"><span class="lbl">${c.label}</span><output id="o-${c.id}">${MATS[v]?MATS[v].name:''}</output></div><div class="mats">${Object.entries(MATS).map(([mk,m])=>`<button class="sw" title="${m.name}" aria-label="${m.name}" data-id="${c.id}" data-v="${mk}" style="--c:${m.c};--d:${m.d}" aria-pressed="${mk===v}"></button>`).join('')}</div></div>`;
 }
@@ -1381,20 +1426,23 @@ const ctrlOf=id=>flat(tab).find(x=>x.id===id);
 panel.addEventListener('toggle',e=>{const d=e.target;if(!d.dataset)return;if(d.dataset.g){d.open?openG.add(d.dataset.g):openG.delete(d.dataset.g)}if(d.dataset.h){d.open?closedH.delete(d.dataset.h):closedH.add(d.dataset.h)}},true);
 panel.addEventListener('input',e=>{
   const t=e.target;if(t.type!=='range'&&t.type!=='number')return;
-  const c=ctrlOf(t.dataset.id),v=parseFloat(t.value);if(isNaN(v))return;
+  const c=ctrlOf(t.dataset.id);let v=parseFloat(t.value);if(isNaN(v))return;
+  if(t.dataset.m)v=Math.round(v*100);
   if(t.type==='number'&&(v<c.min||v>c.max))return;
   state[tab][c.id]=v;
-  const other=document.getElementById((t.type==='range'?'n-':'c-')+c.id);if(other)other.value=v;
+  if(t.type==='range'){const n=document.getElementById('n-'+c.id);if(n)n.value=n.dataset.m?+(v/100).toFixed(2):v}else{const r=document.getElementById('c-'+c.id);if(r)r.value=v}
+  if(tab==='fountain'&&/^[hc][2-6]$/.test(c.id)&&+state.fountain.auto){state.fountain.auto='0';panel.querySelectorAll('button[data-id="auto"]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v==='0'))}
   updGroups();render();
 });
 panel.addEventListener('change',e=>{
   const t=e.target;if(t.type!=='number')return;
-  const c=ctrlOf(t.dataset.id);let v=parseFloat(t.value);if(isNaN(v))v=state[tab][c.id];
-  v=Math.min(c.max,Math.max(c.min,v));t.value=v;state[tab][c.id]=v;document.getElementById('c-'+c.id).value=v;updGroups();render();
+  const c=ctrlOf(t.dataset.id);let v=parseFloat(t.value);if(isNaN(v))v=state[tab][c.id];else if(t.dataset.m)v=Math.round(v*100);
+  v=Math.min(c.max,Math.max(c.min,v));state[tab][c.id]=v;setNum(c.id,v);updGroups();render();
 });
 panel.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;
   if(b.id==='reset'){state[tab]=defaults(tab);openG.clear();buildPanel();render();return}
+  if(b.dataset.act==='center'){centerTablo();rebuildKeep();render();toast('رجع التابلو للنص');return}
   const id=b.dataset.id;if(!id)return;
   const c=ctrlOf(id);
   if(c.type==='counter'){
@@ -1403,14 +1451,29 @@ panel.addEventListener('click',e=>{
     rebuildKeep();render();if(b.dataset.act==='inc')toast('انضاف الصحن '+v+'، عدّل قياساته من القائمة');return;
   }
   state[tab][id]=b.dataset.v;
+  if(c.preset&&c.preset[b.dataset.v])Object.assign(state[tab],c.preset[b.dataset.v]);
   if(c.type==='seg')rebuildKeep();
   else{b.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));const out=document.getElementById('o-'+id);if(out)out.textContent=MATS[b.dataset.v].name}
   render();
 });
 
+function applyAuto(st){
+  if(!+st.auto||+st.tiers<2)return;
+  const n=+st.tiers,dn=+st['d'+n],fr=Math.max(5,Math.min(18,dn*.1)),finH=st.finial==='ball'?fr*2.8:st.finial==='pine'?fr*3.8:0;
+  let sumT=0;for(let k=1;k<=n;k++)sumT+=Math.max(8,+st['t'+k]);
+  const h1=+st.pool?Math.max(+st.h1,+st.poolH+10):+st.h1,rem=+st.Htot-finH-sumT-h1-(+st.pool?0:15),each=Math.max(15,Math.round(rem/(n-1)));
+  for(let k=2;k<=n;k++){st['h'+k]=each;st['c'+k]=Math.max(6,Math.round(+st.c1*.7))}
+}
+function centerTablo(){
+  const st=state[tab];
+  if(tab==='floor'){st.tX=0;st.tY=0}
+  if(tab==='wall'){st.posX=0;const ring=2*(+st.gap+ +st.fw),ih=Math.min(+st.tH,+st.WH-ring);st.posY=Math.max(0,Math.round((+st.WH-ih-ring)/2))}
+}
 function render(){
   uid=0;
+  if(tab==='fountain'){applyAuto(state.fountain);for(let k=2;k<=6;k++){setNum('h'+k,state.fountain['h'+k]);setNum('c'+k,state.fountain['c'+k])}updGroups()}
   const r=SCHEMAS[tab].draw(state[tab]);lastR=r;
+  {const b=r.box,dx=(b[1]-b[0])*.04,dy=(b[3]-b[2])*.04;r.box=[b[0]-dx,b[1]+dx,b[2]-dy,b[3]+dy]}
   const [x0,x1,y0,y1]=r.box,S=Math.max(x1-x0,y1-y0);
   let ground=r.noGround?'':L(x0,0,x1,0,INK,LW*2.2);
   const step=S/45,hl=S/55;
@@ -1628,7 +1691,7 @@ $('aiIn').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.prev
 $('aiUndo').onclick=()=>{const u=undoStack.pop();if(!u)return;Object.assign(state,u.st);tab=u.tab;buildPanel();render();updTitle();$('aiUndo').disabled=!undoStack.length;$('aiOut').textContent='رجّعت التعديل.'};
 /* ---------- drag tablo by hand ---------- */
 const svgEl=document.getElementById('draw');let drag=null;
-function syncCtl(id){const c=ctrlOf(id);if(!c)return;const v=Math.max(c.min,Math.min(c.max,state[tab][id]));state[tab][id]=v;const a=document.getElementById('n-'+id),b=document.getElementById('c-'+id);if(a)a.value=v;if(b)b.value=v}
+function syncCtl(id){const c=ctrlOf(id);if(!c)return;const v=Math.max(c.min,Math.min(c.max,state[tab][id]));state[tab][id]=v;setNum(id,v)}
 svgEl.addEventListener('pointerdown',e=>{
   const t=e.target.closest&&e.target.closest('[data-drag]');if(!t)return;
   e.preventDefault();const m=svgEl.getScreenCTM().inverse(),pt=svgEl.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;
@@ -1636,8 +1699,9 @@ svgEl.addEventListener('pointerdown',e=>{
 });
 svgEl.addEventListener('pointermove',e=>{
   if(!drag)return;const pt=svgEl.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const p=pt.matrixTransform(drag.m),dx=Math.round(p.x-drag.p.x),dy=Math.round(p.y-drag.p.y),st=state[tab];
-  if(drag.kind==='floor'){st.tX=(+drag.st.tX||0)+dx;st.tY=(+drag.st.tY||0)+dy;syncCtl('tX');syncCtl('tY')}
-  else{st.posX=(+drag.st.posX||0)+dx;st.posY=Math.max(0,(+drag.st.posY||0)-dy);syncCtl('posX');syncCtl('posY')}
+  const sn=v=>Math.abs(v)<5?0:v;
+  if(drag.kind==='floor'){st.tX=sn((+drag.st.tX||0)+dx);st.tY=sn((+drag.st.tY||0)+dy);syncCtl('tX');syncCtl('tY')}
+  else{st.posX=sn((+drag.st.posX||0)+dx);let py=Math.max(0,(+drag.st.posY||0)-dy);const ring=2*(+st.gap+ +st.fw),cY=Math.round((+st.WH-Math.min(+st.tH,+st.WH-ring)-ring)/2);if(Math.abs(py-cY)<5)py=cY;st.posY=py;syncCtl('posX');syncCtl('posY')}
   render();
 });
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>svgEl.addEventListener(ev,()=>{drag=null}));
