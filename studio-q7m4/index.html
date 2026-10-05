@@ -238,7 +238,7 @@ let LW=1, FS=10;
 const f=n=>Math.round(n*100)/100;
 function setScale(S){LW=S/650;FS=S/30;}
 const M=k=>`url(#p-${MATS[k]?k:'beigeL'})`;
-const fmt=v=>v>=100?(+(v/100).toFixed(2))+' م':Math.round(v)+' سم';
+const fmt=v=>Math.round(v)+' سم';
 const R=(x,y,w,h,fill,sw=LW,extra='')=>`<rect x="${f(x)}" y="${f(y)}" width="${f(Math.max(0,w))}" height="${f(Math.max(0,h))}" fill="${fill}" stroke="${INK}" stroke-width="${f(sw)}" ${extra}/>`;
 const P=(d,fill,sw=LW,extra='')=>`<path d="${d}" fill="${fill}" stroke="${INK}" stroke-width="${f(sw)}" stroke-linejoin="round" ${extra}/>`;
 const L=(x1,y1,x2,y2,c=INK,sw=LW,extra='')=>`<line x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}" stroke="${c}" stroke-width="${f(sw)}" ${extra}/>`;
@@ -951,16 +951,20 @@ function drawFloor(s){
     tArea=shapeArea(iw,ih,sh);tOuter=shapeArea(ow,oh,sh);frArea=tOuter-shapeArea(gw,gh,sh);frLen=shapePerim((gw+ow)/2,(gh+oh)/2,sh);
     const tid=nid('tb');
     o+=`<clipPath id="${tid}"><path d="${innerD}"/></clipPath><g clip-path="url(#${tid})">${panelDesign(s.tdes,tx,ty,iw,ih,s.tmat,s.fmat)}</g>`+P(innerD,'none',LW*.8)+'</g>';
-    o+=T(tx,ty-oh/2-FS*.4,'تابلو '+iw+'×'+ih+' + كادر '+tab.fw+(tab.gap?' بُعد '+tab.gap:''),FS*.72);
+    o+=dimH(tx-iw/2,tx+iw/2,ty-oh/2-FS*.5,'عرض '+fmt(iw))+dimV(ty+ih/2,ty-ih/2,tx+ow/2+FS*1.4,'طول '+fmt(ih));
     const lft=tx-ow/2,top=ty-oh/2;
-    if(lft>1)o+=dimH(0,lft,ty,fmt(lft));
-    if(top>1)o+=dimV(top,0,tx,fmt(top));
+    const rgt=RW-(tx+ow/2),btm=RL-(ty+oh/2);
+    const yd=ty+oh/2-FS*.6,xd=tx-ow/2+FS*.6;
+    if(lft>1)o+=dimH(0,lft,yd,fmt(lft));
+    if(rgt>1)o+=dimH(tx+ow/2,RW,yd,fmt(rgt));
+    if(top>1)o+=dimV(top,0,xd,fmt(top));
+    if(btm>1)o+=dimV(RL,ty+oh/2,xd,fmt(btm));
   }
   o+=`<rect x="0" y="0" width="${RW}" height="${RL}" fill="none" stroke="${INK}" stroke-width="${f(LW*1.4)}"/>`;
   o+=dimH(0,RW,RL+15+S*.06,fmt(RW))+dimV(RL,0,RW+15+S*.06,fmt(RL));
   const room=RW*RL/1e4,fieldCm=fw*fl-(tab?tOuter:0),field=fieldCm/1e4;
   const stats=[['مساحة الغرفة',room.toFixed(2)+' م²'],['مساحة البلاط الصافية',field.toFixed(2)+' م²']];
-  if(tab)stats.push(['التابلو',(tArea/1e4).toFixed(2)+' م²'],['الكادر',(frLen/100).toFixed(2)+' م.ط ('+(frArea/1e4).toFixed(2)+' م²)'],['بُعد التابلو عن الحيط','يسار '+fmt(tab.cx-tab.ow/2)+'، فوق '+fmt(tab.cy-tab.oh/2)+(Math.abs(tab.cx-RW/2)<.5&&Math.abs(tab.cy-RL/2)<.5?' (بالنص)':'')]);
+  if(tab)stats.push(['التابلو','عرض '+tab.iw+' × طول '+tab.ih+' سم ('+(tArea/1e4).toFixed(2)+' م²)'],['الكادر',(frLen/100).toFixed(2)+' م.ط ('+(frArea/1e4).toFixed(2)+' م²)'],['بُعد التابلو عن الحيطان','يسار '+fmt(tab.cx-tab.ow/2)+'، يمين '+fmt(RW-tab.cx-tab.ow/2)+'، فوق '+fmt(tab.cy-tab.oh/2)+'، تحت '+fmt(RL-tab.cy-tab.oh/2)+(Math.abs(tab.cx-RW/2)<.5&&Math.abs(tab.cy-RL/2)<.5?' (بالنص)':'')]);
   if(b)stats.push(['البردورة',(2*(RW+RL-2*b)/100).toFixed(2)+' م.ط ('+((RW*RL-fw*fl)/1e4).toFixed(2)+' م²)']);
   const tables=[];let note='';
   if(tab)tables.push(stripTable(tab.iw,tab.ih,tab.sh,tab.fw,tab.gap,+s.stripL||200));
@@ -992,10 +996,10 @@ function drawFloor(s){
 
 function stripTable(iw,ih,sh,fw,gap,L){
   const rows=[],sidesCount=(w,h)=>(sh==='oval')?Math.ceil(shapePerim(w,h,sh)/L):(sh==='oct'?(()=>{const c=octC(w,h);return 2*Math.ceil((w-2*c)/L)+2*Math.ceil((h-2*c)/L)+4*Math.ceil(c*Math.SQRT2/L)})():2*Math.ceil(w/L)+2*Math.ceil(h/L));
-  rows.push({cells:['التابلو',iw+' × '+ih+' سم','-','-']});
+  rows.push({cells:['التابلو','عرض '+iw+' × طول '+ih+' سم','-','-']});
   if(gap>0){const w=iw+gap,h=ih+gap;rows.push({cells:['فاصل رخام سادة بين التابلو والكادر',gap+' سم',(shapePerim(w,h,sh)/100).toFixed(2)+' م.ط',sidesCount(w,h)]})}
   if(fw>0){const w=iw+2*gap+fw,h=ih+2*gap+fw;rows.push({cells:['الكادر',fw+' سم',(shapePerim(w,h,sh)/100).toFixed(2)+' م.ط',sidesCount(w,h)]})}
-  rows.push({sel:true,cells:['المقاس الخارجي الكلي',(iw+2*(gap+fw))+' × '+(ih+2*(gap+fw))+' سم','-','-']});
+  rows.push({sel:true,cells:['المقاس الخارجي الكلي','عرض '+(iw+2*(gap+fw))+' × طول '+(ih+2*(gap+fw))+' سم','-','-']});
   return{title:'قياسات التابلو والكادر (قطع بطول '+fmt(L)+')',head:['القطعة','العرض','الطول الكلي','عدد القطع'],rows};
 }
 /* ---------- wall tablo ---------- */
@@ -1026,15 +1030,18 @@ function drawWallTablo(s){
   o+=`<clipPath id="${id}"><path d="${innerD}"/></clipPath><g clip-path="url(#${id})">${panelDesign(s.tdes,cx,cy,iw,ih,s.tmat,s.dmat)}</g>`+P(innerD,'none',LW*.8)+'</g>';
   o+=dimH(0,WW,S*.08,fmt(WW))+dimV(0,-WH,WW+S*.05,fmt(WW>0?WH:WH));
   if(!full){
-    o+=dimH(cx-iw/2,cx+iw/2,cy-oh/2-S*.04,'تابلو '+fmt(iw))+dimV(cy+ih/2,cy-ih/2,cx+ow/2+S*.04,fmt(ih));
+    o+=dimH(cx-iw/2,cx+iw/2,cy-ih/2+FS*1.3,'عرض '+fmt(iw))+dimV(cy+ih/2,cy-ih/2,cx+iw/2-FS*1.3,'طول '+fmt(ih));
     const lft=cx-ow/2,bot=-(cy+oh/2);
+    const rgt=WW-(cx+ow/2),topD=WH+(cy-oh/2);
     if(lft>1)o+=dimH(0,lft,cy,fmt(lft));
+    if(rgt>1)o+=dimH(cx+ow/2,WW,cy,fmt(rgt));
     if(bot>1)o+=dimV(0,cy+oh/2,cx,fmt(bot));
+    if(topD>1)o+=dimV(cy-oh/2,-WH,cx+ow/4,fmt(topD));
   }
   const wall=WW*WH/1e4,ta=shapeArea(iw,ih,sh)/1e4,oa=shapeArea(ow,oh,sh)/1e4,fa=fw>0?(shapeArea(ow,oh,sh)-shapeArea(gw,gh,sh))/1e4:0,per=shapePerim(gw+fw,gh+fw,sh)/100;
-  const stats=[['مساحة الحائط',wall.toFixed(2)+' م²'],['التابلو',iw+' × '+ih+' سم ('+ta.toFixed(2)+' م²)']];
+  const stats=[['مساحة الحائط',wall.toFixed(2)+' م²'],['التابلو','عرض '+iw+' × طول '+ih+' سم ('+ta.toFixed(2)+' م²)']];
   if(fw>0)stats.push(['الكادر','عرض '+fw+'، بُعد '+gap+' سم، '+per.toFixed(2)+' م.ط ('+fa.toFixed(2)+' م²)']);
-  if(!full){const cen=Math.abs(cx-WW/2)<.5&&Math.abs(-(cy+oh/2)-(WH-oh)/2)<1;stats.push(['مكان التابلو','من اليسار '+fmt(cx-ow/2)+'، من الأرض '+fmt(-(cy+oh/2))+(cen?' (بالنص)':'')])}
+  if(!full){const cen=Math.abs(cx-WW/2)<.5&&Math.abs(-(cy+oh/2)-(WH-oh)/2)<1;stats.push(['مكان التابلو','يسار '+fmt(cx-ow/2)+'، يمين '+fmt(WW-cx-ow/2)+'، من الأرض '+fmt(-(cy+oh/2))+'، من فوق '+fmt(WH+cy-oh/2)+(cen?' (بالنص)':'')])}
   const tables=[];
   if(!full&&(fw>0||gap>0))tables.push(stripTable(iw,ih,sh,fw,gap,+s.stripL||200));
   if(!full){
@@ -1322,8 +1329,8 @@ const SCHEMAS={
     {id:'mat3',label:'كادر تحت النار (5 سم)',type:'mat',val:'italian'}]},
   floor:{title:'أرضية',draw:drawFloor,controls:[
     head('الغرفة'),
-    {id:'RW',label:'عرض الغرفة',type:'range',min:200,max:1500,step:10,val:500},
-    {id:'RL',label:'طول الغرفة',type:'range',min:200,max:1500,step:10,val:600},
+    {id:'RW',label:'عرض الغرفة',type:'range',min:50,max:1500,step:1,val:500},
+    {id:'RL',label:'طول الغرفة',type:'range',min:50,max:1500,step:1,val:600},
     head('البلاط'),
     {id:'tile',label:'قياس البلاطة',type:'seg',options:[['30','30×30'],['40','40×40'],['60','60×60'],['80','80×80'],['30x60','30×60'],['60x120','60×120'],['custom','مقاس آخر'],['free','طول مفتوح']],val:'60'},
     {id:'cw1',label:'عرض البلاطة',type:'range',min:10,max:150,step:1,val:40,show:s=>s.tile==='custom'},
@@ -1358,8 +1365,8 @@ const SCHEMAS={
     {id:'bmat',label:'مادة البردورة',type:'mat',val:'brown',show:s=>+s.border}]},
   wall:{title:'تابلو حائط',draw:drawWallTablo,controls:[
     head('الحائط'),
-    {id:'WW',label:'عرض الحائط',type:'range',min:100,max:1500,step:10,val:400},
-    {id:'WH',label:'ارتفاع الحائط',type:'range',min:100,max:500,step:10,val:280},
+    {id:'WW',label:'عرض الحائط',type:'range',min:30,max:1500,step:1,val:400},
+    {id:'WH',label:'ارتفاع الحائط',type:'range',min:30,max:500,step:1,val:280},
     {id:'wmat',label:'مادة الحائط',type:'mat',val:'beigeL'},
     {id:'pw',label:'عرض قطعة الحائط',type:'range',min:10,max:200,step:1,val:80},
     {id:'ph',label:'ارتفاع قطعة الحائط',type:'range',min:10,max:200,step:1,val:40},
@@ -1367,8 +1374,8 @@ const SCHEMAS={
     head('التابلو'),
     {id:'full',label:'التابلو',type:'seg',options:[[0,'لوحة بالحائط'],[1,'يغطي كل الحائط']],val:0},
     {id:'tshape',label:'الشكل',type:'seg',options:[['rect','مستطيل'],['arch','قوس من فوق'],['stadium','طرفين مدورين'],['oval','بيضاوي'],['oct','مثمن']],val:'rect',show:s=>!+s.full},
-    {id:'tW',label:'عرض التابلو',type:'range',min:40,max:1200,step:5,val:240,show:s=>!+s.full},
-    {id:'tH',label:'ارتفاع التابلو',type:'range',min:40,max:500,step:5,val:140,show:s=>!+s.full},
+    {id:'tW',label:'عرض التابلو',type:'range',min:10,max:1200,step:1,val:240,show:s=>!+s.full},
+    {id:'tH',label:'طول التابلو',type:'range',min:10,max:500,step:1,val:140,show:s=>!+s.full},
     {id:'posX',label:'تحريك يمين (+) أو يسار (−)',type:'range',min:-700,max:700,step:1,val:0,show:s=>!+s.full},
     {id:'posY',label:'ارتفاعه عن الأرض',type:'range',min:0,max:400,step:1,val:80,show:s=>!+s.full},
     {type:'action',act:'center',label:'↺ رجّع التابلو للنص',show:s=>!+s.full},
@@ -1393,7 +1400,7 @@ tabsEl.innerHTML=Object.entries(SCHEMAS).map(([k,s])=>`<button role="tab" data-k
 tabsEl.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;tab=b.dataset.k;buildPanel();render();updTitle()});
 
 const unitOf=c=>c.unit===undefined?'سم':c.unit;
-const isM=c=>c.type==='range'&&c.max>=500&&c.min>=0&&(c.unit===undefined);
+const isM=c=>false;
 function setNum(id,v){const el=document.getElementById('n-'+id);if(el)el.value=el.dataset.m?+(v/100).toFixed(2):v;const r=document.getElementById('c-'+id);if(r)r.value=v}
 function ctrlHTML(c,st){
   if(c.type==='head')return `<h3 class="ph">${c.label}</h3>`;
@@ -1401,7 +1408,7 @@ function ctrlHTML(c,st){
   const v=st[c.id];
   if(c.type==='counter')return `<div class="ctrl full"><div class="row"><span class="lbl">${c.label}</span><output>${v}</output></div><div class="seg"><button data-act="inc" data-id="${c.id}"${+v>=c.max?' disabled':''}>+ ${c.addLabel}</button><button data-act="dec" data-id="${c.id}"${+v<=c.min?' disabled':''}>− ${c.remLabel}</button></div></div>`;
   if(c.type==='action')return `<div class="ctrl full"><button class="btn sm" data-act="${c.act}">${c.label}</button></div>`;
-  if(c.type==='range'){const mt=isM(c),k=mt?100:1;return `<div class="ctrl"><div class="row"><label for="c-${c.id}">${c.label}</label><span class="numw"><input class="num" type="number" inputmode="decimal" id="n-${c.id}" data-id="${c.id}"${mt?' data-m="1"':''} min="${c.min/k}" max="${c.max/k}" step="${c.step/k}" value="${+(v/k).toFixed(2)}"><small>${mt?'م':unitOf(c)}</small></span></div><input type="range" id="c-${c.id}" data-id="${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${v}"></div>`;}
+  if(c.type==='range'){const mt=isM(c),k=mt?100:1;return `<div class="ctrl"><div class="row"><label for="c-${c.id}">${c.label}</label><span class="numw"><input class="num" type="number" inputmode="decimal" id="n-${c.id}" data-id="${c.id}"${mt?' data-m="1"':''} min="${c.min/k}" max="${c.max/k}" step="${mt?0.01:c.step}" value="${+(v/k).toFixed(2)}"><small>${mt?'م':unitOf(c)}</small></span></div><input type="range" id="c-${c.id}" data-id="${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${v}"></div>`;}
   if(c.type==='seg')return `<div class="ctrl full"><div class="row"><span class="lbl">${c.label}</span></div><div class="seg">${c.options.map(([ov,ol])=>`<button data-id="${c.id}" data-v="${ov}" aria-pressed="${String(ov)===String(v)}">${ol}</button>`).join('')}</div></div>`;
   return `<div class="ctrl full"><div class="row"><span class="lbl">${c.label}</span><output id="o-${c.id}">${MATS[v]?MATS[v].name:''}</output></div><div class="mats">${Object.entries(MATS).map(([mk,m])=>`<button class="sw" title="${m.name}" aria-label="${m.name}" data-id="${c.id}" data-v="${mk}" style="--c:${m.c};--d:${m.d}" aria-pressed="${mk===v}"></button>`).join('')}</div></div>`;
 }
