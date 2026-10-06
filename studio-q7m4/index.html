@@ -159,13 +159,13 @@ input[type=range]{height:16px}
 .drawwrap{position:relative}
 .stage{direction:ltr}
 .stage>*{direction:rtl}
-#draw{max-height:calc(100vh - 260px);touch-action:pan-y}
+#draw{max-height:none;min-height:420px;touch-action:pan-y}
 #draw [data-drag]{touch-action:none}
-.insets{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,240px));justify-content:center;gap:10px;margin-top:6px}
+.insets{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:8px}
 .insets:empty{display:none}
 .inset{background:rgba(255,255,255,.92);border:1px solid #B88A2A;border-radius:8px;padding:4px}
 .inset span{display:block;font-size:.7rem;color:#6B655B;text-align:center}
-.inset svg{width:100%;height:auto;display:block;max-height:220px}
+.inset svg{width:100%;height:auto;display:block;max-height:420px}
 .block dd{font-size:.88rem}
 .block dt{font-size:.7rem}
 .block div{padding:4px 8px}
@@ -189,6 +189,10 @@ input[type=range]{height:16px}
 .proj{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:.85rem}
 .proj div{display:flex;gap:6px}
 .cs{display:inline-block;width:12px;height:12px;border-radius:3px;margin-inline-end:6px;vertical-align:middle;opacity:.8}
+
+#tbl tr.pick{cursor:pointer}
+#tbl tr.pick:hover td{background:rgba(184,138,42,.10)}
+.drawwrap{overflow:auto}
 </style>
 </head>
 <body>
@@ -1053,7 +1057,7 @@ function drawFloor(s){
     o+=dimH(tx-iw/2,tx+iw/2,ty-oh/2-FS*.5,'عرض '+fmt(iw),C_TAB)+dimV(ty+ih/2,ty-ih/2,tx+ow/2+FS*1.4,'طول '+fmt(ih),C_TAB);
     if(gap>0)o+=dimH(tx+iw/2,tx+iw/2+gap,ty+ih/2+FS*1.6,fmt(gap),C_GAP);
     if(tab.fw>0)o+=dimH(tx+iw/2+gap,tx+ow/2,ty+ih/2+FS*3,fmt(tab.fw),C_FR);
-    o+=legend(RW,RL+15+S*.11,[[C_TAB,'التابلو'],[C_GAP,'الفاصل'],[C_FR,'الكادر'],[C_DIST,'البُعد عن الحيط']]);
+    o+=legend(RW,RL+15+S*.11,[[C_TAB,'التابلو'],[C_GAP,'الفاصل'],[C_FR,'الكادر'],[C_DIST,'البُعد']]);
     const lft=tx-ow/2,top=ty-oh/2;
     const rgt=RW-(tx+ow/2),btm=RL-(ty+oh/2);
     const yd=ty+oh/2-FS*.6,xd=tx-ow/2+FS*.6;
@@ -1087,8 +1091,8 @@ function drawFloor(s){
     tables.push({title:'تفصيل القص لبلاط '+tw+'×'+th,head:['القطعة','المقاس','العدد','من كل بلاطة','البلاطات'],rows:br});
     const list=STD_TILES.map(([a,c])=>a===c?[a,c]:(s.dir==='v'?[Math.min(a,c),Math.max(a,c)]:[Math.max(a,c),Math.min(a,c)]));
     if(!list.some(([a,c])=>a===tw&&c===th))list.push([tw,th]);
-    tables.push({title:'مقارنة المقاسات (البلاطات المقصوصة لنفس العرض بتطلع من بلاطة وحدة إذا بتساع)',head:['المقاس','كاملة','مقصوصة','البلاطات المطلوبة','الكمية'],
-      rows:list.map(([a,c])=>{const q=tileSummary(layTiles(fx,fy,fw,fl,a,c,cx,cy,offset,tab),a,c);return{sel:a===tw&&c===th,cells:[a+'×'+c,q.full,q.cut,q.total,(q.total*a*c/1e4).toFixed(2)+' م²']}})});
+    tables.push({title:'مقارنة المقاسات (اضغط على أي قياس لتختاره)',head:['المقاس','كاملة','مقصوصة','البلاطات المطلوبة','الكمية'],
+      rows:list.map(([a,c])=>{const q=tileSummary(layTiles(fx,fy,fw,fl,a,c,cx,cy,offset,tab),a,c),std=STD_TILES.find(([x,y])=>(x===a&&y===c)||(x===c&&y===a)),key=std?(std[0]===std[1]?String(std[0]):Math.min(a,c)+'x'+Math.max(a,c)):null;return{sel:a===tw&&c===th,pick:key?{tile:key,dir:a>=c?'h':'v'}:{tile:'custom',cw1:a,cl1:c},cells:[a+'×'+c,q.full,q.cut,q.total,(q.total*a*c/1e4).toFixed(2)+' م²']}})});
     note='التركيب بيبلّش من نص الغرفة، فالقطع المقصوصة بتطلع متساوية على الحيطان. '+(+s.showCuts?'كل قياس قطعة إله لون، ونفس اللون بجدول تفصيل القص.':'');
   }
   if(tab&&tab.moved)note+=' التابلو وصل لحد الحيط، ما بيتحرك أكتر.';
@@ -1158,13 +1162,13 @@ function drawWallTablo(s){
     br.push({sel:true,cells:['المجموع مع 5٪ احتياط','','','',sm.total+' قطعة = '+(sm.total*pw*ph/1e4).toFixed(2)+' م²']});
     tables.push({title:'تلبيس الحائط حوالين التابلو بقطع '+pw+'×'+ph+' (التركيب من الأرض ونص الحائط)',head:['القطعة','المقاس','العدد','من كل قطعة','القطع المطلوبة'],rows:br});
     const list=[[60,30],[80,40],[120,60]];if(!list.some(([a,b])=>a===pw&&b===ph))list.push([pw,ph]);
-    tables.push({title:'3 خيارات لقياس حجر الحائط',head:['المقاس','كاملة','مقصوصة','القطع المطلوبة','الكمية'],rows:list.map(([a,b])=>{const q=tileSummary(layTiles(0,-WH,WW,WH,a,b,WW/2,-b/2,s.wpat==='offset',tab),a,b);return{sel:a===pw&&b===ph,cells:[a+'×'+b,q.full,q.cut,q.total,(q.total*a*b/1e4).toFixed(2)+' م²']}})});
+    tables.push({title:'3 خيارات لقياس حجر الحائط (اضغط على أي قياس لتختاره)',head:['المقاس','كاملة','مقصوصة','القطع المطلوبة','الكمية'],rows:list.map(([a,b])=>{const q=tileSummary(layTiles(0,-WH,WW,WH,a,b,WW/2,-b/2,s.wpat==='offset',tab),a,b);return{sel:a===pw&&b===ph,pick:{pw:a,ph:b},cells:[a+'×'+b,q.full,q.cut,q.total,(q.total*a*b/1e4).toFixed(2)+' م²']}})});
   }
   {const [hd,hu]=hatch(),fs=Math.max(5,WH/14),wt=20;let q=hd+R(0,-WH,wt,WH,hu,LW*.7)+R(-2,-WH,2,WH,A,LW*.5);
    const yt=cy-oh/2,yb=cy+oh/2;q+=R(-4,cy-ih/2-gap,2,ih+2*gap,M(s.tmat),LW*.5);if(fw>0){q+=R(-6,yt,4,fw,M(s.fmat),LW*.5)+R(-6,yb-fw,4,fw,M(s.fmat),LW*.5)}
    q+=L(-30,0,wt+5,0,INK,LW*1.2)+sdimV(yb,yt,-10-fs*.2,fmt(oh),fs)+(fw>0?sdimH(-6,0,yt-fs*.4,'بروز 4',fs):'');
-   var insetsWT=full?[]:[{svg:q,box:[-14-fs*1.4,wt+6,-WH-fs*1.2,8],label:'مقطع جانبي (تقريبي)'}];}
-  if(!full)o+=legend(WW,S*.15,[[C_TAB,'التابلو'],[C_GAP,'الفاصل'],[C_FR,'الكادر'],[C_DIST,'البُعد عن الأطراف']]);
+   var insetsWT=[];}
+  if(!full)o+=legend(WW,S*.15,[[C_TAB,'التابلو'],[C_GAP,'الفاصل'],[C_FR,'الكادر'],[C_DIST,'البُعد']]);
   return{svg:o,insets:insetsWT,box:[-S*.12,WW+S*.12,Math.min(-WH,cy-oh/2-S*.08)-S*.06,S*.19],stats,tables,
     note:(!full&&(+s.tW>iw||+s.tH>ih)?'صغّرتُ التابلو ليتسع بالحائط. ':'')+(moved?'التابلو وصل لحد الحائط. ':'')+(full?'':'اسحب التابلو بإيدك لتحركه.')};
 }
@@ -1628,7 +1632,7 @@ function render(){
   document.getElementById('note').textContent=r.note||'';
   if(typeof autosave==='function')autosave();
   const tb=document.getElementById('tbl'),tbs=r.tables||(r.table?[r.table]:[]);
-  tb.innerHTML=tbs.map(t=>`<p class="tt">${t.title}</p><div class="tw"><table><thead><tr>${t.head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${t.rows.map(rw=>`<tr${rw.sel?' class="sel"':''}>${rw.cells.map((c,i)=>`<td>${i===0&&rw.color?`<span class="cs" style="background:${rw.color}"></span>`:''}${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`).join('');
+  tb.innerHTML=tbs.map(t=>`<p class="tt">${t.title}</p><div class="tw"><table><thead><tr>${t.head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${t.rows.map(rw=>`<tr class="${rw.sel?'sel ':''}${rw.pick?'pick':''}"${rw.pick?` data-pick='${JSON.stringify(rw.pick)}'`:''}>${rw.cells.map((c,i)=>`<td>${i===0&&rw.color?`<span class="cs" style="background:${rw.color}"></span>`:''}${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`).join('');
 }
 
 /* ---------- title, save & share ---------- */
@@ -1642,7 +1646,7 @@ let toastT;function toast(m){const t=$('toast');t.textContent=m;t.classList.add(
 
 async function makePNG(opt={}){
   await document.fonts.ready;
-  const mode=opt.mode||pngMode,F='"Cairo","Tajawal",Tahoma,sans-serif',pad=60,W=1800;
+  const SC=opt.sc||2,mode=opt.mode||pngMode,F='"Cairo","Tajawal",Tahoma,sans-serif',pad=60,W=1800;
   const svg=$('draw'),vb=svg.viewBox.baseVal;
   let dw=W,dh=Math.round(W*vb.height/vb.width);const maxH=2600;if(dh>maxH){dh=maxH;dw=Math.round(maxH*vb.width/vb.height)}
   const clone=svg.cloneNode(true);clone.setAttribute('width',dw*SC*1.5);clone.setAttribute('height',dh*SC*1.5);
@@ -1658,7 +1662,7 @@ async function makePNG(opt={}){
   const insH=(lastR&&lastR.insets&&lastR.insets.length&&mode!=='clean')?(()=>{const n=lastR.insets.length,iw=Math.min(560,(W-40*(n-1))/n);let mh=0;lastR.insets.forEach((q,k)=>{const b=q.box;mh=Math.max(mh,Math.min(700,iw*(b[3]-b[2])/(b[1]-b[0])))});return Math.round(mh)+70})():0;
   const Q=mode==='shop'?{rows:[],note:'',total:0}:quoteData();
   const foot=(stats.length?40+statRows*52:0)+tbs.reduce((a,t)=>a+110+t.rows.length*46,0)+80+((Q.rows.length||Q.note)?150+Q.rows.length*46+(Q.total?60:0)+(Q.note?Q.note.split('\n').length*38+40:0):0);
-  const SC=opt.sc||2,c=document.createElement('canvas'),CW=W+pad*2,CH=head+cb+dh+60+foot+insH;c.width=CW*SC;c.height=CH*SC;
+  const c=document.createElement('canvas'),CW=W+pad*2,CH=head+cb+dh+60+foot+insH;c.width=CW*SC;c.height=CH*SC;
   const x=c.getContext('2d'),RX=CW-pad,LX=pad;x.scale(SC,SC);x.imageSmoothingQuality='high';
   x.fillStyle='#FFFFFF';x.fillRect(0,0,CW,CH);
   x.fillStyle='#111111';x.fillRect(0,0,CW,head);x.fillStyle='#B88A2A';x.fillRect(0,head-8,CW,8);
@@ -1679,7 +1683,7 @@ async function makePNG(opt={}){
     lines.forEach((t,i)=>{const col=oneCol?0:i%2,row=oneCol?i:Math.floor(i/2),rx=RX-col*(colW+40),yy=y+40+row*52;const k=stats[i][0];
       x.font='600 28px '+F;x.fillStyle='#6B655B';x.fillText(k+':',rx,yy);const kw=x.measureText(k+': ').width;x.font='800 30px '+F;x.fillStyle='#111';x.fillText(stats[i][1],rx-kw,yy)});
     y+=40+statRows*52}
-  for(const tb of tbs){y+=24;x.fillStyle='#111';x.font='800 30px '+F;x.textAlign='right';x.fillText(tb.title,RX,y+10);y+=56;
+  for(const tb of tbs){y+=24;x.fillStyle='#111';x.font='800 30px '+F;x.textAlign='right';x.fillText(tb.title.replace(/\s*\(اضغط[^)]*\)/,''),RX,y+10);y+=56;
     const cwT=W/tb.head.length;x.fillStyle='#F5F1E8';x.fillRect(pad,y-34,W,46);x.font='800 24px '+F;x.fillStyle='#6B655B';tb.head.forEach((h,i)=>x.fillText(h,RX-i*cwT-10,y));
     tb.rows.forEach(r=>{y+=46;x.font=(r.sel?'800':'500')+' 26px '+F;if(r.color){x.globalAlpha=.75;x.fillStyle=r.color;x.fillRect(RX-30,y-22,22,22);x.globalAlpha=1}x.fillStyle=r.sel?'#8F6A1F':'#111';r.cells.forEach((v,i)=>x.fillText(String(v),RX-i*cwT-10-(i===0&&r.color?32:0),y))});y+=20}
   if(Q.rows.length||Q.note){y+=30;x.fillStyle='#111';x.font='800 32px '+F;x.textAlign='right';x.fillText('عرض السعر',RX,y+10);y+=56;
@@ -1932,6 +1936,9 @@ svgEl.addEventListener('pointermove',e=>{
   render();
 });
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>svgEl.addEventListener(ev,()=>{drag=null}));
+
+document.getElementById('tbl').addEventListener('click',e=>{const tr=e.target.closest('tr[data-pick]');if(!tr)return;
+  try{Object.assign(state[tab],JSON.parse(tr.dataset.pick));rebuildKeep();render();toast('تم اختيار القياس')}catch(err){}});
 
 restoreLast();
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
