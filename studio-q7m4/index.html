@@ -1212,8 +1212,9 @@ function drawWallTablo(s){
    const yt=cy-oh/2,yb=cy+oh/2;q+=R(-4,cy-ih/2-gap,2,ih+2*gap,M(s.tmat),LW*.5);if(fw>0){q+=R(-6,yt,4,fw,M(s.fmat),LW*.5)+R(-6,yb-fw,4,fw,M(s.fmat),LW*.5)}
    q+=L(-30,0,wt+5,0,INK,LW*1.2)+sdimV(yb,yt,-10-fs*.2,fmt(oh),fs)+(fw>0?sdimH(-6,0,yt-fs*.4,'بروز 4',fs):'');
    var insetsWT=[];}
-  if(!full)o+=legend(WW,S*.15,[[C_TAB,'التابلو'],[C_GAP,'الفاصل'],[C_FR,'الكادر'],[C_DIST,'البُعد عن الأطراف']],WW);
-  return{svg:o,insets:insetsWT,box:[-S*.12,WW+S*.12,Math.min(-WH,cy-oh/2-S*.08)-S*.06,S*.27],stats,tables,
+  const LG=[[C_TAB,'التابلو'],[C_GAP,'الفاصل'],[C_FR,'الكادر'],[C_DIST,'البُعد عن الأطراف']],tall=WW<WH*.75;
+  let lgL=0;if(!full){if(tall){const fsl=FS*.95;lgL=Math.max(...LG.map(([c,t])=>fsl*.85+fsl*.4+t.length*fsl*.64))+FS;o+=legend(-FS*.8,-WH+FS*2,LG,1)}else o+=legend(WW,S*.15,LG,WW)}
+  return{svg:o,insets:insetsWT,box:[-S*.08-lgL,WW+S*.12,Math.min(-WH,cy-oh/2-S*.08)-S*.03,full?S*.13:(tall?S*.13:S*.27)],stats,tables,
     note:(!full&&(+s.tW>iw||+s.tH>ih)?'صغّرتُ التابلو ليتسع بالحائط. ':'')+(moved?'التابلو وصل لحد الحائط. ':'')+(full?'':'اسحب التابلو بإيدك لتحركه.')};
 }
 
@@ -1350,11 +1351,30 @@ function drawJurn(s){
   var jurnCut=[{title:'قائمة القطع للمعمل',head:['القطعة','القياس','العدد'],rows:[{cells:['بلوك الجرن (للقص)',Ln+' × '+Wp+' × '+(H-bH)+' سم','1']},{cells:['الشكل',{round:'مدور',oval:'بيضوي',half:'نص دائرة',globe:'كروي'}[sh]+'، حافة '+rim+' سم','-']}].concat(hasBase?[{cells:['القاعدة',bW+' × '+bH+' سم','1']}]:[])}];
   if(hasBase)stats.push(['القاعدة',bW+' عرض × '+bH+' ارتفاع']);
 
-  {const [hd,hu]=hatch(),bt=Math.max(4,Math.round(H*.18)),cw=(globe?topW:Ln)/2-rim,cb=-bH-bt,fs=Math.max(4,S/16);
+  {const [hd,hu]=hatch(),bt=Math.max(2,Math.min(+s.bt||10,H-bH-5)),yT=-H,yCB=-(bH+bt),D=yCB-yT,wm=Math.min(+s.wm||0,D-1),fs=Math.max(4,S/16);
+   const bez=(a,b,c,d,t)=>(1-t)**3*a+3*(1-t)**2*t*b+3*(1-t)*t*t*c+t**3*d;
+   const P0=globe?[topW/2,yL]:[Ln/2,yL],P1=globe?[Ln*.56,yL+(yB-yL)*.1]:[Ln/2,yL+(yB-yL)*.62],P2=globe?[Ln*.54,yL+(yB-yL)*.8]:[footW/2+(Ln-footW)*.18,yB],P3=[footW/2,yB];
+   const smp=[];for(let k=0;k<=240;k++){const t=k/240;smp.push([bez(P0[0],P1[0],P2[0],P3[0],t),bez(P0[1],P1[1],P2[1],P3[1],t)])}
+   const hwOut=y=>{if(y<=yL)return (globe?topW:Ln)/2;if(y>=yB)return hasBase?Math.min(footW,bW)/2:footW/2;for(let k=1;k<smp.length;k++)if(smp[k][1]>=y){const [x0,y0]=smp[k-1],[x1,y1]=smp[k];return x0+(x1-x0)*(y-y0)/Math.max(1e-9,y1-y0)}return footW/2};
+   const A=(globe?topW:Ln)/2-rim,cav=s.cav||'rounded',rr=Math.min(D*.3,A*.4);
+   const hwIn=u=>{const y=yT+u,lim=hwOut(y)-rim;let w;
+     if(cav==='bowl'&&!globe)w=A*Math.sqrt(Math.max(0,1-(u/D)**2));
+     else{w=globe?lim:A;if(cav!=='straight'&&u>D-rr)w-=rr-Math.sqrt(Math.max(0,rr*rr-(u-(D-rr))**2))}
+     return Math.max(0,Math.min(w,lim))};
+   const kB=sh==='oval'?(Wp/2-rim)/A:sh==='half'?(Wp-2*rim)/A:1,area=w=>sh==='half'?Math.PI*w*w*kB/2:Math.PI*w*w*kB;
+   let vFull=0,vEff=0,maxIn=0;const N=300;for(let k=0;k<N;k++){const u=(k+.5)*D/N,w=hwIn(u),a=area(w)*D/N;vFull+=a;if(u>=wm)vEff+=a;maxIn=Math.max(maxIn,w)}
+   const pts=[];for(let k=0;k<=80;k++){const u=k*D/80;pts.push([hwIn(u),yT+u])}
+   const cavD='M'+pts.map(([x,y])=>f(-x)+' '+f(y)).join('L')+'L'+pts.slice().reverse().map(([x,y])=>f(x)+' '+f(y)).join('L')+'Z';
+   const wp=pts.filter(([x,y])=>y>=yT+wm);const watD=wp.length>1?'M'+wp.map(([x,y])=>f(-x)+' '+f(y)).join('L')+'L'+wp.slice().reverse().map(([x,y])=>f(x)+' '+f(y)).join('L')+'Z':'';
    let q=hd+P(body,hu,LW*.8)+R(-(globe?topW:Ln)/2,-H,globe?topW:Ln,lipH,hu,LW*.8);if(hasBase)q+=R(-bW/2,-bH,bW,bH,hu,LW*.8);
-   q+=P(`M${f(-cw)} ${f(-H)}C${f(-cw)} ${f((-H+cb)/2+(cb+H)*.25)} ${f(-cw*.55)} ${f(cb)} 0 ${f(cb)}C${f(cw*.55)} ${f(cb)} ${f(cw)} ${f((-H+cb)/2+(cb+H)*.25)} ${f(cw)} ${f(-H)}Z`,'rgba(80,150,200,.45)',LW*.8);
-   q+=L(-Ln/2-6,0,Ln/2+6,0,INK,LW*1.4)+sdimV(cb,-H,cw+fs*.6,'عمق '+Math.round(cb+H),fs)+sdimH(-cw,cw,-H-fs*.4,'فتحة '+Math.round(2*cw),fs);
-   var insetsJ=[{svg:q,box:[-Ln/2-8,Ln/2+fs*1.6,-H-fs*1.4,6],label:'مقطع من النص'}];}
+   q+=P(cavD,'#FFFFFF',LW*.8)+(watD?P(watD,'rgba(80,150,200,.45)',LW*.4):'')+(wm>0?L(-hwIn(wm),yT+wm,hwIn(wm),yT+wm,WATER,LW*1.2):'');
+   q+=L(-Ln/2-6,0,Ln/2+6,0,INK,LW*1.4)+sdimH(-A,A,-H-fs*.4,'فتحة '+Math.round(2*A),fs)+sdimV(yCB,yT,maxIn+fs*.8,'عمق '+Math.round(D),fs)+sdimV(-bH,yCB,fs*.9,'أرضية '+Math.round(bt),fs);
+   if(globe&&maxIn>A+1){const um=pts.reduce((b,p)=>p[0]>b[0]?p:b,[0,0]);q+=sdimH(-maxIn,maxIn,um[1]+fs*.2,'من جوّا '+Math.round(2*maxIn),fs)}
+   var insetsJ=[{svg:q,box:[-Ln/2-8,Ln/2+fs*2.2,-H-fs*1.4,6],label:'مقطع من النص'}];
+   const inDims=(sh==='round'||sh==='globe')?'Ø'+Math.round(2*A):Math.round(2*A)+' × '+Math.round(A*kB*(sh==='half'?1:2));
+   const cavN={straight:'مستقيم',rounded:'قعر مسطح بزوايا مدورة',bowl:'مقعّر'}[globe?'rounded':cav];
+   stats.push(['الحفر من جوّا','فتحة '+inDims+'، عمق '+Math.round(D)+' سم'],['سماكة الأرضية',fmt(bt)],['السعة الكاملة',(vFull/1000).toFixed(1)+' لتر'],['السعة الفعلية',(vEff/1000).toFixed(1)+' لتر (الماء '+wm+' سم تحت الحافة)']);
+   jurnCut[0].rows.push({cells:['الحفر من جوّا','فتحة '+inDims+'، عمق '+Math.round(D)+'، أرضية '+Math.round(bt)+' ('+cavN+')','-']});}
   return{svg:o,insets:insetsJ,tables:jurnCut,box:[-Ln/2-S*.14,Ln/2+S*.2,pTop-S*.13,S*(hasBase?.24:.15)],stats,
     note:((sh==='round'||sh==='globe')?'بالشكل المدور القطر هو الطول. ':'')+(hasBase&&+s.baseW>Ln?'القاعدة ما بتقدر تكون أعرض من الجرن. ':'')};
 }
@@ -1406,6 +1426,9 @@ const SCHEMAS={
     {id:'rimStyle',label:'الحافة',type:'seg',options:[['flat','عادية'],['round','مدورة سميكة'],['wavy','مموّجة']],val:'flat'},
     {id:'H',label:'الارتفاع',type:'range',min:20,max:70,step:1,val:30},
     {id:'rim',label:'سماكة الحافة',type:'range',min:3,max:10,step:.5,val:5},
+    {id:'bt',label:'سماكة الأرضية (القعر)',type:'range',min:2,max:30,step:1,val:10},
+    {id:'cav',label:'شكل الحفر من جوّا',type:'seg',options:[['rounded','قعر مسطح بزوايا مدورة'],['straight','مستقيم'],['bowl','مقعّر']],val:'rounded',show:s=>s.shape!=='globe'},
+    {id:'wm',label:'الماء تحت الحافة',type:'range',min:0,max:15,step:1,val:3},
     {id:'deco',label:'الزخرفة',type:'seg',options:[['none','بدون'],['petals','أوراق كبيرة'],['flute','تضليع'],['band','حزام محفور']],val:'none'},
     {id:'base',label:'القاعدة',type:'seg',options:[['none','بدون'],['plinth','مع قاعدة']],val:'none'},
     {id:'baseW',label:'عرض القاعدة',type:'range',min:10,max:100,step:1,val:30,show:s=>s.base==='plinth'},
