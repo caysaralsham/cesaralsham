@@ -208,8 +208,8 @@ input[type=range]{height:16px}
 .subh{margin:12px 2px 2px;font-size:.88rem;font-weight:800;color:var(--accent-deep)}
 
 .drawbox{position:relative}
-.drawscroll{overflow:auto;max-height:72vh;touch-action:pan-x pan-y}
-#draw{width:calc(var(--z,1)*100%);max-height:calc(var(--z,1)*68vh);margin:0 auto}
+.drawscroll{overflow:auto;max-height:var(--fitH,72vh);touch-action:pan-x pan-y}
+#draw{width:calc(var(--z,1)*100%);max-height:calc(var(--z,1)*var(--fitH,68vh));margin:0 auto}
 .zoomctl{position:absolute;bottom:8px;left:8px;display:flex;align-items:center;gap:2px;background:rgba(255,255,255,.94);border:1px solid #D8D2C6;border-radius:12px;padding:3px;box-shadow:0 2px 8px rgba(0,0,0,.12);direction:ltr;z-index:3}
 .zoomctl button{font:inherit;font-weight:800;border:0;background:transparent;color:#111;width:34px;height:32px;border-radius:9px;cursor:pointer;font-size:1.1rem}
 .zoomctl button:hover{background:#F2ECE0}
@@ -788,8 +788,8 @@ function drawWindow(s){
 
 /* ---------- fireplace ---------- */
 function drawFireplace(s){
-  const W=+s.W,H=+s.H,st=s.style,ov=+s.overH,kf=+s.kf,hT=4;
-  const ow=Math.min(+s.ow,W-2*kf-30),oh=Math.min(+s.oh,H-kf-25),Ht=H+ov,S=Math.max(W+40,Ht);setScale(S);
+  const W=+s.W,H=+s.H,st=s.style,ov=+s.overH,kf=+s.kf,kb=Math.max(4,+s.kb||kf),hT=4;
+  const ow=Math.min(+s.ow,W-2*kf-30),oh=Math.min(+s.oh,H-kf-kb-20),Ht=H+ov,S=Math.max(W+40,Ht);setScale(S);
   const m=M(s.mat),m2=M(s.mat2),m3=M(s.mat3);let o='';
   if(ov>0){const pw=st==='modern'?W:W-40;o+=R(-pw/2,-Ht,pw,ov,m);if(st!=='modern')o+=R(-pw/2+12,-Ht+12,pw-24,ov-24,'none',LW*.6);else o+=L(0,-Ht,0,-H,'rgba(30,25,20,.35)',LW*.6)}
   if(st==='stepped'){
@@ -805,24 +805,24 @@ function drawFireplace(s){
     o+=R(-W/2,-H,W,9,m)+R(-bw/2+7,-12,bw-14,12,m);
   }
   // fire opening frame on 4 sides (kf), opening sits on the bottom frame
-  o+=R(-ow/2-kf,-(oh+kf*2),ow+2*kf,oh+kf*2,m3)+R(-ow/2,-(oh+kf),ow,oh,'#2A2422');
+  o+=R(-ow/2-kf,-(oh+kf+kb),ow+2*kf,oh+kf+kb,m3)+R(-ow/2,-(oh+kb),ow,oh,'#2A2422');
   if(+s.fire){
-    const b=-kf;o+=R(-ow*.3,b-7,ow*.6,7,'#5A3A26')+R(-ow*.22,b-13,ow*.44,6,'#6B4630');
+    const b=-kb;o+=R(-ow*.3,b-7,ow*.6,7,'#5A3A26')+R(-ow*.22,b-13,ow*.44,6,'#6B4630');
     const fh=Math.min(oh*.55,40);
     for(const [x,h,c] of [[-ow*.12,fh*.8,'#E0782F'],[0,fh,'#F0A03A'],[ow*.12,fh*.7,'#E0782F'],[0,fh*.55,'#F7D36A']])
       o+=`<path d="M${f(x-ow*.08)} ${f(b-13)}Q${f(x-ow*.09)} ${f(b-13-h*.5)} ${f(x)} ${f(b-13-h)}Q${f(x+ow*.09)} ${f(b-13-h*.5)} ${f(x+ow*.08)} ${f(b-13)}Z" fill="${c}" opacity=".9"/>`;
   }
   o+=R(-W/2,0,W,hT,m2);
-  o+=dimH(-W/2,W/2,hT+S*.08,fmt(W))+dimH(-ow/2,ow/2,-(oh+kf)-FS*.5,'فتحة '+fmt(ow))+dimV(-kf,-(oh+kf),-ow/2+FS*1.2,fmt(oh))+dimV(0,-kf,ow/2+kf+FS*.9,'كادر '+kf);
+  o+=dimH(-W/2,W/2,hT+S*.08,fmt(W))+dimH(-ow/2,ow/2,-(oh+kb)-FS*.5,'فتحة '+fmt(ow))+dimV(-kb,-(oh+kb),-ow/2+FS*1.2,fmt(oh))+dimV(0,-kb,ow/2+kf+FS*.9,'تحت النار '+kb);
   o+=dimV(0,-H,W/2+S*.06,fmt(H))+(ov>0?dimV(0,-Ht,W/2+S*.13,'الكامل '+fmt(Ht)):'');
-  const stats=[['الارتفاع الكامل',fmt(Ht)],['العرض',fmt(W)],['فتحة النار',ow+' × '+oh+' سم'],['كادر فتحة النار','عرض '+kf+' سم من 4 جهات'],['العتبة','بعرض الشمينيه '+fmt(W)]];
+  const stats=[['الارتفاع الكامل',fmt(Ht)],['العرض',fmt(W)],['فتحة النار',ow+' × '+oh+' سم'],['كادر فتحة النار','جوانب وفوق '+kf+' سم، تحت النار '+kb+' سم'],['العتبة','بعرض الشمينيه '+fmt(W)]];
   const [hd,hu]=hatch(),fs=Math.max(5,Ht/14);let q=hd;
-  q+=R(0,-Ht-20,25,Ht+20,'#D8D2C6',LW*.8)+R(-25,-H+9,25,H-9,hu,LW*.8)+R(-32,-H,32,9,hu,LW*.8)+R(-45,0,45,hT,M(s.mat2),LW*.8)+R(-25,-(oh+kf),25+20,oh,'#2A2422',LW*.6);
+  q+=R(0,-Ht-20,25,Ht+20,'#D8D2C6',LW*.8)+R(-25,-H+9,25,H-9,hu,LW*.8)+R(-32,-H,32,9,hu,LW*.8)+R(-45,0,45,hT,M(s.mat2),LW*.8)+R(-25,-(oh+kb),25+20,oh,'#2A2422',LW*.6);
   if(ov>0)q+=R(-6,-Ht,6,ov,hu,LW*.8);
   q+=L(-60,hT,30,hT,INK,LW*1.4)+sdimH(-32,0,-H-fs*.5,'الرف 32',fs)+sdimH(-45,0,hT+fs*1.1,'العتبة 45',fs)+sdimH(-25,0,-H/2,'25',fs);
   const insetsF=[{svg:q,box:[-62,32,-Ht-24-fs,hT+fs*1.6],label:'مقطع جانبي (تقريبي)'}];
   const cut=[{cells:['العتبة','طول '+W,'سماكة '+hT,'1']},{cells:['الرف','طول '+(st==='stepped'?W-10:W),'سماكة '+(st==='modern'?'-':(st==='stepped'?10:9)),'1']},
-    {cells:['كادر النار (فوق وتحت)','طول '+(ow+2*kf),'عرض '+kf,'2']},{cells:['كادر النار (جوانب)','طول '+oh,'عرض '+kf,'2']},
+    {cells:['كادر النار (فوق)','طول '+(ow+2*kf),'عرض '+kf,'1']},{cells:['رخام تحت النار','طول '+(ow+2*kf),'ارتفاع '+kb,'1']},{cells:['كادر النار (جوانب)','طول '+oh,'عرض '+kf,'2']},
     {cells:['الجسم','عرض '+(st==='modern'?W:W-20),'ارتفاع '+(st==='modern'?H:H-9),'1']}];
   if(ov>0)cut.push({cells:['لوح فوق الرف','عرض '+(st==='modern'?W:W-40),'ارتفاع '+ov,'1']});
   const tables=[{title:'قائمة القطع للمعمل',head:['القطعة','القياس 1','القياس 2','العدد'],rows:cut}];
@@ -1056,14 +1056,15 @@ function keyBand(len,h,col){
   return `<path d="${d}" fill="none" stroke="${col}" stroke-width="${f(sw)}" stroke-linejoin="miter"/>`;
 }
 function drawFloor(s){
-  const RW=+s.RW,RL=+s.RL,b=+s.border?+s.bw:0,free=s.tile==='free',pat=free?'free':s.pat,[tw,th]=tileWH(s);
+  const clad=+s.clad,RW=+s.RW,RL=+s.RL,b=+s.border?+s.bw:0,free=s.tile==='free',pat=free?'free':s.pat,[tw,th]=tileWH(s);
   const S=Math.max(RW,RL)+30;setScale(S);
   const A=M(s.mat),A2=M(s.mat2),J='rgba(30,25,20,.5)',jw=LW*.55,tab=tabloGeom(s,RW,RL,b),bst=s.bstyle;
   let o=R(-15,-15,RW+30,RL+30,'#3A3F44');
   o+=`<rect x="0" y="0" width="${RW}" height="${RL}" fill="${b&&bst==='plain'?M(s.bmat):A}"/>`;
   const fx=b,fy=b,fw=RW-2*b,fl=RL-2*b,cx=RW/2,cy=RL/2,offset=pat==='offset';
   let g='',tiles=null;const tile=(x,y,w,h,fill)=>{g+=`<rect x="${f(x)}" y="${f(y)}" width="${f(w)}" height="${f(h)}" fill="${fill}" stroke="${J}" stroke-width="${f(jw)}"/>`};
-  if(free){
+  if(!clad){}
+  else if(free){
     const W=+s.fwid,mn=Math.min(+s.fmin,+s.fmax),mx=Math.max(+s.fmin,+s.fmax),rnd=seeded(97);
     for(let y=fy,j=0;y<fy+fl;y+=W,j++){let x=fx-rnd()*mn;while(x<fx+fw){const l=Math.round(mn+rnd()*(mx-mn));tile(x,y,l,W,A);x+=l}}
   }else if(pat==='diag'){
@@ -1114,7 +1115,8 @@ function drawFloor(s){
   if(b)stats.push(['البردورة',(2*(RW+RL-2*b)/100).toFixed(2)+' م.ط ('+((RW*RL-fw*fl)/1e4).toFixed(2)+' م²)']);
   const tables=[];let note='';
   if(tab)tables.push(stripTable(tab.iw,tab.ih,tab.sh,tab.fw,tab.gap,+s.stripL||200));
-  if(free){
+  if(!clad){note='';}
+  else if(free){
     const W=+s.fwid,ml=fieldCm/W/100;
     tables.push({title:'رخام بطول مفتوح',head:['عرض الشريحة','الأطوال','المتر الطولي','الكمية'],rows:[{sel:true,cells:[W+' سم',Math.min(+s.fmin,+s.fmax)+' لـ '+Math.max(+s.fmin,+s.fmax)+' سم',ml.toFixed(1)+' م.ط',field.toFixed(2)+' م²']}]});
     note='بالطول المفتوح الحساب بالمتر الطولي والمتر المربع، والأطوال بالرسم توضيحية.';
@@ -1501,7 +1503,8 @@ const SCHEMAS={
     {id:'H',label:'ارتفاع الرف',type:'range',min:60,max:200,step:1,val:120},
     {id:'ow',label:'عرض فتحة النار',type:'range',min:30,max:200,step:1,val:90},
     {id:'oh',label:'ارتفاع فتحة النار',type:'range',min:30,max:150,step:1,val:70},
-    {id:'kf',label:'كادر فتحة النار (4 جهات)',type:'range',min:5,max:20,step:1,val:5},
+    {id:'kf',label:'كادر فتحة النار (جوانب وفوق)',type:'range',min:5,max:20,step:1,val:5},
+    {id:'kb',label:'رخام تحت النار (رفع النار)',type:'range',min:4,max:25,step:1,val:5},
     {id:'overH',label:'لوح فوق الرف',type:'range',min:0,max:150,step:1,val:0},
     {id:'fire',label:'إظهار النار',type:'seg',options:YN,val:1},
     {id:'mat',label:'المادة الأساسية',type:'mat',val:'beigeL'},
@@ -1512,16 +1515,17 @@ const SCHEMAS={
     {id:'RW',label:'عرض الغرفة',type:'range',min:50,max:1500,step:1,val:500},
     {id:'RL',label:'طول الغرفة',type:'range',min:50,max:1500,step:1,val:600},
     head('البلاط'),
-    {id:'tile',label:'قياس البلاطة',type:'seg',options:[['30','30×30'],['40','40×40'],['60','60×60'],['80','80×80'],['30x60','30×60'],['60x120','60×120'],['custom','مقاس آخر'],['free','طول مفتوح']],val:'60'},
-    {id:'cw1',label:'عرض البلاطة',type:'range',min:10,max:150,step:1,val:40,show:s=>s.tile==='custom'},
-    {id:'cl1',label:'طول البلاطة',type:'range',min:10,max:200,step:1,val:80,show:s=>s.tile==='custom'},
-    {id:'fwid',label:'عرض الشريحة',type:'range',min:10,max:100,step:1,val:40,show:s=>s.tile==='free'},
-    {id:'fmin',label:'أقصر قطعة',type:'range',min:20,max:200,step:5,val:40,show:s=>s.tile==='free'},
-    {id:'fmax',label:'أطول قطعة',type:'range',min:30,max:300,step:5,val:120,show:s=>s.tile==='free'},
-    {id:'dir',label:'اتجاه البلاط',type:'seg',options:[['h','الطول مع عرض الغرفة'],['v','الطول مع طول الغرفة']],val:'h',show:s=>['30x60','60x120','custom'].includes(s.tile)},
-    {id:'pat',label:'طريقة التركيب',type:'seg',options:[['straight','مستقيم'],['offset','متناوب'],['chess','شطرنج'],['diag','قطري']],val:'straight',show:s=>s.tile!=='free'},
-    {id:'mat',label:'مادة البلاط',type:'mat',val:'beigeL'},
-    {id:'mat2',label:'اللون الثاني للشطرنج',type:'mat',val:'brown',show:s=>s.pat==='chess'&&s.tile!=='free'},
+    {id:'clad',label:'بلاط حوالين التابلو',type:'seg',options:[[0,'بدون'],[1,'مع بلاط']],val:0},
+    {id:'tile',label:'قياس البلاطة',type:'seg',options:[['30','30×30'],['40','40×40'],['60','60×60'],['80','80×80'],['30x60','30×60'],['60x120','60×120'],['custom','مقاس آخر'],['free','طول مفتوح']],val:'60',show:s=>+s.clad},
+    {id:'cw1',label:'عرض البلاطة',type:'range',min:10,max:150,step:1,val:40,show:s=>+s.clad&&(s.tile==='custom')},
+    {id:'cl1',label:'طول البلاطة',type:'range',min:10,max:200,step:1,val:80,show:s=>+s.clad&&(s.tile==='custom')},
+    {id:'fwid',label:'عرض الشريحة',type:'range',min:10,max:100,step:1,val:40,show:s=>+s.clad&&(s.tile==='free')},
+    {id:'fmin',label:'أقصر قطعة',type:'range',min:20,max:200,step:5,val:40,show:s=>+s.clad&&(s.tile==='free')},
+    {id:'fmax',label:'أطول قطعة',type:'range',min:30,max:300,step:5,val:120,show:s=>+s.clad&&(s.tile==='free')},
+    {id:'dir',label:'اتجاه البلاط',type:'seg',options:[['h','الطول مع عرض الغرفة'],['v','الطول مع طول الغرفة']],val:'h',show:s=>+s.clad&&(['30x60','60x120','custom'].includes(s.tile))},
+    {id:'pat',label:'طريقة التركيب',type:'seg',options:[['straight','مستقيم'],['offset','متناوب'],['chess','شطرنج'],['diag','قطري']],val:'straight',show:s=>+s.clad&&(s.tile!=='free')},
+    {id:'mat',label:'مادة الأرضية',type:'mat',val:'beigeL'},
+    {id:'mat2',label:'اللون الثاني للشطرنج',type:'mat',val:'brown',show:s=>+s.clad&&(s.pat==='chess'&&s.tile!=='free')},
     head('التابلو'),
     {id:'tablo',label:'تابلو بالأرض',type:'seg',options:YN,val:1},
     {id:'tshape',label:'شكل التابلو',type:'seg',options:[['rect','مستطيل أو مربع'],['oval','بيضاوي أو مدور'],['oct','مثمن']],val:'rect',show:s=>+s.tablo},
@@ -1678,7 +1682,7 @@ function render(){
   document.getElementById('stats').innerHTML=r.stats.map(([k,v])=>`<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
   document.getElementById('note').textContent=r.note||'';
   if(typeof autosave==='function')autosave();
-  if(typeof updateStick==='function')requestAnimationFrame(updateStick);
+  if(typeof layoutStage==='function')requestAnimationFrame(layoutStage);
   const tb=document.getElementById('tbl'),tbs=r.tables||(r.table?[r.table]:[]);
   tb.innerHTML=tbs.map(t=>`<p class="tt">${t.title}</p><div class="tw"><table><thead><tr>${t.head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${t.rows.map(rw=>`<tr class="${rw.sel?'sel ':''}${rw.pick?'pick':''}"${rw.pick?` data-pick='${JSON.stringify(rw.pick)}'`:''}>${rw.cells.map((c,i)=>`<td>${i===0&&rw.color?`<span class="cs" style="background:${rw.color}"></span>`:''}${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`).join('');
 }
@@ -2006,8 +2010,14 @@ svgEl.addEventListener('pointermove',e=>{
 document.getElementById('tbl').addEventListener('click',e=>{const tr=e.target.closest('tr[data-pick]');if(!tr)return;
   try{Object.assign(state[tab],JSON.parse(tr.dataset.pick));rebuildKeep();render();toast('تم اختيار القياس')}catch(err){}});
 
-function updateStick(){const st=document.getElementById('stage');if(!st)return;st.classList.remove('nostick');const top=window.innerWidth<=860?42:46;st.classList.toggle('nostick',st.offsetHeight>window.innerHeight-top-10)}
-document.getElementById('detBox').addEventListener('toggle',updateStick);window.addEventListener('resize',updateStick);
+function fitDraw(){const st=document.getElementById('stage'),sc=document.getElementById('drawScroll'),db=document.getElementById('detBox');if(!st||!sc)return;
+  const mob=window.innerWidth<=860,top=mob?42:46,sum=db.querySelector('summary');
+  const other=st.offsetHeight-sc.offsetHeight-(db.open?db.offsetHeight-(sum?sum.offsetHeight:0):0);
+  let avail=window.innerHeight-top-other-14;if(mob)avail=Math.min(avail,window.innerHeight*.48);avail=Math.max(260,Math.round(avail));
+  document.documentElement.style.setProperty('--fitH',avail+'px')}
+function updateStick(){const st=document.getElementById('stage');if(!st)return;st.classList.remove('nostick');const top=window.innerWidth<=860?42:46;st.classList.toggle('nostick',st.offsetHeight>window.innerHeight-top-6)}
+function layoutStage(){fitDraw();requestAnimationFrame(updateStick)}
+document.getElementById('detBox').addEventListener('toggle',()=>{layoutStage();const db=document.getElementById('detBox');if(db.open)setTimeout(()=>window.scrollTo({top:db.getBoundingClientRect().top+window.scrollY-60,behavior:'smooth'}),80)});window.addEventListener('resize',layoutStage);
 
 /* ---------- zoom ---------- */
 let zoom=1;const ZMIN=.5,ZMAX=4;
