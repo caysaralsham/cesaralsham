@@ -214,6 +214,7 @@ input[type=range]{height:16px}
 .zoomctl button{font:inherit;font-weight:800;border:0;background:transparent;color:#111;width:34px;height:32px;border-radius:9px;cursor:pointer;font-size:1.1rem}
 .zoomctl button:hover{background:#F2ECE0}
 .zoomctl .zlab{width:auto;min-width:52px;font-size:.8rem;color:#6B655B}
+#draw,#insets svg{direction:ltr}
 </style>
 </head>
 <body>
@@ -239,7 +240,7 @@ input[type=range]{height:16px}
     <div class="sheet">
       <div class="frame">
         <div class="ttl"><b id="tCompany"></b><span id="tProject"></span></div>
-        <div class="drawwrap"><div class="drawbox"><div class="drawscroll" id="drawScroll"><svg id="draw" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="الرسم"></svg></div><div class="zoomctl" role="group" aria-label="تكبير الرسم"><button type="button" id="zOut" aria-label="تصغير">−</button><button type="button" id="zFit" class="zlab" aria-label="الحجم الأصلي">100%</button><button type="button" id="zIn" aria-label="تكبير">+</button></div></div>
+        <div class="drawwrap"><div class="drawbox"><div class="drawscroll" id="drawScroll"><svg id="draw" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="الرسم" direction="ltr"></svg></div><div class="zoomctl" role="group" aria-label="تكبير الرسم"><button type="button" id="zOut" aria-label="تصغير">−</button><button type="button" id="zFit" class="zlab" aria-label="الحجم الأصلي">100%</button><button type="button" id="zIn" aria-label="تكبير">+</button></div></div>
           <div class="insets" id="insets"></div></div>
         <details class="detbox" id="detBox"><summary>النتائج والجداول</summary>
         <p class="note" id="note"></p>
@@ -334,7 +335,7 @@ function dimV(y1,y2,x,label,col=DIM){
 }
 const C_TAB='#1F6FB2',C_FR='#A0640C',C_GAP='#2E7D4F',C_DIST=DIM;
 function legend(x,y,items,maxW){
-  const fs=FS*.85,sq=fs*.85,gap=fs*1.7,wOf=t=>sq+fs*.4+t.length*fs*.64;
+  const fs=FS*.95,sq=fs*.85,gap=fs*1.7,wOf=t=>sq+fs*.4+t.length*fs*.64;
   const total=items.reduce((a,[c,t])=>a+wOf(t),0)+gap*(items.length-1);
   const cols=!maxW||total<=maxW?items.length:(items.length>2&&maxW>=Math.max(...items.map(([c,t])=>wOf(t)))*2+gap?2:1);
   const colW=cols===items.length?null:(cols===2?maxW/2:maxW);
@@ -1673,7 +1674,7 @@ function render(){
   svg.setAttribute('aria-label','رسم '+SCHEMAS[tab].title);
   svg.innerHTML=`<defs>${PATTERNS}</defs>${ground}${r.svg}`;
   const ins=r.insets||(r.inset?[r.inset]:[]);r.insets=ins;
-  document.getElementById('insets').innerHTML=ins.map((q,k)=>{const [a0,a1,b0,b1]=q.box;return `<div class="inset"><span>${q.label}</span><svg id="inset${k}" xmlns="http://www.w3.org/2000/svg" viewBox="${f(a0)} ${f(b0)} ${f(a1-a0)} ${f(b1-b0)}"><defs>${PATTERNS}</defs>${q.svg}</svg></div>`}).join('');
+  document.getElementById('insets').innerHTML=ins.map((q,k)=>{const [a0,a1,b0,b1]=q.box;return `<div class="inset"><span>${q.label}</span><svg id="inset${k}" xmlns="http://www.w3.org/2000/svg" direction="ltr" viewBox="${f(a0)} ${f(b0)} ${f(a1-a0)} ${f(b1-b0)}"><defs>${PATTERNS}</defs>${q.svg}</svg></div>`}).join('');
   document.getElementById('stats').innerHTML=r.stats.map(([k,v])=>`<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
   document.getElementById('note').textContent=r.note||'';
   if(typeof autosave==='function')autosave();
