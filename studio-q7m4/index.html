@@ -273,7 +273,7 @@ input[type=range]{height:16px}
     <label>ملاحظات<textarea id="qNote" rows="2"></textarea></label>
     <div class="qtot">المجموع: <b id="qTot">0</b> دج</div>
   </details>
-  <label id="cProjW" hidden>اسم المشروع <span class="req">*</span><input id="cProj" autocomplete="off" placeholder="مثلاً: نافورة فيلا فادي"><small>بينحفظ ملف على جهازك فيه الرسمة (مع التفاصيل، وبدونها، ونسخة المعمل) والزبون وعرض السعر، وبتفتحه بعدين بمرسم أو بميراكوس.</small></label>
+  <label id="cProjW" hidden>اسم المشروع <span class="req">*</span><input id="cProj" autocomplete="off" placeholder="مثلاً: نافورة فيلا فادي"><small>بينحفظ ملف على جهازك فيه الرسمة (صافية، ومع التفاصيل، وبدونها، ونسخة المعمل) والزبون وعرض السعر، وبتفتحه بعدين بمرسم أو بميراكوس.</small></label>
   <div id="cFmtW"><span class="clbl">نوع الملف</span><div class="seg" id="cFmt"><button data-f="png" aria-pressed="true">صورة</button><button data-f="pdf" aria-pressed="false">PDF للطباعة</button></div></div>
   <div id="cModeW"><span class="clbl">شو تحط بالصورة؟</span><div class="seg" id="cMode"><button data-m="full" aria-pressed="true">الرسم مع كل التفاصيل</button><button data-m="dims" aria-pressed="false">الرسم مع القياسات بس</button><button data-m="clean" aria-pressed="false">الرسم بس</button><button data-m="shop" aria-pressed="false">نسخة المعمل</button></div></div>
   <p class="ferr" id="cErr" role="alert"></p>
@@ -1850,11 +1850,15 @@ async function saveAny(blob){
 
 /* ---------- project files & autosave ---------- */
 async function saveProjectFile(pn){
+  const pure=await (async()=>{const svg=$('draw'),vb=svg.viewBox.baseVal;let w=1600,h=Math.round(w*vb.height/vb.width);if(h>2000){h=2000;w=Math.round(h*vb.width/vb.height)}
+    const cl=svg.cloneNode(true);cl.setAttribute('width',w*1.5);cl.setAttribute('height',h*1.5);
+    const im=await new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(cl))});
+    const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.imageSmoothingQuality='high';x.drawImage(im,0,0,w,h);return c.toDataURL('image/jpeg',.9)})();
   const full=await makePNG({mode:'full',sc:1,dataUrl:true}),clean=await makePNG({mode:'clean',sc:1,dataUrl:true}),shop=await makePNG({mode:'shop',sc:1,dataUrl:true}),Q=quoteData();
   const data={app:'mirsam-decor',version:1,name:pn,date:today(),savedAt:new Date().toISOString(),tab,title:SCHEMAS[tab].title,
     customer:{...cust},quote:{rows:Q.rows.map(r=>({desc:r.d||'',qty:num(r.q||1),unit:r.u||'',price:num(r.p)})),note:Q.note,total:Q.total},
     stats:(lastR&&lastR.stats)||[],tables:((lastR&&lastR.tables)||[]).map(t=>({title:t.title,head:t.head,rows:t.rows.map(r=>r.cells)})),
-    images:{withDetails:full,drawingOnly:clean,workshop:shop},state:{...state[tab]}};
+    images:{pure,withDetails:full,drawingOnly:clean,workshop:shop},state:{...state[tab]}};
   const blob=new Blob([JSON.stringify(data)],{type:'application/json'}),name=(pn.replace(/[\\/:*?"<>|]/g,'-'))+'.mirsam.json';
   if(typeof dl!=='undefined'&&dl){try{await dl.save({filename:name,data:blob});toast('انحفظ ملف المشروع');return}catch(e){}}
   const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);toast('انحفظ ملف المشروع: '+name);
