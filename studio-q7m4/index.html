@@ -206,6 +206,14 @@ input[type=range]{height:16px}
 #cliModal .seg button{font-size:.78rem;padding:4px 10px}
 @media (max-width:600px){.crow{grid-template-columns:1fr}}
 .subh{margin:12px 2px 2px;font-size:.88rem;font-weight:800;color:var(--accent-deep)}
+
+.drawbox{position:relative}
+.drawscroll{overflow:auto;max-height:72vh;touch-action:pan-x pan-y}
+#draw{width:calc(var(--z,1)*100%);max-height:calc(var(--z,1)*68vh);margin:0 auto}
+.zoomctl{position:absolute;bottom:8px;left:8px;display:flex;align-items:center;gap:2px;background:rgba(255,255,255,.94);border:1px solid #D8D2C6;border-radius:12px;padding:3px;box-shadow:0 2px 8px rgba(0,0,0,.12);direction:ltr;z-index:3}
+.zoomctl button{font:inherit;font-weight:800;border:0;background:transparent;color:#111;width:34px;height:32px;border-radius:9px;cursor:pointer;font-size:1.1rem}
+.zoomctl button:hover{background:#F2ECE0}
+.zoomctl .zlab{width:auto;min-width:52px;font-size:.8rem;color:#6B655B}
 </style>
 </head>
 <body>
@@ -231,7 +239,7 @@ input[type=range]{height:16px}
     <div class="sheet">
       <div class="frame">
         <div class="ttl"><b id="tCompany"></b><span id="tProject"></span></div>
-        <div class="drawwrap"><svg id="draw" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="الرسم"></svg>
+        <div class="drawwrap"><div class="drawbox"><div class="drawscroll" id="drawScroll"><svg id="draw" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="الرسم"></svg></div><div class="zoomctl" role="group" aria-label="تكبير الرسم"><button type="button" id="zOut" aria-label="تصغير">−</button><button type="button" id="zFit" class="zlab" aria-label="الحجم الأصلي">100%</button><button type="button" id="zIn" aria-label="تكبير">+</button></div></div>
           <div class="insets" id="insets"></div></div>
         <details class="detbox" id="detBox"><summary>النتائج والجداول</summary>
         <p class="note" id="note"></p>
@@ -1981,6 +1989,22 @@ document.getElementById('tbl').addEventListener('click',e=>{const tr=e.target.cl
 
 function updateStick(){const st=document.getElementById('stage');if(!st)return;st.classList.remove('nostick');const top=window.innerWidth<=860?42:46;st.classList.toggle('nostick',st.offsetHeight>window.innerHeight-top-10)}
 document.getElementById('detBox').addEventListener('toggle',updateStick);window.addEventListener('resize',updateStick);
+
+/* ---------- zoom ---------- */
+let zoom=1;const ZMIN=.5,ZMAX=4;
+function setZoom(z,keepCenter=true){const sc=document.getElementById('drawScroll'),old=zoom;zoom=Math.max(ZMIN,Math.min(ZMAX,Math.round(z*100)/100));
+  const cx=(sc.scrollLeft+sc.clientWidth/2)/Math.max(1,sc.scrollWidth),cy=(sc.scrollTop+sc.clientHeight/2)/Math.max(1,sc.scrollHeight);
+  document.getElementById('draw').style.setProperty('--z',zoom);document.getElementById('zFit').textContent=Math.round(zoom*100)+'%';
+  if(keepCenter)requestAnimationFrame(()=>{sc.scrollLeft=cx*sc.scrollWidth-sc.clientWidth/2;sc.scrollTop=cy*sc.scrollHeight-sc.clientHeight/2});
+  if(typeof updateStick==='function')requestAnimationFrame(updateStick)}
+document.getElementById('zIn').onclick=()=>setZoom(zoom*1.25);
+document.getElementById('zOut').onclick=()=>setZoom(zoom/1.25);
+document.getElementById('zFit').onclick=()=>setZoom(1);
+document.getElementById('drawScroll').addEventListener('wheel',e=>{if(!e.ctrlKey&&!e.metaKey)return;e.preventDefault();setZoom(zoom*(e.deltaY<0?1.12:1/1.12))},{passive:false});
+(()=>{let p0=null;const sc=document.getElementById('drawScroll');const pts=new Map();
+  sc.addEventListener('pointerdown',e=>{pts.set(e.pointerId,e);if(pts.size===2){const [a,b]=[...pts.values()];p0={d:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY),z:zoom}}});
+  sc.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,e);if(pts.size===2&&p0){const [a,b]=[...pts.values()];setZoom(p0.z*Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)/p0.d)}});
+  const up=e=>{pts.delete(e.pointerId);if(pts.size<2)p0=null};['pointerup','pointercancel','pointerleave'].forEach(t=>sc.addEventListener(t,up));})();
 
 restoreLast();
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
