@@ -333,7 +333,21 @@ function dimV(y1,y2,x,label,col=DIM){
   `<text transform="translate(${f(x-FS*.45)} ${f(mid)}) rotate(-90)" text-anchor="middle" font-size="${f(FS)}" font-weight="700" fill="${col}" stroke="#fff" stroke-width="${f(FS*.22)}" paint-order="stroke" stroke-linejoin="round" font-family="Cairo,Tahoma,sans-serif">${label}</text></g>`;
 }
 const C_TAB='#1F6FB2',C_FR='#A0640C',C_GAP='#2E7D4F',C_DIST=DIM;
-function legend(x,y,items){let o='<g class="dim">',xx=x;for(const [c,t] of items){o+=`<rect x="${f(xx-FS*.8)}" y="${f(y-FS*.7)}" width="${f(FS*.8)}" height="${f(FS*.8)}" fill="${c}"/>`+T(xx-FS*1.1,y,t,FS*.8,'end',c);xx-=FS*(1.6+t.length*.55)}return o+'</g>'}
+function legend(x,y,items,maxW){
+  const fs=FS*.85,sq=fs*.85,gap=fs*1.7,wOf=t=>sq+fs*.4+t.length*fs*.64;
+  const total=items.reduce((a,[c,t])=>a+wOf(t),0)+gap*(items.length-1);
+  const cols=!maxW||total<=maxW?items.length:(items.length>2&&maxW>=Math.max(...items.map(([c,t])=>wOf(t)))*2+gap?2:1);
+  const colW=cols===items.length?null:(cols===2?maxW/2:maxW);
+  let o='<g class="dim">',xx=x,row=0,k=0;
+  for(const [c,t] of items){
+    let ix,iy=y+row*fs*1.45;
+    if(colW===null){ix=xx;xx-=wOf(t)+gap}else{ix=x-(k%cols)*colW;if(k%cols===cols-1)row++}
+    if(colW!==null&&k%cols!==cols-1)iy=y+row*fs*1.45;
+    o+=`<rect x="${f(ix-sq)}" y="${f(iy-sq*.85)}" width="${f(sq)}" height="${f(sq)}" rx="${f(sq*.15)}" fill="${c}"/>`+`<text x="${f(ix-sq-fs*.3)}" y="${f(iy)}" text-anchor="end" font-size="${f(fs)}" font-weight="700" fill="${c}" font-family="Cairo,Tahoma,sans-serif">${t}</text>`;
+    k++;
+  }
+  return o+'</g>';
+}
 function shapePath(cx,w,top,bottom,type){
   const x1=cx-w/2,x2=cx+w/2,h=bottom-top;
   if(type==='arch'){const r=Math.min(w/2,h*.95),sp=top+r;return `M${f(x1)} ${f(bottom)}L${f(x1)} ${f(sp)}A${f(w/2)} ${f(r)} 0 0 1 ${f(x2)} ${f(sp)}L${f(x2)} ${f(bottom)}Z`}
@@ -653,7 +667,7 @@ function drawFacade(s){
   const xr=W+S*.03;for(let k=0;k<F;k++)o+=dimV(-k*FH,-(k+1)*FH,xr,fmt(FH));if(ch)o+=dimV(-H,-Ht,xr,fmt(ch));if(roofH)o+=dimV(-Ht,-Ht-roofH,xr,fmt(roofH));
   FS=FS0;
   o+=dimH(0,W,S*.115,'العرض '+fmt(W))+dimV(0,-Ht-roofH,xmax+S*.11,'الارتفاع '+fmt(Ht+roofH));
-  o+=legend(W,S*(fence?.215:.16),[[C_TAB,'الشبابيك'],[C_GAP,'ارتفاع الجلسة'],[C_FR,'الباب'],[C_DIST,'المسافات']]);
+  o+=legend(W,S*(fence?.215:.16),[[C_TAB,'الشبابيك'],[C_GAP,'ارتفاع الجلسة'],[C_FR,'الباب'],[C_DIST,'المسافات']],W);
   const tot=W*H/1e4,op=open/1e4;
   const stats=[['مساحة الواجهة',tot.toFixed(1)+' م²'],['مساحة الفتحات',op.toFixed(1)+' م²'],['تغليف الواجهة تقريباً',(tot-op).toFixed(1)+' م²'],['عدد الشبابيك',count]];
   const fcut=[{cells:['حلق شباك',ww+' × '+wh+' (حلق 12)',count+'']},{cells:['عتبة شباك','طول '+(ww+40)+'، سماكة 9',count+'']}];
@@ -666,7 +680,7 @@ function drawFacade(s){
   var facCut=[{title:'قائمة القطع للمعمل',head:['القطعة','القياس','العدد'],rows:fcut}];
   if(fence)fcut.push({cells:['طربوش السور','طول كلي '+Math.round(coping)+' سم','-']},{cells:['عمود السور','عرض '+(+s.pW)+'، ارتفاع '+(+s.fH+30),pcount+'']});
   if(fence)stats.push(['تلبيس السور (وجه واحد)',(fenceArea/1e4).toFixed(1)+' م²'],['طربوش السور',(coping/100).toFixed(1)+' م.ط'],['أعمدة السور',pcount]);
-  return{svg:o,tables:facCut,box:[xmin-S*(fence?.12:.05),xmax+S*.17,-Ht-roofH-S*.05,S*(fence?.24:.19)],stats,
+  return{svg:o,tables:facCut,box:[xmin-S*(fence?.12:.05),xmax+S*.17,-Ht-roofH-S*.05,S*(fence?.29:.25)],stats,
     note:(+s.ww>ww||+s.wh>wh)?'صغّرتُ الشبابيك لتتسع في الواجهة.':''};
 }
 
@@ -1081,7 +1095,7 @@ function drawFloor(s){
     o+=dimH(tx-iw/2,tx+iw/2,ty-oh/2-FS*.5,'عرض '+fmt(iw),C_TAB)+dimV(ty+ih/2,ty-ih/2,tx+ow/2+FS*1.4,'طول '+fmt(ih),C_TAB);
     if(gap>0)o+=dimH(tx+iw/2,tx+iw/2+gap,ty+ih/2+FS*1.6,fmt(gap),C_GAP);
     if(tab.fw>0)o+=dimH(tx+iw/2+gap,tx+ow/2,ty+ih/2+FS*3,fmt(tab.fw),C_FR);
-    o+=legend(RW,RL+15+S*.11,[[C_TAB,'التابلو'],[C_GAP,'الفاصل'],[C_FR,'الكادر'],[C_DIST,'البُعد']]);
+    o+=legend(RW,RL+15+S*.11,[[C_TAB,'التابلو'],[C_GAP,'الفاصل'],[C_FR,'الكادر'],[C_DIST,'البُعد عن الحيط']],RW);
     const lft=tx-ow/2,top=ty-oh/2;
     const rgt=RW-(tx+ow/2),btm=RL-(ty+oh/2);
     const yd=ty+oh/2-FS*.6,xd=tx-ow/2+FS*.6;
@@ -1122,7 +1136,7 @@ function drawFloor(s){
   }
   if(tab&&tab.moved)note+=' التابلو وصل لحد الحيط، ما بيتحرك أكتر.';
   if(tab)note+=' اسحب التابلو بإيدك لتحركه.';
-  return{svg:o,noGround:true,box:[-15-S*.04,RW+15+S*.12,-15-S*.06,RL+15+S*.16],stats,tables,note};
+  return{svg:o,noGround:true,box:[-15-S*.04,RW+15+S*.12,-15-S*.06,RL+15+S*.22],stats,tables,note};
 }
 
 function stripTable(iw,ih,sh,fw,gap,L){
@@ -1195,8 +1209,8 @@ function drawWallTablo(s){
    const yt=cy-oh/2,yb=cy+oh/2;q+=R(-4,cy-ih/2-gap,2,ih+2*gap,M(s.tmat),LW*.5);if(fw>0){q+=R(-6,yt,4,fw,M(s.fmat),LW*.5)+R(-6,yb-fw,4,fw,M(s.fmat),LW*.5)}
    q+=L(-30,0,wt+5,0,INK,LW*1.2)+sdimV(yb,yt,-10-fs*.2,fmt(oh),fs)+(fw>0?sdimH(-6,0,yt-fs*.4,'بروز 4',fs):'');
    var insetsWT=[];}
-  if(!full)o+=legend(WW,S*.15,[[C_TAB,'التابلو'],[C_GAP,'الفاصل'],[C_FR,'الكادر'],[C_DIST,'البُعد']]);
-  return{svg:o,insets:insetsWT,box:[-S*.12,WW+S*.12,Math.min(-WH,cy-oh/2-S*.08)-S*.06,S*.19],stats,tables,
+  if(!full)o+=legend(WW,S*.15,[[C_TAB,'التابلو'],[C_GAP,'الفاصل'],[C_FR,'الكادر'],[C_DIST,'البُعد عن الأطراف']],WW);
+  return{svg:o,insets:insetsWT,box:[-S*.12,WW+S*.12,Math.min(-WH,cy-oh/2-S*.08)-S*.06,S*.27],stats,tables,
     note:(!full&&(+s.tW>iw||+s.tH>ih)?'صغّرتُ التابلو ليتسع بالحائط. ':'')+(moved?'التابلو وصل لحد الحائط. ':'')+(full?'':'اسحب التابلو بإيدك لتحركه.')};
 }
 
