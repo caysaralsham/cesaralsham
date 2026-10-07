@@ -2194,11 +2194,12 @@ async function saveAny(blob){
 
 
 /* ---------- project files & autosave ---------- */
-async function saveProjectFile(pn){
-  const pure=await (async()=>{const svg=$('draw'),vb=svg.viewBox.baseVal;let w=1600,h=Math.round(w*vb.height/vb.width);if(h>2000){h=2000;w=Math.round(h*vb.width/vb.height)}
+async function pureImage(){return await (async()=>{const svg=$('draw'),vb=svg.viewBox.baseVal;let w=1600,h=Math.round(w*vb.height/vb.width);if(h>2000){h=2000;w=Math.round(h*vb.width/vb.height)}
     const cl=svg.cloneNode(true);cl.setAttribute('width',w*1.5);cl.setAttribute('height',h*1.5);
     const im=await new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(cl))});
-    const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.imageSmoothingQuality='high';x.drawImage(im,0,0,w,h);return c.toDataURL('image/jpeg',.9)})();
+    const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.imageSmoothingQuality='high';x.drawImage(im,0,0,w,h);return c.toDataURL('image/jpeg',.9)})()}
+async function saveProjectFile(pn){
+  const pure=await pureImage();
   const full=await makePNG({mode:'full',sc:1,dataUrl:true}),clean=await makePNG({mode:'clean',sc:1,dataUrl:true}),shop=await makePNG({mode:'shop',sc:1,dataUrl:true}),Q=quoteData();
   const data={app:'mirsam-decor',version:1,name:pn,date:today(),savedAt:new Date().toISOString(),tab,title:SCHEMAS[tab].title,
     customer:{...cust},quote:{rows:Q.rows.map(r=>({desc:r.d||'',qty:num(r.q||1),unit:r.u||'',price:num(r.p)})),note:Q.note,total:Q.total},
@@ -2368,9 +2369,42 @@ document.getElementById('zFit').onclick=()=>setZoom(1);
 document.getElementById('drawScroll').addEventListener('wheel',e=>{if(!e.ctrlKey&&!e.metaKey)return;e.preventDefault();setZoom(zoom*(e.deltaY<0?1.12:1/1.12))},{passive:false});
 
 
-restoreLast();
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+restoreLast();
 buildPanel();render();updTitle();
+/* ---------- وضع ميراكوس: مرسم بيفتح جوّا ميراكوس وبيرجّع الرسمة ---------- */
+const EMBED=new URLSearchParams(location.search).has('embed')&&window.parent!==window;
+if(EMBED){
+  const OK=o=>/^https:\/\/([a-z0-9-]+\.)*(github\.io|cesar-alcham\.com|pages\.dev)$/.test(o)||/^http:\/\/localhost(:\d+)?$/.test(o);
+  let parentOrigin=null;
+  const bar=document.createElement('div');bar.id='embedBar';
+  bar.innerHTML='<b>✏️ رسمة لميراكوس</b><span id="embedWho"></span><button class="btn sm primary" id="embedSend">↩ إرسال إلى ميراكوس</button><button class="btn sm" id="embedCancel">إلغاء</button>';
+  document.body.prepend(bar);
+  const st=document.createElement('style');st.textContent='#embedBar{position:sticky;top:0;z-index:60;display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#1F8F55;color:#fff;padding:8px 16px}#embedBar b{font-size:.95rem}#embedBar span{flex:1;font-size:.82rem;opacity:.9}#embedBar .btn{background:#fff;color:#111;border-color:#fff}#embedBar .btn.primary{background:#111;color:#fff;border-color:#111}.tabbar{top:46px}#shareBtn,#fileBtn,#projBtn{display:none}';
+  document.head.appendChild(st);
+  const send=m=>{if(parentOrigin)window.parent.postMessage(m,parentOrigin)};
+  window.addEventListener('message',e=>{
+    if(!OK(e.origin)||!e.data||e.data.type!=='mirsam-init')return;
+    parentOrigin=e.origin;const d=e.data;
+    if(d.customer)cust={name:d.customer.name||'',phone:d.customer.phone||'',addr:d.customer.addr||''};
+    document.getElementById('embedWho').textContent=cust.name?('الزبون: '+cust.name):'';
+    if(d.mstate&&SCHEMAS[d.mstate.tab]){tab=d.mstate.tab;state[tab]={...defaults(tab),...(d.mstate.state||{})}}
+    buildPanel();render();updTitle();
+  });
+  document.getElementById('embedCancel').onclick=()=>send({type:'mirsam-cancel'});
+  document.getElementById('embedSend').onclick=async()=>{
+    const b=document.getElementById('embedSend');b.disabled=true;b.textContent='جاري التجهيز...';
+    try{
+      const pure=await pureImage(),withDetails=await makePNG({mode:'full',sc:1,dataUrl:true});
+      try{saveProject()}catch(_){}
+      send({type:'mirsam-result',data:{app:'mirsam-decor',version:1,name:(cust.name?cust.name+' - ':'')+SCHEMAS[tab].title,title:SCHEMAS[tab].title,tab,
+        customer:{...cust},images:{pure,withDetails},stats:(lastR&&lastR.stats)||[],mstate:{tab,state:{...state[tab]}}}});
+    }catch(err){console.error(err);toast('تعذر تجهيز الرسمة، حاول مرة ثانية')}
+    b.disabled=false;b.textContent='↩ إرسال إلى ميراكوس';
+  };
+  window.parent.postMessage({type:'mirsam-ready'},'*');
+}
+
 </script>
 </body>
 </html>
