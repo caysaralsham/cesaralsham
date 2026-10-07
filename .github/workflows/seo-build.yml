@@ -8,6 +8,7 @@ on:
     branches: [main]
     paths:
       - 'works.html'
+      - 'videos.html'
       - 'index.html'
       - 'tools/build-seo.mjs'
       - '.github/workflows/seo-build.yml'

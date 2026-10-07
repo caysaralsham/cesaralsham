@@ -204,6 +204,14 @@ w = inject(w, 'GALLERY', items.slice(0, 30).map(it => card(it, String(it.categor
 w = inject(w, 'CATS', cats.map(c => `<li><a href="/${slugs[c]}">${esc(splitName(c).ar)}</a> <span>(${byCat.get(c).length})</span></li>`).join(''));
 wr('works.html', w);
 
+// videos.html: الفيديوهات ثابتة بالصفحة
+let videos = [];
+for (const [id, d] of Object.entries(docs)) if (id.startsWith('videos_')) videos = videos.concat(d.items || []);
+videos.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+let v = rd('videos.html');
+v = inject(v, 'VIDEOS', videos.filter(x => /^https?:\/\//.test(x.url || '')).map(x => `<div class="card" style="cursor:default;"><div class="img-wrap" style="aspect-ratio:16/9; background:#000;"><video src="${esc(x.url)}" controls preload="none" style="width:100%; height:100%; object-fit:contain; background:#000;" title="${esc(x.title || splitName(x.category || '').ar || 'فيديو من أعمالنا')}"></video></div><div class="body"><div class="title">${esc(x.title || splitName(x.category || '').ar || 'فيديو من أعمالنا')}</div><div class="meta">${esc(splitName(x.category || '').ar)}</div></div></div>`).join('') || '<div class="empty-state">جاري تحميل الفيديوهات...</div>');
+wr('videos.html', v);
+
 // index.html: صورتين من كل قسم ثابتين
 let h = rd('index.html');
 h = inject(h, 'SHOWCASE', cats.flatMap(c => byCat.get(c).slice(0, 2).map(it => ({it, c}))).map(({it, c}) => { const src = imgUrl(it); return src ? `<a href="/${slugs[c]}" class="sc-item"><img src="${esc(src)}" loading="lazy" alt="${esc(altOf(it, c))}"><span>${esc(splitName(c).ar)}</span></a>` : ''; }).join(''));
@@ -226,4 +234,4 @@ ${[urlE(SITE + '/', lastOf(items), '1.0'), urlE(SITE + '/works', lastOf(items), 
 const old = fs.existsSync(path.join(ROOT, 'sitemap.xml')) ? rd('sitemap.xml') : '';
 const strip = s => s.replace(/<lastmod>[^<]*<\/lastmod>/g, '');
 if (strip(old) !== strip(sm)) wr('sitemap.xml', sm);
-console.log('categories:', cats.length, 'items:', items.length);
+console.log('categories:', cats.length, 'items:', items.length, 'videos:', videos.length);
