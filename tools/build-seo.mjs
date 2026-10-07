@@ -83,7 +83,7 @@ function inject(html, name, content){
 function catPage(cat, slug, list, cats, slugs, settings){
   const {ar, fr} = splitName(cat);
   const title = `${ar}${fr ? ' | ' + fr : ''} - قيصر الشام للحجر والرخام، الجزائر`;
-  const desc = `${ar}${fr ? ' (' + fr + ')' : ''} — صور من أعمال قيصر الشام للحجر والرخام: تصميم وتصنيع وتركيب بالرخام والحجر الطبيعي، من دالي إبراهيم لكل ولايات الجزائر. اطلب عرض سعر على 0541737888.`;
+  const desc = `${ar}${fr ? ' (' + fr + ')' : ''} — صور من أعمال قيصر الشام للحجر والرخام: تصميم وتصنيع وتركيب بالرخام والحجر الطبيعي، من دالي إبراهيم إلى جميع ولايات الجزائر. اطلب عرض سعر على الرقم 0541737888.`;
   const imgs = list.map(it => ({it, src: imgUrl(it)})).filter(x => x.src);
   const ogImg = imgs[0] ? abs(imgs[0].src) : SITE + '/og-image.jpg';
   const social = ['facebook','instagram','tiktok','youtube'].map(k => settings[k]).filter(Boolean);
@@ -154,12 +154,12 @@ footer{background:#0c0c0c;color:#8a8270;text-align:center;padding:24px;font-size
 <main class="wrap">
   <div class="crumbs"><a href="/">الرئيسية</a> › <a href="/works">أعمالنا</a> › ${esc(ar)}</div>
   <h1>${esc(ar)}${fr ? `<small lang="fr">${esc(fr)}</small>` : ''}</h1>
-  <p class="intro">في قيصر الشام للحجر والرخام منصمّم ومنصنّع ومنركّب ${esc(ar)} من الحجر والرخام الطبيعي، حسب القياس والتصميم اللي بيناسب بيتك أو مشروعك. هون مجموعة من أعمالنا المنجزة بهالقسم (${imgs.length} صورة). منشتغل من دالي إبراهيم بالجزائر العاصمة، ومنوصل لكل الولايات.</p>
+  <p class="intro">في قيصر الشام للحجر والرخام نصمّم ${esc(ar)} من الحجر والرخام الطبيعي ونصنعها ونركّبها حسب المقاس والتصميم الذي يناسب منزلك أو مشروعك. نعرض هنا مجموعة من أعمالنا المنجزة في هذا القسم (${imgs.length} صورة). مقرّنا في دالي إبراهيم بالجزائر العاصمة، ونخدم جميع الولايات.</p>
   ${fr ? `<p class="intro" lang="fr" dir="ltr" style="text-align:left">${esc(fr)} : conception, fabrication et pose sur mesure en marbre et pierre naturelle par Cesar Al Cham, à Dely Ibrahim (Alger), partout en Algérie. Devis gratuit au 0541 73 78 88.</p>` : ''}
-  <div class="cta"><a class="wa" href="https://wa.me/${WA}?text=${encodeURIComponent('السلام عليكم، بدي استفسر عن ' + ar)}" rel="nofollow">اطلب عرض سعر على واتساب</a><a class="ph" href="tel:${PHONE}">اتصل: 0541.73.78.88</a></div>
-  <section class="grid">${cards || '<p>الصور رح تنضاف قريباً.</p>'}
+  <div class="cta"><a class="wa" href="https://wa.me/${WA}?text=${encodeURIComponent('السلام عليكم، أودّ الاستفسار عن ' + ar)}" rel="nofollow">اطلب عرض سعر على واتساب</a><a class="ph" href="tel:${PHONE}">اتصل: 0541.73.78.88</a></div>
+  <section class="grid">${cards || '<p>ستُضاف الصور قريبًا.</p>'}
   </section>
-  <section class="others"><h2>أقسام تانية من أعمالنا</h2><div><a href="/works">كل الأعمال</a>${others}</div></section>
+  <section class="others"><h2>أقسام أخرى من أعمالنا</h2><div><a href="/works">جميع الأعمال</a>${others}</div></section>
 </main>
 <footer><b>قيصر الشام للحجر والرخام</b> — دالي إبراهيم، الجزائر — 0541.73.78.88</footer>
 <div class="lbx" id="lbx"><img alt=""></div>
