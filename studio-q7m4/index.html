@@ -805,7 +805,7 @@ function drawWindow(s){
 
 /* ---------- fireplace ---------- */
 function drawFireplace(s){
-  const W=+s.W,H=+s.H,st=s.style,D=+s.D||40,kf=+s.kf,kb=Math.max(4,+s.kb||5),hT=4,arch=s.oshape==='arch';
+  const W=+s.W,H=+s.H,st=s.style==='stepped'?'stepped':'classic',D=+s.D||40,kf=+s.kf,kb=Math.max(4,+s.kb||5),hT=4,arch=s.oshape==='arch';
   const cor=+s.cor,ch=cor?+s.corH:0,topH=cor?ch:(st==='modern'?0:9),bodyH=H-topH;
   const tabH=+s.tab?(+s.tabH||0):0,tabW=Math.min(+s.tabW||W,W+40);
   const ow=Math.min(+s.ow,W-2*kf-20),oh=Math.max(20,Math.min(+s.oh,bodyH-kb-kf-6)),Ht=H+tabH,S=Math.max(W+40,Ht);setScale(S);
@@ -824,6 +824,14 @@ function drawFireplace(s){
     const fy=-(kb+oh+kf)-6,fh=Math.max(0,bodyH+fy-6);if(fh>10)o+=R(-bw*.16,-bodyH+6,bw*.32,fh,'none',LW*.6);
     o+=R(-bw/2+6,-12,bw-12,12,m);
   }
+  // carved floral band under the cornice / shelf
+  let dH=0;
+  if(+s.deco){const bw=st==='stepped'?W-24:W-20,yT=-H+topH,lim=Math.max(0,bodyH-(kb+oh+kf)-10);dH=Math.min(+s.decoH,lim);
+    if(dH>=8){const x0=-bw/2+4,x1=bw/2-4;o+=R(x0,yT,x1-x0,dH,m,LW*.8)+R(x0+3,yT+3,x1-x0-6,dH-6,RELIEF,LW*.45);
+      o+=scrollBand(x0+8,-dH*.9,yT+dH/2,dH*.82)+scrollBand(dH*.9,x1-8,yT+dH/2,dH*.82)+rose(0,yT+dH/2,dH*.34);
+      for(const sd of[-1,1])o+=leaf(sd*dH*.4,yT+dH/2,dH*.55,dH*.14,sd>0?-10:-170,RELIEF,3);
+      {let i=0;for(let x=x0+dH*.9;x<x1-dH*.6;x+=dH*1.15,i++){if(Math.abs(x)<dH*1.1)continue;const up=i%2?1:-1;o+=leaf(x,yT+dH/2,dH*.42,dH*.13,up>0?-50:50,'rgba(0,0,0,.10)',3)+leaf(x,yT+dH/2,dH*.32,dH*.1,up>0?-130:130,'rgba(0,0,0,.07)',2)}}
+      o+=dimV(yT+dH,yT,-W/2-S*.04,'زخرفة '+Math.round(dH),C_FR)}else dH=0}
   // top: cornice or shelf
   if(cor){const y0=-H;o+=R(-W/2,y0,W,ch*.42,m)+R(-W/2+ch*.25,y0+ch*.42,W-ch*.5,ch*.3,m)+R(-W/2+ch*.5,y0+ch*.72,W-ch,ch*.28,m)}
   else if(topH>0)o+=R(-W/2,-H,W,topH,m);
@@ -845,11 +853,12 @@ function drawFireplace(s){
   // dims
   o+=dimH(-W/2,W/2,hT+S*.08,fmt(W))+dimH(-ow/2,ow/2,-kb-FS*1.6,'فتحة '+fmt(ow))+dimV(-kb,oTop,-ow/2+FS*1.2,fmt(oh));
   o+=dimH(ow/2,ow/2+kf,oTop+oh*.45,fmt(kf),C_FR)+dimV(0,-kb,ow/2+kf+FS*.9,'تحت النار '+kb,C_FR);
-  o+=dimV(0,-H,W/2+S*.06,'الشمينيه '+fmt(H));
+  o+=dimV(0,-H,W/2+S*.06,'ارتفاع '+fmt(H));
   if(cor)o+=dimV(-H+ch,-H,-W/2-S*.04,'كورنيش '+ch);
   if(tabH>0)o+=dimV(-H,-Ht,W/2+S*.06,'تابلو '+fmt(tabH))+dimH(-tabW/2,tabW/2,-Ht-FS*.6,'تابلو '+fmt(tabW))+dimV(0,-Ht,W/2+S*.14,'الكامل '+fmt(Ht));
   const stats=[['الارتفاع الكامل',fmt(Ht)],['ارتفاع الشمينيه',fmt(H)],['العرض',fmt(W)],['العمق',fmt(D)],['فتحة النار',(arch?'قوس ':'')+ow+' × '+oh+' سم'],['كادر فتحة النار','جوانب وفوق '+kf+' سم، تحت النار '+kb+' سم']];
   if(cor)stats.push(['الكورنيش','ارتفاع '+ch+' سم']);
+  if(dH)stats.push(['الزخرفة','حزام نحت نباتي نافر بعرض الشمينيه، ارتفاع '+Math.round(dH)+' سم']);
   if(tabH>0)stats.push(['التابلو فوق الشمينيه',tabW+' × '+tabH+' سم']);
   return{svg:o,box:[-W/2-S*.11,W/2+S*(tabH>0?.22:.15),-Ht-S*.06,S*.19],stats,
     note:(ow<+s.ow||oh<+s.oh)?'صغّرتُ فتحة النار لتتسع ضمن الشمينيه.':''};
@@ -1313,7 +1322,7 @@ function drawJurn(s){
   const gap=Math.max(30,H*.4),pTop=-H-gap-Wp,S=Math.max(Ln,H+gap+Wp);setScale(S);
   const globe=sh==='globe',topW=globe?Ln*.7:Ln;
   let o='';
-  const lipH=globe?0:s.rimStyle==='round'?Math.max(4,Math.min(9,H*.14)):Math.max(3,Math.min(6,H*.1)),yL=-H+lipH,yB=-bH,footW=hasBase?Math.min(bW*.92,Ln*.9):Ln*.5;
+  const lipH=globe||s.rimStyle==='flat'?0:s.rimStyle==='round'?Math.max(4,Math.min(9,H*.14)):Math.max(3,Math.min(6,H*.1)),yL=-H+lipH,yB=-bH,footW=hasBase?Math.min(bW*.92,Ln*.9):Ln*.5;
   if(hasBase)o+=R(-bW/2,-bH,bW,bH,m);
   let body;
   if(globe)body=`M${f(-topW/2)} ${f(yL)}L${f(topW/2)} ${f(yL)}C${f(Ln*.56)} ${f(yL+(yB-yL)*.1)} ${f(Ln*.54)} ${f(yL+(yB-yL)*.8)} ${f(footW/2)} ${f(yB)}L${f(-footW/2)} ${f(yB)}C${f(-Ln*.54)} ${f(yL+(yB-yL)*.8)} ${f(-Ln*.56)} ${f(yL+(yB-yL)*.1)} ${f(-topW/2)} ${f(yL)}Z`;
@@ -1338,13 +1347,13 @@ function drawJurn(s){
     for(let i=0;i<nb;i++)d+=`Q${f(-topW/2+(i+.5)*bw2)} ${f(-H-amp)} ${f(-topW/2+(i+1)*bw2)} ${f(-H+amp)}`;
     o+=P(d+`L${f(topW/2)} ${f(-H+lipH*1.25)}Z`,m);
   }else if(s.rimStyle==='round')o+=R(-topW/2,-H,topW,lipH,m,LW,`rx="${f(lipH/2)}"`);
-  else o+=R(-topW/2,-H,topW,lipH,m)+L(-topW/2,-H+lipH*.45,topW/2,-H+lipH*.45,INK,LW*.5);
+
   // plan
   const cy=pTop+Wp/2,wavy=+s.topw===1;
   const ell=(a,b2,wv)=>{if(!wv)return `M${f(-a)} ${f(cy)}A${f(a)} ${f(b2)} 0 1 0 ${f(a)} ${f(cy)}A${f(a)} ${f(b2)} 0 1 0 ${f(-a)} ${f(cy)}Z`;
-    const n=Math.max(8,Math.round(Math.PI*(a+b2)/10)),p=[];for(let i=0;i<=120;i++){const t=i/120*2*Math.PI,k=.965+.035*Math.cos(n*t);p.push(f(Math.cos(t)*a*k)+' '+f(cy+Math.sin(t)*b2*k))}return 'M'+p.join('L')+'Z'};
+    const n=Math.max(8,Math.round(Math.PI*(a+b2)/12)),p=[];for(let i=0;i<=360;i++){const t=i/360*2*Math.PI,k=.95+.05*Math.cos(n*t);p.push(f(Math.cos(t)*a*k)+' '+f(cy+Math.sin(t)*b2*k))}return 'M'+p.join('L')+'Z'};
   if(sh==='half'){
-    const outer=`M${f(-Ln/2)} ${f(pTop)}A${f(Ln/2)} ${f(Wp)} 0 0 0 ${f(Ln/2)} ${f(pTop)}Z`,inner=`M${f(-Ln/2+rim)} ${f(pTop+rim)}A${f(Ln/2-rim)} ${f(Wp-2*rim)} 0 0 0 ${f(Ln/2-rim)} ${f(pTop+rim)}Z`;
+    const outer=wavy?(()=>{const n=Math.max(6,Math.round(Math.PI*(Ln/2+Wp)/24)),p=[];for(let i=0;i<=180;i++){const t=Math.PI*i/180,k=.955+.045*Math.cos(2*n*t);p.push(f(-Math.cos(t)*Ln/2*k)+' '+f(pTop+Math.sin(t)*Wp*k))}return 'M'+p.join('L')+'Z'})():`M${f(-Ln/2)} ${f(pTop)}A${f(Ln/2)} ${f(Wp)} 0 0 0 ${f(Ln/2)} ${f(pTop)}Z`,inner=`M${f(-Ln/2+rim)} ${f(pTop+rim)}A${f(Ln/2-rim)} ${f(Wp-2*rim)} 0 0 0 ${f(Ln/2-rim)} ${f(pTop+rim)}Z`;
     o+=L(-Ln/2-15,pTop,Ln/2+15,pTop,INK,LW*2.2);for(let x=-Ln/2-12;x<Ln/2+15;x+=6)o+=L(x,pTop,x+4,pTop-4,INK,LW*.5,'opacity=".5"');
     o+=P(outer,m)+P(inner,'rgba(80,120,140,.18)',LW*.7);
     if(hasBase){const k=bW/Ln;o+=P(`M${f(-Ln/2*k)} ${f(pTop)}A${f(Ln/2*k)} ${f(Wp*k)} 0 0 0 ${f(Ln/2*k)} ${f(pTop)}`,'none',LW*.6,'stroke-dasharray="3 3" opacity=".6"')}
@@ -1400,13 +1409,13 @@ function drawJurn(s){
 function drawBath(s){
   const W=+s.W,Lr=+s.L,H=+s.H,clH=Math.min(+s.clH,H),WT=12;
   const wallW=[0,W,Lr,W,Lr],wallN=['','أمام','يمين','خلف','يسار'];
-  const S0=Math.max(W+2*Lr,Lr+2*H)*1.15;setScale(S0);FS*=.6;
-  const G=FS*4.6,GV=FS*5;
+  const S0=Math.max(W+2*Lr,Lr+2*H)*1.05;setScale(S0);FS*=.85;
+  const G=FS*3.6,GV=FS*3.9;
   const dWall=String(s.door),dw=+s.dw,dh=Math.min(+s.dh,H-5);
-  const nJ=Math.max(0,Math.min(6,+s.jn)),jL=+s.jL,jWd=+s.jW,jH=+s.jH,jY=Math.max(+s.jY,jH*.6),jm=M(s.jmat),seat=+s.seat,sW=+s.sW,sD=+s.sD,sH=+s.sH,sG=+s.sG;
+  const nJ=Math.max(0,Math.min(6,+s.jn)),jL=+s.jL,jWd=+s.jW,jH=+s.jH,jY=Math.max(+s.jY,jH*.6),jm=M(s.jmat),seat=+s.seat,sW=30,sD=30,sH=30,sG=20;
   const tw=String(s.twall),cor=+s.cor,corH=+s.corH,corY=Math.min(+s.corY,H-corH);
   const doorX=i=>{const w=wallW[i],lim=Math.max(0,w/2-dw/2-5);return w/2+Math.max(-lim,Math.min(lim,+s.dX||0))};
-  const J=[];for(let k=1;k<=nJ;k++){const i=Math.max(1,Math.min(4,+s['jw'+k]||1)),w=wallW[i];J.push({k,i,c:Math.max(jL/2,Math.min(w-jL/2,(+s['jp'+k]||0)+jL/2))})}
+  const J=[];for(let k=1;k<=nJ;k++){const i=Math.max(1,Math.min(4,+s['jw'+k]||1)),w=wallW[i];J.push({k,i,mid:s['jm'+k]!=='e',c:s['jm'+k]!=='e'?w/2:Math.max(jL/2,Math.min(w-jL/2,(+s['jp'+k]||0)+jL/2))})}
   // distance along wall (from the viewer's left, standing inside) -> plan point; d = distance out from the wall
   const toPlan=(i,t,d)=>i===1?[W-t,Lr-d]:i===3?[t,d]:i===2?[W-d,t]:[d,Lr-t];
   const outward=i=>i===1?[0,-1]:i===3?[0,1]:i===2?[-1,0]:[1,0];
@@ -1425,18 +1434,16 @@ function drawBath(s){
     const [ex,ey]=toPlan(i,c-dw/2,dw);o+=L(ax,ay,ex,ey,'#8A5A2B',LW*1.4)+`<path d="M${f(ex)} ${f(ey)}A${f(dw)} ${f(dw)} 0 0 0 ${f(bx)} ${f(by)}" fill="none" stroke="#8A5A2B" stroke-width="${f(LW*.6)}" stroke-dasharray="4 3"/>`}
   for(const j of J){const {i,c}=j,[ux,uy]=outward(i),pc=toPlan(i,c,0),p1=toPlan(i,c-jL/2,0),ax=(toPlan(i,c+1,0)[0]-pc[0]),ay=(toPlan(i,c+1,0)[1]-pc[1]);
     const pt=(a,d)=>f(pc[0]+ax*a+ux*d)+' '+f(pc[1]+ay*a+uy*d);let d;
-    if(s.jshape==='rect')d=`M${pt(-jL/2,0)}L${pt(-jL/2,jWd)}L${pt(jL/2,jWd)}L${pt(jL/2,0)}Z`;
-    else if(s.jshape==='half'){const p=[];for(let n=0;n<=40;n++){const a=Math.PI*n/40;p.push(pt(-Math.cos(a)*jL/2,Math.sin(a)*jWd))}d='M'+p.join('L')+'Z'}
+    if(s.jshape==='half'){const p=[];for(let n=0;n<=40;n++){const a=Math.PI*n/40;p.push(pt(-Math.cos(a)*jL/2,Math.sin(a)*jWd))}d='M'+p.join('L')+'Z'}
     else{const p=[];for(let n=0;n<=60;n++){const a=2*Math.PI*n/60;p.push(pt(Math.cos(a)*jL/2,jWd/2+Math.sin(a)*jWd/2))}d='M'+p.join('L')+'Z'}
-    o+=P(d,jm,LW*.8);const mc=toPlan(i,c,jWd*.5);o+=C(mc[0],mc[1],Math.max(1.5,jL*.04),'#555',LW*.4);
+    o+=P(d,jm,LW*.8);const mc=toPlan(i,c,jWd*.5);o+=T(mc[0],mc[1]+FS*.3,String(j.k),FS*.85,'middle',C_FR);
     if(seat){const q=(a,dd)=>pt(a,dd);o+=P(`M${q(-sW/2,jWd+sG)}L${q(sW/2,jWd+sG)}L${q(sW/2,jWd+sG+sD)}L${q(-sW/2,jWd+sG+sD)}Z`,M(s.smat),LW*.7)}
-    const lp=toPlan(i,c,jWd+(seat?sG+sD:0)+FS*.9);o+=T(lp[0],lp[1]+FS*.3,String(j.k),FS*.8,'middle',C_FR)}
+  }
   const rT=(x,y,t,ang)=>`<text transform="translate(${f(x)} ${f(y)}) rotate(${ang})" text-anchor="middle" font-size="${f(FS*.8)}" font-weight="700" fill="#5D656B" font-family="Cairo,Tahoma,sans-serif">${t}</text>`;
-  o+=T(W/2,-WT-FS*.45,'حائط 3',FS*.8,'middle','#5D656B')+rT(-WT-FS*.45,Lr/2,'حائط 4',-90)+T(W/2,Lr+WT+FS*3.1,'حائط 1',FS*.8,'middle','#5D656B')+rT(W+WT+FS*2.7,Lr/2,'حائط 2',90);
   o+=dimH(0,W,Lr+WT+FS*1.5,'العرض '+fmt(W))+dimV(Lr,0,W+WT+FS*1.4,'الطول '+fmt(Lr));
   /* ---- walls, laid out around the plan ---- */
   const pos=[null,[0,Lr+WT+GV+H],[W+WT+G,Lr/2+H/2],[0,-WT-GV],[-WT-G-Lr,Lr/2+H/2]];
-  let wallsArea=0,tCount=0,corLen=0,tInfo='';const wStats=[];
+  let wallsArea=0,tCount=0,corLen=0,tInfo='',tA=0,tFrL=0,tFrA=0;const wStats=[];
   for(let i=1;i<=4;i++){
     const [x0,yg]=pos[i],w=wallW[i];
     o+=R(x0,yg-H,w,H,'#F3F0EA',LW*.6)+R(x0,yg-clH,w,clH,M(s.wmat),LW*.6);
@@ -1446,7 +1453,7 @@ function drawBath(s){
       if(dWall===String(i)){const dc=doorX(i),l=dc-dw/2-6,r=w-(dc+dw/2+6);if(l>=r){cx=x0+l/2;tW=Math.min(tW,l-2*ring-10)}else{cx=x0+w-r/2;tW=Math.min(tW,r-2*ring-10)}tW=Math.max(10,tW)}
       const cy=yg-Math.min(+s.tY,H-tH-2*ring)-ring-tH/2;
       if(fw>0){o+=R(cx-tW/2-ring,cy-tH/2-ring,tW+2*ring,tH+2*ring,M(s.tfmat),LW*.8)+R(cx-tW/2-gp,cy-tH/2-gp,tW+2*gp,tH+2*gp,M(s.wmat),LW*.5)}
-      o+=R(cx-tW/2,cy-tH/2,tW,tH,M(s.tmat),LW*.8);tCount++;tInfo=tW+' × '+tH+' سم'+(fw>0?'، كادر '+fw+' سم على بُعد '+gp+' سم':'');
+      o+=R(cx-tW/2,cy-tH/2,tW,tH,M(s.tmat),LW*.8);tCount++;tA+=tW*tH;if(fw>0){tFrL+=2*(tW+tH+4*gp+2*fw);tFrA+=(tW+2*ring)*(tH+2*ring)-(tW+2*gp)*(tH+2*gp)}tInfo=tW+' × '+tH+' سم'+(fw>0?'، كادر '+fw+' سم على بُعد '+gp+' سم':'');
       o+=dimH(cx-tW/2,cx+tW/2,cy-tH/2+FS*1.3,fmt(tW),C_TAB)+dimV(cy+tH/2,cy-tH/2,cx+tW/2-FS*1.2,fmt(tH),C_TAB)}
     if(dWall===String(i)){const c=x0+doorX(i);o+=R(c-dw/2,yg-dh,dw,dh,'#8A5A2B',LW*.9)+R(c-dw/2+dw*.12,yg-dh*.9,dw*.76,dh*.36,'none',LW*.5)+R(c-dw/2+dw*.12,yg-dh*.48,dw*.76,dh*.38,'none',LW*.5)+C(c+dw/2-8,yg-dh*.48,2.5,BRASS,LW*.4);
       a-=dw*Math.min(dh,clH);if(cor&&dh>corY)corLen-=dw;
@@ -1469,18 +1476,28 @@ function drawBath(s){
     if(clH<H)o+=dimV(yg,yg-clH,x0+FS*1.1,'تلبيس '+fmt(clH),C_TAB);
     wallsArea+=a;wStats.push(['حائط '+i+' ('+wallN[i]+')',w+' × '+clH+' سم = '+(a/1e4).toFixed(2)+' م²'+(dWall===String(i)?' (بعد طرح الباب)':'')]);
   }
-  const stats=[['مساحة الأرض',(W*Lr/1e4).toFixed(2)+' م² ('+W+' × '+Lr+' سم)']];
-  if(fA)stats.push(['تابلو الأرض',ftW+' × '+ftL+' سم ('+(fA/1e4).toFixed(2)+' م²)']);
-  if(fFr)stats.push(['كادر تابلو الأرض','عرض '+s.ffw+'، بُعد عن التابلو '+s.fgap+' سم، '+(fFr/100).toFixed(2)+' م.ط ('+(fFrA/1e4).toFixed(2)+' م²)']);
-  stats.push(...wStats,['مجموع تلبيس الحيطان',(wallsArea/1e4).toFixed(2)+' م²']);
-  if(cor)stats.push(['الكورنيش',(Math.max(0,corLen)/100).toFixed(2)+' م.ط، عرض '+corH+'، على ارتفاع '+corY+' سم']);
+  const m2=v=>(v/1e4).toFixed(2),corA=cor&&corY<clH?Math.max(0,corLen)*Math.min(corH,clH-corY):0;
+  const floorNet=W*Lr-fA-fFrA,wallNet=wallsArea-tA-tFrA-corA;
+  const stats=[['مساحة الأرض',m2(W*Lr)+' م² ('+W+' × '+Lr+' سم)']];
+  if(fA)stats.push(['تابلو الأرض',ftW+' × '+ftL+' سم'+(fFr?'، كادر عرض '+s.ffw+' على بُعد '+s.fgap+' سم':'')]);
+  stats.push(...wStats);
   if(tCount)stats.push(['تابلو الحائط',tCount+' × ('+tInfo+')']);
-  if(nJ>0){stats.push(['الجرون',nJ+' جرن '+{oval:'بيضوي',rect:'مربع',half:'نص دائرة'}[s.jshape]+'، طول '+jL+'، عرض '+jWd+'، ارتفاع '+jH+'، الحافة على '+jY+' سم من الأرض']);
-    stats.push(['أماكن الجرون',J.map(j=>'جرن '+j.k+': حائط '+j.i+'، بُعده '+Math.round(j.c-jL/2)+' سم عن طرف الحائط').join(' | ')]);
-    if(seat)stats.push(['الكراسي',nJ+' كرسي مربع '+sW+' × '+sD+' × ارتفاع '+sH+' سم، بُعد '+sG+' سم عن الجرن'])}
+  if(cor)stats.push(['الكورنيش','عرض '+corH+'، على ارتفاع '+corY+' سم']);
+  if(nJ>0){stats.push(['الجرون',nJ+' جرن '+{oval:'بيضوي',half:'نص دائرة'}[s.jshape==='half'?'half':'oval']+' '+jL+' × '+jWd+'، ارتفاع '+jH+'، الحافة على '+jY+' سم من الأرض'+(seat?'، وقدّام كل جرن كرسي 30 × 30 × 30':'')]);
+    stats.push(['أماكن الجرون',J.map(j=>'جرن '+j.k+': حائط '+j.i+(j.mid?'، بالنص':'، بُعده '+Math.round(j.c-jL/2)+' سم عن طرف الحائط')).join(' | ')])}
   if(dWall!=='0')stats.push(['الباب',dw+' × '+dh+' سم على حائط '+dWall]);
+  const bill=[{cells:['رخام الأرض (بدون التابلو والكادر)',m2(floorNet),'م²']}];
+  if(fA)bill.push({cells:['تابلو الأرض',m2(fA),'م²']});
+  if(fFr)bill.push({cells:['كادر تابلو الأرض',(fFr/100).toFixed(2),'م.ط']});
+  bill.push({cells:['رخام الحيطان (بدون الباب والتابلو والكورنيش)',m2(wallNet),'م²']});
+  if(tA)bill.push({cells:['تابلو الحائط',m2(tA),'م²']});
+  if(tFrL)bill.push({cells:['كادر تابلو الحائط',(tFrL/100).toFixed(2),'م.ط']});
+  if(cor)bill.push({cells:['الكورنيش',(Math.max(0,corLen)/100).toFixed(2),'م.ط']});
+  if(nJ)bill.push({cells:['جرن',nJ,'قطعة']});
+  if(nJ&&seat)bill.push({cells:['كرسي',nJ,'قطعة']});
+  bill.push({sel:true,cells:['مجموع المساحات',m2(floorNet+fA+wallNet+tA),'م²']});
   const box=[pos[4][0]-FS*2,pos[2][0]+Lr+FS*4.5,pos[3][1]-H-FS*2.6,pos[1][1]+FS*3.4];
-  return{svg:o,noGround:true,box,stats,tables:[],
+  return{svg:o,noGround:true,box,stats,tables:[{title:'بيان للحساب',head:['البند','الكمية','الوحدة'],rows:bill}],
     note:'كل حائط مرسوم جنب جهته بالمسقط، متل ما بتشوفه من جوّا الحمام. بُعد الجرن بيتقاس من طرف الحائط اليسار وإنت واقف قباله.'};
 }
 
@@ -1494,14 +1511,14 @@ function framePath(hw,b,hl,hr,ha,type){
 }
 function drawFrame(s){
   const kind=s.kind||'door',type=s.top||'rect',rect=type==='rect',ow=+s.ow,kw=+s.kw,bot=+s.bot&&kind!=='door',kwb=bot?+s.kwb:0,th=+s.th;
-  const hL=rect?+s.oh:+s.hL,hR=rect?+s.oh:+s.hR,ar=rect?0:+s.ar,ha=rect?+s.oh:Math.max(hL,hR)+ar;
+  const oh=+s.oh,ar=rect?0:(type==='arch'?Math.min(ow/2,oh*.9):Math.min(ow*.7,oh*.9)),hL=oh-ar,hR=hL,ha=oh;
   const yb=kind==='door'?0:Math.max(+s.yb,kwb),m=M(s.mat),OW=ow+2*kw;
   const crown=+s.crown,cH=crown?(+s.crH>0?+s.crH:2*kw):0,fTop=-(yb+ha+kw);
   const cTop=crown?(s.crPos==='top'?fTop-cH:s.crPos==='bot'?fTop:fTop+kw/2-cH/2):fTop,top=Math.min(fTop,cTop),H0=yb-kwb;
   const S=Math.max(OW*1.5,-top+20);setScale(S);
   let o=P(framePath(OW/2,yb,hL,hR,ha+kw,type),m);
   if(bot)o+=R(-OW/2-(kind==='window'?6:0),-yb,OW+(kind==='window'?12:0),kwb,m);
-  if(+s.prof)o+=P(framePath(ow/2+kw*.45,yb,hL,hR,ha+kw*.45,type),'none',LW*.45)+P(framePath(ow/2+kw*.15,yb,hL,hR,ha+kw*.15,type),'none',LW*.45);
+  if(+s.prof){const gc=s.mat==='black'?'rgba(255,255,255,.6)':'rgba(40,30,20,.75)';for(const t of[.3,.65])o+=`<path d="${framePath(ow/2+kw*t,yb,hL,hR,ha+kw*t,type)}" fill="none" stroke="${gc}" stroke-width="${f(Math.max(LW*.9,kw*.06))}"/>`}
   const inner=framePath(ow/2,yb,hL,hR,ha,type),cid=nid('fr');
   const fill=kind==='door'?'#8A5A2B':kind==='window'?'#43525D':kind==='tablo'?M(s.tmat):M(s.wall2);
   o+=P(inner,fill);let g='';
@@ -1520,8 +1537,7 @@ function drawFrame(s){
   // dims
   const midY=-yb-Math.min(hL,hR)*.5;
   o+=dimH(-ow/2,ow/2,midY,'من جوّا '+fmt(ow),C_TAB);
-  if(rect)o+=dimV(-yb,-(yb+hL),-ow/2+FS*1.3,'من جوّا '+fmt(hL),C_TAB);
-  else{o+=dimV(-yb,-(yb+hL),-ow/2+FS*1.3,'يسار '+fmt(hL),C_TAB)+dimV(-yb,-(yb+hR),ow/2-FS*.4,'يمين '+fmt(hR),C_TAB)+dimV(-(yb+Math.max(hL,hR)),-(yb+ha),FS*.9,'القوس '+fmt(ar),C_TAB)}
+  o+=dimV(-yb,-(yb+ha),-ow/2+FS*1.3,'من جوّا '+fmt(ha),C_TAB);
   o+=dimH(ow/2,ow/2+kw,midY-FS*2.2,fmt(kw),C_FR);
   if(bot)o+=dimV(-yb+kwb,-yb,OW/2+FS*1.2,'تحت '+kwb,C_FR);
   o+=dimH(-OW/2,OW/2,FS*2.2,'من برّا '+fmt(OW));
@@ -1533,15 +1549,15 @@ function drawFrame(s){
   const len=hL+hR+(rect?OW:archL)+(bot?OW:0),area=(len*kw+(bot?OW*(kwb-kw):0))/1e4;
   const KN={door:'كادر باب',window:'كادر نافذة',jurn:'كورنيش جرن',tablo:'كادر تابلو'}[kind];
   const stats=[['النوع',KN+(type==='arch'?'، فوق قوس':type==='pointed'?'، فوق مدبّب':'')],
-    ['من جوّا',rect?'عرض '+ow+' × ارتفاع '+hL+' سم':'عرض '+ow+'، الجنب اليمين '+hR+'، الجنب اليسار '+hL+'، القوس '+ar+' سم (الارتفاع بالنص '+ha+')'],
+    ['القياس من جوّا','عرض '+ow+' × ارتفاع '+ha+' سم'+(rect?'':' (ارتفاع الجنب '+Math.round(hL)+')')],
     ['من برّا','عرض '+OW+' × ارتفاع '+Math.round(-top-H0)+' سم'],['عرض الكادر',kw+' سم'+(bot?'، من تحت '+kwb+' سم':'، بدون تحت')],['سماكة الكادر',th+' سم'],['طول الكادر',(len/100).toFixed(2)+' م.ط ('+area.toFixed(2)+' م²)']];
-  if(crown)stats.push(['التاج','ارتفاع '+cH+' سم، '+{top:'فوق',mid:'بالنص',bot:'تحت'}[s.crPos||'mid']]);
+  if(crown)stats.push(['التاج','ارتفاع '+cH+'، سماكة '+(+s.crTh)+' سم، '+{top:'فوق',mid:'بالنص',bot:'تحت'}[s.crPos||'mid']]);
   if(H0>0)stats.push(['الارتفاع عن الأرض',fmt(H0)]);
   if(jTxt)stats.push(['الجرن',jTxt]);
-  const cut=[{cells:['جنب يمين','طول '+hR,'عرض '+kw,'سماكة '+th,'1']},{cells:['جنب يسار','طول '+hL,'عرض '+kw,'سماكة '+th,'1']},
+  const cut=[{cells:['جنب','طول '+Math.round(hL),'عرض '+kw,'سماكة '+th,'2']},
     rect?{cells:['فوق','طول '+OW,'عرض '+kw,'سماكة '+th,'1']}:{cells:['القوس','طول '+Math.round(archL),'عرض '+kw,'سماكة '+th,'1 أو قطع']}];
   if(bot)cut.push({cells:['تحت','طول '+OW,'عرض '+kwb,'سماكة '+th,'1']});
-  if(crown)cut.push({cells:['التاج','ارتفاع '+cH,'عرض '+Math.round(Math.max(cH*.75,kw*1.6)),'-','1']});
+  if(crown)cut.push({cells:['التاج','ارتفاع '+cH,'عرض '+Math.round(Math.max(cH*.75,kw*1.6)),'سماكة '+(+s.crTh),'1']});
   return{svg:o,tables:[{title:'قائمة القطع للمعمل',head:['القطعة','القياس 1','القياس 2','القياس 3','العدد'],rows:cut}],
     box:[-OW/2-S*.14,OW/2+S*.2,top-S*.05,S*.12],stats,note:''};
 }
@@ -1602,22 +1618,19 @@ const bathCtrls=[
     {id:'wmat',label:'رخام الحيطان',type:'mat',val:'italian'},
     head('الجرون'),
     {id:'jn',label:'عدد الجرون',type:'counter',min:0,max:6,val:0,addLabel:'إضافة جرن',remLabel:'حذف آخر جرن'},
-    {id:'jshape',label:'شكل الجرن',type:'seg',options:[['oval','بيضوي'],['half','نص دائرة'],['rect','مربع']],val:'oval',show:s=>+s.jn>0},
-    {id:'jL',label:'طول الجرن',type:'range',min:30,max:100,step:1,val:45,show:s=>+s.jn>0},
-    {id:'jW',label:'عرض الجرن (لقدّام)',type:'range',min:20,max:70,step:1,val:35,show:s=>+s.jn>0},
+    {id:'jshape',label:'شكل الجرن',type:'seg',options:[['oval','بيضوي'],['half','نص دائرة']],val:'oval',show:s=>+s.jn>0},
+    {id:'jL',label:'طول الجرن',type:'range',min:30,max:100,step:1,val:50,show:s=>+s.jn>0},
+    {id:'jW',label:'عرض الجرن (لقدّام)',type:'range',min:20,max:70,step:1,val:40,show:s=>+s.jn>0},
     {id:'jH',label:'ارتفاع الجرن',type:'range',min:15,max:60,step:1,val:30,show:s=>+s.jn>0},
     {id:'jY',label:'ارتفاع الحافة عن الأرض',type:'range',min:20,max:110,step:1,val:60,show:s=>+s.jn>0},
     {id:'jmat',label:'رخام الجرن',type:'mat',val:'italian',show:s=>+s.jn>0},
-    {id:'seat',label:'كرسي قدّام الجرن',type:'seg',options:YN,val:1,show:s=>+s.jn>0},
-    {id:'sW',label:'عرض الكرسي',type:'range',min:20,max:80,step:1,val:30,show:s=>+s.jn>0&&+s.seat},
-    {id:'sD',label:'عمق الكرسي',type:'range',min:20,max:80,step:1,val:30,show:s=>+s.jn>0&&+s.seat},
-    {id:'sH',label:'ارتفاع الكرسي',type:'range',min:15,max:60,step:1,val:30,show:s=>+s.jn>0&&+s.seat},
-    {id:'sG',label:'بُعد الكرسي عن الجرن',type:'range',min:0,max:80,step:1,val:20,show:s=>+s.jn>0&&+s.seat},
+    {id:'seat',label:'كرسي قدّام الجرن (30 × 30 × 30)',type:'seg',options:[[1,'مع كرسي'],[0,'بدون']],val:1,show:s=>+s.jn>0},
     {id:'smat',label:'رخام الكرسي',type:'mat',val:'italian',show:s=>+s.jn>0&&+s.seat}];
 bathCtrls.push({type:'sub',label:'أماكن الجرون',show:s=>+s.jn>0});
-for(let k=1;k<=6;k++)bathCtrls.push({type:'group',gid:'bj'+k,show:s=>+s.jn>=k,title:s=>'جرن '+k+': حائط '+s['jw'+k]+'، بُعد '+s['jp'+k]+' سم',items:[
-  {id:'jw'+k,label:'على حائط',type:'seg',options:[[1,'1'],[2,'2'],[3,'3'],[4,'4']],val:1},
-  {id:'jp'+k,label:'بُعده عن طرف الحائط',type:'range',min:0,max:780,step:1,val:20+(k-1)*70}]});
+for(let k=1;k<=6;k++)bathCtrls.push({type:'group',gid:'bj'+k,show:s=>+s.jn>=k,title:s=>'جرن '+k+': حائط '+s['jw'+k]+'، '+(s['jm'+k]==='e'?'بُعد '+s['jp'+k]+' سم':'بالنص'),items:[
+  {id:'jw'+k,label:'على حائط',type:'seg',options:[[1,'1'],[2,'2'],[3,'3'],[4,'4']],val:[1,2,4,3,1,2][k-1]},
+  {id:'jm'+k,label:'مكانه',type:'seg',options:[['c','بالنص'],['e','من الطرف']],val:'c'},
+  {id:'jp'+k,label:'بُعده عن طرف الحائط',type:'range',min:0,max:780,step:1,val:20,show:s=>s['jm'+k]==='e'}]});
 bathCtrls.push(
     head('الباب',true),
     {id:'door',label:'الباب على',type:'seg',options:[[0,'بدون'],[1,'حائط 1'],[2,'حائط 2'],[3,'حائط 3'],[4,'حائط 4']],val:3},
@@ -1645,7 +1658,7 @@ const SCHEMAS={
     {id:'L',label:'الطول (القطر للمدور)',type:'range',min:30,max:100,step:1,val:50},
     {id:'W',label:'العرض',type:'range',min:20,max:100,step:1,val:40,show:s=>s.shape!=='round'},
     {id:'topw',label:'الحافة من فوق',type:'seg',options:[[0,'عادية'],[1,'مموّجة']],val:0},
-    {id:'rimStyle',label:'الحافة من قدّام',type:'seg',options:[['flat','عادية'],['round','مدورة سميكة'],['wavy','مموّجة']],val:'flat'},
+    {id:'rimStyle',label:'الحافة من قدّام',type:'seg',options:[['flat','بدون'],['round','مدورة سميكة'],['wavy','مموّجة']],val:'flat'},
     {id:'H',label:'الارتفاع',type:'range',min:20,max:70,step:1,val:30},
     {id:'rim',label:'سماكة الحافة',type:'range',min:3,max:10,step:.5,val:5},
     {id:'bt',label:'سماكة الأرضية (القعر)',type:'range',min:2,max:30,step:1,val:10},
@@ -1743,7 +1756,9 @@ const SCHEMAS={
     {id:'wall',label:'مادة الحائط',type:'mat',val:'beigeL'}]},
   fireplace:{title:'شمينيه',draw:drawFireplace,controls:[
     head('الشمينيه'),
-    {id:'style',label:'الطراز',type:'seg',options:[['classic','كلاسيك'],['stepped','إطارات متدرجة'],['modern','حديث']],val:'classic'},
+    {id:'style',label:'الطراز',type:'seg',options:[['classic','كلاسيك'],['stepped','إطارات متدرجة']],val:'classic'},
+    {id:'deco',label:'زخرفة نباتي نحت نافر (تحت الكورنيش)',type:'seg',options:[[0,'بدون'],[1,'مع زخرفة']],val:0},
+    {id:'decoH',label:'ارتفاع الزخرفة',type:'range',min:15,max:40,step:1,val:20,show:s=>+s.deco},
     {id:'W',label:'العرض',type:'range',min:80,max:300,step:1,val:170},
     {id:'H',label:'ارتفاع الشمينيه',type:'range',min:60,max:200,step:1,val:120},
     {id:'D',label:'العمق (لقدّام)',type:'range',min:30,max:50,step:1,val:40},
@@ -1827,15 +1842,11 @@ const SCHEMAS={
   frame:{title:'كورنيش',draw:drawFrame,controls:[
     head('النوع'),
     {id:'kind',label:'الكادر حوالين',type:'seg',options:[['door','باب'],['window','نافذة'],['jurn','كورنيش جرن'],['tablo','تابلو']],val:'door',preset:{
-      door:{ow:90,oh:210,hL:170,hR:170,ar:45,top:'rect',bot:0,yb:0},window:{ow:100,oh:140,hL:110,hR:110,ar:50,top:'rect',bot:1,kwb:4,yb:90},
-      jurn:{ow:80,oh:110,hL:70,hR:70,ar:40,top:'arch',bot:1,kwb:8,yb:40},tablo:{ow:80,oh:120,hL:90,hR:90,ar:40,top:'rect',bot:1,kwb:8,yb:90}}},
+      door:{ow:90,oh:210,top:'rect'},window:{ow:100,oh:140,top:'rect'},jurn:{ow:80,oh:110,top:'arch'},tablo:{ow:80,oh:120,top:'rect'}}},
     {id:'top',label:'شكل الكادر من فوق',type:'seg',options:[['rect','مستقيم'],['arch','قوس'],['pointed','مدبّب']],val:'rect'},
     head('القياس من جوّا'),
-    {id:'ow',label:'العرض',type:'range',min:20,max:400,step:1,val:90},
-    {id:'oh',label:'الارتفاع',type:'range',min:20,max:400,step:1,val:210,show:s=>s.top==='rect'},
-    {id:'hR',label:'ارتفاع الجنب اليمين',type:'range',min:10,max:400,step:1,val:170,show:s=>s.top!=='rect'},
-    {id:'hL',label:'ارتفاع الجنب اليسار',type:'range',min:10,max:400,step:1,val:170,show:s=>s.top!=='rect'},
-    {id:'ar',label:'ارتفاع القوس',type:'range',min:5,max:200,step:1,val:45,show:s=>s.top!=='rect'},
+    {id:'ow',label:'العرض من جوّا',type:'range',min:20,max:400,step:1,val:90},
+    {id:'oh',label:'الارتفاع من جوّا',type:'range',min:20,max:400,step:1,val:210},
     {id:'yb',label:'الارتفاع عن الأرض',type:'range',min:0,max:250,step:1,val:0,show:s=>s.kind!=='door'},
     head('الكادر'),
     {id:'kw',label:'عرض الكادر',type:'range',min:5,max:40,step:1,val:8},
@@ -1847,6 +1858,7 @@ const SCHEMAS={
     {id:'crown',label:'تاج فوق الكادر',type:'seg',options:YN,val:0},
     {id:'crH',label:'ارتفاع التاج (0 = ضعف الكادر)',type:'range',min:0,max:80,step:1,val:0,show:s=>+s.crown},
     {id:'crPos',label:'مكان التاج',type:'seg',options:[['top','فوق'],['mid','بالنص'],['bot','تحت']],val:'mid',show:s=>+s.crown},
+    {id:'crTh',label:'سماكة التاج',type:'range',min:1,max:15,step:.5,val:4,show:s=>+s.crown},
     {type:'head',label:'الجرن',show:s=>s.kind==='jurn'},
     {id:'jn',label:'جرن جوّا الكورنيش',type:'seg',options:[[0,'بدون'],[1,'مع جرن']],val:0,show:s=>s.kind==='jurn'},
     {id:'jshape',label:'شكل الجرن',type:'seg',options:[['oval','بيضوي'],['half','نص دائرة'],['rect','مربع']],val:'oval',show:s=>s.kind==='jurn'&&+s.jn},
@@ -1883,17 +1895,19 @@ function ctrlHTML(c,st){
 const closedH=new Set();for(const k in SCHEMAS)for(const c of SCHEMAS[k].controls)if(c.type==='head'&&c.collapsed)closedH.add(k+':'+c.label);
 function buildPanel(){
   [...tabsEl.children].forEach(b=>b.setAttribute('aria-selected',b.dataset.k===tab));
-  const st=state[tab];let h='',open=false;
-  const close=()=>{if(open){h+='</div></details>';open=false}};
+  const st=state[tab];let h='',cur=null,body='';const mats=[];
+  const close=()=>{if(cur!==null){if(body)h+=cur+body+'</div></details>';cur=null;body=''}};
   for(const c of SCHEMAS[tab].controls){
     if(c.show&&!c.show(st))continue;
-    if(c.type==='head'){close();const key=tab+':'+c.label;h+=`<details class="sec" data-h="${key}"${closedH.has(key)?'':' open'}><summary>${c.label}</summary><div class="secb">`;open=true;continue}
+    if(c.type==='head'){close();if(c.label==='الرخام')continue;const key=tab+':'+c.label;cur=`<details class="sec" data-h="${key}"${closedH.has(key)?'':' open'}><summary>${c.label}</summary><div class="secb">`;continue}
     if(c.type==='sub'){close();h+=`<h4 class="subh">${c.label}</h4>`;continue}
     if(c.type==='group'){close();h+=`<details class="sec grp" data-g="${c.gid}"${openG.has(c.gid)?' open':''}><summary id="gs-${c.gid}">${c.title(st)}</summary><div class="secb">${c.items.filter(x=>!x.show||x.show(st)).map(x=>ctrlHTML(x,st)).join('')}</div></details>`;continue}
-    if(!open){h+=`<details class="sec" open><summary>إعدادات</summary><div class="secb">`;open=true}
-    h+=ctrlHTML(c,st);
+    if(c.type==='mat'){mats.push(c);continue}
+    if(cur===null)cur=`<details class="sec" open><summary>إعدادات</summary><div class="secb">`;
+    body+=ctrlHTML(c,st);
   }
   close();
+  if(mats.length){const key=tab+':الرخام';h+=`<details class="sec" data-h="${key}"${closedH.has(key)?'':' open'}><summary>الرخام والألوان</summary><div class="secb">${mats.map(c=>ctrlHTML(c,st)).join('')}</div></details>`}
   panel.innerHTML=h+`<button class="reset" id="reset">إرجاع القيم الافتراضية</button>`;
 }
 function rebuildKeep(){const y=window.scrollY;buildPanel();try{window.scrollTo(0,y)}catch(e){}}
@@ -1955,7 +1969,7 @@ function centerTablo(){
 function render(){
   uid=0;
   if(tab==='fountain'){applyAuto(state.fountain);for(let k=1;k<=6;k++){setNum('h'+k,state.fountain['h'+k]);setNum('c'+k,state.fountain['c'+k])}updGroups()}
-  for(const c of flat(tab))if(c.type==='mat'&&!MATS[state[tab][c.id]])state[tab][c.id]=MAL[state[tab][c.id]]||c.val;
+  for(const c of flat(tab)){const v=state[tab][c.id];if(c.type==='mat'&&!MATS[v])state[tab][c.id]=MAL[v]||c.val;if(c.type==='seg'&&!c.options.some(o=>String(o[0])===String(v)))state[tab][c.id]=c.val}
   const r=SCHEMAS[tab].draw(state[tab]);lastR=r;
   {const b=r.box,dx=(b[1]-b[0])*.04,dy=(b[3]-b[2])*.04;r.box=[b[0]-dx,b[1]+dx,b[2]-dy,b[3]+dy]}
   const [x0,x1,y0,y1]=r.box,S=Math.max(x1-x0,y1-y0);
@@ -2125,7 +2139,9 @@ $('qNote').addEventListener('input',()=>{qGet().note=$('qNote').value});
 $('qSug').onclick=()=>{const q=qGet(),st=state[tab],mn=k=>MATS[st[k]]?MATS[st[k]].name:'';
   const add=(d,qq,u)=>q.rows.push({d,q:qq,u,p:''});
   const skip=/مساحة الغرفة|مساحة الحائط|مساحة الواجهة|الفتحات/;
-  for(const [k,v] of (lastR&&lastR.stats)||[]){const m=String(v).match(/([\d.]+)\s*م(²|\.ط)/);if(m&&!skip.test(k))add(k,+m[1],m[2]==='²'?'م²':'م.ط')}
+  const hasBill=((lastR&&lastR.tables)||[]).some(t=>/^بيان/.test(t.title));
+  if(!hasBill)for(const [k,v] of (lastR&&lastR.stats)||[]){const m=String(v).match(/([\d.]+)\s*م(²|\.ط)/);if(m&&!skip.test(k))add(k,+m[1],m[2]==='²'?'م²':'م.ط')}
+  for(const t of (lastR&&lastR.tables)||[])if(/^بيان/.test(t.title))for(const r of t.rows){if(!r.sel)add(r.cells[0],+r.cells[1],r.cells[2])}
   for(const t of (lastR&&lastR.tables)||[])if(/^(تفصيل|تلبيس|رخام بطول)/.test(t.title)){const r=t.rows.find(r=>r.sel);if(r){const m=r.cells.join(' ').match(/([\d.]+)\s*م²/);if(m)add(t.title.replace(/\s*\(.*\)/,''),+m[1],'م²')}}
   if(!q.rows.length||['fountain','jurn','fireplace','window','door'].includes(tab))add(SCHEMAS[tab].title+' '+(mn('mat')||'')+' حسب الرسم',1,'قطعة');
   qRender()};
