@@ -839,10 +839,14 @@ function renderItemsTable(){
     + (list.length?groupHTML(list,'img'):'<div class="empty-state">ما في نتائج.</div>');
   const si=document.getElementById('adminSearchImg');
   si.addEventListener('input',()=>{adminSearch=si.value;const pos=si.selectionStart;renderItemsTable();const n=document.getElementById('adminSearchImg');n.focus();n.setSelectionRange(pos,pos);});
-  document.getElementById('btnOpenAll').onclick=()=>{wrap.querySelectorAll('.cat-group').forEach(d=>{d.open=true;openCats.add(d.dataset.key)})};
+  document.getElementById('btnOpenAll').onclick=()=>{wrap.querySelectorAll('.cat-group').forEach(d=>{d.dataset.bulk='1';d.open=true;openCats.add(d.dataset.key);setTimeout(()=>delete d.dataset.bulk,50)})};
   document.getElementById('btnCloseAll').onclick=()=>{wrap.querySelectorAll('.cat-group').forEach(d=>{d.open=false;openCats.delete(d.dataset.key)})};
 }
-document.addEventListener('toggle',e=>{const d=e.target;if(d.classList&&d.classList.contains('cat-group')){d.open?openCats.add(d.dataset.key):openCats.delete(d.dataset.key)}},true);
+document.addEventListener('toggle',e=>{const d=e.target;if(!(d.classList&&d.classList.contains('cat-group')))return;
+  if(d.open){openCats.add(d.dataset.key);
+    if(!d.dataset.bulk){d.parentElement.querySelectorAll(':scope > .cat-group[open]').forEach(o=>{if(o!==d){o.open=false;openCats.delete(o.dataset.key)}});
+      setTimeout(()=>{const y=d.getBoundingClientRect().top+window.scrollY-70;if(d.getBoundingClientRect().top<0)window.scrollTo({top:y,behavior:'smooth'})},30)}}
+  else openCats.delete(d.dataset.key)},true);
 async function deleteItem(id){
   if(!confirm('حذف هذه الصورة؟')) return;
   items = items.filter(it => it.id !== id);

@@ -218,7 +218,7 @@ wr('videos.html', v);
 
 // index.html: صورتين من كل قسم ثابتين
 let h = rd('index.html');
-h = inject(h, 'SHOWCASE', cats.flatMap(c => byCat.get(c).slice(0, 2).map(it => ({it, c}))).map(({it, c}) => { const src = imgUrl(it); return src ? `<a href="/${slugs[c]}" class="sc-item"><img src="${esc(src)}" loading="lazy" alt="${esc(altOf(it, c))}"><span>${esc(splitName(c).ar)}</span></a>` : ''; }).join(''));
+h = inject(h, 'SHOWCASE', cats.slice(0, 8).flatMap(c => byCat.get(c).slice(0, 1).map(it => ({it, c}))).map(({it, c}) => { const src = imgUrl(it); return src ? `<a href="/${slugs[c]}" class="sc-item"><img src="${esc(src)}" loading="lazy" alt="${esc(altOf(it, c))}"><span>${esc(splitName(c).ar)}</span></a>` : ''; }).join(''));
 h = inject(h, 'CATLINKS', cats.map(c => `<a href="/${slugs[c]}">${esc(splitName(c).ar)}</a>`).join(''));
 wr('index.html', h);
 
