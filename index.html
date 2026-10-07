@@ -1127,6 +1127,8 @@ function reScrollToHashIfNeeded(){
   if(!target) return;
   didInitialHashScroll = true;
   setTimeout(()=> target.scrollIntoView({behavior:'smooth', block:'start'}), 50);
+  // نشيل #contact من الرابط بعد النزول، ليرجع الرابط نظيف
+  try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){}
 }
 
 function renderHeroSection(){

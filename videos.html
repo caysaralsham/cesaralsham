@@ -202,6 +202,7 @@ burgerBtn.addEventListener('click', ()=>{ navRow.classList.toggle('open'); setHH
 
 let videos = [];
 let activeCategory = 'all';
+const PAGE = 8;let limit = PAGE;
 
 // لو الرابط جاي بشكل videos.html?category=اسم_القسم
 const params = new URLSearchParams(location.search);
@@ -218,7 +219,7 @@ function renderFilters(){
   wrap.innerHTML = allBtn + catBtns;
   wrap.querySelectorAll('.filter-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      activeCategory = btn.dataset.cat;
+      activeCategory = btn.dataset.cat;limit = PAGE;
       renderFilters();
       renderGallery();
       document.querySelector('.page-head').scrollIntoView({behavior:'smooth', block:'start'});
@@ -233,7 +234,7 @@ function renderGallery(){
     grid.innerHTML = '<div class="empty-state">لا توجد فيديوهات بهذا القسم بعد.</div>';
     return;
   }
-  grid.innerHTML = filtered.map(v => `
+  grid.innerHTML = filtered.slice(0, limit).map(v => `
     <div class="card" style="cursor:default;">
       <div class="img-wrap" style="aspect-ratio:16/9; background:#000;">
         <video src="${v.url}" controls preload="${v.poster?'none':'metadata'}"${v.poster?` poster="${v.poster}"`:''} style="width:100%; height:100%; object-fit:contain; background:#000;"></video>
@@ -243,7 +244,9 @@ function renderGallery(){
         <div class="meta">${(v.category || '').split('|')[0].trim()}</div>
       </div>
     </div>
-  `).join('');
+  `).join('') + (filtered.length > limit ? `<div style="grid-column:1/-1;text-align:center;margin:8px 0 4px"><button type="button" id="moreVideos" class="filter-btn" style="padding:10px 26px;font-size:15px">عرض المزيد من الفيديوهات (${filtered.length - limit})</button></div>` : '');
+  const mb = document.getElementById('moreVideos');
+  if(mb) mb.addEventListener('click', ()=>{ limit += PAGE; renderGallery(); });
 }
 
 db.collection(FS_COLLECTION).onSnapshot((snap)=>{

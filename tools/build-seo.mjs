@@ -70,6 +70,7 @@ function imgUrl(it){
   return '/' + rel;
 }
 const abs = u => u.startsWith('/') ? SITE + u : u;
+const waPrice = (name, link) => `https://wa.me/${WA}?text=${encodeURIComponent('السلام عليكم، أريد معرفة سعر هذا العمل: ' + name + '\n' + link)}`;
 const altOf = (it, cat) => `${it.title || splitName(cat).ar} - قيصر الشام للحجر والرخام${splitName(cat).fr ? ' - ' + splitName(cat).fr : ''}`;
 
 function inject(html, name, content){
@@ -101,7 +102,7 @@ function catPage(cat, slug, list, cats, slugs, settings){
   const others = cats.filter(c => c !== cat).map(c => `<a href="/${slugs[c]}">${esc(splitName(c).ar)}</a>`).join('');
   const cards = imgs.map(({it, src}) => `
       <figure class="card"><a href="${esc(src)}" class="lb"><img src="${esc(src)}" loading="lazy" alt="${esc(altOf(it, cat))}"></a>
-        <figcaption><b>${esc(it.title || ar)}</b>${[it.size, it.color, it.type].filter(Boolean).length ? `<span>${esc([it.size, it.color, it.type].filter(Boolean).join(' · '))}</span>` : ''}</figcaption></figure>`).join('');
+        <figcaption><b>${esc(it.title || ar)}</b>${[it.size, it.color, it.type].filter(Boolean).length ? `<span>${esc([it.size, it.color, it.type].filter(Boolean).join(' · '))}</span>` : ''}<a class="pb" href="${esc(waPrice(it.title || ar, abs(src)))}" target="_blank" rel="nofollow noopener">💬 اطلب السعر</a></figcaption></figure>`).join('');
   return `<!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
@@ -142,7 +143,8 @@ h1{font-size:clamp(24px,4vw,36px);font-weight:900;margin:8px 0 6px}h1 small{disp
 .others{margin:34px 0;padding:18px;background:var(--bg2);border-radius:16px}.others h2{font-size:17px;margin:0 0 10px}
 .others div{display:flex;flex-wrap:wrap;gap:8px}.others a{border:1.5px solid var(--line);background:#fff;padding:7px 14px;border-radius:10px;font-weight:700;font-size:13px}.others a:hover{border-color:var(--gold)}
 footer{background:#0c0c0c;color:#8a8270;text-align:center;padding:24px;font-size:12.5px;margin-top:30px}footer b{color:var(--gold)}
-.lbx{position:fixed;inset:0;background:rgba(20,17,13,.92);display:none;align-items:center;justify-content:center;z-index:99;padding:20px}.lbx.on{display:flex}.lbx img{max-height:90vh;border-radius:8px}
+.lbx{position:fixed;inset:0;background:rgba(20,17,13,.92);display:none;flex-direction:column;gap:14px;align-items:center;justify-content:center;z-index:99;padding:20px}.lbx.on{display:flex}.lbx img{max-height:82vh;border-radius:8px}
+.pb{display:inline-flex;margin-top:8px;background:#1F8F55;color:#fff;font-weight:800;font-size:13px;padding:7px 14px;border-radius:10px}.pb:hover{background:#18744A}.lbx .pb{font-size:15px;padding:10px 20px}
 @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -162,8 +164,8 @@ footer{background:#0c0c0c;color:#8a8270;text-align:center;padding:24px;font-size
   <section class="others"><h2>أقسام أخرى من أعمالنا</h2><div><a href="/works">جميع الأعمال</a>${others}</div></section>
 </main>
 <footer><b>قيصر الشام للحجر والرخام</b> — دالي إبراهيم، الجزائر — 0541.73.78.88</footer>
-<div class="lbx" id="lbx"><img alt=""></div>
-<script>document.querySelectorAll('a.lb').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const l=document.getElementById('lbx');l.querySelector('img').src=a.href;l.classList.add('on')}));document.getElementById('lbx').addEventListener('click',e=>e.currentTarget.classList.remove('on'));</script>
+<div class="lbx" id="lbx"><img alt=""><a class="pb" target="_blank" rel="nofollow noopener" href="#">💬 اطلب السعر على واتساب</a></div>
+<script>document.querySelectorAll('a.lb').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const l=document.getElementById('lbx');l.querySelector('img').src=a.href;const p=a.closest('figure').querySelector('.pb');l.querySelector('.pb').href=p?p.href:'#';l.classList.add('on')}));document.getElementById('lbx').addEventListener('click',e=>{if(!e.target.closest('.pb'))e.currentTarget.classList.remove('on')});</script>
 </body>
 </html>
 `;
@@ -211,7 +213,7 @@ let videos = [];
 for (const [id, d] of Object.entries(docs)) if (id.startsWith('videos_')) videos = videos.concat(d.items || []);
 videos.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 let v = rd('videos.html');
-v = inject(v, 'VIDEOS', videos.filter(x => /^https?:\/\//.test(x.url || '')).map(x => `<div class="card" style="cursor:default;"><div class="img-wrap" style="aspect-ratio:16/9; background:#000;"><video src="${esc(x.url)}" controls preload="none"${x.poster ? ` poster="${esc(x.poster)}"` : ''} style="width:100%; height:100%; object-fit:contain; background:#000;" title="${esc(x.title || splitName(x.category || '').ar || 'فيديو من أعمالنا')}"></video></div><div class="body"><div class="title">${esc(x.title || splitName(x.category || '').ar || 'فيديو من أعمالنا')}</div><div class="meta">${esc(splitName(x.category || '').ar)}</div></div></div>`).join('') || '<div class="empty-state">جاري تحميل الفيديوهات...</div>');
+v = inject(v, 'VIDEOS', videos.filter(x => /^https?:\/\//.test(x.url || '')).slice(0, 8).map(x => `<div class="card" style="cursor:default;"><div class="img-wrap" style="aspect-ratio:16/9; background:#000;"><video src="${esc(x.url)}" controls preload="none"${x.poster ? ` poster="${esc(x.poster)}"` : ''} style="width:100%; height:100%; object-fit:contain; background:#000;" title="${esc(x.title || splitName(x.category || '').ar || 'فيديو من أعمالنا')}"></video></div><div class="body"><div class="title">${esc(x.title || splitName(x.category || '').ar || 'فيديو من أعمالنا')}</div><div class="meta">${esc(splitName(x.category || '').ar)}</div></div></div>`).join('') || '<div class="empty-state">جاري تحميل الفيديوهات...</div>');
 const vSchema = videos.filter(x => x.poster && /^https?:\/\//.test(x.url || '')).slice(0, 60).map(x => ({'@type':'VideoObject', name: x.title || splitName(x.category || '').ar || 'فيديو من أعمال قيصر الشام', description: `${x.title || splitName(x.category || '').ar || 'فيديو'} — من أعمال قيصر الشام للحجر والرخام، الجزائر`, thumbnailUrl: x.poster, contentUrl: x.url, uploadDate: new Date(x.createdAt || Date.now()).toISOString()}));
 v = inject(v, 'VSCHEMA', vSchema.length ? `<script type="application/ld+json">${JSON.stringify({'@context':'https://schema.org','@graph':vSchema})}</script>` : '');
 wr('videos.html', v);

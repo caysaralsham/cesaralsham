@@ -109,6 +109,10 @@
   @media (max-width:520px){
     .gallery-grid{grid-template-columns:1fr; gap:16px;}
   }
+  .price-btn{display:inline-flex;align-items:center;gap:6px;margin-top:10px;background:#1F8F55;color:#fff !important;font-weight:800;font-size:13px;padding:7px 14px;border-radius:10px;text-decoration:none}
+  .price-btn:hover{background:#18744A}
+  .lightbox-overlay{flex-direction:column;gap:14px}
+  .lightbox-overlay .price-btn{font-size:15px;padding:10px 20px;margin:0}
 </style>
 </head>
 <body>
@@ -167,6 +171,7 @@
 <div class="lightbox-overlay" id="lightboxOverlay">
   <span class="lightbox-close" id="lightboxClose">×</span>
   <img id="lightboxImg" src="">
+  <a class="price-btn" id="lightboxPrice" href="#" target="_blank" rel="noopener">💬 اطلب السعر على واتساب</a>
 </div>
 
 <script>
@@ -245,6 +250,24 @@ function renderFilters(){
   });
 }
 
+// زر «اطلب السعر»: رسالة واتساب فيها اسم العمل ورابط الصورة
+const WA_NUM='213541737888',SITE_URL='https://cesar-alcham.com';
+const linkCache=new Map();
+async function imgLink(src){
+  src=String(src||'');if(/^https?:\/\//.test(src))return src;if(src.startsWith('/'))return SITE_URL+src;
+  if(linkCache.has(src))return linkCache.get(src);
+  const m=src.match(/^data:image\/(jpeg|jpg|png|webp);base64,(.+)$/);if(!m||!crypto.subtle)return '';
+  const d=await crypto.subtle.digest('SHA-1',new TextEncoder().encode(m[2]));
+  const h=[...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,16);
+  const u=SITE_URL+'/img/works/'+h+'.'+(m[1]==='jpeg'?'jpg':m[1]);linkCache.set(src,u);return u;
+}
+const waHref=(name,link)=>'https://wa.me/'+WA_NUM+'?text='+encodeURIComponent('السلام عليكم، أريد معرفة سعر هذا العمل: '+name+(link?'\n'+link:''));
+const priceBtn=(i,name)=>`<a class="price-btn" data-pi="${i}" href="${waHref(name,'')}" target="_blank" rel="noopener">💬 اطلب السعر</a>`;
+let shown=[];
+function wirePrices(grid){
+  grid.querySelectorAll('[data-pi]').forEach(a=>{const x=shown[+a.dataset.pi];a.addEventListener('click',e=>e.stopPropagation());
+    imgLink(x.src).then(l=>{if(l)a.href=waHref(x.name,l)}).catch(()=>{})});
+}
 const sortCat=arr=>arr.slice().sort((a,b)=>(b.cover?1:0)-(a.cover?1:0)||((a.order??1e9)-(b.order??1e9))||((b.createdAt||0)-(a.createdAt||0)));
 function renderGallery(){
   const grid = document.getElementById('galleryGrid');
@@ -255,17 +278,21 @@ function renderGallery(){
     for(const it of sortCat(items)){ const c=(it.category||'').trim(); if(!c) continue; if(!per.has(c)) per.set(c,{it,n:0}); per.get(c).n++; }
     if(hint) hint.textContent = 'صورة من كل نوع — اضغط على أي صورة لعرض جميع صور هذا النوع';
     if(!per.size){ grid.innerHTML = '<div class="empty-state">لا توجد صور بعد.</div>'; return; }
-    grid.innerHTML = [...per.entries()].sort((a,b)=>a[0].localeCompare(b[0],'ar')).map(([c,{it,n}]) => `
+    const ents=[...per.entries()].sort((a,b)=>a[0].localeCompare(b[0],'ar'));
+    shown=ents.map(([c,{it}])=>({src:it.img,name:short(c)}));
+    grid.innerHTML = ents.map(([c,{it,n}],i) => `
     <div class="card" data-go="${c.replace(/"/g,'&quot;')}">
       <div class="img-wrap"><img src="${it.img}" loading="lazy" alt="${short(c)} - قيصر الشام"></div>
       <div class="body">
         <div class="title">${short(c)}</div>
         <div class="meta">${n} صورة — اضغط لعرضها جميعًا</div>
+        ${priceBtn(i,short(c))}
       </div>
     </div>`).join('');
     grid.querySelectorAll('[data-go]').forEach(el=>el.addEventListener('click',()=>{
       const b=document.querySelector(`.filter-btn[data-cat="${CSS.escape(el.dataset.go)}"]`); if(b) b.click();
     }));
+    wirePrices(grid);
     return;
   }
   const filtered = sortCat(items.filter(it => (it.category||'').trim() === activeCategory));
@@ -274,19 +301,25 @@ function renderGallery(){
     grid.innerHTML = '<div class="empty-state">لا توجد صور بهذا القسم بعد.</div>';
     return;
   }
-  grid.innerHTML = filtered.map(it => `
-    <div class="card" onclick="openLightbox('${it.img}')">
+  shown=filtered.map(it=>({src:it.img,name:it.title||short(it.category)||'قطعة رخام وحجر'}));
+  grid.innerHTML = filtered.map((it,i) => `
+    <div class="card" data-lb="${i}">
       <div class="img-wrap"><img src="${it.img}" loading="lazy" alt="${(it.title||short(it.category)||'رخام وحجر طبيعي')} - قيصر الشام"></div>
       <div class="body">
         <div class="title">${it.title || short(it.category) || 'قطعة رخام وحجر'}</div>
         <div class="meta">${[short(it.category), it.size, it.color].filter(Boolean).join(' · ')}</div>
+        ${priceBtn(i,it.title||short(it.category)||'قطعة رخام وحجر')}
       </div>
     </div>
   `).join('');
+  grid.querySelectorAll('[data-lb]').forEach(el=>el.addEventListener('click',()=>openLightbox(+el.dataset.lb)));
+  wirePrices(grid);
 }
 
-function openLightbox(imgUrl){
-  document.getElementById('lightboxImg').src = imgUrl;
+function openLightbox(i){
+  const x=shown[i];if(!x)return;
+  document.getElementById('lightboxImg').src = x.src;
+  const pb=document.getElementById('lightboxPrice');pb.href=waHref(x.name,'');imgLink(x.src).then(l=>{if(l)pb.href=waHref(x.name,l)}).catch(()=>{});
   document.getElementById('lightboxOverlay').classList.add('show');
 }
 function closeLightbox(){
