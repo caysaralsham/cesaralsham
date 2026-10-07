@@ -2206,7 +2206,7 @@ async function saveProjectFile(pn){
   const pure=await pureImage();
   const full=await makePNG({mode:'full',sc:1,dataUrl:true}),clean=await makePNG({mode:'clean',sc:1,dataUrl:true}),shop=await makePNG({mode:'shop',sc:1,dataUrl:true}),Q=quoteData();
   const data={app:'mirsam-decor',version:1,name:pn,date:today(),savedAt:new Date().toISOString(),tab,title:SCHEMAS[tab].title,
-    customer:{...cust},quote:{rows:Q.rows.map(r=>({desc:r.d||'',qty:num(r.q||1),unit:r.u||'',price:num(r.p)})),note:Q.note,total:Q.total},
+    customer:{...cust},lines:billLines(),quote:{rows:Q.rows.map(r=>({desc:r.d||'',qty:num(r.q||1),unit:r.u||'',price:num(r.p)})),note:Q.note,total:Q.total},
     stats:(lastR&&lastR.stats)||[],tables:((lastR&&lastR.tables)||[]).map(t=>({title:t.title,head:t.head,rows:t.rows.map(r=>r.cells)})),
     images:{pure,withDetails:full,drawingOnly:clean,workshop:shop},state:{...state[tab]}};
   const blob=new Blob([JSON.stringify(data)],{type:'application/json'}),name=(pn.replace(/[\\/:*?"<>|]/g,'-'))+'.mirsam.json';
