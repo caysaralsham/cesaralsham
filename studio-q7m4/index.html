@@ -2247,7 +2247,9 @@ function mirPack(kind){
 }
 function mirSend(app,kind,how){
   const A=MIR_APPS[app],pk=mirPack(kind);
-  const url=how==='app'?A.p+':'+pk:A.u+'?mirsam='+pk;
+  const web=A.u+'?mirsam='+pk,android=/Android/i.test(navigator.userAgent);
+  // على أندرويد ما في web+ ، فمنطلب من النظام يفتح الرابط بالتطبيق المثبّت (وإذا ما في، بيفتح بالمتصفح)
+  const url=how!=='app'?web:android?'intent://'+web.replace(/^https:\/\//,'')+'#Intent;scheme=https;action=android.intent.action.VIEW;S.browser_fallback_url='+encodeURIComponent(web)+';end':A.p+':'+pk;
   const a=document.createElement('a');a.href=url;if(how!=='app'){a.target='_blank';a.rel='noopener'}document.body.appendChild(a);a.click();a.remove();
   toast(how==='app'?'عم يفتح تطبيق '+A.n+'… إذا ما فتح، افتح التطبيق مرة لحاله وسكّره (ليتحدّث) وجرّب، أو اختار «المتصفح»':'انفتح برنامج '+A.n+' بالمتصفح');
 }
