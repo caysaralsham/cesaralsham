@@ -239,6 +239,7 @@ input[type=range]{height:16px}
       <button class="btn sm" id="aiUndo" disabled>تراجع</button>
       <button class="btn sm" id="aiSet" hidden aria-label="إعدادات الذكاء الاصطناعي">إعدادات</button>
     </div>
+    <button class="btn sm primary" id="mirBtn">↗ إلى ميراكوس</button>
     <button class="btn sm gold" id="saveBtn">حفظ صورة</button>
     <button class="btn sm wa" id="shareBtn">واتساب</button>
     <button class="btn sm" id="projBtn">مشاريعي</button>
@@ -2110,7 +2111,7 @@ async function saveBlob(blob){
 async function busy(btn,fn){btn.disabled=true;try{await fn()}catch(e){toast('تعذّر تجهيز الصورة، حاول مرة ثانية')}btn.disabled=false}
 let pending='save';
 function askCustomer(kind){
-  pending=kind;$('cGo').textContent=kind==='share'?'إرسال واتساب':kind==='file'?'حفظ ملف المشروع':'حفظ صورة';$('cProjW').hidden=kind!=='file';$('cFmtW').hidden=kind==='file';$('cModeW').hidden=kind==='file';
+  pending=kind;$('cGo').textContent=kind==='share'?'إرسال واتساب':kind==='file'?'حفظ ملف المشروع':kind==='miracos'?'متابعة ←':'حفظ صورة';$('cProjW').hidden=kind!=='file';$('cFmtW').hidden=kind==='file'||kind==='miracos';$('cModeW').hidden=kind==='file'||kind==='miracos';
   qRender();$('qBox').open=qGet().rows.length>0;
   $('cName').value='';$('cPhone').value='';$('cAddr').value='';$('cErr').textContent='';
   $('cliModal').classList.add('on');setTimeout(()=>$('cName').focus(),50);
@@ -2124,6 +2125,7 @@ $('cGo').onclick=()=>{
   const n=$('cName').value.trim();
   if(!n){$('cErr').textContent='اكتب اسم الزبون أول، هاد الحقل إجباري.';$('cName').focus();return}
   cust={name:n,phone:$('cPhone').value.trim(),addr:$('cAddr').value.trim()};
+  if(pending==='miracos'){$('cliModal').classList.remove('on');saveProject();mirChoose();return}
   if(pending==='file'){const pn=$('cProj').value.trim();if(!pn){$('cErr').textContent='اكتب اسم للمشروع.';$('cProj').focus();return}
     cust={name:n,phone:$('cPhone').value.trim(),addr:$('cAddr').value.trim()};$('cliModal').classList.remove('on');saveProject();
     busy($('fileBtn'),async()=>{await saveProjectFile(pn)});return}
@@ -2209,11 +2211,45 @@ async function saveProjectFile(pn){
     customer:{...cust},lines:billLines(),quote:{rows:Q.rows.map(r=>({desc:r.d||'',qty:num(r.q||1),unit:r.u||'',price:num(r.p)})),note:Q.note,total:Q.total},
     stats:(lastR&&lastR.stats)||[],tables:((lastR&&lastR.tables)||[]).map(t=>({title:t.title,head:t.head,rows:t.rows.map(r=>r.cells)})),
     images:{pure,withDetails:full,drawingOnly:clean,workshop:shop},state:{...state[tab]}};
+  if(cust.name&&!pn.includes(cust.name))data.name=pn=pn+' - '+cust.name;
   const blob=new Blob([JSON.stringify(data)],{type:'application/json'}),name=(pn.replace(/[\\/:*?"<>|]/g,'-'))+'.mirsam.json';
   if(typeof dl!=='undefined'&&dl){try{await dl.save({filename:name,data:blob});toast('انحفظ ملف المشروع');return}catch(e){}}
   const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);toast('انحفظ ملف المشروع: '+name);
 }
 $('fileBtn').onclick=()=>{askCustomer('file');$('cProj').value=SCHEMAS[tab].title};
+/* ---------- إرسال الرسمة لبرنامج ميراكوس (المعرض أو المعمل) كوصل أو عرض سعر ---------- */
+const MIR_APPS={showroom:{n:'المعرض',u:'https://caysaralsham.github.io/miracos-accounting/'},factory:{n:'المعمل',u:'https://caysaralsham.github.io/miracos-factory/'}};
+const MIR_ORIGIN='https://caysaralsham.github.io';
+$('mirBtn').onclick=()=>askCustomer('miracos');
+function mirChoose(){
+  let app='showroom';try{app=localStorage.getItem('mirsam_app')||'showroom'}catch(e){}if(!MIR_APPS[app])app='showroom';
+  const ov=document.createElement('div');ov.className='modal on';ov.style.zIndex=70;
+  const appBtns=()=>Object.entries(MIR_APPS).map(([k,v])=>`<button data-app="${k}" aria-pressed="${k===app}">${v.n}</button>`).join('');
+  ov.innerHTML=`<div class="box" role="dialog" aria-modal="true" style="max-width:380px"><h2>إرسال إلى ميراكوس</h2>
+    <div style="font-size:.85rem;color:var(--muted)">الزبون: <b>${(cust.name||'').replace(/</g,'&lt;')}</b> — ${SCHEMAS[tab].title}</div>
+    <div><span class="clbl">البرنامج</span><div class="seg" id="mirApp">${appBtns()}</div></div>
+    <div style="display:grid;gap:8px;margin-top:6px">
+      <button class="btn primary" data-k="rcp">🧾 وصل دفع</button>
+      <button class="btn primary" data-k="inv">📄 عرض سعر</button>
+      <button class="btn primary" data-k="devis">📑 Devis</button>
+      <button class="btn" data-k="">إلغاء</button></div>
+    <small>بيفتح البرنامج بصفحة جديدة وفيه الرسمة والبنود، وإنت بتكمّل الأسعار والبيانات وبتحفظ.</small></div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{const a=e.target.closest('[data-app]');if(a){app=a.dataset.app;ov.querySelectorAll('[data-app]').forEach(b=>b.setAttribute('aria-pressed',b===a));try{localStorage.setItem('mirsam_app',app)}catch(_){}return}
+    const b=e.target.closest('[data-k]');if(e.target===ov||b){ov.remove();if(b&&b.dataset.k)mirSend(app,b.dataset.k)}});
+}
+function mirSend(app,kind){
+  const w=window.open(MIR_APPS[app].u+'?mirsam='+kind,'_blank');
+  if(!w){toast('المتصفح منع فتح صفحة جديدة، اسمح بالنوافذ المنبثقة وجرّب مرة تانية');return}
+  toast('عم جهّز الرسمة… كمّل بصفحة ميراكوس (سجّل دخول إذا طلب)');
+  const payload=(async()=>{const pure=await pureImage(),withDetails=await makePNG({mode:'full',sc:1,dataUrl:true});
+    return{app:'mirsam-decor',version:1,name:(cust.name?cust.name+' - ':'')+SCHEMAS[tab].title,title:SCHEMAS[tab].title,tab,customer:{...cust},images:{pure,withDetails},
+      stats:(lastR&&lastR.stats)||[],lines:billLines(),mstate:{tab,state:{...state[tab]}}}})();
+  const on=async e=>{if(e.origin!==MIR_ORIGIN||e.source!==w||!e.data)return;
+    if(e.data.type==='mirsam-ready'){try{w.postMessage({type:'mirsam-result',data:await payload},MIR_ORIGIN)}catch(err){}}
+    else if(e.data.type==='mirsam-got'){removeEventListener('message',on);toast('✓ وصلت الرسمة لبرنامج '+MIR_APPS[app].n)}};
+  addEventListener('message',on);setTimeout(()=>removeEventListener('message',on),30*60*1000);
+}
 $('projFile').addEventListener('change',async e=>{const fl=e.target.files[0];if(!fl)return;try{const d=JSON.parse(await fl.text());if(d.app!=='mirsam-decor'||!SCHEMAS[d.tab])throw 0;
   tab=d.tab;state[tab]={...defaults(tab),...d.state};cust={name:d.customer.name||'',phone:d.customer.phone||'',addr:d.customer.addr||''};
   quotes[tab]={rows:(d.quote.rows||[]).map(r=>({d:r.desc,q:r.qty,u:r.unit,p:r.price||''})),note:d.quote.note||''};
@@ -2391,7 +2427,7 @@ if(EMBED){
   const bar=document.createElement('div');bar.id='embedBar';
   bar.innerHTML='<b>✏️ رسمة لميراكوس</b><span id="embedWho"></span><button class="btn sm primary" id="embedSend">↩ إرسال إلى ميراكوس</button><button class="btn sm" id="embedCancel">إلغاء</button>';
   document.body.prepend(bar);
-  const st=document.createElement('style');st.textContent='#embedBar{position:sticky;top:0;z-index:60;display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#1F8F55;color:#fff;padding:8px 16px}#embedBar b{font-size:.95rem}#embedBar span{flex:1;font-size:.82rem;opacity:.9}#embedBar .btn{background:#fff;color:#111;border-color:#fff}#embedBar .btn.primary{background:#111;color:#fff;border-color:#111}.tabbar{top:46px}#shareBtn,#fileBtn,#projBtn{display:none}html{direction:ltr;overflow-y:auto;height:auto}body{direction:rtl}@media (max-width:860px){#embedBar{padding:6px 10px;gap:6px;flex-wrap:nowrap}#embedBar b{display:none}#embedBar span{font-size:.72rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#embedBar .btn{padding:6px 10px;font-size:.8rem;white-space:nowrap}.tabbar{top:40px}}';
+  const st=document.createElement('style');st.textContent='#embedBar{position:sticky;top:0;z-index:60;display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#1F8F55;color:#fff;padding:8px 16px}#embedBar b{font-size:.95rem}#embedBar span{flex:1;font-size:.82rem;opacity:.9}#embedBar .btn{background:#fff;color:#111;border-color:#fff}#embedBar .btn.primary{background:#111;color:#fff;border-color:#111}.tabbar{top:46px}#shareBtn,#fileBtn,#projBtn,#mirBtn{display:none}html{direction:ltr;overflow-y:auto;height:auto}body{direction:rtl}@media (max-width:860px){#embedBar{padding:6px 10px;gap:6px;flex-wrap:nowrap}#embedBar b{display:none}#embedBar span{font-size:.72rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#embedBar .btn{padding:6px 10px;font-size:.8rem;white-space:nowrap}.tabbar{top:40px}}';
   document.head.appendChild(st);
   const send=m=>{if(parentOrigin)window.parent.postMessage(m,parentOrigin)};
   window.addEventListener('message',e=>{
