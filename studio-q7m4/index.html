@@ -1516,6 +1516,7 @@ function arcLen(hw,rise,type){
   if(rise<=hw){const r=(hw*hw+rise*rise)/(2*rise);return r*2*Math.asin(Math.min(1,hw/r))}
   const a=hw,b=rise;return Math.PI*(3*(a+b)-Math.sqrt((3*a+b)*(a+3*b)))/2;
 }
+function dimVs(y1,y2,x,label,col,side){const mid=(y1+y2)/2;return dimV(y1,y2,x,'',col)+'<g class="dim">'+`<text x="${f(x+side*FS*.45)}" y="${f(mid+FS*.35)}" text-anchor="${side<0?'end':'start'}" font-size="${f(FS*.9)}" font-weight="700" fill="${col}" stroke="#fff" stroke-width="${f(FS*.2)}" paint-order="stroke" font-family="Cairo,Tahoma,sans-serif">${label}</text></g>`}
 function drawFrame(s){
   const kind=s.kind||'door',type=s.top||'rect',rect=type==='rect',ow=+s.ow,kw=+s.kw,bot=+s.bot&&kind!=='door',kwb=bot?+s.kwb:0,th=+s.th;
   const oh=+s.oh,ar=rect?0:+s.ar,ha=oh+ar,hL=oh,hR=oh;
@@ -1545,23 +1546,23 @@ function drawFrame(s){
   const midY=-yb-oh*.5;
   o+=dimH(-ow/2,ow/2,midY,'من الداخل '+fmt(ow),C_TAB);
   o+=dimV(-yb,-(yb+oh),-ow/2+FS*1.3,'من الداخل '+fmt(oh),C_TAB);
-  if(!rect)o+=dimV(-(yb+oh),-(yb+ha),FS*.9,'القوس '+fmt(ar),C_TAB);
+  if(!rect)o+=dimVs(-(yb+oh),-(yb+ha),ow*.18,'قوس '+Math.round(ar)+' سم',C_TAB,-1);
   o+=dimH(ow/2,ow/2+kw,midY-FS*2.2,fmt(kw),C_FR);
   if(bot)o+=dimV(-yb+kwb,-yb,OW/2+FS*1.2,'تحت '+kwb,C_FR);
   o+=dimH(-OW/2,OW/2,FS*2.2,'من برّا '+fmt(OW));
   const totO=-fTop-H0;
   o+=dimV(-H0,fTop,OW/2+S*.1,'من برّا '+fmt(totO));
-  if(!rect)o+=dimV(-(yb+oh),fTop,OW/2+S*.03,'القوس من برّا '+fmt(arO));
+  const xc2=OW/2+S*(crown&&cTop<fTop?.24:.17);if(!rect)o+=dimVs(-(yb+oh),fTop,xc2,'قوس من برّا '+Math.round(arO)+' سم',DIM,1);
   if(H0>0)o+=dimV(0,-H0,-OW/2-FS*1.2,'عن الأرض '+fmt(H0),C_GAP);
-  if(crown){o+=dimV(cTop+cH,cTop,Math.max(cH*.75,kw*1.6)/2+FS*1.1,'تاج '+fmt(cH),C_FR);if(cTop<fTop)o+=dimV(-H0,top,OW/2+S*.17,'مع التاج '+fmt(-top-H0))}
+  if(crown){o+=dimVs(cTop+cH,cTop,-Math.max(cH*.75,kw*1.6)/2-FS*.5,'تاج '+Math.round(cH)+' سم',C_FR,-1);if(cTop<fTop)o+=dimV(-H0,top,OW/2+S*.17,'مع التاج '+fmt(-top-H0))}
   // quantities
   const aIn=rect?ow:arcLen(ow/2,ar,type),aOut=rect?OW:arcLen(OW/2,arO,type);
-  const len=2*oh+(rect?OW:(aIn+aOut)/2)+(bot?OW:0),area=(len*kw+(bot?OW*(kwb-kw):0))/1e4;
+  const len=2*(oh+(rect?kw:0))+(rect?OW:0)+(bot?OW:0),area=(len*kw+(bot?OW*(kwb-kw):0))/1e4;
   const KN={door:'كادر باب',window:'كادر نافذة',jurn:'كورنيش جرن',tablo:'كادر تابلو'}[kind];
   const stats=[['النوع',KN+(type==='arch'?'، فوق قوس':type==='pointed'?'، فوق مدبّب':'')],
     ['القياس من الداخل','عرض '+ow+'، ارتفاع '+oh+(rect?'':' لبداية القوس، القوس '+ar+'، الكلي '+ha)+' سم'],
     ['القياس من برّا','عرض '+OW+'، ارتفاع '+Math.round(totO)+(rect?'':' (القوس من برّا '+arO+')')+' سم'+(crown&&cTop<fTop?'، مع التاج '+Math.round(-top-H0):'')],
-    ['عرض الكادر',kw+' سم'+(bot?'، من تحت '+kwb+' سم':'، بدون تحت')],['سماكة الكادر',th+' سم'],['طول الكادر',(len/100).toFixed(2)+' م.ط ('+area.toFixed(2)+' م²)']];
+    ['عرض الكادر',kw+' سم'+(bot?'، من تحت '+kwb+' سم':'، بدون تحت')],['سماكة الكادر',th+' سم'],['طول الكادر'+(rect?'':' (المستقيم بدون القوس)'),(len/100).toFixed(2)+' م.ط ('+area.toFixed(2)+' م²)']];
   if(!rect)stats.push(['طول القوس','من الداخل '+Math.round(aIn)+' سم، من برّا '+Math.round(aOut)+' سم']);
   if(crown)stats.push(['التاج','ارتفاع '+cH+'، سماكة '+(+s.crTh)+' سم، '+{top:'فوق',mid:'بالنص',bot:'تحت'}[s.crPos||'mid']]);
   if(H0>0)stats.push(['الارتفاع عن الأرض',fmt(H0)]);
@@ -1571,7 +1572,7 @@ function drawFrame(s){
   if(bot)cut.push({cells:['تحت','طول '+OW,'عرض '+kwb,'سماكة '+th,'1']});
   if(crown)cut.push({cells:['التاج','ارتفاع '+cH,'عرض '+Math.round(Math.max(cH*.75,kw*1.6)),'سماكة '+(+s.crTh),'1']});
   return{svg:o,tables:[{title:'قائمة القطع للمعمل',head:['القطعة','القياس 1','القياس 2','القياس 3','العدد'],rows:cut}],
-    box:[-OW/2-S*.14,OW/2+S*(crown&&cTop<fTop?.27:.2),top-S*.05,S*.12],stats,note:''};
+    box:[-OW/2-S*.14,OW/2+S*(rect?(crown&&cTop<fTop?.27:.2):(crown&&cTop<fTop?.5:.43)),top-S*.05,S*.12],stats,note:''};
 }
 
 /* ---------- schemas ---------- */
