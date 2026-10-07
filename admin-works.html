@@ -83,6 +83,18 @@
 
   .toast{position:fixed; bottom:20px; right:20px; background:var(--ink); color:#fff; padding:12px 20px; border-radius:8px; font-size:13.5px; z-index:200; opacity:0; transform:translateY(10px); transition:.25s;}
   .toast.show{opacity:1; transform:translateY(0);}
+
+.cat-group{border:1px solid var(--line);border-radius:12px;margin:10px 0;background:#fff;overflow:hidden}
+.cat-group>summary{cursor:pointer;padding:12px 14px;font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--cream-2,#FAF9F7)}
+.cat-group[open]>summary{border-bottom:1px solid var(--line)}
+.tag{display:inline-block;background:#eee;border-radius:999px;padding:1px 9px;font-size:11.5px;font-weight:700;color:#444}
+.tag.warn{background:#FCEBD9;color:#A0640C}
+.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;padding:12px}
+.acard{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff;display:flex;flex-direction:column}
+.acard img,.acard video{width:100%;aspect-ratio:4/3;object-fit:cover;background:#000;display:block}
+.acard-b{padding:8px;display:flex;flex-direction:column;gap:6px;flex:1}
+.acard-t{font-size:12.5px;font-weight:700;line-height:1.4}
+.admin-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}.admin-tools input{flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;font:inherit}
 </style>
 <link rel="manifest" href="/qs-manifest-home.json">
 <link rel="apple-touch-icon" href="/qs-apple-touch-icon.png">
@@ -713,27 +725,53 @@ async function deleteCategory(name){
 }
 
 // ---------- items table ----------
+const openCats = new Set();
+let adminSearch = '';
+function groupHTML(list, kind){
+  const groups = new Map();
+  list.forEach(x=>{ const c=(x.category||'').trim()||'__none__'; if(!groups.has(c)) groups.set(c,[]); groups.get(c).push(x); });
+  const keys=[...groups.keys()].sort((a,b)=> a==='__none__'?-1:b==='__none__'?1:a.localeCompare(b,'ar'));
+  const titleCount = {}; list.forEach(x=>{ const t=(x.title||'').trim(); if(t) titleCount[t]=(titleCount[t]||0)+1; });
+  return keys.map(c=>{
+    const arr=groups.get(c), name=c==='__none__'?'<span style="color:var(--danger);">بدون قسم</span>':c.split('|')[0].trim();
+    const fr=c.includes('|')?`<small style="color:var(--text-dim); font-weight:500;"> ${c.split('|')[1].trim()}</small>`:'';
+    const key=kind+':'+c, open=openCats.has(key)||!!adminSearch;
+    const noTitle=arr.filter(x=>!(x.title||'').trim()).length, dup=arr.filter(x=>titleCount[(x.title||'').trim()]>1).length;
+    const warn=(noTitle?`<span class="tag warn">${noTitle} بلا عنوان</span>`:'')+(dup?`<span class="tag warn">${dup} عنوان مكرر</span>`:'');
+    const cards=arr.map(x=>`
+      <div class="acard">
+        ${kind==='img'?`<img src="${x.img}" loading="lazy">`:`<video src="${x.url}" muted preload="metadata"></video>`}
+        <div class="acard-b">
+          <div class="acard-t">${(x.title||'').trim()||'<span style="color:var(--danger);">بلا عنوان</span>'}${(x.title||'').trim()&&titleCount[(x.title||'').trim()]>1?' <span class="tag warn">مكرر</span>':''}</div>
+          <div class="row-actions">
+            ${kind==='img'?`<button class="btn btn-ghost btn-sm" onclick="openEditItem('${x.id}')" title="تعديل">✎ تعديل</button><button class="btn btn-danger btn-sm" onclick="deleteItem('${x.id}')" title="حذف">🗑</button>`
+              :`<button class="btn btn-sm btn-edit-video" data-video-id="${x.id}" title="تعديل">✎ تعديل</button><button class="btn btn-danger btn-sm btn-delete-video" data-video-id="${x.id}" title="حذف">🗑</button>`}
+          </div>
+        </div>
+      </div>`).join('');
+    return `<details class="cat-group" data-key="${key.replace(/"/g,'&quot;')}"${open?' open':''}>
+      <summary><b>${name}</b>${fr} <span class="tag">${arr.length}</span>${warn}</summary>
+      <div class="agrid">${cards}</div></details>`;
+  }).join('');
+}
+function filterList(list){
+  const q=adminSearch.trim().toLowerCase(); if(!q) return list;
+  return list.filter(x=>[(x.title||''),(x.category||''),(x.size||''),(x.color||''),(x.type||'')].join(' ').toLowerCase().includes(q));
+}
 function renderItemsTable(){
   document.getElementById('itemsCount').textContent = items.length;
   const wrap = document.getElementById('itemsTableWrap');
   if(!items.length){ wrap.innerHTML = '<div class="empty-state">لا توجد صور بعد.</div>'; return; }
-  let html = `<table><thead><tr><th>الصورة</th><th>العنوان</th><th>القسم</th><th></th></tr></thead><tbody>`;
-  items.forEach(it=>{
-    html += `<tr>
-      <td><img src="${it.img}"></td>
-      <td>${it.title||'—'}</td>
-      <td>${it.category||'<span style="color:var(--danger);">بدون قسم</span>'}</td>
-      <td>
-        <div class="row-actions">
-          <button class="btn btn-ghost btn-sm" onclick="openEditItem('${it.id}')" title="تعديل">✎</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteItem('${it.id}')" title="حذف">🗑</button>
-        </div>
-      </td>
-    </tr>`;
-  });
-  html += '</tbody></table>';
-  wrap.innerHTML = html;
+  const list=filterList(items);
+  wrap.innerHTML = `<div class="admin-tools"><input type="search" id="adminSearchImg" placeholder="🔍 دوّر على صورة بالعنوان أو القسم أو اللون..." value="${adminSearch.replace(/"/g,'&quot;')}">
+    <button class="btn btn-ghost btn-sm" id="btnOpenAll">فتح الكل</button><button class="btn btn-ghost btn-sm" id="btnCloseAll">سكّر الكل</button></div>`
+    + (list.length?groupHTML(list,'img'):'<div class="empty-state">ما في نتائج.</div>');
+  const si=document.getElementById('adminSearchImg');
+  si.addEventListener('input',()=>{adminSearch=si.value;const pos=si.selectionStart;renderItemsTable();const n=document.getElementById('adminSearchImg');n.focus();n.setSelectionRange(pos,pos);});
+  document.getElementById('btnOpenAll').onclick=()=>{wrap.querySelectorAll('.cat-group').forEach(d=>{d.open=true;openCats.add(d.dataset.key)})};
+  document.getElementById('btnCloseAll').onclick=()=>{wrap.querySelectorAll('.cat-group').forEach(d=>{d.open=false;openCats.delete(d.dataset.key)})};
 }
+document.addEventListener('toggle',e=>{const d=e.target;if(d.classList&&d.classList.contains('cat-group')){d.open?openCats.add(d.dataset.key):openCats.delete(d.dataset.key)}},true);
 async function deleteItem(id){
   if(!confirm('حذف هذه الصورة؟')) return;
   items = items.filter(it => it.id !== id);
@@ -748,22 +786,7 @@ function renderVideosTable(){
   document.getElementById('videosCount').textContent = videos.length;
   const wrap = document.getElementById('videosTableWrap');
   if(!videos.length){ wrap.innerHTML = '<div class="empty-state">لا توجد فيديوهات بعد.</div>'; return; }
-  let html = `<table><thead><tr><th>الفيديو</th><th>العنوان</th><th>القسم</th><th></th></tr></thead><tbody>`;
-  videos.forEach(v=>{
-    html += `<tr>
-      <td><video src="${v.url}" style="width:120px; height:70px; object-fit:cover; border-radius:6px; background:#000;" muted></video></td>
-      <td>${v.title||'—'}</td>
-      <td>${v.category||'<span style="color:var(--danger);">بدون قسم</span>'}</td>
-      <td>
-        <div class="row-actions">
-          <button class="btn btn-sm btn-edit-video" data-video-id="${v.id}" title="تعديل">✎</button>
-          <button class="btn btn-danger btn-sm btn-delete-video" data-video-id="${v.id}" title="حذف">🗑</button>
-        </div>
-      </td>
-    </tr>`;
-  });
-  html += '</tbody></table>';
-  wrap.innerHTML = html;
+  wrap.innerHTML = groupHTML(videos,'vid');
 }
 document.getElementById('videosTableWrap').addEventListener('click', (e)=>{
   const editBtn = e.target.closest('.btn-edit-video');
