@@ -2218,37 +2218,38 @@ async function saveProjectFile(pn){
 }
 $('fileBtn').onclick=()=>{askCustomer('file');$('cProj').value=SCHEMAS[tab].title};
 /* ---------- إرسال الرسمة لبرنامج ميراكوس (المعرض أو المعمل) كوصل أو عرض سعر ---------- */
-const MIR_APPS={showroom:{n:'المعرض',u:'https://caysaralsham.github.io/miracos-accounting/'},factory:{n:'المعمل',u:'https://caysaralsham.github.io/miracos-factory/'}};
-const MIR_ORIGIN='https://caysaralsham.github.io';
+const MIR_APPS={showroom:{n:'المعرض',u:'https://caysaralsham.github.io/miracos-accounting/',p:'web+miracos'},factory:{n:'المعمل',u:'https://caysaralsham.github.io/miracos-factory/',p:'web+qaysarsham'}};
 $('mirBtn').onclick=()=>askCustomer('miracos');
+const mirGet=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},mirSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 function mirChoose(){
-  let app='showroom';try{app=localStorage.getItem('mirsam_app')||'showroom'}catch(e){}if(!MIR_APPS[app])app='showroom';
+  let app=mirGet('mirsam_app','showroom'),how=mirGet('mirsam_how','app');if(!MIR_APPS[app])app='showroom';
   const ov=document.createElement('div');ov.className='modal on';ov.style.zIndex=70;
-  const appBtns=()=>Object.entries(MIR_APPS).map(([k,v])=>`<button data-app="${k}" aria-pressed="${k===app}">${v.n}</button>`).join('');
-  ov.innerHTML=`<div class="box" role="dialog" aria-modal="true" style="max-width:380px"><h2>إرسال إلى ميراكوس</h2>
+  const seg=(attr,list,cur)=>list.map(([k,n])=>`<button data-${attr}="${k}" aria-pressed="${k===cur}">${n}</button>`).join('');
+  ov.innerHTML=`<div class="box" role="dialog" aria-modal="true" style="max-width:400px"><h2>إرسال إلى ميراكوس</h2>
     <div style="font-size:.85rem;color:var(--muted)">الزبون: <b>${(cust.name||'').replace(/</g,'&lt;')}</b> — ${SCHEMAS[tab].title}</div>
-    <div><span class="clbl">البرنامج</span><div class="seg" id="mirApp">${appBtns()}</div></div>
+    <div><span class="clbl">البرنامج</span><div class="seg">${seg('app',Object.entries(MIR_APPS).map(([k,v])=>[k,v.n]),app)}</div></div>
+    <div><span class="clbl">يفتح بـ</span><div class="seg">${seg('how',[['app','التطبيق'],['web','المتصفح']],how)}</div></div>
     <div style="display:grid;gap:8px;margin-top:6px">
       <button class="btn primary" data-k="rcp">🧾 وصل دفع</button>
       <button class="btn primary" data-k="inv">📄 عرض سعر</button>
       <button class="btn primary" data-k="devis">📑 Devis</button>
       <button class="btn" data-k="">إلغاء</button></div>
-    <small>بيفتح البرنامج بصفحة جديدة وفيه الرسمة والبنود، وإنت بتكمّل الأسعار والبيانات وبتحفظ.</small></div>`;
+    <small>بيفتح البرنامج وفيه الرسمة والبنود، وإنت بتكمّل الأسعار والبيانات وبتحفظ.</small></div>`;
   document.body.appendChild(ov);
-  ov.addEventListener('click',e=>{const a=e.target.closest('[data-app]');if(a){app=a.dataset.app;ov.querySelectorAll('[data-app]').forEach(b=>b.setAttribute('aria-pressed',b===a));try{localStorage.setItem('mirsam_app',app)}catch(_){}return}
-    const b=e.target.closest('[data-k]');if(e.target===ov||b){ov.remove();if(b&&b.dataset.k)mirSend(app,b.dataset.k)}});
+  ov.addEventListener('click',e=>{
+    for(const at of['app','how']){const a=e.target.closest('[data-'+at+']');if(a){const v=a.dataset[at];if(at==='app')app=v;else how=v;mirSet('mirsam_'+at,v);ov.querySelectorAll('[data-'+at+']').forEach(b=>b.setAttribute('aria-pressed',b===a));return}}
+    const b=e.target.closest('[data-k]');if(e.target===ov||b){ov.remove();if(b&&b.dataset.k)mirSend(app,b.dataset.k,how)}});
 }
-function mirSend(app,kind){
-  const w=window.open(MIR_APPS[app].u+'?mirsam='+kind,'_blank');
-  if(!w){toast('المتصفح منع فتح صفحة جديدة، اسمح بالنوافذ المنبثقة وجرّب مرة تانية');return}
-  toast('عم جهّز الرسمة… كمّل بصفحة ميراكوس (سجّل دخول إذا طلب)');
-  const payload=(async()=>{const pure=await pureImage(),withDetails=await makePNG({mode:'full',sc:1,dataUrl:true});
-    return{app:'mirsam-decor',version:1,name:(cust.name?cust.name+' - ':'')+SCHEMAS[tab].title,title:SCHEMAS[tab].title,tab,customer:{...cust},images:{pure,withDetails},
-      stats:(lastR&&lastR.stats)||[],lines:billLines(),mstate:{tab,state:{...state[tab]}}}})();
-  const on=async e=>{if(e.origin!==MIR_ORIGIN||e.source!==w||!e.data)return;
-    if(e.data.type==='mirsam-ready'){try{w.postMessage({type:'mirsam-result',data:await payload},MIR_ORIGIN)}catch(err){}}
-    else if(e.data.type==='mirsam-got'){removeEventListener('message',on);toast('✓ وصلت الرسمة لبرنامج '+MIR_APPS[app].n)}};
-  addEventListener('message',on);setTimeout(()=>removeEventListener('message',on),30*60*1000);
+function mirPack(kind){
+  const D=defaults(tab),st={};for(const [k,v] of Object.entries(state[tab]))if(String(v)!==String(D[k]))st[k]=v;
+  const j=JSON.stringify({k:kind,t:tab,s:st,c:cust});const by=new TextEncoder().encode(j);let bin='';by.forEach(x=>bin+=String.fromCharCode(x));
+  return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function mirSend(app,kind,how){
+  const A=MIR_APPS[app],pk=mirPack(kind);
+  const url=how==='app'?A.p+':'+pk:A.u+'?mirsam='+pk;
+  const a=document.createElement('a');a.href=url;if(how!=='app'){a.target='_blank';a.rel='noopener'}document.body.appendChild(a);a.click();a.remove();
+  toast(how==='app'?'عم يفتح تطبيق '+A.n+'… إذا ما فتح، افتح التطبيق مرة لحاله وسكّره (ليتحدّث) وجرّب، أو اختار «المتصفح»':'انفتح برنامج '+A.n+' بالمتصفح');
 }
 $('projFile').addEventListener('change',async e=>{const fl=e.target.files[0];if(!fl)return;try{const d=JSON.parse(await fl.text());if(d.app!=='mirsam-decor'||!SCHEMAS[d.tab])throw 0;
   tab=d.tab;state[tab]={...defaults(tab),...d.state};cust={name:d.customer.name||'',phone:d.customer.phone||'',addr:d.customer.addr||''};
@@ -2437,6 +2438,7 @@ if(EMBED){
     document.getElementById('embedWho').textContent=cust.name?('الزبون: '+cust.name):'';
     if(d.mstate&&SCHEMAS[d.mstate.tab]){tab=d.mstate.tab;state[tab]={...defaults(tab),...(d.mstate.state||{})}}
     buildPanel();render();updTitle();
+    if(d.auto)setTimeout(()=>document.getElementById('embedSend').click(),400);
   });
   document.getElementById('embedCancel').onclick=()=>send({type:'mirsam-cancel'});
   document.getElementById('embedSend').onclick=async()=>{
