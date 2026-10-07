@@ -147,6 +147,7 @@
     <div class="tab active" data-view="images">الصور</div>
     <div class="tab" data-view="videos">الفيديوهات</div>
     <div class="tab" data-view="categories">الأقسام</div>
+    <div class="tab" data-view="faq">الأسئلة الشائعة</div>
   </div>
 
   <!-- ================= الصور ================= -->
@@ -237,6 +238,20 @@
       <h2>إدارة الأقسام</h2>
       <div style="font-size:12px; color:var(--text-dim); margin-bottom:14px;">تعديل أو حذف اسم قسم بينطبق على كل الصور المرتبطة فيه دفعة وحدة.</div>
       <div id="categoryManager"></div>
+    </div>
+  </section>
+
+  <!-- ================= الأسئلة الشائعة ================= -->
+  <section class="view" id="view-faq">
+    <div class="panel" style="max-width:820px;">
+      <h2>الأسئلة الشائعة</h2>
+      <div style="font-size:12px; color:var(--text-dim); margin-bottom:14px;">عدّل السؤال والجواب، رتّبهم بـ ▲▼، وبعدين اضغط «حفظ». بيتغيّروا بالموقع فورًا، ونسخة غوغل بتتحدّث خلال يوم.</div>
+      <div id="faqList"></div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+        <button class="btn btn-ghost" id="faqAdd">+ سؤال جديد</button>
+        <button class="btn" id="faqSave">حفظ الأسئلة</button>
+        <span id="faqMsg" style="align-self:center; font-size:13px; color:var(--text-dim);"></span>
+      </div>
     </div>
   </section>
 
@@ -482,6 +497,46 @@ document.querySelectorAll('.tab').forEach(tab=>{
     document.getElementById('view-' + tab.dataset.view).classList.add('active');
   });
 });
+// ---------- الأسئلة الشائعة ----------
+const FAQ_DEFAULT = [{"q": "أين يقع مقرّكم، وما المناطق التي تغطّونها؟", "a": "يقع مقرّنا في دالي إبراهيم بالجزائر العاصمة، ونقدّم خدماتنا من تصميم وتصنيع وتركيب في جميع ولايات الجزائر."}, {"q": "ما الأعمال التي تنفّذونها بالرخام والحجر؟", "a": "ننفّذ المدافئ الرخامية (الشمينيه)، وأجران الحمّامات، والنوافير، وواجهات المنازل الحجرية، والتابلوهات الأرضية والجدارية، وإطارات النوافذ والمداخل والكورنيش، والأعمدة والأعمال المنحوتة."}, {"q": "هل تنفّذون الأعمال حسب المقاس والتصميم الذي أختاره؟", "a": "نعم، نصمّم كل قطعة ونصنعها وفق مقاسات المكان والتصميم الذي تختاره، ونعرض عليك رسمًا بالمقاسات قبل البدء في التنفيذ."}, {"q": "ما أنواع الرخام المتوفّرة لديكم؟", "a": "نوفّر الرخام والحجر الطبيعي بألوان متعدّدة، منها الأبيض الإيطالي (كرارا) والبيج المصري والألوان الداكنة، إضافةً إلى أنواع أخرى بحسب طبيعة المشروع."}, {"q": "كيف يمكنني طلب عرض سعر؟", "a": "يمكنك تعبئة نموذج «اطلب عرض سعر» في هذه الصفحة، أو مراسلتنا مباشرة عبر واتساب على الرقم 0541737888 مع صور المكان والمقاسات التقريبية، أو الاتصال بنا هاتفيًا، وسنوافيك بعرض السعر."}];
+let faqItems = null, faqDirty = false;
+const faqEsc = t => String(t||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function renderFaqAdmin(){
+  const w = document.getElementById('faqList'); if(!w || !faqItems) return;
+  w.innerHTML = faqItems.map((x,i)=>`<div style="border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:10px; background:#fff;">
+    <div style="display:flex; gap:6px; align-items:center; margin-bottom:6px;"><b style="color:var(--gold-deep,#8F6A1F)">${i+1}.</b><span style="flex:1"></span>
+      <button class="btn btn-ghost btn-sm" data-fq="up" data-i="${i}" ${i===0?'disabled':''}>▲</button>
+      <button class="btn btn-ghost btn-sm" data-fq="down" data-i="${i}" ${i===faqItems.length-1?'disabled':''}>▼</button>
+      <button class="btn btn-ghost btn-sm" data-fq="del" data-i="${i}" style="color:#A6453D">حذف</button></div>
+    <div class="field" style="margin-bottom:8px"><label>السؤال</label><input type="text" data-fk="q" data-i="${i}" value="${faqEsc(x.q)}"></div>
+    <div class="field" style="margin-bottom:0"><label>الجواب</label><textarea data-fk="a" data-i="${i}" rows="3" style="width:100%; font:inherit; padding:8px 10px; border:1px solid var(--line); border-radius:8px; resize:vertical">${faqEsc(x.a)}</textarea></div>
+  </div>`).join('') || '<div style="color:var(--text-dim)">ما في أسئلة — اضغط «+ سؤال جديد».</div>';
+}
+function faqMark(){ faqDirty = true; document.getElementById('faqMsg').textContent = 'في تعديلات ما انحفظت'; }
+document.getElementById('faqList').addEventListener('input', e=>{ const t=e.target; if(t.dataset.fk){ faqItems[+t.dataset.i][t.dataset.fk]=t.value; faqMark(); } });
+document.getElementById('faqList').addEventListener('click', e=>{
+  const b=e.target.closest('[data-fq]'); if(!b) return; const i=+b.dataset.i;
+  if(b.dataset.fq==='del'){ if(!confirm('حذف هذا السؤال؟')) return; faqItems.splice(i,1); }
+  else { const j=b.dataset.fq==='up'?i-1:i+1; [faqItems[i],faqItems[j]]=[faqItems[j],faqItems[i]]; }
+  faqMark(); renderFaqAdmin();
+});
+document.getElementById('faqAdd').addEventListener('click', ()=>{ faqItems.push({q:'',a:''}); faqMark(); renderFaqAdmin(); const ins=document.querySelectorAll('#faqList input'); if(ins.length) ins[ins.length-1].focus(); });
+document.getElementById('faqSave').addEventListener('click', async ()=>{
+  const clean = faqItems.map(x=>({q:String(x.q||'').trim(), a:String(x.a||'').trim()})).filter(x=>x.q||x.a);
+  if(clean.some(x=>!x.q||!x.a)){ alert('كل سؤال لازم يكون إلو جواب، وكل جواب إلو سؤال.'); return; }
+  const btn=document.getElementById('faqSave'); btn.disabled=true;
+  try{ await db.collection(FS_COLLECTION).doc('site_faq').set({items:clean, updatedAt:Date.now()}); faqItems=clean; faqDirty=false; renderFaqAdmin(); document.getElementById('faqMsg').textContent='✓ انحفظت — بتبيّن بالموقع فورًا'; }
+  catch(err){ console.error(err); alert('ما انحفظت: '+(err.message||err)); }
+  btn.disabled=false;
+});
+async function loadFaqAdmin(){
+  try{ const d = await db.collection(FS_COLLECTION).doc('site_faq').get(); faqItems = (d.exists && Array.isArray(d.data().items) && d.data().items.length) ? d.data().items.map(x=>({q:x.q||'',a:x.a||''})) : FAQ_DEFAULT.map(x=>({...x})); }
+  catch(err){ console.error(err); faqItems = FAQ_DEFAULT.map(x=>({...x})); }
+  renderFaqAdmin();
+}
+window.addEventListener('beforeunload', e=>{ if(faqDirty){ e.preventDefault(); e.returnValue=''; } });
+document.querySelector('.tab[data-view="faq"]').addEventListener('click', ()=>{ if(!faqItems) loadFaqAdmin(); });
+
 document.querySelectorAll('[data-close]').forEach(btn=>{
   btn.addEventListener('click', ()=> document.getElementById(btn.dataset.close).classList.remove('show'));
 });
