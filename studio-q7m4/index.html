@@ -1573,7 +1573,11 @@ function drawFrame(s){
     rect?{cells:['فوق','طول '+OW,'عرض '+kw,'سماكة '+th,'1']}:{cells:['القوس','من الداخل '+Math.round(aIn)+'، من برّا '+Math.round(aOut),'عرض '+kw,'سماكة '+th,'1 أو قطع']}];
   if(bot)cut.push({cells:['تحت','طول '+OW,'عرض '+kwb,'سماكة '+th,'1']});
   if(crown)cut.push({cells:['التاج','ارتفاع '+cH,'عرض '+Math.round(Math.max(cH*.75,kw*1.6)),'سماكة '+(+s.crTh),'1']});
-  return{svg:o,tables:[{title:'قائمة القطع للمعمل',head:['القطعة','القياس 1','القياس 2','القياس 3','العدد'],rows:cut}],
+  const lines=[{desc:'كورنيش '+KN+' — من الداخل عرض '+ow+' × ارتفاع '+oh+' سم'+(rect?'':' (بدون القوس)')+'، عرض الكادر '+kw+(bot?'، من تحت '+kwb:'')+'، سماكة '+th+' سم',qty:+(len/100).toFixed(2),unit:'م.ط'}];
+  if(!rect)lines.push({desc:(type==='pointed'?'قوس مدبّب':'قوس')+' — عرض من الداخل '+ow+'، ارتفاع القوس '+ar+' سم، عرض الكادر '+kw+'، سماكة '+th+' سم (طول القوس من برّا '+Math.round(aOut)+' سم)',qty:1,unit:'قطعة'});
+  if(crown)lines.push({desc:'تاج — ارتفاع '+cH+'، سماكة '+(+s.crTh)+' سم',qty:1,unit:'قطعة'});
+  if(jTxt)lines.push({desc:'جرن '+jTxt,qty:1,unit:'قطعة'});
+  return{svg:o,lines,tables:[{title:'قائمة القطع للمعمل',head:['القطعة','القياس 1','القياس 2','القياس 3','العدد'],rows:cut}],
     box:[-OW/2-S*.14,OW/2+S*(rect?(crown&&cTop<fTop?.27:.2):(crown&&cTop<fTop?.5:.43)),top-S*.05,S*.12],stats,note:''};
 }
 
@@ -2373,6 +2377,13 @@ if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.ser
 restoreLast();
 buildPanel();render();updTitle();
 /* ---------- وضع ميراكوس: مرسم بيفتح جوّا ميراكوس وبيرجّع الرسمة ---------- */
+function billLines(){const R=lastR||{},T=SCHEMAS[tab].title;if(R.lines)return R.lines;
+  const bill=(R.tables||[]).find(t=>t.title==='بيان للحساب');
+  if(bill)return bill.rows.map(r=>r.cells).filter(c=>!/^مجموع/.test(c[0])).map(c=>({desc:T+' — '+c[0],qty:+c[1]||1,unit:c[2]||''}));
+  let pre='';const cutT=(R.tables||[]).find(t=>t.title==='قائمة القطع للمعمل');
+  if(tab==='jurn'&&cutT){const sh=cutT.rows.find(r=>r.cells[0]==='الشكل');if(sh)pre=' '+sh.cells[1]}
+  const st=(R.stats||[]).filter(x=>!/^السعة/.test(x[0])).map(x=>x[0]+': '+x[1]).join('؛ ');
+  return[{desc:T+pre+(st?' — '+st:''),qty:1,unit:''}]}
 const EMBED=new URLSearchParams(location.search).has('embed')&&window.parent!==window;
 if(EMBED){
   const OK=o=>/^https:\/\/([a-z0-9-]+\.)*(github\.io|cesar-alcham\.com|pages\.dev)$/.test(o)||/^http:\/\/localhost(:\d+)?$/.test(o);
@@ -2398,7 +2409,7 @@ if(EMBED){
       const pure=await pureImage(),withDetails=await makePNG({mode:'full',sc:1,dataUrl:true});
       try{saveProject()}catch(_){}
       send({type:'mirsam-result',data:{app:'mirsam-decor',version:1,name:(cust.name?cust.name+' - ':'')+SCHEMAS[tab].title,title:SCHEMAS[tab].title,tab,
-        customer:{...cust},images:{pure,withDetails},stats:(lastR&&lastR.stats)||[],mstate:{tab,state:{...state[tab]}}}});
+        customer:{...cust},images:{pure,withDetails},stats:(lastR&&lastR.stats)||[],lines:billLines(),mstate:{tab,state:{...state[tab]}}}});
     }catch(err){console.error(err);toast('تعذر تجهيز الرسمة، حاول مرة ثانية')}
     b.disabled=false;b.textContent='↩ إرسال إلى ميراكوس';
   };
