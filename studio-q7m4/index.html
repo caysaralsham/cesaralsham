@@ -1320,16 +1320,18 @@ function drawJurn(s){
   const sh=s.shape,Ln=+s.L,Wp=(sh==='oval'||sh==='half'||sh==='globe')?+s.W:Ln,H=+s.H,rim=Math.min(+s.rim,Wp/2-3),m=M(s.mat);
   const hasBase=s.base==='plinth',bH=hasBase?Math.min(+s.baseH,H-10):0,bW=hasBase?Math.min(+s.baseW,Ln):0;
   const gap=Math.max(30,H*.4),pTop=-H-gap-Wp,S=Math.max(Ln,H+gap+Wp);setScale(S);
-  const globe=sh==='globe',topW=globe?Ln*.7:Ln;
+  const globe=sh==='globe',topW=globe?Ln*.7:Ln,kS=sh==='round'?Math.max(0,Math.min(100,+s.sph||0))/100:0,barrel=kS>0;
+  const Hb=H-bH,brl=u=>{const Rr=Ln/2,sT=Rr*.2*kS,rt=Hb*.55*kS,rb=Hb*.35,sb=Rr*.18;if(u<rt){const v=1-u/rt;return Rr-sT+sT*Math.sqrt(Math.max(0,1-v*v))}if(u>Hb-rb){const v=(u-(Hb-rb))/rb;return Rr-sb+sb*Math.sqrt(Math.max(0,1-v*v))}return Rr};
   let o='';
-  const lipH=globe||s.rimStyle==='flat'?0:s.rimStyle==='round'?Math.max(4,Math.min(9,H*.14)):Math.max(3,Math.min(6,H*.1)),yL=-H+lipH,yB=-bH,footW=hasBase?Math.min(bW*.92,Ln*.9):Ln*.5;
+  const lipH=globe||barrel||s.rimStyle==='flat'?0:s.rimStyle==='round'?Math.max(4,Math.min(9,H*.14)):Math.max(3,Math.min(6,H*.1)),yL=-H+lipH,yB=-bH,footW=hasBase?Math.min(bW*.92,Ln*.9):Ln*.5;
   if(hasBase)o+=R(-bW/2,-bH,bW,bH,m);
   let body;
-  if(globe)body=`M${f(-topW/2)} ${f(yL)}L${f(topW/2)} ${f(yL)}C${f(Ln*.56)} ${f(yL+(yB-yL)*.1)} ${f(Ln*.54)} ${f(yL+(yB-yL)*.8)} ${f(footW/2)} ${f(yB)}L${f(-footW/2)} ${f(yB)}C${f(-Ln*.54)} ${f(yL+(yB-yL)*.8)} ${f(-Ln*.56)} ${f(yL+(yB-yL)*.1)} ${f(-topW/2)} ${f(yL)}Z`;
+  if(barrel){const pr=[];for(let i=0;i<=90;i++){const u=Hb*i/90;pr.push([brl(u),-H+u])}body='M'+pr.map(([x,y])=>f(x)+' '+f(y)).join('L')+'L'+pr.slice().reverse().map(([x,y])=>f(-x)+' '+f(y)).join('L')+'Z'}
+  else if(globe)body=`M${f(-topW/2)} ${f(yL)}L${f(topW/2)} ${f(yL)}C${f(Ln*.56)} ${f(yL+(yB-yL)*.1)} ${f(Ln*.54)} ${f(yL+(yB-yL)*.8)} ${f(footW/2)} ${f(yB)}L${f(-footW/2)} ${f(yB)}C${f(-Ln*.54)} ${f(yL+(yB-yL)*.8)} ${f(-Ln*.56)} ${f(yL+(yB-yL)*.1)} ${f(-topW/2)} ${f(yL)}Z`;
   else body=`M${f(-Ln/2)} ${f(yL)}L${f(Ln/2)} ${f(yL)}C${f(Ln/2)} ${f(yL+(yB-yL)*.62)} ${f(footW/2+(Ln-footW)*.18)} ${f(yB)} ${f(footW/2)} ${f(yB)}L${f(-footW/2)} ${f(yB)}C${f(-footW/2-(Ln-footW)*.18)} ${f(yB)} ${f(-Ln/2)} ${f(yL+(yB-yL)*.62)} ${f(-Ln/2)} ${f(yL)}Z`;
   o+=P(body,m);
   const id=nid('jb');o+=`<clipPath id="${id}"><path d="${body}"/></clipPath><g clip-path="url(#${id})">`;
-  for(const t of[.62,.8,.92])for(const sd of[-1,1])o+=L(sd*Ln/2*t,yL,sd*footW/2*t,yB,'rgba(30,25,20,.12)',LW*.6);
+  if(!barrel)for(const t of[.62,.8,.92])for(const sd of[-1,1])o+=L(sd*Ln/2*t,yL,sd*footW/2*t,yB,'rgba(30,25,20,.12)',LW*.6);
   if(s.deco==='flute')for(let k=1;k<12;k++){const t=k/12,xa=-Ln/2+Ln*t,xb=-footW/2+footW*t;o+=`<path d="M${f(xa)} ${f(yL)}Q${f(xa*.94)} ${f(yL+(yB-yL)*.6)} ${f(xb)} ${f(yB)}" fill="none" stroke="${INK}" stroke-width="${f(LW*.6)}" opacity=".7"/>`}
   if(s.deco==='band'){const by=yL+Math.min(10,(yB-yL)*.25);o+=L(-Ln/2,by,Ln/2,by,INK,LW*.6)+L(-Ln/2,by+2,Ln/2,by+2,INK,LW*.4);
     const r=Math.min(2.6,(by-yL)*.35);for(let x=-Ln/2+r*2.5;x<Ln/2-r;x+=r*3)o+=C(x,(yL+by)/2,r,'none',LW*.4)}
@@ -1342,6 +1344,7 @@ function drawJurn(s){
   o+='</g>';
   // rim
   if(globe){if(s.rimStyle==='wavy'){const nb=Math.max(5,Math.round(topW/10)),amp=Math.max(1.2,H*.03),bw2=topW/nb;let d=`M${f(-topW/2)} ${f(-H)}`;for(let i=0;i<nb;i++)d+=`Q${f(-topW/2+(i+.5)*bw2)} ${f(-H-amp*2)} ${f(-topW/2+(i+1)*bw2)} ${f(-H)}`;o+=P(d+'Z',m,LW*.8)}else o+=L(-topW/2,-H,topW/2,-H,INK,LW*1.2)}
+  else if(barrel){}
   else if(s.rimStyle==='wavy'){
     const nb=Math.max(5,Math.round(topW/12)),amp=lipH*.45,bw2=topW/nb;let d=`M${f(-topW/2)} ${f(-H+lipH*1.25)}L${f(-topW/2)} ${f(-H+amp)}`;
     for(let i=0;i<nb;i++)d+=`Q${f(-topW/2+(i+.5)*bw2)} ${f(-H-amp)} ${f(-topW/2+(i+1)*bw2)} ${f(-H+amp)}`;
@@ -1359,9 +1362,10 @@ function drawJurn(s){
     if(hasBase){const k=bW/Ln;o+=P(`M${f(-Ln/2*k)} ${f(pTop)}A${f(Ln/2*k)} ${f(Wp*k)} 0 0 0 ${f(Ln/2*k)} ${f(pTop)}`,'none',LW*.6,'stroke-dasharray="3 3" opacity=".6"')}
     o+=C(0,pTop+Wp*.45,Math.max(1.5,Math.min(Ln,Wp)*.035),'#555',LW*.5);
   }else{
-    const rx=Ln/2,ry=Wp/2,tH=topW*Wp/Ln,ix=(globe?topW/2:rx)-rim,iy=(globe?tH/2:ry)-rim;
+    const rx=Ln/2,ry=Wp/2,tH=topW*Wp/Ln,ix=(globe?topW/2:barrel?brl(0):rx)-rim,iy=(globe?tH/2:barrel?brl(0):ry)-rim;
     o+=P(ell(rx,ry,wavy),m);
     if(globe)o+=P(ell(topW/2,tH/2,false),'none',LW*.6);
+    if(barrel)o+=P(ell(brl(0),brl(0),false),'none',LW*.6);
     o+=P(ell(ix,iy,false),'rgba(80,120,140,.18)',LW*.7);
     if(hasBase){const k=bW/Ln;o+=P(ell(rx*k,ry*k,false),'none',LW*.6,'stroke-dasharray="3 3" opacity=".6"')}
     o+=C(0,cy,Math.max(1.5,Math.min(Ln,Wp)*.035),'#555',LW*.5);
@@ -1369,22 +1373,21 @@ function drawJurn(s){
   o+=T(Ln/2+S*.05,cy,'مسقط',FS*.7,'start','#5D656B')+T(Ln/2+S*.05,-H/2,'واجهة',FS*.7,'start','#5D656B');
   o+=dimH(-Ln/2,Ln/2,pTop-S*.04,fmt(Ln))+dimV(pTop+Wp,pTop,-Ln/2-S*.06,fmt(Wp));
   o+=dimH(-Ln/2,Ln/2,S*.1,fmt(Ln))+dimV(0,-H,-Ln/2-S*.06,fmt(H));
-  if(globe)o+=dimH(-topW/2,topW/2,-H-S*.04,'فتحة '+fmt(topW));
   if(hasBase)o+=dimH(-bW/2,bW/2,S*.19,fmt(bW))+dimV(0,-bH,Ln/2+S*.05,fmt(bH));
   const vol=Ln*Wp*H/1e6;
   const stats=[['الطول',fmt(Ln)],['العرض',fmt(Wp)],['الارتفاع الكلي',fmt(H)]];
-  if(globe)stats.push(['الفتحة',fmt(topW)]);
-  var jurnCut=[{title:'قائمة القطع للمعمل',head:['القطعة','القياس','العدد'],rows:[{cells:['بلوك الجرن (للقص)',Ln+' × '+Wp+' × '+(H-bH)+' سم','1']},{cells:['الشكل',{round:'مدور',oval:'بيضوي',half:'نص دائرة',globe:'كروي'}[sh]+'، حافة '+rim+' سم','-']}].concat(hasBase?[{cells:['القاعدة',bW+' × '+bH+' سم','1']}]:[])}];
+  var jurnCut=[{title:'قائمة القطع للمعمل',head:['القطعة','القياس','العدد'],rows:[{cells:['بلوك الجرن (للقص)',Ln+' × '+Wp+' × '+(H-bH)+' سم','1']},{cells:['الشكل',{round:'مدور',oval:'بيضوي',half:'نص دائرة',globe:'كروي'}[sh]+(barrel?' كروي من فوق '+Math.round(kS*100)+'%':'')+'، حافة '+rim+' سم','-']}].concat(hasBase?[{cells:['القاعدة',bW+' × '+bH+' سم','1']}]:[])}];
   if(hasBase)stats.push(['القاعدة',bW+' عرض × '+bH+' ارتفاع']);
 
-  {const [hd,hu]=hatch(),bt=Math.max(2,Math.min(+s.bt||10,H-bH-5)),yT=-H,yCB=-(bH+bt),D=yCB-yT,wm=Math.min(3,D-1),fs=Math.max(4,S/16);
+  {const [hd,hu]=hatch(),bt=Math.max(2,Math.min(8,H-bH-5)),yT=-H,yCB=-(bH+bt),D=yCB-yT,wm=Math.min(3,D-1),fs=Math.max(4,S/16);
    const bez=(a,b,c,d,t)=>(1-t)**3*a+3*(1-t)**2*t*b+3*(1-t)*t*t*c+t**3*d;
    const P0=globe?[topW/2,yL]:[Ln/2,yL],P1=globe?[Ln*.56,yL+(yB-yL)*.1]:[Ln/2,yL+(yB-yL)*.62],P2=globe?[Ln*.54,yL+(yB-yL)*.8]:[footW/2+(Ln-footW)*.18,yB],P3=[footW/2,yB];
    const smp=[];for(let k=0;k<=240;k++){const t=k/240;smp.push([bez(P0[0],P1[0],P2[0],P3[0],t),bez(P0[1],P1[1],P2[1],P3[1],t)])}
-   const hwOut=y=>{if(y<=yL)return (globe?topW:Ln)/2;if(y>=yB)return hasBase?Math.min(footW,bW)/2:footW/2;for(let k=1;k<smp.length;k++)if(smp[k][1]>=y){const [x0,y0]=smp[k-1],[x1,y1]=smp[k];return x0+(x1-x0)*(y-y0)/Math.max(1e-9,y1-y0)}return footW/2};
-   const A=(globe?topW:Ln)/2-rim,cav=s.cav||'rounded',rr=Math.min(D*.3,A*.4);
+   const hwOut=y=>{if(barrel)return brl(Math.max(0,Math.min(Hb,y+H)));if(y<=yL)return (globe?topW:Ln)/2;if(y>=yB)return hasBase?Math.min(footW,bW)/2:footW/2;for(let k=1;k<smp.length;k++)if(smp[k][1]>=y){const [x0,y0]=smp[k-1],[x1,y1]=smp[k];return x0+(x1-x0)*(y-y0)/Math.max(1e-9,y1-y0)}return footW/2};
+   const A=(globe?topW:Ln)/2-rim,cP=2.6,cav=s.cav||'rounded',rr=Math.min(D*.3,A*.4);
    const hwIn=u=>{const y=yT+u,lim=hwOut(y)-rim;let w;
-     if(cav==='bowl'&&!globe)w=A*Math.sqrt(Math.max(0,1-(u/D)**2));
+     if(barrel)w=A*Math.pow(Math.max(0,1-Math.pow(u/D,cP)),1/cP);
+     else if(cav==='bowl'&&!globe)w=A*Math.sqrt(Math.max(0,1-(u/D)**2));
      else{w=globe?lim:A;if(cav!=='straight'&&u>D-rr)w-=rr-Math.sqrt(Math.max(0,rr*rr-(u-(D-rr))**2))}
      return Math.max(0,Math.min(w,lim))};
    const kB=sh==='oval'?(Wp/2-rim)/A:sh==='half'?(Wp-2*rim)/A:globe?Wp/Ln:1,area=w=>sh==='half'?Math.PI*w*w*kB/2:Math.PI*w*w*kB;
@@ -1392,15 +1395,14 @@ function drawJurn(s){
    const pts=[];for(let k=0;k<=80;k++){const u=k*D/80;pts.push([hwIn(u),yT+u])}
    const cavD='M'+pts.map(([x,y])=>f(-x)+' '+f(y)).join('L')+'L'+pts.slice().reverse().map(([x,y])=>f(x)+' '+f(y)).join('L')+'Z';
    const wp=pts.filter(([x,y])=>y>=yT+wm);const watD=wp.length>1?'M'+wp.map(([x,y])=>f(-x)+' '+f(y)).join('L')+'L'+wp.slice().reverse().map(([x,y])=>f(x)+' '+f(y)).join('L')+'Z':'';
-   let q=hd+P(body,hu,LW*.8)+R(-(globe?topW:Ln)/2,-H,globe?topW:Ln,lipH,hu,LW*.8);if(hasBase)q+=R(-bW/2,-bH,bW,bH,hu,LW*.8);
+   let q=hd+P(body,hu,LW*.8)+(lipH?R(-(globe?topW:Ln)/2,-H,globe?topW:Ln,lipH,hu,LW*.8):'');if(hasBase)q+=R(-bW/2,-bH,bW,bH,hu,LW*.8);
    q+=P(cavD,'#FFFFFF',LW*.8)+(watD?P(watD,'rgba(80,150,200,.45)',LW*.4):'')+(wm>0?L(-hwIn(wm),yT+wm,hwIn(wm),yT+wm,WATER,LW*1.2):'');
-   q+=L(-Ln/2-6,0,Ln/2+6,0,INK,LW*1.4)+sdimH(-A,A,-H-fs*.4,'فتحة '+Math.round(2*A),fs)+sdimV(yCB,yT,maxIn+fs*.8,'عمق '+Math.round(D),fs)+sdimV(-bH,yCB,fs*.9,'أرضية '+Math.round(bt),fs);
-   if(globe&&maxIn>A+1){const um=pts.reduce((b,p)=>p[0]>b[0]?p:b,[0,0]);q+=sdimH(-maxIn,maxIn,um[1]+fs*.2,'من جوّا '+Math.round(2*maxIn),fs)}
+   q+=L(-Ln/2-6,0,Ln/2+6,0,INK,LW*1.4)+sdimV(yCB,yT,maxIn+fs*.8,'عمق '+Math.round(D),fs);
    var insetsJ=[{svg:q,box:[-Ln/2-8,Ln/2+fs*2.2,-H-fs*1.4,6],label:'مقطع من النص'}];
    const inDims=(sh==='round'||(globe&&Wp===Ln))?'قطر '+Math.round(2*A):Math.round(2*A)+' × '+Math.round(A*kB*(sh==='half'?1:2));
-   const cavN={straight:'مستقيم',rounded:'قعر مسطح بزوايا مدورة',bowl:'مقعّر'}[globe?'rounded':cav];
-   stats.push(['الحفر من جوّا','فتحة '+inDims+'، عمق '+Math.round(D)+' سم'],['سماكة الأرضية',fmt(bt)],['السعة الكاملة',(vFull/1000).toFixed(1)+' لتر'],['السعة الفعلية',(vEff/1000).toFixed(1)+' لتر (الماء '+wm+' سم تحت الحافة)']);
-   jurnCut[0].rows.push({cells:['الحفر من جوّا','فتحة '+inDims+'، عمق '+Math.round(D)+'، أرضية '+Math.round(bt)+' ('+cavN+')','-']});}
+   const cavN=barrel?'حفر كروي':{straight:'مستقيم',rounded:'قعر مسطح بزوايا مدورة',bowl:'مقعّر'}[globe?'rounded':cav];
+   stats.push(['الحفر من جوّا',cavN+'، عمق '+Math.round(D)+' سم'],['السعة الكاملة',(vFull/1000).toFixed(1)+' لتر'],['السعة الفعلية',(vEff/1000).toFixed(1)+' لتر (الماء '+wm+' سم تحت الحافة)']);
+   jurnCut[0].rows.push({cells:['الحفر من جوّا','عمق '+Math.round(D)+' ('+cavN+')','-']});}
   return{svg:o,insets:insetsJ,tables:jurnCut,box:[-Ln/2-S*.14,Ln/2+S*.2,pTop-S*.13,S*(hasBase?.24:.15)],stats,
     note:((sh==='round'||sh==='globe')?'بالشكل المدور القطر هو الطول. ':'')+(hasBase&&+s.baseW>Ln?'القاعدة ما بتقدر تكون أعرض من الجرن. ':'')};
 }
@@ -1409,7 +1411,7 @@ function drawJurn(s){
 function drawBath(s){
   const W=+s.W,Lr=+s.L,H=+s.H,clH=Math.min(+s.clH,H),WT=12;
   const wallW=[0,W,Lr,W,Lr],wallN=['','أمام','يمين','خلف','يسار'];
-  const S0=Math.max(W+2*Lr,Lr+2*H)*1.05;setScale(S0);FS*=.85;
+  const S0=Math.max(W+2*Lr,Math.max(Lr,H)+H)*1.12;setScale(S0);FS*=.8;
   const G=FS*3.6,GV=FS*3.9;
   const dWall=String(s.door),dw=+s.dw,dh=Math.min(+s.dh,H-5);
   const nJ=Math.max(0,Math.min(6,+s.jn)),jL=+s.jL,jWd=+s.jW,jH=+s.jH,jY=Math.max(+s.jY,jH*.6),jm=M(s.jmat),seat=+s.seat,sW=30,sD=30,sH=30,sG=20;
@@ -1442,7 +1444,7 @@ function drawBath(s){
   const rT=(x,y,t,ang)=>`<text transform="translate(${f(x)} ${f(y)}) rotate(${ang})" text-anchor="middle" font-size="${f(FS*.8)}" font-weight="700" fill="#5D656B" font-family="Cairo,Tahoma,sans-serif">${t}</text>`;
   o+=dimH(0,W,Lr+WT+FS*1.5,'العرض '+fmt(W))+dimV(Lr,0,W+WT+FS*1.4,'الطول '+fmt(Lr));
   /* ---- walls, laid out around the plan ---- */
-  const pos=[null,[0,Lr+WT+GV+H],[W+WT+G,Lr/2+H/2],[0,-WT-GV],[-WT-G-Lr,Lr/2+H/2]];
+  const yMid=Math.max(Lr/2+H/2,Lr+WT),pos=[null,[W+WT+G,-WT-GV],[W+WT+G,yMid],[0,-WT-GV],[-WT-G-Lr,yMid]];
   let wallsArea=0,tCount=0,corLen=0,tInfo='',tA=0,tFrL=0,tFrA=0;const wStats=[];
   for(let i=1;i<=4;i++){
     const [x0,yg]=pos[i],w=wallW[i];
@@ -1496,9 +1498,9 @@ function drawBath(s){
   if(nJ)bill.push({cells:['جرن',nJ,'قطعة']});
   if(nJ&&seat)bill.push({cells:['كرسي',nJ,'قطعة']});
   bill.push({sel:true,cells:['مجموع المساحات',m2(floorNet+fA+wallNet+tA),'م²']});
-  const box=[pos[4][0]-FS*2,pos[2][0]+Lr+FS*4.5,pos[3][1]-H-FS*2.6,pos[1][1]+FS*3.4];
+  const box=[pos[4][0]-FS*2,pos[2][0]+Math.max(Lr,W)+FS*4.5,pos[3][1]-H-FS*2.6,Math.max(yMid,Lr+WT+FS*2)+FS*3.4];
   return{svg:o,noGround:true,box,stats,tables:[{title:'بيان للحساب',head:['البند','الكمية','الوحدة'],rows:bill}],
-    note:'كل حائط مرسوم جنب جهته بالمسقط، متل ما بتشوفه من جوّا الحمام. بُعد الجرن بيتقاس من طرف الحائط اليسار وإنت واقف قباله.'};
+    note:'كل حائط مرسوم متل ما بتشوفه من جوّا الحمام (حائط 3 فوق المسقط، 4 يسار، 2 يمين، 1 فوق اليمين). بُعد الجرن بيتقاس من طرف الحائط اليسار وإنت واقف قباله.'};
 }
 
 /* ---------- frame (كورنيش / كادر) ---------- */
@@ -1667,15 +1669,15 @@ bathCtrls.push(
 const SCHEMAS={
   fountain:{title:'نافورة',draw:drawFountain,controls:fountainCtrls},
   jurn:{title:'جرن',draw:drawJurn,controls:[
-    {id:'shape',label:'شكل الجرن',type:'seg',options:[['oval','بيضوي (أوفال)'],['round','مدور'],['half','نص دائرة'],['globe','كروي']],val:'oval'},
+    {id:'shape',label:'شكل الجرن',type:'seg',options:[['oval','بيضوي (أوفال)'],['round','مدور'],['half','نص دائرة']],val:'oval'},
     {id:'L',label:'الطول (القطر للمدور)',type:'range',min:30,max:100,step:1,val:50},
     {id:'W',label:'العرض',type:'range',min:20,max:100,step:1,val:40,show:s=>s.shape!=='round'},
+    {id:'sph',label:'كروي من فوق',type:'range',min:0,max:100,step:5,val:0,unit:'%',show:s=>s.shape==='round'},
     {id:'topw',label:'الحافة من فوق',type:'seg',options:[[0,'عادية'],[1,'مموّجة']],val:0},
-    {id:'rimStyle',label:'الحافة من قدّام',type:'seg',options:[['flat','بدون'],['round','مدورة سميكة'],['wavy','مموّجة']],val:'flat'},
+    {id:'rimStyle',label:'الحافة من قدّام',type:'seg',options:[['flat','بدون'],['round','مدورة سميكة'],['wavy','مموّجة']],val:'flat',show:s=>!(s.shape==='round'&&+s.sph>0)},
     {id:'H',label:'الارتفاع',type:'range',min:20,max:70,step:1,val:30},
     {id:'rim',label:'سماكة الحافة',type:'range',min:3,max:10,step:.5,val:5},
-    {id:'bt',label:'سماكة الأرضية (القعر)',type:'range',min:2,max:30,step:1,val:10},
-    {id:'cav',label:'شكل الحفر من جوّا',type:'seg',options:[['rounded','قعر مسطح بزوايا مدورة'],['straight','مستقيم'],['bowl','مقعّر']],val:'rounded',show:s=>s.shape!=='globe'},
+    {id:'cav',label:'شكل الحفر من جوّا',type:'seg',options:[['rounded','قعر مسطح بزوايا مدورة'],['straight','مستقيم'],['bowl','مقعّر']],val:'rounded',show:s=>!(s.shape==='round'&&+s.sph>0)},
     {id:'deco',label:'الزخرفة',type:'seg',options:[['none','بدون'],['petals','أوراق كبيرة'],['flute','تضليع'],['band','حزام محفور']],val:'none'},
     {id:'base',label:'القاعدة',type:'seg',options:[['none','بدون'],['plinth','مع قاعدة']],val:'none'},
     {id:'baseW',label:'عرض القاعدة',type:'range',min:10,max:100,step:1,val:30,show:s=>s.base==='plinth'},
