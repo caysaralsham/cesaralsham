@@ -250,6 +250,15 @@
   .sc-cats a{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:6px 12px;font-weight:700;font-size:13px}.sc-cats a:hover{border-color:var(--gold)}
   .faq{max-width:900px;margin:0 auto;padding:10px 24px 50px}.faq h2{text-align:center;font-size:clamp(22px,3vw,30px);font-weight:900}
   .faq details{border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin:10px 0;background:#fff}.faq summary{cursor:pointer;font-weight:800}.faq p{margin:8px 0 0;color:#444}
+
+  .quote{max-width:820px;margin:0 auto;padding:40px 24px 10px;text-align:center}
+  .quote h2{font-size:clamp(22px,3vw,30px);font-weight:900;margin:0 0 6px}.quote p{color:var(--text-dim);margin:0 0 16px}
+  #quoteForm{text-align:right;background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px}
+  #quoteForm .q-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  #quoteForm label{display:flex;flex-direction:column;gap:4px;font-weight:700;font-size:13.5px}
+  #quoteForm input,#quoteForm select,#quoteForm textarea{font:inherit;font-weight:500;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#FAF9F7}
+  #quoteForm .btn{justify-content:center;border:0;cursor:pointer;background:#1F8F55}
+  @media(max-width:600px){#quoteForm .q-row{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -295,7 +304,7 @@
   </svg>
   <h1><span id="heroTitleMain">أرقى أنواع</span> <span id="heroTitleAccent" style="color:var(--gold-deep);">الحجر والرخام</span></h1>
   <p id="heroSubtitle">تصاميم ونحت وتركيب الرخام والحجر الطبيعي بخبرة عالية — من دالي إبراهيم، الجزائر، لمشاريع فاخرة بتفاصيل مميزة. Conception, sculpture et pose de marbre et pierre naturelle avec expertise — à Dely Ibrahim, Alger, pour des projets élégants et haut de gamme.</p>
-  <a class="btn" href="#contact">تواصل معنا واطلب عرض سعر</a>
+  <a class="btn" href="#quote">تواصل معنا واطلب عرض سعر</a>
 
   <div class="features-row">
     <div class="feature-card">
@@ -388,6 +397,23 @@
   </div>
 </section>
 
+<section class="quote" id="quote">
+  <h2>اطلب عرض سعر</h2>
+  <p>عبّي المعلومات وبتنفتحلك رسالة جاهزة على واتساب. بعدها ابعت صور المكان بنفس المحادثة.</p>
+  <form id="quoteForm" autocomplete="on">
+    <div class="q-row">
+      <label>الاسم *<input name="name" required autocomplete="name"></label>
+      <label>رقم الهاتف *<input name="phone" required inputmode="tel" autocomplete="tel" dir="ltr"></label>
+    </div>
+    <div class="q-row">
+      <label>نوع الشغل *<select name="type" id="quoteType" required><option value="">— اختار —</option><option>شمينه رخام</option><option>جرون حمامات رخام</option><option>نوافير رخام</option><option>واجهات منازل حجر</option><option>تابلوهات أرضية رخام</option><option>حوائط رخام منحوتة</option><option>أعمدة ودرابزينات رخام</option><option>نوافذ رخام</option><option>سبالات مياه رخام</option><option>شلالات مياه</option><option>طاولات رخام</option><option>ديكورات مساجد</option><option>شي تاني</option></select></label>
+      <label>الولاية / المنطقة<input name="place" placeholder="مثلاً: الجزائر، دالي إبراهيم"></label>
+    </div>
+    <label>القياسات التقريبية<input name="size" placeholder="مثلاً: 1.20 × 1.00 م"></label>
+    <label>تفاصيل<textarea name="msg" rows="3" placeholder="اللون، نوع الرخام، أي تفاصيل بدك ياها"></textarea></label>
+    <button class="btn" type="submit">ابعت الطلب على واتساب</button>
+  </form>
+</section>
 <section class="faq" id="faq">
   <h2>أسئلة متكررة</h2>
   <details><summary>وين مكانكم ولأي مناطق بتشتغلوا؟</summary><p>ورشتنا بدالي إبراهيم بالجزائر العاصمة، ومنشتغل ومنركّب بكل ولايات الجزائر.</p></details>
@@ -1113,11 +1139,12 @@ function renderHeroSection(){
   document.getElementById('heroSubtitle').textContent = settings.heroSubtitle || DEFAULT_SETTINGS.heroSubtitle;
 }
 
+const sortCat=arr=>arr.slice().sort((a,b)=>(b.cover?1:0)-(a.cover?1:0)||((a.order??1e9)-(b.order??1e9))||((b.createdAt||0)-(a.createdAt||0)));
 function renderHomeShowcase(){
   const wrap = document.getElementById('homeShowcase');
   if(!wrap || !items.length) return;
   const per = new Map();
-  for(const it of items){
+  for(const it of sortCat(items)){
     const cat = (it.category||'').trim(); if(!cat) continue;
     if(!per.has(cat)) per.set(cat, []);
     if(per.get(cat).length < 2) per.get(cat).push(it);
@@ -1618,6 +1645,18 @@ async function deleteItem(id){
   catch(e){ /* الصورة ممكن تكون قديمة (مخزنة بالطريقة القديمة) أو محذوفة أصلاً */ }
   toast('تم الحذف');
 }
+
+// نموذج طلب عرض السعر: بيفتح واتساب برسالة جاهزة
+(function(){
+  const f=document.getElementById('quoteForm'); if(!f) return;
+  f.addEventListener('submit',e=>{
+    e.preventDefault(); const d=Object.fromEntries(new FormData(f).entries());
+    const lines=['السلام عليكم، بدي عرض سعر من قيصر الشام للحجر والرخام:','الاسم: '+d.name,'الهاتف: '+d.phone,'نوع الشغل: '+d.type];
+    if(d.place) lines.push('المنطقة: '+d.place); if(d.size) lines.push('القياسات: '+d.size); if(d.msg) lines.push('التفاصيل: '+d.msg);
+    lines.push('(رح ابعت صور المكان هون)');
+    window.open('https://wa.me/213541737888?text='+encodeURIComponent(lines.join('\n')),'_blank');
+  });
+})();
 </script>
 </body>
 </html>

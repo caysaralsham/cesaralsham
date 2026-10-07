@@ -245,13 +245,14 @@ function renderFilters(){
   });
 }
 
+const sortCat=arr=>arr.slice().sort((a,b)=>(b.cover?1:0)-(a.cover?1:0)||((a.order??1e9)-(b.order??1e9))||((b.createdAt||0)-(a.createdAt||0)));
 function renderGallery(){
   const grid = document.getElementById('galleryGrid');
   const short = c => (c||'').split('|')[0].trim();
   const hint = document.getElementById('pageHint');
   if(activeCategory === 'all'){
     const per = new Map();
-    for(const it of items){ const c=(it.category||'').trim(); if(!c) continue; if(!per.has(c)) per.set(c,{it,n:0}); per.get(c).n++; }
+    for(const it of sortCat(items)){ const c=(it.category||'').trim(); if(!c) continue; if(!per.has(c)) per.set(c,{it,n:0}); per.get(c).n++; }
     if(hint) hint.textContent = 'صورة من كل نوع — دوس على أي صورة لتشوف كل صور هالنوع';
     if(!per.size){ grid.innerHTML = '<div class="empty-state">لا توجد صور بعد.</div>'; return; }
     grid.innerHTML = [...per.entries()].sort((a,b)=>a[0].localeCompare(b[0],'ar')).map(([c,{it,n}]) => `
@@ -267,7 +268,7 @@ function renderGallery(){
     }));
     return;
   }
-  const filtered = items.filter(it => (it.category||'').trim() === activeCategory);
+  const filtered = sortCat(items.filter(it => (it.category||'').trim() === activeCategory));
   if(hint) hint.textContent = short(activeCategory) + ' — دوس على أي صورة لعرضها بحجم أكبر';
   if(!filtered.length){
     grid.innerHTML = '<div class="empty-state">لا توجد صور بهذا القسم بعد.</div>';

@@ -105,6 +105,7 @@
     .gallery-grid{grid-template-columns:1fr; gap:16px;}
   }
 </style>
+<!--SEO:VSCHEMA--><!--/SEO:VSCHEMA-->
 </head>
 <body>
 
@@ -235,7 +236,7 @@ function renderGallery(){
   grid.innerHTML = filtered.map(v => `
     <div class="card" style="cursor:default;">
       <div class="img-wrap" style="aspect-ratio:16/9; background:#000;">
-        <video src="${v.url}" controls preload="metadata" style="width:100%; height:100%; object-fit:contain; background:#000;"></video>
+        <video src="${v.url}" controls preload="${v.poster?'none':'metadata'}"${v.poster?` poster="${v.poster}"`:''} style="width:100%; height:100%; object-fit:contain; background:#000;"></video>
       </div>
       <div class="body">
         <div class="title">${v.title || v.category || 'فيديو من أعمالنا'}</div>

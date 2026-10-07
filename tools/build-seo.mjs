@@ -177,6 +177,8 @@ for (const [id, d] of Object.entries(docs)) if (id.startsWith('items_')) items =
 items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 const byCat = new Map();
 for (const it of items) { const c = String(it.category || '').trim(); if (!c) continue; if (!byCat.has(c)) byCat.set(c, []); byCat.get(c).push(it); }
+const sortCat = arr => arr.slice().sort((a, b) => (b.cover ? 1 : 0) - (a.cover ? 1 : 0) || ((a.order ?? 1e9) - (b.order ?? 1e9)) || ((b.createdAt || 0) - (a.createdAt || 0)));
+for (const [c, l] of byCat) byCat.set(c, sortCat(l));
 const cats = [...byCat.keys()].sort((a, b) => a.localeCompare(b, 'ar'));
 
 // روابط ثابتة: الاسم بيضل نفسه حتى لو تغيّر ترتيب الأقسام
@@ -209,7 +211,9 @@ let videos = [];
 for (const [id, d] of Object.entries(docs)) if (id.startsWith('videos_')) videos = videos.concat(d.items || []);
 videos.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 let v = rd('videos.html');
-v = inject(v, 'VIDEOS', videos.filter(x => /^https?:\/\//.test(x.url || '')).map(x => `<div class="card" style="cursor:default;"><div class="img-wrap" style="aspect-ratio:16/9; background:#000;"><video src="${esc(x.url)}" controls preload="none" style="width:100%; height:100%; object-fit:contain; background:#000;" title="${esc(x.title || splitName(x.category || '').ar || 'فيديو من أعمالنا')}"></video></div><div class="body"><div class="title">${esc(x.title || splitName(x.category || '').ar || 'فيديو من أعمالنا')}</div><div class="meta">${esc(splitName(x.category || '').ar)}</div></div></div>`).join('') || '<div class="empty-state">جاري تحميل الفيديوهات...</div>');
+v = inject(v, 'VIDEOS', videos.filter(x => /^https?:\/\//.test(x.url || '')).map(x => `<div class="card" style="cursor:default;"><div class="img-wrap" style="aspect-ratio:16/9; background:#000;"><video src="${esc(x.url)}" controls preload="none"${x.poster ? ` poster="${esc(x.poster)}"` : ''} style="width:100%; height:100%; object-fit:contain; background:#000;" title="${esc(x.title || splitName(x.category || '').ar || 'فيديو من أعمالنا')}"></video></div><div class="body"><div class="title">${esc(x.title || splitName(x.category || '').ar || 'فيديو من أعمالنا')}</div><div class="meta">${esc(splitName(x.category || '').ar)}</div></div></div>`).join('') || '<div class="empty-state">جاري تحميل الفيديوهات...</div>');
+const vSchema = videos.filter(x => x.poster && /^https?:\/\//.test(x.url || '')).slice(0, 60).map(x => ({'@type':'VideoObject', name: x.title || splitName(x.category || '').ar || 'فيديو من أعمال قيصر الشام', description: `${x.title || splitName(x.category || '').ar || 'فيديو'} — من أعمال قيصر الشام للحجر والرخام، الجزائر`, thumbnailUrl: x.poster, contentUrl: x.url, uploadDate: new Date(x.createdAt || Date.now()).toISOString()}));
+v = inject(v, 'VSCHEMA', vSchema.length ? `<script type="application/ld+json">${JSON.stringify({'@context':'https://schema.org','@graph':vSchema})}</script>` : '');
 wr('videos.html', v);
 
 // index.html: صورتين من كل قسم ثابتين

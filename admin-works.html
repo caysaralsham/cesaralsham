@@ -95,6 +95,14 @@
 .acard-b{padding:8px;display:flex;flex-direction:column;gap:6px;flex:1}
 .acard-t{font-size:12.5px;font-weight:700;line-height:1.4}
 .admin-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}.admin-tools input{flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;font:inherit}
+
+.acard{position:relative}.acard.picked{outline:3px solid var(--gold,#B88A2A)}
+.acard .sel{position:absolute;top:6px;right:6px;z-index:2;background:rgba(255,255,255,.92);border-radius:6px;padding:2px 4px;line-height:0}
+.acard .sel input{width:18px;height:18px;margin:0;cursor:pointer}
+.cover-badge{position:absolute;top:6px;left:6px;z-index:2;background:#B88A2A;color:#fff;font-size:11px;font-weight:800;border-radius:6px;padding:2px 7px}
+.acard .row-actions{display:flex;flex-wrap:wrap;gap:4px}.acard .row-actions .btn{padding:4px 8px;min-width:0}
+#bulkBar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:200;background:#111;color:#fff;border-radius:14px;padding:10px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;box-shadow:0 10px 30px rgba(0,0,0,.35);max-width:96vw}
+#bulkBar select{padding:6px 8px;border-radius:8px;font:inherit}
 </style>
 <link rel="manifest" href="/qs-manifest-home.json">
 <link rel="apple-touch-icon" href="/qs-apple-touch-icon.png">
@@ -276,6 +284,7 @@
       </select>
       <input type="text" id="editVideoCategory" placeholder="اكتب اسم القسم" style="margin-top:8px;">
     </div>
+    <div class="field"><label>صورة الغلاف (بتطلع قبل ما يشتغل الفيديو)</label><input type="file" id="editVideoPoster" accept="image/*,video/*"><div style="font-size:11.5px; color:var(--text-dim); margin-top:4px;">اختار صورة، أو نفس الفيديو من جهازك وبناخد منه صورة لحالنا.</div></div>
     <div style="font-size:11.5px; color:var(--text-dim); margin-bottom:10px;">لتغيير الموسيقى، احذف الفيديو وارفعه من جديد باختيار الموسيقى الجديدة.</div>
     <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:14px;">
       <button class="btn btn-ghost btn-sm" data-close="editVideoOverlay">إلغاء</button>
@@ -724,6 +733,67 @@ async function deleteCategory(name){
   toast('تم حذف القسم');
 }
 
+// ---------- ترتيب وصورة القسم وحفظ دفعة وحدة ----------
+function sortCat(arr){
+  return arr.slice().sort((a,b)=> (b.cover?1:0)-(a.cover?1:0) || ((a.order??1e9)-(b.order??1e9)) || ((b.createdAt||0)-(a.createdAt||0)));
+}
+async function saveItemsBatch(map){ // id -> item (تعديل) أو null (حذف)
+  if(!fbReady) return;
+  const byChunk={};
+  Object.keys(map).forEach(id=>{ const c=chunkOf[id]; if(c) (byChunk[c]=byChunk[c]||[]).push(id); });
+  for(const c of Object.keys(byChunk)){
+    const arr=(chunkCache[c]||[]).map(it=> (it.id in map) ? map[it.id] : it).filter(Boolean);
+    try{ if(arr.length) await db.collection(FS_COLLECTION).doc(c).set({items:arr}); else await db.collection(FS_COLLECTION).doc(c).delete(); }
+    catch(e){ console.error(e); toast('تعذر الحفظ على السحابة'); }
+  }
+}
+function applyLocal(map){
+  items = items.map(it => (it.id in map) ? map[it.id] : it).filter(Boolean);
+  renderItemsTable();
+}
+async function setCover(id){
+  const it=items.find(x=>x.id===id); if(!it) return;
+  const cat=(it.category||'').trim(), map={};
+  items.filter(x=>(x.category||'').trim()===cat).forEach(x=>{ const want=x.id===id; if(!!x.cover!==want) map[x.id]={...x, cover:want}; });
+  applyLocal(map); await saveItemsBatch(map); toast('صارت صورة القسم ⭐');
+}
+async function moveItem(id, dir){
+  const it=items.find(x=>x.id===id); if(!it) return;
+  const cat=(it.category||'').trim(), arr=sortCat(items.filter(x=>(x.category||'').trim()===cat));
+  const i=arr.findIndex(x=>x.id===id), j=i+dir; if(j<0||j>=arr.length) return;
+  [arr[i],arr[j]]=[arr[j],arr[i]];
+  const map={}; arr.forEach((x,k)=>{ if(x.order!==k) map[x.id]={...x, order:k}; });
+  applyLocal(map); await saveItemsBatch(map);
+}
+const selected = new Set();
+function renderBulkBar(){
+  let bar=document.getElementById('bulkBar');
+  if(!selected.size){ if(bar) bar.remove(); return; }
+  if(!bar){ bar=document.createElement('div'); bar.id='bulkBar'; document.body.appendChild(bar); }
+  const cats=[...new Set(items.map(it=>(it.category||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar'));
+  bar.innerHTML=`<b>${selected.size} صورة محددة</b>
+    <select id="bulkCat"><option value="">— اختار القسم —</option>${cats.map(c=>`<option value="${c.replace(/"/g,'&quot;')}">${c.split('|')[0].trim()}</option>`).join('')}<option value="__new__">➕ قسم جديد...</option></select>
+    <button class="btn btn-sm" id="bulkMove">نقل للقسم</button>
+    <button class="btn btn-danger btn-sm" id="bulkDel">🗑 حذف</button>
+    <button class="btn btn-ghost btn-sm" id="bulkClear">إلغاء التحديد</button>`;
+  document.getElementById('bulkClear').onclick=()=>{selected.clear();renderItemsTable();};
+  document.getElementById('bulkMove').onclick=async()=>{
+    let c=document.getElementById('bulkCat').value;
+    if(c==='__new__'){ c=(prompt('اكتب اسم القسم الجديد:')||'').trim(); }
+    if(!c){ toast('اختار القسم أول'); return; }
+    const map={}; items.filter(x=>selected.has(x.id)).forEach(x=>{ map[x.id]={...x, category:c, cover:false}; delete map[x.id].order; });
+    selected.clear(); applyLocal(map); await saveItemsBatch(map); toast('انتقلت الصور');
+  };
+  document.getElementById('bulkDel').onclick=async()=>{
+    if(!confirm(`حذف ${selected.size} صورة؟`)) return;
+    const ids=[...selected], map={}; ids.forEach(id=>map[id]=null);
+    selected.clear(); applyLocal(map); await saveItemsBatch(map);
+    for(const id of ids){ try{ await storage.ref('gallery/' + id + '.jpg').delete(); }catch(e){} }
+    toast('تم الحذف');
+  };
+}
+document.addEventListener('change',e=>{ const cb=e.target.closest&&e.target.closest('.sel-cb'); if(!cb) return; cb.checked?selected.add(cb.dataset.id):selected.delete(cb.dataset.id); cb.closest('.acard').classList.toggle('picked',cb.checked); renderBulkBar(); });
+
 // ---------- items table ----------
 const openCats = new Set();
 let adminSearch = '';
@@ -733,18 +803,18 @@ function groupHTML(list, kind){
   const keys=[...groups.keys()].sort((a,b)=> a==='__none__'?-1:b==='__none__'?1:a.localeCompare(b,'ar'));
   const titleCount = {}; list.forEach(x=>{ const t=(x.title||'').trim(); if(t) titleCount[t]=(titleCount[t]||0)+1; });
   return keys.map(c=>{
-    const arr=groups.get(c), name=c==='__none__'?'<span style="color:var(--danger);">بدون قسم</span>':c.split('|')[0].trim();
+    const arr=kind==='img'?sortCat(groups.get(c)):groups.get(c), name=c==='__none__'?'<span style="color:var(--danger);">بدون قسم</span>':c.split('|')[0].trim();
     const fr=c.includes('|')?`<small style="color:var(--text-dim); font-weight:500;"> ${c.split('|')[1].trim()}</small>`:'';
     const key=kind+':'+c, open=openCats.has(key)||!!adminSearch;
     const noTitle=arr.filter(x=>!(x.title||'').trim()).length, dup=arr.filter(x=>titleCount[(x.title||'').trim()]>1).length;
     const warn=(noTitle?`<span class="tag warn">${noTitle} بلا عنوان</span>`:'')+(dup?`<span class="tag warn">${dup} عنوان مكرر</span>`:'');
-    const cards=arr.map(x=>`
-      <div class="acard">
-        ${kind==='img'?`<img src="${x.img}" loading="lazy">`:`<video src="${x.url}" muted preload="metadata"></video>`}
+    const cards=arr.map((x,k)=>`
+      <div class="acard${selected.has(x.id)?' picked':''}">
+        ${kind==='img'?`<label class="sel"><input type="checkbox" class="sel-cb" data-id="${x.id}"${selected.has(x.id)?' checked':''}></label>${x.cover?'<span class="cover-badge">⭐ صورة القسم</span>':''}<img src="${x.img}" loading="lazy">`:`<video src="${x.url}" muted preload="none"${x.poster?` poster="${x.poster}"`:''}></video>${x.poster?'':'<span class="cover-badge" style="background:#FCEBD9;color:#A0640C">بلا غلاف</span>'}`}
         <div class="acard-b">
           <div class="acard-t">${(x.title||'').trim()||'<span style="color:var(--danger);">بلا عنوان</span>'}${(x.title||'').trim()&&titleCount[(x.title||'').trim()]>1?' <span class="tag warn">مكرر</span>':''}</div>
           <div class="row-actions">
-            ${kind==='img'?`<button class="btn btn-ghost btn-sm" onclick="openEditItem('${x.id}')" title="تعديل">✎ تعديل</button><button class="btn btn-danger btn-sm" onclick="deleteItem('${x.id}')" title="حذف">🗑</button>`
+            ${kind==='img'?`<button class="btn btn-ghost btn-sm" onclick="openEditItem('${x.id}')" title="تعديل">✎</button>${x.cover?'':`<button class="btn btn-ghost btn-sm" onclick="setCover('${x.id}')" title="خليها صورة القسم">⭐</button>`}<button class="btn btn-ghost btn-sm" onclick="moveItem('${x.id}',-1)" title="لقدّام"${k===0?' disabled':''}>▲</button><button class="btn btn-ghost btn-sm" onclick="moveItem('${x.id}',1)" title="لورا"${k===arr.length-1?' disabled':''}>▼</button><button class="btn btn-danger btn-sm" onclick="deleteItem('${x.id}')" title="حذف">🗑</button>`
               :`<button class="btn btn-sm btn-edit-video" data-video-id="${x.id}" title="تعديل">✎ تعديل</button><button class="btn btn-danger btn-sm btn-delete-video" data-video-id="${x.id}" title="حذف">🗑</button>`}
           </div>
         </div>
@@ -763,7 +833,8 @@ function renderItemsTable(){
   const wrap = document.getElementById('itemsTableWrap');
   if(!items.length){ wrap.innerHTML = '<div class="empty-state">لا توجد صور بعد.</div>'; return; }
   const list=filterList(items);
-  wrap.innerHTML = `<div class="admin-tools"><input type="search" id="adminSearchImg" placeholder="🔍 دوّر على صورة بالعنوان أو القسم أو اللون..." value="${adminSearch.replace(/"/g,'&quot;')}">
+  renderBulkBar();
+  wrap.innerHTML = `<div style="font-size:12px;color:var(--text-dim);margin-bottom:8px">⭐ = الصورة اللي بتطلع للقسم بالموقع · ▲▼ = ترتيب الصور · علّم على كذا صورة لتنقلهن أو تحذفهن مرة وحدة</div><div class="admin-tools"><input type="search" id="adminSearchImg" placeholder="🔍 دوّر على صورة بالعنوان أو القسم أو اللون..." value="${adminSearch.replace(/"/g,'&quot;')}">
     <button class="btn btn-ghost btn-sm" id="btnOpenAll">فتح الكل</button><button class="btn btn-ghost btn-sm" id="btnCloseAll">سكّر الكل</button></div>`
     + (list.length?groupHTML(list,'img'):'<div class="empty-state">ما في نتائج.</div>');
   const si=document.getElementById('adminSearchImg');
@@ -823,6 +894,13 @@ document.getElementById('btnSaveEditVideo').addEventListener('click', async ()=>
   const newTitle = document.getElementById('editVideoTitle').value.trim();
   const newCategory = document.getElementById('editVideoCategory').value.trim();
   const updated = { ...v, title: newTitle, category: newCategory };
+  const pf = document.getElementById('editVideoPoster').files[0];
+  if(pf){
+    try{ const pb = pf.type.startsWith('video') ? await posterFromFile(pf) : await posterFromImage(pf);
+      if(pb){ const pr = storage.ref('gallery/posters/' + v.id + '.jpg'); await pr.put(pb, {contentType:'image/jpeg'}); updated.poster = await pr.getDownloadURL(); }
+    }catch(e){ console.error(e); toast('تعذر رفع صورة الغلاف'); }
+    document.getElementById('editVideoPoster').value='';
+  }
 
   videos = videos.map(x => x.id === editingVideoId ? updated : x);
   renderVideosTable();
@@ -834,6 +912,19 @@ document.getElementById('btnSaveEditVideo').addEventListener('click', async ()=>
     editingVideoId = null;
   }
 });
+// صورة غلاف من ملف الفيديو أو من صورة
+function posterFromFile(file){
+  return new Promise((res)=>{
+    const v=document.createElement('video'); v.muted=true; v.playsInline=true; v.preload='auto'; v.src=URL.createObjectURL(file);
+    const done=b=>{ try{URL.revokeObjectURL(v.src)}catch(e){} res(b); };
+    v.onloadedmetadata=()=>{ v.currentTime=Math.min(1.5, (v.duration||2)/3); };
+    v.onseeked=()=>{ try{ const w=Math.min(960,v.videoWidth||960), h=Math.round(w*(v.videoHeight||540)/(v.videoWidth||960)); const c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(v,0,0,w,h); c.toBlob(b=>done(b),'image/jpeg',.8); }catch(e){ done(null); } };
+    v.onerror=()=>done(null); setTimeout(()=>done(null),15000);
+  });
+}
+function posterFromImage(file){
+  return new Promise((res)=>{ const im=new Image(); im.onload=()=>{ const w=Math.min(960,im.width), h=Math.round(w*im.height/im.width); const c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(im,0,0,w,h); c.toBlob(b=>res(b),'image/jpeg',.82); }; im.onerror=()=>res(null); im.src=URL.createObjectURL(file); });
+}
 async function deleteVideo(id){
   if(!confirm('حذف هذا الفيديو؟')) return;
   const target = videos.find(v => v.id === id);
@@ -921,7 +1012,7 @@ document.getElementById('watermarkFileInput').addEventListener('change', async (
     const objectUrl = URL.createObjectURL(file);
     const img = new Image();
     await new Promise((res, rej)=>{ img.onload = res; img.onerror = () => rej(new Error('تعذر فتح الصورة')); img.src = objectUrl; });
-    const maxW = 1800;
+    const maxW = 1600;
     const scale = Math.min(1, maxW / img.naturalWidth);
     const w = Math.round(img.naturalWidth * scale), h = Math.round(img.naturalHeight * scale);
     const canvas = document.createElement('canvas');
@@ -983,7 +1074,7 @@ document.getElementById('btnUpload').addEventListener('click', async ()=>{
   const swapped = (rotation === 90 || rotation === 270);
   const srcW = loadedImage.width, srcH = loadedImage.height;
   const rotW = swapped ? srcH : srcW, rotH = swapped ? srcW : srcH;
-  const maxW = 1800;
+  const maxW = 1600;
   const scale = Math.min(1, maxW / rotW);
   const w = Math.round(rotW * scale), h = Math.round(rotH * scale);
 
@@ -1035,7 +1126,7 @@ document.getElementById('btnUpload').addEventListener('click', async ()=>{
       document.getElementById('upPrice').value = '';
     }catch(e){ console.error(e); toast('تعذر رفع الصورة — حاول من جديد'); }
     finally{ uploadBtn.disabled = false; uploadBtn.textContent = 'رفع الصورة'; }
-  }, 'image/jpeg', 0.85);
+  }, 'image/jpeg', 0.82);
 });
 
 // ---------- video compatibility check + auto-conversion (لفيديوهات الآيفون HEVC) ----------
@@ -1306,7 +1397,10 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
     const storageRef = storage.ref('gallery/' + videoId + '.' + ext);
     await withTimeout(storageRef.put(loadedVideoFile, { contentType: loadedVideoFile.type || 'video/mp4' }), 180000, 'انتهى الوقت — تعذر رفع الفيديو للسحابة (تأكد من الاتصال)');
     const videoUrl = await storageRef.getDownloadURL();
+    let poster = '';
+    try{ statusEl.style.display='block'; statusEl.textContent='جاري عمل صورة غلاف...'; const pb = await posterFromFile(loadedVideoFile); if(pb){ const pr = storage.ref('gallery/posters/' + videoId + '.jpg'); await pr.put(pb, {contentType:'image/jpeg'}); poster = await pr.getDownloadURL(); } }catch(e){ console.warn('poster', e); }
     const newVideo = {
+      poster,
       id: videoId,
       createdAt: Date.now(),
       title: document.getElementById('upVideoTitle').value.trim(),
