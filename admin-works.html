@@ -181,6 +181,7 @@
         <div class="field"><label>النوع (اختياري)</label><input type="text" id="upType"></div>
       </div>
       <div class="field"><label>السعر (اختياري)</label><input type="text" id="upPrice"></div>
+      <label style="display:flex;gap:8px;align-items:center;font-size:13px;margin:4px 0 12px;cursor:pointer"><input type="checkbox" id="upWm" checked> إضافة اللوغو والهاتف والعنوان على الصورة <span id="upWmHint" style="color:var(--text-dim);font-size:12px"></span></label>
       <button class="btn" style="width:100%; justify-content:center;" id="btnUpload">رفع الصورة</button>
     </div>
 
@@ -690,38 +691,138 @@ function getLogoImage(){
 }
 // نحمّل اللوغو ونتأكد إنه اتفكّ (decode) بالكامل من فتح الصفحة، مش وقت رفع الصورة
 getLogoImage();
+function computeBoxOrigin(canvasW, canvasH, boxW, boxH, position, margin) {
+  let x, y;
+  switch (position) {
+    case 'top-left': x = margin; y = margin; break;
+    case 'top-right': x = canvasW - boxW - margin; y = margin; break;
+    case 'bottom-left': x = margin; y = canvasH - boxH - margin; break;
+    case 'center': x = (canvasW - boxW) / 2; y = (canvasH - boxH) / 2; break;
+    case 'bottom-right':
+    default: x = canvasW - boxW - margin; y = canvasH - boxH - margin; break;
+  }
+  return { x, y };
+}
+
+function drawLogoWithInfo(ctx, canvasW, canvasH, logoImg, sizePercent, position, margin, opacity, phone, address) {
+  const logoTargetW = canvasW * (sizePercent / 100);
+  const scale = logoTargetW / logoImg.naturalWidth;
+  const logoTargetH = logoImg.naturalHeight * scale;
+
+  const rawLines = [];
+  if (phone && phone.trim()) rawLines.push({ text: phone.trim(), bold: true });
+  if (address && address.trim()) rawLines.push({ text: address.trim(), bold: false });
+
+  const baseFontSize = Math.max(13, Math.round(canvasW * 0.015));
+  const lineGap = Math.round(baseFontSize * 0.35);
+  const padY = Math.round(baseFontSize * 0.55);
+  const padX = Math.round(baseFontSize * 0.9);
+
+  // شريط النص بنفس عرض اللوغو بالضبط (مظهر موحّد ومرتّب، بدل عرضين مختلفين فوق بعض)
+  const blockW = logoTargetW;
+  const maxTextW = Math.max(20, blockW - padX * 2);
+
+  // تصغير الخط تلقائياً لو النص أطول من عرض اللوغو، بدل ما يطفح أو يتقطع
+  function fitFontSize(text, bold) {
+    let fs = baseFontSize;
+    ctx.font = `${bold ? 'bold ' : ''}${fs}px Tahoma, Arial, sans-serif`;
+    while (ctx.measureText(text).width > maxTextW && fs > 9) {
+      fs -= 1;
+      ctx.font = `${bold ? 'bold ' : ''}${fs}px Tahoma, Arial, sans-serif`;
+    }
+    return fs;
+  }
+
+  const lines = rawLines.map(l => ({ ...l, fontSize: fitFontSize(l.text, l.bold) }));
+  const textBlockH = lines.length
+    ? lines.reduce((sum, l) => sum + l.fontSize + lineGap, 0) - lineGap + padY * 2
+    : 0;
+
+  const gapBetween = lines.length ? Math.round(baseFontSize * 0.5) : 0;
+  const blockH = logoTargetH + gapBetween + textBlockH;
+
+  const origin = computeBoxOrigin(canvasW, canvasH, blockW, blockH, position, margin);
+
+  // ظل ناعم خلف اللوغو نفسه، يخليه يبين "ملصق" باحتراف فوق الصورة بدل ما يبدو مسطّح
+  ctx.save();
+  ctx.globalAlpha = opacity;
+  ctx.shadowColor = 'rgba(0,0,0,0.5)';
+  ctx.shadowBlur = Math.max(6, baseFontSize * 0.7);
+  ctx.shadowOffsetY = Math.max(2, baseFontSize * 0.15);
+  ctx.drawImage(logoImg, origin.x, origin.y, logoTargetW, logoTargetH);
+  ctx.restore();
+
+  if (lines.length) {
+    const boxX = origin.x;
+    const boxY = origin.y + logoTargetH + gapBetween;
+    const radius = Math.max(6, baseFontSize * 0.4);
+
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    ctx.shadowColor = 'rgba(0,0,0,0.4)';
+    ctx.shadowBlur = Math.max(5, baseFontSize * 0.5);
+    ctx.shadowOffsetY = 2;
+
+    // خلفية داكنة دافئة متدرّجة (بدل الأسود الفاحم المسطّح) تنسجم مع لون اللوغو الذهبي
+    const grad = ctx.createLinearGradient(boxX, boxY, boxX, boxY + textBlockH);
+    grad.addColorStop(0, 'rgba(24,17,10,0.82)');
+    grad.addColorStop(1, 'rgba(8,6,4,0.90)');
+    ctx.fillStyle = grad;
+    if (ctx.roundRect) {
+      ctx.beginPath();
+      ctx.roundRect(boxX, boxY, blockW, textBlockH, radius);
+      ctx.fill();
+    } else {
+      ctx.fillRect(boxX, boxY, blockW, textBlockH);
+    }
+    ctx.restore();
+
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    // خط ذهبي رفيع أعلى الشريط يربطه بصرياً بلون اللوغو
+    ctx.strokeStyle = 'rgba(212,175,55,0.85)';
+    ctx.lineWidth = Math.max(1, baseFontSize * 0.06);
+    ctx.beginPath();
+    ctx.moveTo(boxX + radius, boxY + ctx.lineWidth / 2);
+    ctx.lineTo(boxX + blockW - radius, boxY + ctx.lineWidth / 2);
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.textBaseline = 'top';
+    ctx.textAlign = 'center';
+    const centerX = boxX + blockW / 2;
+    let ty = boxY + padY;
+    lines.forEach(l => {
+      ctx.font = `${l.bold ? 'bold ' : ''}${l.fontSize}px Tahoma, Arial, sans-serif`;
+      ctx.fillText(l.text, centerX, ty);
+      ty += l.fontSize + lineGap;
+    });
+    ctx.restore();
+  }
+}
+
+
+// شعار الموقع: نفس شكل «أداة اللوغو» — اللوغو تحت يمين، وتحته الهاتف والعنوان
+const WM_PHONE='0541737888', WM_ADDR='الجزائر - دالي ابراهيم';
+let wmLogoP=null;
+function getWmLogo(){ if(!wmLogoP) wmLogoP=new Promise(res=>{const im=new Image();im.onload=()=>res(im);im.onerror=()=>res(null);im.src='/img/site/logo-wm.png';}); return wmLogoP; }
+getWmLogo();
 async function drawWatermark(ctx, w, h){
-  const logoImg = await getLogoImage();
-  const hasLogo = !!(logoImg && logoImg.naturalWidth > 0);
-  const wmText = 'الجزائر · قيصر الشام للحجر والرخام · 0541.73.78.88';
-  let fontSize = Math.max(11, Math.round(w * 0.022));
-  ctx.font = `700 ${fontSize}px Tajawal, Arial`;
-  let textW = ctx.measureText(wmText).width;
-  let logoH = hasLogo ? fontSize * 2.4 : 0;
-  let logoW = hasLogo ? logoImg.width * (logoH / logoImg.height) : 0;
-  const padX = 12, padY = 8, gap = hasLogo ? 8 : 0;
-  let boxW = textW + padX*2 + logoW + gap;
-  const maxBoxW = w - 20;
-  if(boxW > maxBoxW){
-    const scale = Math.max(0.35, maxBoxW / boxW);
-    fontSize = Math.max(8, Math.round(fontSize * scale));
-    ctx.font = `700 ${fontSize}px Tajawal, Arial`;
-    textW = ctx.measureText(wmText).width;
-    logoH = hasLogo ? fontSize * 2.4 : 0;
-    logoW = hasLogo ? logoImg.width * (logoH / logoImg.height) : 0;
-    boxW = textW + padX*2 + logoW + gap;
-  }
-  const boxH = Math.max(fontSize, logoH) + padY*2;
-  const boxX = Math.max(10, w - boxW - 10);
-  ctx.fillStyle = 'rgba(0,0,0,0.45)';
-  ctx.fillRect(boxX, h - boxH - 10, boxW, boxH);
-  if(hasLogo){
-    ctx.drawImage(logoImg, boxX + padX, h - boxH - 10 + (boxH - logoH)/2, logoW, logoH);
-  }
-  ctx.fillStyle = '#fff';
-  ctx.textBaseline = 'middle';
-  ctx.textAlign = 'right';
-  ctx.fillText(wmText, boxX + boxW - padX, h - 10 - boxH/2);
+  const logo = await getWmLogo();
+  if(!logo) return;
+  drawLogoWithInfo(ctx, w, h, logo, 18, 'bottom-right', Math.round(w*0.0125), 0.9, WM_PHONE, WM_ADDR);
+}
+// كشف تقريبي: إذا في شريط داكن بمكان الهاتف والعنوان (يعني الصورة عليها اللوغو من قبل)
+function hasWatermarkAlready(img){
+  try{
+    const W=Math.min(1600,img.naturalWidth||img.width), H=Math.round((img.naturalHeight||img.height)*W/(img.naturalWidth||img.width));
+    const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.drawImage(img,0,0,W,H);
+    const bw=W*0.18, fs=Math.max(13,Math.round(W*0.015)), bh=fs*2+fs*0.35+fs*1.1, m=Math.round(W*0.0125);
+    const rx=Math.round(W-bw-m+bw*0.1), ry=Math.round(H-bh-m+bh*0.15), rw=Math.round(bw*0.8), rh=Math.max(4,Math.round(bh*0.7));
+    const d=x.getImageData(rx,ry,rw,rh).data;let n=0,dk=0,wh=0;
+    for(let i=0;i<d.length;i+=4){const L=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];n++;if(L<100)dk++;if(L>190)wh++}
+    return dk/n>0.7 && wh/n>0.03 && wh/n<0.4;
+  }catch(e){return false}
 }
 
 // ---------- category select helper ----------
@@ -1117,6 +1218,7 @@ document.getElementById('upFile').addEventListener('change', async (e)=>{
   const img = new Image();
   img.onload = ()=>{
     loadedImage = img; rotation = 0;
+    const had=hasWatermarkAlready(img);document.getElementById('upWm').checked=!had;document.getElementById('upWmHint').textContent=had?'— الصورة عليها اللوغو من قبل، فما رح ينضاف':'';
     document.getElementById('previewImg').src = img.src;
     document.getElementById('previewWrap').style.display = '';
   };
@@ -1146,7 +1248,7 @@ document.getElementById('btnUpload').addEventListener('click', async ()=>{
   ctx.scale(scale, scale);
   ctx.drawImage(loadedImage, -srcW/2, -srcH/2, srcW, srcH);
   ctx.restore();
-  await drawWatermark(ctx, w, h);
+  if(document.getElementById('upWm').checked) await drawWatermark(ctx, w, h);
 
   const itemId = uid();
   const uploadBtn = document.getElementById('btnUpload');
