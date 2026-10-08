@@ -239,7 +239,7 @@ input[type=range]{height:16px}
       <button class="btn sm" id="aiUndo" disabled>تراجع</button>
       <button class="btn sm" id="aiSet" hidden aria-label="إعدادات الذكاء الاصطناعي">إعدادات</button>
     </div>
-    <button class="btn sm primary" id="mirBtn">↗ إلى ميراكوس</button>
+    <button class="btn sm primary" id="mirBtn">↗ تحويل للمعرض أو المعمل</button>
     <button class="btn sm gold" id="saveBtn">حفظ صورة</button>
     <button class="btn sm wa" id="shareBtn">واتساب</button>
     <button class="btn sm" id="projBtn">مشاريعي</button>
@@ -2225,7 +2225,7 @@ function mirChoose(){
   let app=mirGet('mirsam_app','showroom'),how=mirGet('mirsam_how','app');if(!MIR_APPS[app])app='showroom';
   const ov=document.createElement('div');ov.className='modal on';ov.style.zIndex=70;
   const seg=(attr,list,cur)=>list.map(([k,n])=>`<button data-${attr}="${k}" aria-pressed="${k===cur}">${n}</button>`).join('');
-  ov.innerHTML=`<div class="box" role="dialog" aria-modal="true" style="max-width:400px"><h2>إرسال إلى ميراكوس</h2>
+  ov.innerHTML=`<div class="box" role="dialog" aria-modal="true" style="max-width:400px"><h2>تحويل للمعرض أو المعمل</h2>
     <div style="font-size:.85rem;color:var(--muted)">الزبون: <b>${(cust.name||'').replace(/</g,'&lt;')}</b> — ${SCHEMAS[tab].title}</div>
     <div><span class="clbl">البرنامج</span><div class="seg">${seg('app',Object.entries(MIR_APPS).map(([k,v])=>[k,v.n]),app)}</div></div>
     <div><span class="clbl">يفتح بـ</span><div class="seg">${seg('how',[['app','التطبيق'],['web','المتصفح']],how)}</div></div>
@@ -2429,7 +2429,7 @@ if(EMBED){
   const OK=o=>/^https:\/\/([a-z0-9-]+\.)*(github\.io|cesar-alcham\.com|pages\.dev)$/.test(o)||/^http:\/\/localhost(:\d+)?$/.test(o);
   let parentOrigin=null;
   const bar=document.createElement('div');bar.id='embedBar';
-  bar.innerHTML='<b>✏️ رسمة لميراكوس</b><span id="embedWho"></span><button class="btn sm primary" id="embedSend">↩ إرسال إلى ميراكوس</button><button class="btn sm" id="embedCancel">إلغاء</button>';
+  bar.innerHTML='<b>✏️ مرسم ديكور</b><span id="embedWho"></span><button class="btn sm primary" id="embedSend">↩ تحويل</button><button class="btn sm" id="embedCancel">إلغاء</button>';
   document.body.prepend(bar);
   const st=document.createElement('style');st.textContent='#embedBar{position:sticky;top:0;z-index:60;display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#1F8F55;color:#fff;padding:8px 16px}#embedBar b{font-size:.95rem}#embedBar span{flex:1;font-size:.82rem;opacity:.9}#embedBar .btn{background:#fff;color:#111;border-color:#fff}#embedBar .btn.primary{background:#111;color:#fff;border-color:#111}.tabbar{top:46px}'+(HUB?'#mirBtn{display:none}':'#shareBtn,#fileBtn,#projBtn,#mirBtn{display:none}')+'html{direction:ltr;overflow-y:auto;height:auto}body{direction:rtl}@media (max-width:860px){#embedBar{padding:6px 10px;gap:6px;flex-wrap:nowrap}#embedBar b{display:none}#embedBar span{font-size:.72rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#embedBar .btn{padding:6px 10px;font-size:.8rem;white-space:nowrap}.tabbar{top:40px}}';
   document.head.appendChild(st);
@@ -2452,7 +2452,7 @@ if(EMBED){
       send({type:'mirsam-result',data:{app:'mirsam-decor',version:1,name:(cust.name?cust.name+' - ':'')+SCHEMAS[tab].title,title:SCHEMAS[tab].title,tab,
         customer:{...cust},images:{pure,withDetails},stats:(lastR&&lastR.stats)||[],lines:billLines(),mstate:{tab,state:{...state[tab]}}}});
     }catch(err){console.error(err);toast('تعذر تجهيز الرسمة، حاول مرة ثانية')}
-    b.disabled=false;b.textContent='↩ إرسال إلى ميراكوس';
+    b.disabled=false;b.textContent='↩ تحويل';
   };
   window.parent.postMessage({type:'mirsam-ready'},'*');
 }
