@@ -1661,6 +1661,7 @@ async function deleteItem(id){
     const lines=['السلام عليكم، أرغب في الحصول على عرض سعر من قيصر الشام للحجر والرخام:','الاسم: '+d.name,'الهاتف: '+d.phone,'نوع العمل: '+d.type];
     if(d.place) lines.push('المنطقة: '+d.place); if(d.size) lines.push('القياسات: '+d.size); if(d.msg) lines.push('التفاصيل: '+d.msg);
     lines.push('(سأرسل صور المكان في هذه المحادثة)');
+    try{ db.collection(FS_COLLECTION).doc('site_requests').set({reqs:firebase.firestore.FieldValue.arrayUnion({id:'r'+Date.now().toString(36),at:Date.now(),name:d.name||'',phone:d.phone||'',type:d.type||'',place:d.place||'',size:d.size||'',msg:d.msg||''})},{merge:true}).catch(()=>{}); }catch(err){}
     window.open('https://wa.me/213541737888?text='+encodeURIComponent(lines.join('\n')),'_blank');
   });
 })();
