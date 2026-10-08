@@ -86,7 +86,7 @@ function catPage(cat, slug, list, cats, slugs, settings){
   const title = `${ar}${fr ? ' | ' + fr : ''} - قيصر الشام للحجر والرخام، الجزائر`;
   const desc = `${ar}${fr ? ' (' + fr + ')' : ''} — صور من أعمال قيصر الشام للحجر والرخام: تصميم وتصنيع وتركيب بالرخام والحجر الطبيعي، من دالي إبراهيم إلى جميع ولايات الجزائر. اطلب عرض سعر على الرقم 0541737888.`;
   const imgs = list.map(it => ({it, src: imgUrl(it)})).filter(x => x.src);
-  const ogImg = imgs[0] ? abs(imgs[0].src) : SITE + '/og-image.jpg';
+  const ogImg = imgs[0] ? abs(imgs[0].src) : SITE + '/img/site/og-card.jpg';
   const social = ['facebook','instagram','tiktok','youtube'].map(k => settings[k]).filter(Boolean);
   const schema = [{
     '@context':'https://schema.org','@type':'CollectionPage',name:title,description:desc,url:`${SITE}/${slug}`,inLanguage:'ar',
@@ -118,7 +118,7 @@ function catPage(cat, slug, list, cats, slugs, settings){
 <meta property="og:image" content="${esc(ogImg)}">
 <meta property="og:locale" content="ar_DZ">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"><link rel="icon" type="image/png" sizes="48x48" href="/img/site/fav-48.png"><link rel="icon" type="image/png" sizes="96x96" href="/img/site/fav-96.png"><link rel="icon" type="image/png" sizes="192x192" href="/img/site/fav-192.png">
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
