@@ -817,11 +817,16 @@ function hasWatermarkAlready(img){
   try{
     const W=Math.min(1600,img.naturalWidth||img.width), H=Math.round((img.naturalHeight||img.height)*W/(img.naturalWidth||img.width));
     const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.drawImage(img,0,0,W,H);
-    const bw=W*0.18, fs=Math.max(13,Math.round(W*0.015)), bh=fs*2+fs*0.35+fs*1.1, m=Math.round(W*0.0125);
+    for(const sp of [8,10,12,14,16,18,20,23,26]){
+    const bw=W*sp/100, fs=Math.max(13,Math.round(W*0.015)), bh=fs*2+fs*0.35+fs*1.1;
+    for(const m of [Math.round(W*0.0125),20,10]){
     const rx=Math.round(W-bw-m+bw*0.1), ry=Math.round(H-bh-m+bh*0.15), rw=Math.round(bw*0.8), rh=Math.max(4,Math.round(bh*0.7));
+    if(rx<0||ry<0)continue;
     const d=x.getImageData(rx,ry,rw,rh).data;let n=0,dk=0,wh=0;
     for(let i=0;i<d.length;i+=4){const L=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];n++;if(L<100)dk++;if(L>190)wh++}
-    return dk/n>0.7 && wh/n>0.03 && wh/n<0.4;
+    if(dk/n>0.7 && wh/n>0.03 && wh/n<0.4) return true;
+    }}
+    return false;
   }catch(e){return false}
 }
 
