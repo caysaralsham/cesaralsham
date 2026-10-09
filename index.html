@@ -409,7 +409,6 @@
     <label>القياسات التقريبية<input name="size" placeholder="مثلاً: 1.20 × 1.00 م"></label>
     <label>تفاصيل<textarea name="msg" rows="3" placeholder="اللون، نوع الرخام، وأي تفاصيل أخرى"></textarea></label>
     <button class="btn" type="submit" data-via="wa">إرسال الطلب عبر واتساب</button>
-    <button class="btn" type="submit" data-via="site" style="background:#9A6A3A">إرسال الطلب عبر الموقع</button>
   </form>
 </section>
 <section class="faq" id="faq">
@@ -1660,13 +1659,6 @@ async function deleteItem(id){
   const f=document.getElementById('quoteForm'); if(!f) return;
   f.addEventListener('submit',async e=>{
     e.preventDefault(); const d=Object.fromEntries(new FormData(f).entries());
-    const via=(e.submitter&&e.submitter.dataset.via)||'wa';
-    if(via==='site'){
-      const b=e.submitter;b.disabled=true;const old=b.textContent;b.textContent='جارٍ الإرسال...';
-      try{ await window.siteRequest({name:d.name||'',phone:d.phone||'',type:d.type||'',place:d.place||'',size:d.size||'',msg:d.msg||''}); f.reset(); alert('✓ تم إرسال طلبك، سنتواصل معك قريبًا. شكرًا لك.'); }
-      catch(err){ console.error(err); alert('تعذّر الإرسال عبر الموقع، جرّب واتساب.'); }
-      b.disabled=false;b.textContent=old; return;
-    }
     const lines=['السلام عليكم، أرغب في الحصول على عرض سعر من قيصر الشام للحجر والرخام:','الاسم: '+d.name,'الهاتف: '+d.phone,'نوع العمل: '+d.type];
     if(d.place) lines.push('المنطقة: '+d.place); if(d.size) lines.push('القياسات: '+d.size); if(d.msg) lines.push('التفاصيل: '+d.msg);
     lines.push('(سأرسل صور المكان في هذه المحادثة)');
