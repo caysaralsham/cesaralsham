@@ -2029,12 +2029,13 @@ function drawColumn(s){
     cut.push({cells:['نص عامود (قطعتين)',(shape==='round'?'قطر داخلي '+core+'، خارجي '+outer:'عرض '+outer)+'، ارتفاع '+H+'، سماكة '+th,2]});qty=a.toFixed(2);unit='م²'}
   if(kind==='tiles'){const nA=Math.max(1,Math.round(per/+s.tW)),nR=Math.ceil(H/+s.tH),a=per*H/1e4;stats.push(['الباطون',core+' سم'],['قطع بالدورة',nA],['صفوف',nR],['مجموع القطع',nA*nR],['المساحة',a.toFixed(2)+' م²']);
     cut.push({cells:['قطعة لصق',+s.tW+' × '+s.tH+' سم، سماكة '+th,nA*nR]});qty=a.toFixed(2);unit='م²'}
-  if(bH){stats.push(['القاعدة',BT[bT]+'، '+bW+' × '+bH+' سم']);cut.push({cells:['قاعدة '+BT[bT],'عرض '+bW+'، ارتفاع '+bH,1]})}
-  if(cH){stats.push(['التاج',CTp[cT]+'، '+cW+' × '+cH+' سم']);cut.push({cells:['تاج '+CTp[cT],'عرض '+cW+'، ارتفاع '+cH,1]})}
-  const lines=[{desc:`عامود ${nm} — ${kn} — ${shape==='round'?'قطر':'عرض'} ${outer} سم، ارتفاع ${H} سم${kind!=='block'?'، باطون '+core+'، سماكة '+th:''}`,qty:1,unit:'عامود'}];
-  if(qty)lines.push({desc:`كمية العامود (${kn})`,qty:+qty,unit});
-  if(bH)lines.push({desc:`قاعدة ${BT[bT]} — ${bW}×${bH} سم`,qty:1,unit:'قطعة'});
-  if(cH)lines.push({desc:`تاج ${CTp[cT]} — ${cW}×${cH} سم`,qty:1,unit:'قطعة'});
+  if(bH){stats.push(['القاعدة',BT[bT]+'، '+bW+' × '+bH+' سم']);cut.push({cells:['قاعدة '+BT[bT],'عرض '+bW+'، ارتفاع '+bH,Math.max(1,+s.cnt||1)]})}
+  if(cH){stats.push(['التاج',CTp[cT]+'، '+cW+' × '+cH+' سم']);cut.push({cells:['تاج '+CTp[cT],'عرض '+cW+'، ارتفاع '+cH,Math.max(1,+s.cnt||1)]})}
+  const cnt=Math.max(1,+s.cnt||1);if(cnt>1)stats.splice(1,0,['عدد العواميد',cnt]);
+  const lines=[{desc:`عامود ${nm} — ${kn} — ${shape==='round'?'قطر':'عرض'} ${outer} سم، ارتفاع ${H} سم${kind!=='block'?'، باطون '+core+'، سماكة '+th:''}`,qty:cnt,unit:'عامود'}];
+  if(qty)lines.push({desc:`كمية جسم العامود (${kn})${cnt>1?' — لـ '+cnt+' عواميد':''}`,qty:+(qty*cnt).toFixed(3),unit});
+  if(bH)lines.push({desc:`قاعدة عامود ${BT[bT]} — ${bW}×${bH} سم`,qty:cnt,unit:'قاعدة'});
+  if(cH)lines.push({desc:`تاج عامود ${CTp[cT]} — ${cW}×${cH} سم`,qty:cnt,unit:'تاج'});
   return{svg:o,insets:[inset],box:[-Math.max(bW,cW)/2-S*.1,xr+S*.2,-tot-S*.08,S*.08],stats,tables:[{title:'قائمة القطع للمعمل',head:['القطعة','القياس (سم)','العدد'],rows:cut}],lines,note:''};
 }
 SCHEMAS.calc={title:'حاسبة القياسات',draw:drawCalc,controls:[
@@ -2044,6 +2045,7 @@ SCHEMAS.calc={title:'حاسبة القياسات',draw:drawCalc,controls:[
   {id:'mat',label:'لون الرخام',type:'mat',val:'beigeL'}]};
 SCHEMAS.column={title:'عامود',draw:drawColumn,controls:[
   head('العامود'),
+  {id:'cnt',label:'عدد العواميد',type:'range',min:1,max:40,step:1,val:1},
   {id:'shape',label:'الشكل',type:'seg',options:[['round','مدور'],['square','مربع'],['oct','مضلع']],val:'round'},
   {id:'kind',label:'التنفيذ',type:'seg',options:[['block','كتلة'],['wrap','تغليف باطون (قطعتين)'],['tiles','قطع لصق']],val:'block'},
   {id:'D',label:'القطر / العرض',type:'range',min:10,max:150,step:1,val:35,show:s=>s.kind==='block'},
