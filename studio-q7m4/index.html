@@ -1891,7 +1891,7 @@ const SCHEMAS={
     {id:'wall2',label:'رخام جوّا الكورنيش',type:'mat',val:'beigeL',show:s=>s.kind==='jurn'}]}
 };
 /* ================= 📏 حاسبة القياسات (متل ميراكوس) + الحواف فوق/تحت ================= */
-const ECODES=[['','بدون','#333333'],['a','اروندي فوق','#D32F2F'],['a2','اروندي فوق وتحت','#8E1B1B'],['s','شطفة فوق','#2E9E4F'],['s2','شطفة فوق وتحت','#1B5E33'],['as','اروندي فوق + شطفة تحت','#E07B00']];
+const ECODES=[['','بدون','#333333'],['a','اروندي فوق','#D32F2F'],['a2','اروندي فوق وتحت','#8E1B1B'],['s','شطفة فوق','#2E9E4F'],['s2','شطفة فوق وتحت','#1B5E33'],['as','اروندي فوق + شطفة تحت','#E07B00'],['ah','اروندي نص دائرة','#6A1B9A']];
 const ECOL=Object.fromEntries(ECODES.map(x=>[x[0],x[2]])),ENAME=Object.fromEntries(ECODES.map(x=>[x[0],x[1]]));
 const CTN={m2:'متر مربع',ml:'متر طول',m3:'متر مكعب',col:'عامود (القطر × 3.14 × الارتفاع)',circ:'دائرة',corner:'زاوية'},CTU={m2:'م²',ml:'م.ط',m3:'م³',col:'م²',circ:'م²',corner:'م²'};
 const CFIELDS={m2:[['l','طول'],['w','عرض'],['h','سماكة'],['n','عدد']],ml:[['l','طول'],['w','عرض'],['h','سماكة'],['n','عدد']],m3:[['l','طول'],['w','عرض'],['h','سماكة'],['n','عدد']],col:[['l','القطر'],['w','الارتفاع'],['n','عدد']],circ:[['l','قطر برّا'],['w','قطر جوّا'],['n','عدد']],corner:[['l','الطول'],['w','العرض'],['h','الضلع 1'],['h2','الضلع 2'],['n','عدد']]};
@@ -1918,18 +1918,23 @@ function calcPanel(st){
   h+=`<div class="ctrl full" style="display:flex;gap:6px;flex-wrap:wrap">${['ml','m3','col','circ','corner'].filter(t=>!types.includes(t)).map(t=>`<button class="btn sm" data-cact="addtbl" data-t="${t}">+ جدول ${CTN[t].split(' (')[0]}</button>`).join('')}</div>`;
   return h;
 }
-function profileSvg(code,hh,ch){ // مقطع الحافة: سماكة hh، والحافة على اليمين
-  const h=Math.max(1,hh),w=h*3,x1=w,top=-h,bot=0,r=Math.min(h/2,h*.45),c=Math.min(ch,h/2);
-  let d=`M0 ${top}`;
+function profileSvg(code,hh,sp){ // مقطع الحافة من الجنب: سماكة hh، والحافة على اليمين — sp = {ar نص قطر الاروندي, ch قياس الشطفة, ang ميلانها}
+  const h=Math.max(.5,hh),w=h*3,x1=w,top=-h,bot=0,both=code==='a2';
+  const arCm=Math.min(Math.max(+sp.ar||.5,.05),both?h/2:h),r=arCm;
+  const angDeg=Math.min(80,Math.max(10,+sp.ang||45));let cx=Math.max(+sp.ch||.5,.05),cy=cx*Math.tan(angDeg*Math.PI/180);
+  const lim=code==='s2'?h/2:code==='as'?h-r:h;if(cy>lim){cx=cx*lim/cy;cy=lim}if(cx>w*.6){cy=cy*w*.6/cx;cx=w*.6}
   const upR=code==='a'||code==='a2'||code==='as',upS=code==='s'||code==='s2',dnR=code==='a2',dnS=code==='s2'||code==='as';
-  if(code==='a2'){d+=`L${x1-h/2} ${top}A${h/2} ${h/2} 0 0 1 ${x1-h/2} ${bot}`}
-  else{d+= upR?`L${x1-r} ${top}A${r} ${r} 0 0 1 ${x1} ${top+r}`: upS?`L${x1-c} ${top}L${x1} ${top+c}`:`L${x1} ${top}`;
-    d+= dnS?`L${x1} ${bot-c}L${x1-c} ${bot}`:`L${x1} ${bot}`}
+  let d=`M0 ${top}`;
+  if(code==='ah'){d+=`L${x1-h/2} ${top}A${h/2} ${h/2} 0 0 1 ${x1-h/2} ${bot}`}
+  else{d+= upR?`L${x1-r} ${top}A${r} ${r} 0 0 1 ${x1} ${top+r}`: upS?`L${x1-cx} ${top}L${x1} ${top+cy}`:`L${x1} ${top}`;
+    d+= dnR?`L${x1} ${bot-r}A${r} ${r} 0 0 1 ${x1-r} ${bot}`: dnS?`L${x1} ${bot-cy}L${x1-cx} ${bot}`:`L${x1} ${bot}`}
   d+=`L0 ${bot}Z`;
-  const fs=h*.38,col=ECOL[code],nm=ENAME[code],tfs=Math.min(fs,(w+h*1.6)/Math.max(6,nm.length)*1.7);
-  return {box:[-h*.4,w+h*2,-h*2.6,h*.9],svg:`<path d="${d}" fill="#EFE6D6" stroke="${col}" stroke-width="${h*.06}"/>`+
-    `<line x1="${w+h*.35}" y1="${top}" x2="${w+h*.35}" y2="${bot}" stroke="#555" stroke-width="${h*.03}"/><text x="${w+h*.5}" y="${-h/2+fs*.35}" font-size="${fs}" font-weight="700" fill="#333" font-family="Cairo,Tahoma">${hh}</text><text x="${w+h*.5+fs*(String(hh).length*.62+.3)}" y="${-h/2+fs*.35}" font-size="${fs*.8}" fill="#333" font-family="Cairo,Tahoma">سم</text>`+
-    ((upS||dnS)?`<text x="${w/2}" y="${-h-h*.3}" font-size="${fs*.8}" fill="${col}" text-anchor="middle" direction="rtl" font-family="Cairo,Tahoma">شطفة ${ch} سم</text>`:'')+
+  const f=n=>String(Number((+n).toFixed(2)));
+  const det=code==='ah'?'نص دائرة R '+f(h/2)+' سم':[(upR||dnR)?'اروندي R '+f(arCm)+' سم':'',(upS||dnS)?'شطفة '+f(+sp.ch||.5)+' سم · '+f(angDeg)+'°':''].filter(Boolean).join(' — ');
+  const fs=h*.38,col=ECOL[code],nm=ENAME[code],tfs=Math.min(fs,(w+h*1.6)/Math.max(6,nm.length)*1.7),dfs=Math.min(fs*.8,(w+h*1.6)/Math.max(6,det.length)*1.8);
+  return {box:[-h*.4,w+h*2,-h*2.6,h*1.1],svg:`<path d="${d}" fill="#EFE6D6" stroke="${col}" stroke-width="${h*.06}"/>`+
+    `<line x1="${w+h*.35}" y1="${top}" x2="${w+h*.35}" y2="${bot}" stroke="#555" stroke-width="${h*.03}"/><text x="${w+h*.5}" y="${-h/2+fs*.35}" font-size="${fs}" font-weight="700" fill="#333" font-family="Cairo,Tahoma">${f(hh)}</text><text x="${w+h*.5+fs*(f(hh).length*.62+.3)}" y="${-h/2+fs*.35}" font-size="${fs*.8}" fill="#333" font-family="Cairo,Tahoma">سم</text>`+
+    `<text x="${(w+h*1.6)/2}" y="${-h-h*.35}" font-size="${dfs}" fill="${col}" text-anchor="middle" direction="rtl" font-family="Cairo,Tahoma">${det}</text>`+
     `<text x="${(w+h*1.6)/2}" y="${-h*1.95}" font-size="${tfs}" font-weight="700" fill="${col}" text-anchor="middle" direction="rtl" font-family="Cairo,Tahoma">${nm}</text>`};
 }
 function drawCalc(s){
@@ -1960,7 +1965,7 @@ function drawCalc(s){
   // ملخص الحواف
   const em={};rows.forEach(r=>{const n=cNum(r.n)||1,l=cNum(r.l),w=cNum(r.w);for(const sd of ['t','b','l','r']){const c=r.e&&r.e[sd];if(!c)continue;em[c]=(em[c]||0)+((sd==='t'||sd==='b')?l:w)/100*n}});
   const used=Object.keys(em);
-  const insets=used.map(c=>{const hh=Math.max(...rows.filter(r=>Object.values(r.e||{}).includes(c)).map(r=>cNum(r.h)||2));const p=profileSvg(c,hh,+s.ch||1);return{label:'مقطع: '+ENAME[c],box:p.box,svg:p.svg}});
+  const insets=used.map(c=>{const hh=Math.max(...rows.filter(r=>Object.values(r.e||{}).includes(c)).map(r=>cNum(r.h)||+s.eth||2));const p=profileSvg(c,hh,{ar:+s.arR,ch:+s.ch,ang:+s.chA});return{label:'مقطع: '+ENAME[c],box:p.box,svg:p.svg}});
   const tot={};rows.forEach(r=>{tot[r.t]=(tot[r.t]||0)+calcRes(r)});
   const stats=[...Object.entries(tot).map(([t,v])=>[CTN[t],v.toFixed(2)+' '+CTU[t]]),['عدد القطع',rows.reduce((a,r)=>a+(cNum(r.n)||1),0)],...used.map(c=>['حافة '+ENAME[c],em[c].toFixed(2)+' م.ط'])];
   const dimTxt=r=>r.t==='col'?`عامود قطر ${cNum(r.l)} × ارتفاع ${cNum(r.w)}`:r.t==='circ'?`دائرة قطر ${cNum(r.l)}${cNum(r.w)?' جوّا '+cNum(r.w):''}`:r.t==='corner'?`زاوية ${cNum(r.l)}×${cNum(r.w)}${cNum(r.h)?' أضلاع '+cNum(r.h)+'/'+cNum(r.h2):''}`:`${cNum(r.l)}${r.t!=='ml'?'×'+cNum(r.w):''}${cNum(r.h)?'×'+cNum(r.h):''}`;
@@ -1968,7 +1973,7 @@ function drawCalc(s){
   const edgesM=e=>{const x={};for(const k of ['t','b','l','r'])if(e&&e[k])x[k]=e[k];return x};
   const drawOf=r=>r.t==='col'?{shape:'column',l:cNum(r.l),w:cNum(r.w),count:cNum(r.n)||1,edges:{},note:r.name||''}:r.t==='circ'?{shape:'circle',l:cNum(r.l),w:cNum(r.w),count:cNum(r.n)||1,edges:{},note:r.name||''}:r.t==='corner'?{shape:'corner',l:cNum(r.l),w:cNum(r.w),h:cNum(r.h)||'',h2:cNum(r.h2)||'',count:cNum(r.n)||1,edges:{},note:r.name||''}:{shape:'rect',l:cNum(r.l),w:cNum(r.w),h:cNum(r.h)||'',count:cNum(r.n)||1,edges:edgesM(r.e),note:r.name||''};
   const lines=[...rows.map(r=>({desc:`${r.name?r.name+' ':''}${dimTxt(r)} سم${(cNum(r.n)||1)>1?' — العدد '+(cNum(r.n)||1):''}`,qty:+fmtQ(calcRes(r)),unit:CTU[r.t],draws:[drawOf(r)]})),
-    ...used.map(c=>({desc:'حافة '+ENAME[c]+(c.includes('s')?' ('+(+s.ch||1)+' سم)':''),qty:+em[c].toFixed(2),unit:'م.ط'}))];
+    ...used.map(c=>({desc:'حافة '+ENAME[c]+(c.includes('s')?' (شطفة '+(+s.ch||1)+' سم، ميلان '+(+s.chA||45)+'°)':'')+(c==='a'||c==='a2'||c==='as'?' (اروندي '+(+s.arR||.5)+' سم)':''),qty:+em[c].toFixed(2),unit:'م.ط'}))];
   return{svg:o,noGround:true,insets,box:[-4,W+4,-Hh-6,6],stats,tables,lines,note:''};
 }
 /* ================= 🏛 عامود ================= */
@@ -2046,7 +2051,11 @@ function drawColumn(s){
 SCHEMAS.calc={title:'حاسبة القياسات',draw:drawCalc,controls:[
   head('القياسات'),
   {id:'rows',type:'html',val:calcDefault(),render:calcPanel},
-  {id:'ch',label:'قياس الشطفة',type:'range',min:.5,max:5,step:.5,val:1},
+  head('مقاسات الحواف (للمقطع)'),
+  {id:'eth',label:'سماكة الحجر (إذا ما انكتبت بالجدول)',type:'range',min:1,max:10,step:.5,val:2},
+  {id:'arR',label:'اروندي — نص القطر',type:'range',min:.2,max:5,step:.1,val:.5},
+  {id:'ch',label:'قياس الشطفة',type:'range',min:.2,max:5,step:.1,val:.5},
+  {id:'chA',label:'ميلان الشطفة (درجة)',type:'range',min:15,max:75,step:5,val:45},
   {id:'mat',label:'لون الرخام',type:'mat',val:'beigeL'}]};
 SCHEMAS.column={title:'عامود',draw:drawColumn,controls:[
   head('العامود'),
