@@ -274,7 +274,7 @@ function wirePrices(grid){
 const sortCat=arr=>arr.slice().sort((a,b)=>(b.cover?1:0)-(a.cover?1:0)||((a.order??1e9)-(b.order??1e9))||((b.createdAt||0)-(a.createdAt||0)));
 function renderGallery(){
   const grid = document.getElementById('galleryGrid');
-  const short = c => (c||'').split('|')[0].trim();
+  const short = c => (c||'').replace(/\*\*/g,'').split('|')[0].trim();
   const hint = document.getElementById('pageHint');
   if(activeCategory === 'all'){
     const per = new Map();
