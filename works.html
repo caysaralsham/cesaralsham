@@ -20,6 +20,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="/js/price-req.js" defer></script>
 <style>
   :root{
     --ink:#3B2414; --gold:#9A6A3A; --gold-deep:#6E4524; --cream:#FBF6EE; --cream-2:#F5ECDD;
@@ -171,7 +172,7 @@
 <div class="lightbox-overlay" id="lightboxOverlay">
   <span class="lightbox-close" id="lightboxClose">×</span>
   <img id="lightboxImg" src="">
-  <a class="price-btn" id="lightboxPrice" href="#" target="_blank" rel="noopener">💬 اطلب السعر على واتساب</a>
+  <a class="price-btn" id="lightboxPrice" href="#" target="_blank" rel="noopener">💬 اطلب السعر</a>
 </div>
 
 <script>
@@ -265,7 +266,7 @@ const waHref=(name,link)=>'https://wa.me/'+WA_NUM+'?text='+encodeURIComponent('�
 const priceBtn=(i,name)=>`<a class="price-btn" data-pi="${i}" href="${waHref(name,'')}" target="_blank" rel="noopener">💬 اطلب السعر</a>`;
 let shown=[];
 function wirePrices(grid){
-  grid.querySelectorAll('[data-pi]').forEach(a=>{const x=shown[+a.dataset.pi];a.addEventListener('click',e=>e.stopPropagation());
+  grid.querySelectorAll('[data-pi]').forEach(a=>{const x=shown[+a.dataset.pi];a.addEventListener('click',e=>{e.stopPropagation();if(window.askPrice){e.preventDefault();imgLink(x.src).then(l=>askPrice(x.name,l)).catch(()=>askPrice(x.name,''))}});
     imgLink(x.src).then(l=>{if(l)a.href=waHref(x.name,l)}).catch(()=>{})});
 }
 const sortCat=arr=>arr.slice().sort((a,b)=>(b.cover?1:0)-(a.cover?1:0)||((a.order??1e9)-(b.order??1e9))||((b.createdAt||0)-(a.createdAt||0)));
@@ -319,7 +320,7 @@ function renderGallery(){
 function openLightbox(i){
   const x=shown[i];if(!x)return;
   document.getElementById('lightboxImg').src = x.src;
-  const pb=document.getElementById('lightboxPrice');pb.href=waHref(x.name,'');imgLink(x.src).then(l=>{if(l)pb.href=waHref(x.name,l)}).catch(()=>{});
+  const pb=document.getElementById('lightboxPrice');pb.href=waHref(x.name,'');pb.onclick=e=>{if(window.askPrice){e.preventDefault();imgLink(x.src).then(l=>askPrice(x.name,l)).catch(()=>askPrice(x.name,''))}};imgLink(x.src).then(l=>{if(l)pb.href=waHref(x.name,l)}).catch(()=>{});
   document.getElementById('lightboxOverlay').classList.add('show');
 }
 function closeLightbox(){

@@ -19,6 +19,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="/js/price-req.js" defer></script>
 <style>
   :root{
     --ink:#3B2414; --gold:#9A6A3A; --gold-deep:#6E4524; --cream:#FBF6EE; --cream-2:#F5ECDD;
@@ -104,6 +105,7 @@
   @media (max-width:520px){
     .gallery-grid{grid-template-columns:1fr; gap:16px;}
   }
+  .price-btn{display:inline-flex;align-items:center;gap:6px;margin-top:10px;background:#1F8F55;color:#fff;font:inherit;font-weight:800;font-size:13px;padding:7px 14px;border-radius:10px;border:0;cursor:pointer}
 </style>
 <!--SEO:VSCHEMA--><!--/SEO:VSCHEMA-->
 </head>
@@ -242,9 +244,11 @@ function renderGallery(){
       <div class="body">
         <div class="title">${v.title || v.category || 'فيديو من أعمالنا'}</div>
         <div class="meta">${(v.category || '').split('|')[0].trim()}</div>
+        <button type="button" class="price-btn" data-vp="${(v.title || v.category || 'فيديو من أعمالنا').split('|')[0].trim().replace(/"/g,'&quot;')}">💬 اطلب السعر</button>
       </div>
     </div>
   `).join('') + (filtered.length > limit ? `<div style="grid-column:1/-1;text-align:center;margin:8px 0 4px"><button type="button" id="moreVideos" class="filter-btn" style="padding:10px 26px;font-size:15px">عرض المزيد من الفيديوهات (${filtered.length - limit})</button></div>` : '');
+  grid.querySelectorAll('[data-vp]').forEach(b=>b.addEventListener('click',()=>{ if(window.askPrice) askPrice(b.dataset.vp,'https://cesar-alcham.com/videos'); }));
   const mb = document.getElementById('moreVideos');
   if(mb) mb.addEventListener('click', ()=>{ limit += PAGE; renderGallery(); });
 }

@@ -10,8 +10,15 @@ main{max-width:720px;margin:0 auto;padding:18px 16px;display:grid;grid-template-
 a{display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;text-align:center;background:#FBF6EE;border:1.5px solid var(--line);border-radius:16px;padding:20px 10px;text-decoration:none;color:var(--ink);font-weight:800;font-size:16px;min-height:118px;box-shadow:0 8px 20px rgba(59,36,20,.06)}
 a:hover{border-color:var(--br)}a i{font-style:normal;font-size:30px}a small{font-weight:600;font-size:12px;color:var(--deep)}
 @media(max-width:380px){main{grid-template-columns:1fr}}
-</style></head><body>
+#login{max-width:360px;margin:30px auto;padding:20px 16px;background:#FBF6EE;border:1.5px solid var(--line);border-radius:16px;display:none}
+#login label{display:block;font-weight:800;font-size:13px;margin:10px 0 4px}#login input{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#F5ECDD}
+#login button,#out{width:100%;margin-top:14px;font:inherit;font-weight:800;padding:11px;border:0;border-radius:12px;background:var(--br);color:#fff;cursor:pointer}
+#err{color:#A6453D;font-size:13px;min-height:1em;margin-top:8px}main{display:none}#out{display:none;max-width:200px;margin:0 auto 24px;background:transparent;color:var(--deep);border:1.5px solid var(--line)}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script></head><body>
 <header><b>قيصر الشام</b><span>أدواتي — كل البرامج بمكان واحد</span></header>
+<form id="login"><b style="font-size:17px">تسجيل الدخول</b><label>البريد الإلكتروني</label><input id="em" type="email" autocomplete="username" required><label>كلمة السر</label><input id="pw" type="password" autocomplete="current-password" required><button>دخول</button><div id="err"></div></form>
 <main>
 <a href="https://caysaralsham.github.io/miracos-accounting/"><i>🏪</i>المعرض<small>محاسبة ووصولات</small></a>
 <a href="https://caysaralsham.github.io/miracos-factory/"><i>🏭</i>المعمل<small>محاسبة المعمل</small></a>
@@ -19,4 +26,13 @@ a:hover{border-color:var(--br)}a i{font-style:normal;font-size:30px}a small{font
 <a href="/admin-works.html"><i>🖼️</i>لوحة الموقع<small>صور، فيديو، أسئلة</small></a>
 <a href="/links/"><i>🔗</i>الباركود<small>صفحة الروابط</small></a>
 <a href="/"><i>🌐</i>الموقع<small>cesar-alcham.com</small></a>
-</main></body></html>
+</main><button id="out">تسجيل خروج</button>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyDi1Pn7guMnyc0CetV8Z9IUC-k0gtav2_8",authDomain:"basel-7b29b.firebaseapp.com",projectId:"basel-7b29b",storageBucket:"basel-7b29b.firebasestorage.app",messagingSenderId:"1025769465563",appId:"1:1025769465563:web:53b5c9949dbb26364d8efe"});
+const A=firebase.auth(),L=document.getElementById('login'),M=document.querySelector('main'),O=document.getElementById('out');
+A.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
+A.onAuthStateChanged(u=>{L.style.display=u?'none':'block';M.style.display=u?'grid':'none';O.style.display=u?'block':'none'});
+L.addEventListener('submit',async e=>{e.preventDefault();const er=document.getElementById('err');er.textContent='';
+  try{await A.signInWithEmailAndPassword(document.getElementById('em').value.trim(),document.getElementById('pw').value)}catch(x){er.textContent='البريد الإلكتروني أو كلمة السر غير صحيحة'}});
+O.onclick=()=>A.signOut();
+</script></body></html>
