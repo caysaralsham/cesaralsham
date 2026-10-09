@@ -1893,26 +1893,28 @@ const SCHEMAS={
 /* ================= 📏 حاسبة القياسات (متل ميراكوس) + الحواف فوق/تحت ================= */
 const ECODES=[['','بدون','#333333'],['a','اروندي فوق','#D32F2F'],['a2','اروندي فوق وتحت','#8E1B1B'],['s','شطفة فوق','#2E9E4F'],['s2','شطفة فوق وتحت','#1B5E33'],['as','اروندي فوق + شطفة تحت','#E07B00']];
 const ECOL=Object.fromEntries(ECODES.map(x=>[x[0],x[2]])),ENAME=Object.fromEntries(ECODES.map(x=>[x[0],x[1]]));
-const CTN={m2:'متر مربع',ml:'متر طول',m3:'متر مكعب'},CTU={m2:'م²',ml:'م.ط',m3:'م³'};
+const CTN={m2:'متر مربع',ml:'متر طول',m3:'متر مكعب',col:'عامود (القطر × 3.14 × الارتفاع)',circ:'دائرة',corner:'زاوية'},CTU={m2:'م²',ml:'م.ط',m3:'م³',col:'م²',circ:'م²',corner:'م²'};
+const CFIELDS={m2:[['l','طول'],['w','عرض'],['h','سماكة'],['n','عدد']],ml:[['l','طول'],['w','عرض'],['h','سماكة'],['n','عدد']],m3:[['l','طول'],['w','عرض'],['h','سماكة'],['n','عدد']],col:[['l','القطر'],['w','الارتفاع'],['n','عدد']],circ:[['l','قطر برّا'],['w','قطر جوّا'],['n','عدد']],corner:[['l','الطول'],['w','العرض'],['h','الضلع 1'],['h2','الضلع 2'],['n','عدد']]};
+const CEDGE=t=>t==='m2'||t==='ml'||t==='m3';
 let calcBrush='a';
 const cNum=v=>{const n=parseFloat(String(v??'').replace(',','.'));return isNaN(n)?0:n};
 const calcRows=st=>{try{return JSON.parse(st.rows||'[]')}catch(e){return[]}};
 const calcEmpty=t=>({t,name:'',l:'',w:'',h:'',n:1,e:{}});
 const calcDefault=()=>JSON.stringify(Array.from({length:10},()=>calcEmpty('m2')));
-const calcRes=r=>{const l=cNum(r.l),w=cNum(r.w),h=cNum(r.h),n=cNum(r.n)||1;return r.t==='ml'?l*n/100:r.t==='m3'?l*w*h*n/1e6:l*w*n/1e4};
-const calcUsed=r=>cNum(r.l)>0&&(r.t==='ml'||cNum(r.w)>0);
+const calcRes=r=>{const l=cNum(r.l),w=cNum(r.w),h=cNum(r.h),n=cNum(r.n)||1;return r.t==='ml'?l*n/100:r.t==='m3'?l*w*h*n/1e6:r.t==='col'?l/100*3.14*w/100*n:r.t==='circ'?l/100*n:l*w*n/1e4};
+const calcUsed=r=>cNum(r.l)>0&&(r.t==='ml'||r.t==='circ'||cNum(r.w)>0);
 function calcPanel(st){
-  const rows=calcRows(st),types=['m2',...['ml','m3'].filter(t=>rows.some(r=>r.t===t))];
+  const rows=calcRows(st),types=['m2',...['ml','m3','col','circ','corner'].filter(t=>rows.some(r=>r.t===t))];
   const sideLbl={b:'أمام',t:'ورا',r:'يمين',l:'يسار'};
   let h=`<div class="ctrl full"><div class="row"><span class="lbl">فرشاة الحواف (اختار وبعدين اكبس على الجهة)</span></div><div class="seg" style="flex-wrap:wrap">${ECODES.map(([k,n,c])=>`<button data-cact="brush" data-v="${k}" aria-pressed="${calcBrush===k}" style="border-inline-start:6px solid ${c}">${n}</button>`).join('')}</div></div>`;
   for(const t of types){
     h+=`<h4 class="subh">جدول ${CTN[t]}</h4><div class="crows">`;
     rows.forEach((r,i)=>{if(r.t!==t)return;const no=rows.filter((x,j)=>x.t===t&&j<=i).length;
-      h+=`<div class="crow2"><div class="cr1"><b>${no}</b><input data-cr="${i}|name" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="القطعة" class="cn">`+[['l','طول'],['w','عرض'],['h','سماكة'],['n','عدد']].map(([k,ph])=>`<input data-cr="${i}|${k}" value="${r[k]??''}" inputmode="decimal" placeholder="${ph}" title="${ph}">`).join('')+`</div>
-        <div class="cr2"><span>الحواف:</span>${['b','t','r','l'].map(sd=>`<button data-cact="edge" data-i="${i}" data-s="${sd}" title="${sideLbl[sd]}: ${ENAME[r.e&&r.e[sd]||'']}" style="border-color:${ECOL[r.e&&r.e[sd]||'']};background:${r.e&&r.e[sd]?ECOL[r.e[sd]]:'#fff'};color:${r.e&&r.e[sd]?'#fff':'#333'}">${sideLbl[sd]}</button>`).join('')}<span class="cres" data-cres="${i}">${calcUsed(r)?calcRes(r).toFixed(2)+' '+CTU[t]:''}</span><button data-cact="del" data-i="${i}" class="cdel" title="حذف السطر">✕</button></div></div>`});
+      h+=`<div class="crow2"><div class="cr1" style="grid-template-columns:18px 1.6fr repeat(${CFIELDS[t].length},1fr)"><b>${no}</b><input data-cr="${i}|name" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="القطعة" class="cn">`+CFIELDS[t].map(([k,ph])=>`<input data-cr="${i}|${k}" value="${r[k]??''}" inputmode="decimal" placeholder="${ph}" title="${ph}">`).join('')+`</div>
+        <div class="cr2">${CEDGE(t)?'<span>الحواف:</span>':''}${(CEDGE(t)?['b','t','r','l']:[]).map(sd=>`<button data-cact="edge" data-i="${i}" data-s="${sd}" title="${sideLbl[sd]}: ${ENAME[r.e&&r.e[sd]||'']}" style="border-color:${ECOL[r.e&&r.e[sd]||'']};background:${r.e&&r.e[sd]?ECOL[r.e[sd]]:'#fff'};color:${r.e&&r.e[sd]?'#fff':'#333'}">${sideLbl[sd]}</button>`).join('')}<span class="cres" data-cres="${i}">${calcUsed(r)?calcRes(r).toFixed(2)+' '+CTU[t]:''}</span><button data-cact="del" data-i="${i}" class="cdel" title="حذف السطر">✕</button></div></div>`});
     h+=`</div><button class="btn sm" data-cact="add" data-t="${t}" style="margin:6px 0">+ سطر</button>`;
   }
-  h+=`<div class="ctrl full" style="display:flex;gap:6px;flex-wrap:wrap">${['ml','m3'].filter(t=>!types.includes(t)).map(t=>`<button class="btn sm" data-cact="addtbl" data-t="${t}">+ جدول ${CTN[t]}</button>`).join('')}</div>`;
+  h+=`<div class="ctrl full" style="display:flex;gap:6px;flex-wrap:wrap">${['ml','m3','col','circ','corner'].filter(t=>!types.includes(t)).map(t=>`<button class="btn sm" data-cact="addtbl" data-t="${t}">+ جدول ${CTN[t].split(' (')[0]}</button>`).join('')}</div>`;
   return h;
 }
 function profileSvg(code,hh,ch){ // مقطع الحافة: سماكة hh، والحافة على اليمين
@@ -1935,8 +1937,14 @@ function drawCalc(s){
   setScale(W);let o='';
   if(!rows.length)o+=T(W/2,-Hh/2,'عبّي جدول القياسات على اليمين (الطول والعرض)',FS*1.2,'middle','#7A5C40');
   rows.forEach((r,k)=>{const cx=(k%cols)*cw+cw/2,cy=-Hh+Math.floor(k/cols)*chh+chh*.48;
-    const l=cNum(r.l),w=r.t==='ml'?Math.max(cNum(r.w),l*.08):cNum(r.w),sc=Math.min(cw*.72/l,chh*.42/Math.max(w,1));
+    const l=cNum(r.l),w=r.t==='ml'?Math.max(cNum(r.w),l*.08):r.t==='circ'?l:cNum(r.w),sc=Math.min(cw*.72/l,chh*.42/Math.max(w,1));
     const rw=l*sc,rh=Math.max(w*sc,3),x0=cx-rw/2,y0=cy-rh/2;
+    if(r.t==='circ'){const ro=Math.min(cw*.36,chh*.3),ri=ro*Math.min(.95,cNum(r.w)/l||0);o+=C(cx,cy,ro,M(s.mat),LW*.6)+(ri>0?C(cx,cy,ri,'#fff',LW*.6):'');
+      o+=T(cx,cy-ro-FS*.5,'قطر '+l+(cNum(r.w)?' / جوّا '+cNum(r.w):''),FS*.85,'middle','#1F6FB2')+T(cx,cy+ro+FS*1.1,`${r.name||'دائرة'}${(cNum(r.n)||1)>1?' — العدد '+(cNum(r.n)||1):''}`,FS*.85,'middle','#3B2414')+T(cx,cy+ro+FS*2.1,`${calcRes(r).toFixed(2)} ${CTU[r.t]}`,FS*.8,'middle','#7A5C40');return}
+    if(r.t==='col'){const sc2=Math.min(cw*.5/l,chh*.62/Math.max(cNum(r.w),1)),cwid=l*sc2,chei=cNum(r.w)*sc2;o+=R(cx-cwid/2,cy-chei/2,cwid,chei,M(s.mat),LW*.6)+L(cx-cwid*.3,cy-chei/2,cx-cwid*.3,cy+chei/2,'rgba(0,0,0,.2)',LW*.5)+L(cx+cwid*.3,cy-chei/2,cx+cwid*.3,cy+chei/2,'rgba(0,0,0,.2)',LW*.5);
+      o+=T(cx,cy-chei/2-FS*.5,'قطر '+l+' × ارتفاع '+cNum(r.w),FS*.85,'middle','#1F6FB2')+T(cx,cy+chei/2+FS*1.1,`${r.name||'عامود'}${(cNum(r.n)||1)>1?' — العدد '+(cNum(r.n)||1):''}`,FS*.85,'middle','#3B2414')+T(cx,cy+chei/2+FS*2.1,`${calcRes(r).toFixed(2)} م²`,FS*.8,'middle','#7A5C40');return}
+    if(r.t==='corner'){const a=cNum(r.h)||w*.3,b=cNum(r.h2)||l*.3;o+=P(`M${f(x0)} ${f(y0)}L${f(x0+rw)} ${f(y0)}L${f(x0+rw)} ${f(y0+Math.min(rh,a*sc))}L${f(x0+Math.min(rw,b*sc))} ${f(y0+Math.min(rh,a*sc))}L${f(x0+Math.min(rw,b*sc))} ${f(y0+rh)}L${f(x0)} ${f(y0+rh)}Z`,M(s.mat),LW*.6);
+      o+=T(cx,y0-FS*.55,`${l} × ${w}${cNum(r.h)?' — أضلاع '+cNum(r.h)+' / '+cNum(r.h2):''}`,FS*.85,'middle','#1F6FB2')+T(cx,y0+rh+FS*1.1,`${r.name||'زاوية'}${(cNum(r.n)||1)>1?' — العدد '+(cNum(r.n)||1):''}`,FS*.85,'middle','#3B2414')+T(cx,y0+rh+FS*2.1,`${calcRes(r).toFixed(2)} م²`,FS*.8,'middle','#7A5C40');return}
     o+=R(x0,y0,rw,rh,M(s.mat),LW*.6);
     const E=(sd,xa,ya,xb,yb)=>{const c=r.e&&r.e[sd]||'';o+=L(xa,ya,xb,yb,ECOL[c],c?LW*5:LW*1.2,'stroke-linecap="round"')};
     E('t',x0,y0,x0+rw,y0);E('b',x0,y0+rh,x0+rw,y0+rh);E('r',x0+rw,y0,x0+rw,y0+rh);E('l',x0,y0,x0,y0+rh);
@@ -1950,10 +1958,11 @@ function drawCalc(s){
   const insets=used.map(c=>{const hh=Math.max(...rows.filter(r=>Object.values(r.e||{}).includes(c)).map(r=>cNum(r.h)||2));const p=profileSvg(c,hh,+s.ch||1);return{label:'مقطع: '+ENAME[c],box:p.box,svg:p.svg}});
   const tot={};rows.forEach(r=>{tot[r.t]=(tot[r.t]||0)+calcRes(r)});
   const stats=[...Object.entries(tot).map(([t,v])=>[CTN[t],v.toFixed(2)+' '+CTU[t]]),['عدد القطع',rows.reduce((a,r)=>a+(cNum(r.n)||1),0)],...used.map(c=>['حافة '+ENAME[c],em[c].toFixed(2)+' م.ط'])];
-  const tables=[{title:'قائمة القطع',head:['القطعة','القياس (سم)','العدد','الحواف','الكمية'],rows:rows.map(r=>({cells:[r.name||'قطعة',`${cNum(r.l)}${r.t!=='ml'?'×'+cNum(r.w):''}${cNum(r.h)?'×'+cNum(r.h):''}`,cNum(r.n)||1,['b','t','r','l'].filter(sd=>r.e&&r.e[sd]).map(sd=>({b:'أمام',t:'ورا',r:'يمين',l:'يسار'})[sd]+': '+ENAME[r.e[sd]]).join('، ')||'-',calcRes(r).toFixed(2)+' '+CTU[r.t]]}))}];
+  const dimTxt=r=>r.t==='col'?`عامود قطر ${cNum(r.l)} × ارتفاع ${cNum(r.w)}`:r.t==='circ'?`دائرة قطر ${cNum(r.l)}${cNum(r.w)?' جوّا '+cNum(r.w):''}`:r.t==='corner'?`زاوية ${cNum(r.l)}×${cNum(r.w)}${cNum(r.h)?' أضلاع '+cNum(r.h)+'/'+cNum(r.h2):''}`:`${cNum(r.l)}${r.t!=='ml'?'×'+cNum(r.w):''}${cNum(r.h)?'×'+cNum(r.h):''}`;
+  const tables=[{title:'قائمة القطع',head:['القطعة','القياس (سم)','العدد','الحواف','الكمية'],rows:rows.map(r=>({cells:[r.name||'قطعة',dimTxt(r),cNum(r.n)||1,['b','t','r','l'].filter(sd=>r.e&&r.e[sd]).map(sd=>({b:'أمام',t:'ورا',r:'يمين',l:'يسار'})[sd]+': '+ENAME[r.e[sd]]).join('، ')||'-',calcRes(r).toFixed(2)+' '+CTU[r.t]]}))}];
   const edgesM=e=>{const x={};for(const k of ['t','b','l','r'])if(e&&e[k])x[k]=e[k];return x};
-  const lines=[...rows.map(r=>({desc:`${r.name||'قطعة'} ${cNum(r.l)}${r.t!=='ml'?'×'+cNum(r.w):''}${cNum(r.h)?'×'+cNum(r.h):''} سم${(cNum(r.n)||1)>1?' — العدد '+(cNum(r.n)||1):''}`,qty:+calcRes(r).toFixed(2),unit:CTU[r.t],
-      draws:[{shape:'rect',l:cNum(r.l),w:r.t==='ml'?cNum(r.w)||0:cNum(r.w),h:cNum(r.h)||'',count:cNum(r.n)||1,edges:edgesM(r.e),note:r.name||''}]})),
+  const drawOf=r=>r.t==='col'?{shape:'column',l:cNum(r.l),w:cNum(r.w),count:cNum(r.n)||1,edges:{},note:r.name||''}:r.t==='circ'?{shape:'circle',l:cNum(r.l),w:cNum(r.w),count:cNum(r.n)||1,edges:{},note:r.name||''}:r.t==='corner'?{shape:'corner',l:cNum(r.l),w:cNum(r.w),h:cNum(r.h)||'',h2:cNum(r.h2)||'',count:cNum(r.n)||1,edges:{},note:r.name||''}:{shape:'rect',l:cNum(r.l),w:cNum(r.w),h:cNum(r.h)||'',count:cNum(r.n)||1,edges:edgesM(r.e),note:r.name||''};
+  const lines=[...rows.map(r=>({desc:`${r.name?r.name+' ':''}${dimTxt(r)} سم${(cNum(r.n)||1)>1?' — العدد '+(cNum(r.n)||1):''}`,qty:+calcRes(r).toFixed(2),unit:CTU[r.t],draws:[drawOf(r)]})),
     ...used.map(c=>({desc:'حافة '+ENAME[c]+(c.includes('s')?' ('+(+s.ch||1)+' سم)':''),qty:+em[c].toFixed(2),unit:'م.ط'}))];
   return{svg:o,noGround:true,insets,box:[-4,W+4,-Hh-6,6],stats,tables,lines,note:''};
 }
