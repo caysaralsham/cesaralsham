@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>قيصر الشام للحجر والرخام | Marble et Pierre - Algérie</title>
 <link rel="canonical" href="https://cesar-alcham.com/">
+<link rel="alternate" hreflang="ar" href="https://cesar-alcham.com/"><link rel="alternate" hreflang="fr" href="https://cesar-alcham.com/fr/"><link rel="alternate" hreflang="x-default" href="https://cesar-alcham.com/">
 <meta name="description" content="متخصصون في أعمال الرخام والحجر: واجهات المباني، الحمامات، الأحواض، النوافير، الشلالات والديكور الرخامي في جميع ولايات الجزائر.">
 <meta name="keywords" content="رخام, حجر, شمينة, مدفأة رخام, جرن حمام, سبالة, تابلو أرضية, تابلو حائط, رخام الجزائر, حجر الجزائر, قيصر الشام, دالي إبراهيم, marbre, marbre naturel, pierre naturelle, cheminée marbre, vasque marbre, evier en marbre, dallage marbre, marbre Algérie, pierre Algérie, marbrerie Alger, marbrerie Algérie">
 <meta property="og:title" content="قيصر الشام للحجر والرخام | Marble et Pierre - Algérie">
@@ -279,6 +280,7 @@
           <a href="/videos" id="navVideos">معرض الفيديو</a>
           <a href="#about">من نحن</a>
           <a href="#contact">تواصل معنا</a>
+          <a href="/fr/" hreflang="fr" style="border:1.5px solid #D9B98C;border-radius:8px;padding:0 10px">FR</a>
         </nav>
         <div id="navCategoryDropdown" style="display:none; position:absolute; top:100%; margin-top:10px; background:#4A2E1A; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.35); padding:8px; min-width:180px; max-height:340px; overflow-y:auto; z-index:60;"></div>
       </div>
@@ -410,6 +412,11 @@
     <label>تفاصيل<textarea name="msg" rows="3" placeholder="اللون، نوع الرخام، وأي تفاصيل أخرى"></textarea></label>
     <button class="btn" type="submit" data-via="wa">إرسال الطلب عبر واتساب</button>
   </form>
+</section>
+<section class="faq" id="reviews" style="padding-bottom:10px">
+  <h2>آراء زبائننا</h2>
+  <p style="text-align:center;font-size:16px">⭐ <b>4.3</b> من 5 على غوغل &nbsp; <a href="https://maps.app.goo.gl/g6wBPVBsZmQipM2j6" target="_blank" rel="noopener" style="display:inline-block;background:#1F8F55;color:#fff;padding:8px 16px;border-radius:10px;font-weight:800">قيّمنا على غوغل</a></p>
+  <div id="reviewsList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;margin-top:14px"></div>
 </section>
 <section class="faq" id="faq">
   <h2>الأسئلة الشائعة</h2>
@@ -1068,6 +1075,7 @@ function startSync(){
     snap.forEach(doc=>{
       if(doc.id === FS_DOC) mainDoc = doc.data();
       else if(doc.id === 'site_faq') renderFaq(doc.data().items);
+      else if(doc.id === 'site_reviews') renderReviews(doc.data().items);
       else if(doc.id.startsWith(VCHUNK_PREFIX)) videoChunks[doc.id] = doc.data().items || [];
       else if(doc.id.startsWith(CHUNK_PREFIX)) itemChunks[doc.id] = doc.data().items || [];
     });
@@ -1127,6 +1135,11 @@ function renderFaq(list){
   const sec=document.getElementById('faq'); if(!sec) return;
   sec.querySelectorAll('details').forEach(d=>d.remove());
   sec.insertAdjacentHTML('beforeend', list.filter(x=>x&&x.q&&x.a).map(x=>`<details><summary>${e(x.q)}</summary><p>${e(x.a).replace(/\n/g,'<br>')}</p></details>`).join(''));
+}
+function renderReviews(list){
+  const w=document.getElementById('reviewsList'); if(!w||!Array.isArray(list)) return;
+  const e=t=>String(t||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  w.innerHTML=list.filter(r=>r&&r.text).map(r=>`<div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px"><div style="color:#E0A100;letter-spacing:2px">${'★'.repeat(Math.max(1,Math.min(5,+r.stars||5)))}</div><p style="margin:6px 0">${e(r.text)}</p><b>${e(r.name)}</b></div>`).join('');
 }
 let didInitialHashScroll = false;
 function reScrollToHashIfNeeded(){

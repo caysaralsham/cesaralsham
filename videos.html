@@ -8,6 +8,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/img/site/fav-180.png">
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="canonical" href="https://cesar-alcham.com/videos">
+<link rel="alternate" hreflang="ar" href="https://cesar-alcham.com/videos"><link rel="alternate" hreflang="fr" href="https://cesar-alcham.com/fr/videos"><link rel="alternate" hreflang="x-default" href="https://cesar-alcham.com/videos">
 <meta property="og:type" content="website">
 <meta property="og:title" content="معرض الفيديو | قيصر الشام للحجر والرخام">
 <meta property="og:description" content="فيديوهات من أعمالنا بالرخام والحجر الطبيعي في الجزائر.">
@@ -125,6 +126,7 @@
         <a href="/videos" class="active">معرض الفيديو</a>
         <a href="/#about">من نحن</a>
         <a href="/#contact">تواصل معنا</a>
+          <a href="/fr/videos" hreflang="fr" style="border:1.5px solid #D9B98C;border-radius:8px;padding:0 10px">FR</a>
       </nav>
     </div>
     <a class="brand" href="/">
@@ -242,7 +244,7 @@ function renderGallery(){
         <video src="${v.url}" controls preload="${v.poster?'none':'metadata'}"${v.poster?` poster="${v.poster}"`:''} style="width:100%; height:100%; object-fit:contain; background:#000;"></video>
       </div>
       <div class="body">
-        <div class="title">${v.title || v.category || 'فيديو من أعمالنا'}</div>
+        <div class="title">${(v.title || v.category || 'فيديو من أعمالنا').split('|')[0].trim()}</div>
         <div class="meta">${(v.category || '').split('|')[0].trim()}</div>
         <button type="button" class="price-btn" data-vp="${(v.title || v.category || 'فيديو من أعمالنا').split('|')[0].trim().replace(/"/g,'&quot;')}">💬 اطلب السعر</button>
       </div>

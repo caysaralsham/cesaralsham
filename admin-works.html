@@ -148,6 +148,7 @@
     <div class="tab" data-view="videos">الفيديوهات</div>
     <div class="tab" data-view="categories">الأقسام</div>
     <div class="tab" data-view="faq">الأسئلة الشائعة</div>
+    <div class="tab" data-view="reviews">آراء الزبائن</div>
   </div>
 
   <!-- ================= الصور ================= -->
@@ -239,6 +240,16 @@
       <h2>إدارة الأقسام</h2>
       <div style="font-size:12px; color:var(--text-dim); margin-bottom:14px;">تعديل أو حذف اسم قسم بينطبق على كل الصور المرتبطة فيه دفعة وحدة.</div>
       <div id="categoryManager"></div>
+    </div>
+  </section>
+
+  <!-- ================= آراء الزبائن ================= -->
+  <section class="view" id="view-reviews">
+    <div class="panel" style="max-width:820px;">
+      <h2>آراء الزبائن</h2>
+      <div style="font-size:12px; color:var(--text-dim); margin-bottom:14px;">انسخ الآراء الحقيقية من صفحتك على غوغل (<a href="https://maps.app.goo.gl/g6wBPVBsZmQipM2j6" target="_blank">افتح صفحة غوغل</a>) وحطّها هون: الاسم والنجوم والكلام. بتطلع بالصفحة الرئيسية فورًا، وبالنسخة الفرنسية خلال يوم.</div>
+      <div id="revList"></div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;"><button class="btn btn-ghost" id="revAdd">+ رأي جديد</button><button class="btn" id="revSave">حفظ الآراء</button><span id="revMsg" style="align-self:center; font-size:13px; color:var(--text-dim);"></span></div>
     </div>
   </section>
 
@@ -350,18 +361,20 @@ const FS_DOC = 'main';
 // لمجلد التنزيلات (Downloads) أول مرة تفتحي فيها لوحة الإدارة كل أسبوع.
 const WEEKLY_BACKUP_KEY = 'qaysar_last_weekly_backup';
 let isRunningWeeklyBackup = false;
+setInterval(()=>{try{runWeeklyBackupIfNeeded()}catch(e){}},10*60*1000);
 async function runWeeklyBackupIfNeeded(){
   try{
     if(isRunningWeeklyBackup) return; // منع تشغيل الفنكشن مرتين بنفس الوقت (onAuthStateChanged ممكن يطلق أكتر من مرة)
-    const last = localStorage.getItem(WEEKLY_BACKUP_KEY);
-    const now = Date.now();
-    const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
-    if(last && (now - parseInt(last,10)) < oneWeekMs) return;
+    // نسخة يومية بعد الساعة 5 العصر (17:00)
+    const now = Date.now(), d = new Date();
+    if(d.getHours() < 17) return;
+    const todayKey = d.toISOString().slice(0,10);
+    if(localStorage.getItem(WEEKLY_BACKUP_KEY+'_day') === todayKey) return;
     if(!items || items.length === 0) return; // لسا الصور ما حمّلت، منجرب بالمرة الجاية
 
     isRunningWeeklyBackup = true;
     // نسجّل إنو النسخة صارت فورًا (قبل ما نكمل)، حتى إذا انطلق نفس الفنكشن بنفس الثواني ما يعيد التنزيل
-    localStorage.setItem(WEEKLY_BACKUP_KEY, String(now));
+    localStorage.setItem(WEEKLY_BACKUP_KEY, String(now)); localStorage.setItem(WEEKLY_BACKUP_KEY+'_day', todayKey);
 
     const doc = await db.collection(FS_COLLECTION).doc(FS_DOC).get();
     const currentSettings = (doc.exists && doc.data().settings) || {};
@@ -369,18 +382,21 @@ async function runWeeklyBackupIfNeeded(){
       type: 'qaysar-alsham-backup',
       exportedAt: new Date().toISOString(),
       settings: currentSettings,
-      items: items
+      items: items,
+      videos: (typeof videos!=='undefined'?videos:[]),
+      faq: await db.collection(FS_COLLECTION).doc('site_faq').get().then(x=>x.exists?x.data():null).catch(()=>null),
+      reviews: await db.collection(FS_COLLECTION).doc('site_reviews').get().then(x=>x.exists?x.data():null).catch(()=>null)
     };
     const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `qaysar-alsham-backup-اسبوعي-${new Date().toISOString().slice(0,10)}.json`;
+    a.download = `qaysar-alsham-backup-يومي-${new Date().toISOString().slice(0,10)}.json`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    toast('تم إنشاء نسخة احتياطية أسبوعية تلقائية — تفقّدي مجلد التنزيلات');
+    toast('تم إنشاء نسخة احتياطية يومية تلقائية — تفقّد مجلد التنزيلات');
   }catch(e){
     console.error('weekly backup failed', e);
   }finally{
@@ -498,6 +514,20 @@ document.querySelectorAll('.tab').forEach(tab=>{
     document.getElementById('view-' + tab.dataset.view).classList.add('active');
   });
 });
+// ---------- آراء الزبائن ----------
+let revItems=null;
+function renderRevAdmin(){const w=document.getElementById('revList');if(!w||!revItems)return;
+  w.innerHTML=revItems.map((x,i)=>`<div style="border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:#fff;display:grid;gap:8px">
+    <div style="display:flex;gap:8px;align-items:center"><input type="text" data-rk="name" data-i="${i}" value="${faqEsc(x.name)}" placeholder="اسم الزبون" style="flex:1"><select data-rk="stars" data-i="${i}">${[5,4,3,2,1].map(n=>`<option value="${n}" ${+x.stars===n?'selected':''}>${'★'.repeat(n)}</option>`).join('')}</select><button class="btn btn-ghost btn-sm" data-rdel="${i}" style="color:#A6453D">حذف</button></div>
+    <textarea data-rk="text" data-i="${i}" rows="2" placeholder="الرأي كما كتبه الزبون" style="width:100%;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px">${faqEsc(x.text)}</textarea></div>`).join('')||'<div style="color:var(--text-dim)">ما في آراء بعد — اضغط «+ رأي جديد».</div>';}
+document.getElementById('revList').addEventListener('input',e=>{const t=e.target;if(t.dataset.rk){revItems[+t.dataset.i][t.dataset.rk]=t.value;document.getElementById('revMsg').textContent='في تعديلات ما انحفظت'}});
+document.getElementById('revList').addEventListener('change',e=>{const t=e.target;if(t.dataset.rk){revItems[+t.dataset.i][t.dataset.rk]=t.value}});
+document.getElementById('revList').addEventListener('click',e=>{const b=e.target.closest('[data-rdel]');if(b&&confirm('حذف هالرأي؟')){revItems.splice(+b.dataset.rdel,1);renderRevAdmin()}});
+document.getElementById('revAdd').addEventListener('click',()=>{revItems.push({name:'',stars:5,text:''});renderRevAdmin()});
+document.getElementById('revSave').addEventListener('click',async()=>{const clean=revItems.map(x=>({name:String(x.name||'').trim(),stars:+x.stars||5,text:String(x.text||'').trim()})).filter(x=>x.text);
+  try{await db.collection(FS_COLLECTION).doc('site_reviews').set({items:clean,updatedAt:Date.now()});revItems=clean;renderRevAdmin();document.getElementById('revMsg').textContent='✓ انحفظت — بتبيّن بالموقع فورًا'}catch(err){console.error(err);alert('ما انحفظت: '+(err.message||err))}});
+document.querySelector('.tab[data-view="reviews"]').addEventListener('click',async()=>{if(revItems)return;try{const d=await db.collection(FS_COLLECTION).doc('site_reviews').get();revItems=(d.exists&&d.data().items)||[]}catch(e){revItems=[]}renderRevAdmin()});
+
 // ---------- الأسئلة الشائعة ----------
 const FAQ_DEFAULT = [{"q": "أين يقع مقرّكم، وما المناطق التي تغطّونها؟", "a": "يقع مقرّنا في دالي إبراهيم بالجزائر العاصمة، ونقدّم خدماتنا من تصميم وتصنيع وتركيب في جميع ولايات الجزائر."}, {"q": "ما الأعمال التي تنفّذونها بالرخام والحجر؟", "a": "ننفّذ المدافئ الرخامية (الشمينيه)، وأجران الحمّامات، والنوافير، وواجهات المنازل الحجرية، والتابلوهات الأرضية والجدارية، وإطارات النوافذ والمداخل والكورنيش، والأعمدة والأعمال المنحوتة."}, {"q": "هل تنفّذون الأعمال حسب المقاس والتصميم الذي أختاره؟", "a": "نعم، نصمّم كل قطعة ونصنعها وفق مقاسات المكان والتصميم الذي تختاره، ونعرض عليك رسمًا بالمقاسات قبل البدء في التنفيذ."}, {"q": "ما أنواع الرخام المتوفّرة لديكم؟", "a": "نوفّر الرخام والحجر الطبيعي بألوان متعدّدة، منها الأبيض الإيطالي (كرارا) والبيج المصري والألوان الداكنة، إضافةً إلى أنواع أخرى بحسب طبيعة المشروع."}, {"q": "كيف يمكنني طلب عرض سعر؟", "a": "يمكنك تعبئة نموذج «اطلب عرض سعر» في هذه الصفحة، أو مراسلتنا مباشرة عبر واتساب على الرقم 0541737888 مع صور المكان والمقاسات التقريبية، أو الاتصال بنا هاتفيًا، وسنوافيك بعرض السعر."}];
 let faqItems = null, faqDirty = false;

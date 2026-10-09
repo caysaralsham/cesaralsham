@@ -8,6 +8,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/img/site/fav-180.png">
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="canonical" href="https://cesar-alcham.com/works">
+<link rel="alternate" hreflang="ar" href="https://cesar-alcham.com/works"><link rel="alternate" hreflang="fr" href="https://cesar-alcham.com/fr/works"><link rel="alternate" hreflang="x-default" href="https://cesar-alcham.com/works">
 <meta property="og:type" content="website">
 <meta property="og:title" content="أعمالنا | قيصر الشام للحجر والرخام">
 <meta property="og:description" content="صور أعمالنا بالرخام والحجر الطبيعي: شمينيه، أجران الحمّامات، نوافير، واجهات وتابلوهات — الجزائر.">
@@ -132,6 +133,7 @@
         <a href="/videos">معرض الفيديو</a>
         <a href="/#about">من نحن</a>
         <a href="/#contact">تواصل معنا</a>
+          <a href="/fr/works" hreflang="fr" style="border:1.5px solid #D9B98C;border-radius:8px;padding:0 10px">FR</a>
       </nav>
     </div>
     <a class="brand" href="/">
@@ -302,14 +304,14 @@ function renderGallery(){
     grid.innerHTML = '<div class="empty-state">لا توجد صور بهذا القسم بعد.</div>';
     return;
   }
-  shown=filtered.map(it=>({src:it.img,name:it.title||short(it.category)||'قطعة رخام وحجر'}));
+  shown=filtered.map(it=>({src:it.img,name:short(it.title)||short(it.category)||'قطعة رخام وحجر'}));
   grid.innerHTML = filtered.map((it,i) => `
     <div class="card" data-lb="${i}">
-      <div class="img-wrap"><img src="${it.img}" loading="lazy" alt="${(it.title||short(it.category)||'رخام وحجر طبيعي')} - قيصر الشام"></div>
+      <div class="img-wrap"><img src="${it.img}" loading="lazy" alt="${(short(it.title)||short(it.category)||'رخام وحجر طبيعي')} - قيصر الشام"></div>
       <div class="body">
-        <div class="title">${it.title || short(it.category) || 'قطعة رخام وحجر'}</div>
+        <div class="title">${short(it.title) || short(it.category) || 'قطعة رخام وحجر'}</div>
         <div class="meta">${[short(it.category), it.size, it.color].filter(Boolean).join(' · ')}</div>
-        ${priceBtn(i,it.title||short(it.category)||'قطعة رخام وحجر')}
+        ${priceBtn(i,short(it.title)||short(it.category)||'قطعة رخام وحجر')}
       </div>
     </div>
   `).join('');
