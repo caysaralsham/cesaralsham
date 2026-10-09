@@ -242,6 +242,7 @@ input[type=range]{height:16px}
     <button class="btn sm primary" id="mirBtn">↗ تحويل للمعرض أو المعمل</button>
     <button class="btn sm gold" id="saveBtn">حفظ صورة</button>
     <button class="btn sm wa" id="shareBtn">واتساب</button>
+    <button class="btn sm" id="tplBtn">📚 تصاميمي</button>
     <button class="btn sm" id="projBtn">مشاريعي</button>
     <button class="btn sm" id="fileBtn">حفظ ملف مشروع</button>
   </div>
@@ -2220,6 +2221,39 @@ $('fileBtn').onclick=()=>{askCustomer('file');$('cProj').value=SCHEMAS[tab].titl
 /* ---------- إرسال الرسمة لبرنامج ميراكوس (المعرض أو المعمل) كوصل أو عرض سعر ---------- */
 const MIR_APPS={showroom:{n:'المعرض',u:'https://caysaralsham.github.io/miracos-accounting/',p:'web+miracos'},factory:{n:'المعمل',u:'https://caysaralsham.github.io/miracos-factory/',p:'web+qaysarsham'}};
 $('mirBtn').onclick=()=>askCustomer('miracos');
+/* ---------- 📚 مكتبة التصاميم ---------- */
+const TPL_KEY='mirsam_templates';
+const TPL_BUILTIN=[
+  {id:'b1',name:'نافورة 3 صحون',tab:'fountain',st:{tiers:3}},
+  {id:'b2',name:'نافورة صحن واحد بحوض مربع',tab:'fountain',st:{tiers:1,poolShape:'square'}},
+  {id:'b3',name:'جرن بيضوي',tab:'jurn',st:{shape:'oval'}},
+  {id:'b4',name:'جرن مدور كروي من فوق',tab:'jurn',st:{shape:'round',sph:60}},
+  {id:'b5',name:'شمينيه كلاسيك',tab:'fireplace',st:{style:'classic'}},
+  {id:'b6',name:'كورنيش باب بقوس',tab:'frame',st:{kind:'door',top:'arch',ar:30}},
+  {id:'b7',name:'تابلو حائط',tab:'wall',st:{}},
+  {id:'b8',name:'حمام',tab:'bath',st:{}}
+].filter(t=>SCHEMAS[t.tab]);
+const tplLoad=()=>{try{return JSON.parse(localStorage.getItem(TPL_KEY)||'[]')}catch(e){return[]}};
+const tplSave=a=>{try{localStorage.setItem(TPL_KEY,JSON.stringify(a))}catch(e){toast('ما في مساحة للحفظ')}};
+$('tplBtn').onclick=()=>{
+  const ov=document.createElement('div');ov.className='modal on';ov.style.zIndex=70;
+  const draw=()=>{const mine=tplLoad();const row=(t,del)=>`<div class="proj"><span><b>${t.name.replace(/</g,'&lt;')}</b> — ${SCHEMAS[t.tab].title}</span><div><button class="btn sm primary" data-open="${t.id}">فتح</button>${del?`<button class="btn sm" data-del="${t.id}">حذف</button>`:''}</div></div>`;
+    ov.innerHTML=`<div class="box" role="dialog" aria-modal="true" style="max-width:480px"><h2>📚 تصاميمي</h2>
+      <div style="display:flex;gap:8px"><input data-n placeholder="اسم للتصميم الحالي (مثلاً: نافورة فيلا)" style="flex:1"><button class="btn primary sm" data-add>⭐ حفظ الحالي</button></div>
+      <div class="subh">تصاميمي المحفوظة</div>${mine.length?mine.map(t=>row(t,1)).join(''):'<p style="font-size:.85rem;color:var(--muted)">ما في تصاميم محفوظة بعد.</p>'}
+      <div class="subh">تصاميم جاهزة</div>${TPL_BUILTIN.map(t=>row(t,0)).join('')}
+      <button class="btn" data-x style="margin-top:10px">إغلاق</button></div>`;
+    ov.querySelector('[data-n]').value=SCHEMAS[tab].title+' — ';};
+  draw();document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{const t=e.target;
+    if(t===ov||t.closest('[data-x]'))return ov.remove();
+    if(t.closest('[data-add]')){const n=ov.querySelector('[data-n]').value.trim();if(!n){toast('اكتب اسم للتصميم');return}
+      const D=defaults(tab),st={};for(const [k,v] of Object.entries(state[tab]))if(String(v)!==String(D[k]))st[k]=v;
+      tplSave([{id:'t'+Date.now(),name:n,tab,st},...tplLoad()]);toast('⭐ انحفظ التصميم');draw();return}
+    const d=t.closest('[data-del]');if(d){if(confirm('حذف هالتصميم؟')){tplSave(tplLoad().filter(x=>x.id!==d.dataset.del));draw()}return}
+    const o=t.closest('[data-open]');if(o){const tp=[...tplLoad(),...TPL_BUILTIN].find(x=>x.id===o.dataset.open);if(!tp)return;
+      tab=tp.tab;state[tab]={...defaults(tab),...tp.st};ov.remove();buildPanel();render();updTitle();toast('انفتح تصميم: '+tp.name)}});
+};
 const mirGet=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},mirSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 function mirChoose(){
   let app=mirGet('mirsam_app','showroom'),how=mirGet('mirsam_how','app');if(!MIR_APPS[app])app='showroom';
