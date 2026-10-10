@@ -1,2 +1,2 @@
-{"id":"/my/","name":"أدواتي — قيصر الشام","short_name":"أدواتي","start_url":"/my/","scope":"/my/","display":"standalone","background_color":"#F5ECDD","theme_color":"#3B2414","lang":"ar","dir":"rtl",
+{"id":"/my/","name":"أدواتي — قيصر الشام","short_name":"أدواتي","start_url":"/my/","scope":"/","display":"standalone","background_color":"#F5ECDD","theme_color":"#3B2414","lang":"ar","dir":"rtl",
 "icons":[{"src":"/my/icon-192.png","sizes":"192x192","type":"image/png"},{"src":"/my/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}
