@@ -103,6 +103,23 @@
 .acard .row-actions{display:flex;flex-wrap:wrap;gap:4px}.acard .row-actions .btn{padding:4px 8px;min-width:0}
 #bulkBar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:200;background:#111;color:#fff;border-radius:14px;padding:10px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;box-shadow:0 10px 30px rgba(0,0,0,.35);max-width:96vw}
 #bulkBar select{padding:6px 8px;border-radius:8px;font:inherit}
+
+  /* الجوال: كل شي ضمن عرض الشاشة */
+  .tabs{overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{white-space:nowrap; flex:0 0 auto}
+  #itemsTableWrap,#videosTableWrap{overflow-x:auto; max-width:100%}
+  img,video{max-width:100%}
+  @media (max-width:700px){
+    header{padding:12px 14px}
+    header h1{font-size:15px; width:100%}
+    header .right{flex-wrap:wrap; gap:8px 12px; font-size:12px; width:100%}
+    header .right .backlink{white-space:normal}
+    .wrap{padding:16px 12px 50px}
+    .panel{padding:14px}
+    .tab{padding:9px 12px; font-size:13.5px}
+    .tabs{flex-wrap:wrap; overflow:visible}
+  }
 </style>
 <link rel="manifest" href="/qs-manifest-home.json">
 <link rel="apple-touch-icon" href="/qs-apple-touch-icon.png">
@@ -185,6 +202,14 @@
       <div class="field"><label>السعر (اختياري)</label><input type="text" id="upPrice"></div>
       <label style="display:flex;gap:8px;align-items:center;font-size:13px;margin:4px 0 12px;cursor:pointer"><input type="checkbox" id="upWm" checked> إضافة اللوغو والهاتف والعنوان على الصورة <span id="upWmHint" style="color:var(--text-dim);font-size:12px"></span></label>
       <button class="btn" style="width:100%; justify-content:center;" id="btnUpload">رفع الصورة</button>
+    </div>
+
+    <div class="panel" id="titlesPanel">
+      <h2>✨ عناوين احترافية (عربي + فرنسي) لكل الصور والفيديوهات</h2>
+      <p style="font-size:13px;color:#6b5a48;margin:0 0 10px">بيكتب لكل صورة وفيديو عنوان خاص فيه، مختلف عن غيره: القسم + اللون + وصف + رقم موديل — بالعربي للصفحة العربية وبالفرنسي للصفحة الفرنسية. اللون إذا مش مكتوب بيقرّبه من الصورة. العنوان القديم بيضل محفوظ. الصور اللي بترفعها بعدين بياخدوا عنوان لحالهن إذا تركت العنوان فاضي.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="ttRun">حدّث كل العناوين أوتوماتيك</button><button class="btn btn-ghost" id="ttStop" style="display:none">وقّف</button></div>
+      <div id="ttStatus" style="font-size:13px;margin-top:10px;font-weight:700"></div>
+      <div id="ttSample" style="font-size:12.5px;margin-top:8px;line-height:1.9"></div>
     </div>
 
     <div class="panel" id="wmFixPanel">
@@ -1240,6 +1265,77 @@ document.getElementById('watermarkFileInput').addEventListener('change', async (
   finally{ btn.textContent = originalLabel; btn.disabled = false; }
 });
 
+// ---------- مشترك: حفظ دفعات بقراءة آخر نسخة من السحابة + إبقاء الشاشة شغالة ----------
+async function saveFresh(map,prefix){ // id -> item ؛ بيقرأ كل مقطع من السحابة قبل الكتابة (ما بيكتب فوق تعديل تاني)
+  const ids=Object.keys(map);if(!ids.length)return 0;
+  const snap=await db.collection(FS_COLLECTION).get();let n=0;
+  for(const d of snap.docs){if(!d.id.startsWith(prefix))continue;const arr=d.data().items||[];let ch=false;
+    const upd=arr.map(it=>{if(map[it.id]){ch=true;n++;return {...it,...map[it.id]}}return it});
+    if(ch)await db.collection(FS_COLLECTION).doc(d.id).set({items:upd});}
+  return n;
+}
+let wakeLock=null;async function keepAwake(on){try{if(on&&'wakeLock' in navigator){wakeLock=await navigator.wakeLock.request('screen')}else if(!on&&wakeLock){await wakeLock.release();wakeLock=null}}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&window.__bgBusy)keepAwake(true)});
+
+// ---------- عناوين احترافية عربي + فرنسي ----------
+const TT=(()=>{
+  const split=c=>{const [a,f]=String(c||'').replace(/\*\*/g,'').split('|').map(x=>(x||'').trim());return{ar:a||'',fr:f||''}};
+  const sing=f=>{if(!f)return f;if(/\bet\b/.test(f.split(' en ')[0]))return f;const w=f.split(' ');
+    const one=x=>/aux$/i.test(x)?x.replace(/aux$/i,'au'):(/[^s]s$/i.test(x)&&x.length>3?x.slice(0,-1):x);
+    w[0]=one(w[0]);if(w[1]&&!/^(en|de|du|des|et|à|au)$/i.test(w[1]))w[1]=one(w[1]);return w.join(' ').replace(/^Salle de bains/i,'Salle de bain').replace(/ de maisons\b/i,' de maison')};
+  const DESC=[['بتصميم كلاسيكي','au design classique'],['بنقش يدوي','sculpté à la main'],['بستايل مودرن','au style moderne'],['بلمسة فاخرة','de luxe'],['بتشطيب لامع','à finition polie'],
+    ['بتفاصيل منحوتة','aux détails sculptés'],['بلمسة عربية','à touche orientale'],['حسب الطلب','sur mesure'],['بزخارف نباتية','à motifs floraux'],['بخطوط هندسية','à lignes géométriques'],['بتنفيذ دقيق','d\'exécution soignée']];
+  const COL=[[/(أبيض|ابيض).*كرار|كرار.*(أبيض|ابيض)/,'أبيض كرارا','blanc de Carrare'],[/كرار/,'كرارا','de Carrare'],[/أبيض|ابيض|بيضاء/,'أبيض','blanc'],[/بيج/,'بيج','beige'],[/كريم/,'كريمي','crème'],[/رمادي|رصاصي/,'رمادي','gris'],[/أسود|اسود/,'أسود','noir'],
+    [/بني/,'بني','marron'],[/أحمر|احمر/,'أحمر','rouge'],[/أخضر|اخضر/,'أخضر','vert'],[/أصفر|اصفر/,'أصفر','jaune'],[/ذهبي/,'ذهبي','doré'],[/وردي|زهري/,'وردي','rose']];
+  const colorOf=t=>{t=String(t||'');for(const [re,a,f] of COL)if(re.test(t))return{ar:a,fr:f};return t.trim()?{ar:t.trim(),fr:''}:null};
+  // لون تقريبي من نص الصورة (اللي غالباً فيه القطعة)
+  function guessColor(im){try{const c=document.createElement('canvas');c.width=48;c.height=48;const x=c.getContext('2d',{willReadFrequently:true});const w=im.naturalWidth,h=im.naturalHeight;x.drawImage(im,w*.25,h*.2,w*.5,h*.55,0,0,48,48);
+    const d=x.getImageData(0,0,48,48).data;let r=0,g=0,b=0,n=0;for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2];n++}r/=n;g/=n;b/=n;
+    const mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,sat=mx?(mx-mn)/mx:0;
+    if(l>200&&sat<.12)return'أبيض';if(l<60)return'أسود';if(sat<.10)return'رمادي';if(r>g&&g>b&&sat<.35&&l>150)return'بيج';if(r>g&&g>b&&l<=150&&sat<.5)return'بني';if(r>g*1.25&&r>b*1.25)return'أحمر';if(g>r&&g>b)return'أخضر';return''}catch(e){return''}}
+  const pad=(n,t)=>String(n).padStart(t>99?3:2,'0');
+  function make(list,isVideo){ // بيرجّع id -> {title}
+    const byCat={};list.forEach(it=>{const k=(it.category||'').trim()||'—';(byCat[k]=byCat[k]||[]).push(it)});const out={};
+    for(const [cat,arr] of Object.entries(byCat)){const s=split(cat),catAr=s.ar||'رخام وحجر',catFr=sing(s.fr)||'Marbre et pierre';
+      arr.sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+      arr.forEach((it,i)=>{const n=pad(i+1,arr.length),[dA,dF]=DESC[i%DESC.length],col=colorOf(it.color);
+        const ar=isVideo?`فيديو ${catAr} ${dA} — عمل ${n}`:`${catAr}${col?' '+col.ar:''} ${dA} — موديل ${n}`;
+        const fr=isVideo?`Vidéo : ${catFr} ${dF} — réalisation ${n}`:`${catFr}${col&&col.fr?' '+col.fr:''} ${dF} — modèle ${n}`;
+        out[it.id]={title:`${ar} | ${fr}`};});}
+    return out;}
+  return{make,guessColor,split};
+})();
+(function(){
+  const $=id=>document.getElementById(id);let stop=false;
+  const loadImgEl=u=>new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=()=>rej(new Error('img'));im.src='/img-proxy?u='+encodeURIComponent(u)});
+  $('ttStop').onclick=()=>{stop=true};
+  $('ttRun').onclick=async()=>{
+    if(!confirm('تحديث عناوين كل الصور ('+items.length+') والفيديوهات ('+videos.length+')؟ العناوين القديمة بتضل محفوظة.'))return;
+    stop=false;window.__bgBusy=true;keepAwake(true);$('ttRun').disabled=true;$('ttStop').style.display='';
+    try{
+      // 1) لون تقريبي للصور اللي ما إلها لون (بيتحفظ كل 10 صور — إذا طلعت من الصفحة بيكمّل من وين وقف)
+      const need=items.filter(it=>!String(it.color||'').trim()&&!it.colorAuto&&it.img);let pend={},k=0;
+      for(const it of need){if(stop)break;k++;$('ttStatus').textContent='بقرّب ألوان الصور: '+k+' من '+need.length;
+        try{const im=await loadImgEl(it.img);const c=TT.guessColor(im);pend[it.id]={color:c,colorAuto:true};it.color=c;it.colorAuto=true}catch(e){}
+        if(Object.keys(pend).length>=10){await saveFresh(pend,CHUNK_PREFIX);pend={}}}
+      if(Object.keys(pend).length)await saveFresh(pend,CHUNK_PREFIX);
+      if(stop)throw new Error('stopped');
+      // 2) العناوين
+      $('ttStatus').textContent='بكتب العناوين...';
+      const ti=TT.make(items,false),tv=TT.make(videos,true);
+      for(const it of items){if(ti[it.id]){ti[it.id].oldTitle=it.oldTitle||it.title||'';ti[it.id].titleV2=true}}
+      for(const v of videos){if(tv[v.id]){tv[v.id].oldTitle=v.oldTitle||v.title||'';tv[v.id].titleV2=true}}
+      $('ttStatus').textContent='بحفظ...';
+      const a=await saveFresh(ti,CHUNK_PREFIX),b=await saveFresh(tv,VCHUNK_PREFIX);
+      items=items.map(it=>ti[it.id]?{...it,...ti[it.id]}:it);videos=videos.map(v=>tv[v.id]?{...v,...tv[v.id]}:v);
+      renderItemsTable();if(typeof renderVideosTable==='function')renderVideosTable();
+      const ex=items.slice(0,4).map(it=>'• '+it.title.replace(' | ','<br><span style="color:#888" dir="ltr">')+'</span>').join('<br>');
+      $('ttStatus').textContent='خلص ✓ — انحدّثت '+a+' صورة و'+b+' فيديو. الصفحة الفرنسية بتتحدّث لحالها خلال يوم.';$('ttSample').innerHTML=ex;
+    }catch(e){$('ttStatus').textContent=e.message==='stopped'?'وقّفت — اكبس الزر مرة تانية بيكمّل من وين وقف':'ما زبط: '+(e.message||e);console.error(e)}
+    finally{window.__bgBusy=false;keepAwake(false);$('ttRun').disabled=false;$('ttStop').style.display='none'}
+  };
+})();
+
 // ---------- تحديث اللوغو على الصور القديمة (الشريط القديم ← اللوغو الجديد) ----------
 (function(){
   const $=id=>document.getElementById(id);let stop=false,found=[];
@@ -1285,14 +1381,15 @@ document.getElementById('watermarkFileInput').addEventListener('change', async (
   let ex=0;$('wmNext').onclick=async()=>{if(!found.length)return;ex=(ex+1)%found.length;const f=found[ex];try{const im=await loadImgEl(f.it.img);const c=await makeNew(im,f.cut);$('wmBefore').src=im.src;$('wmAfter').src=c.toDataURL('image/jpeg',.85);$('wmStatus').textContent='مثال '+(ex+1)+' من '+found.length+(f.it.title?(' — '+f.it.title):'')}catch(e){}};
   $('wmGo').onclick=async()=>{
     if(!found.length||!confirm('تحديث اللوغو على '+found.length+' صورة؟ الصور القديمة بتضل محفوظة احتياط.'))return;
-    stop=false;$('wmGo').style.display='none';$('wmStop').style.display='';let ok=0,bad=0;const done={};
+    stop=false;$('wmGo').style.display='none';$('wmStop').style.display='';let ok=0,bad=0;let done={};window.__bgBusy=true;keepAwake(true);
     for(const [k,f] of found.entries()){if(stop)break;$('wmStatus').textContent='جاري التحديث '+(k+1)+' من '+found.length+'...';
       try{const im=await loadImgEl(f.it.img);const c=await makeNew(im,f.cut);const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.88));
         const ref=storage.ref('gallery/'+f.it.id+'-v2-'+Date.now().toString(36)+'.jpg');await ref.put(blob,{contentType:'image/jpeg'});const url=await ref.getDownloadURL();
-        const updated={...f.it,img:url,wmV2:true,oldImg:f.it.img};done[updated.id]=updated;ok++}
+        const updated={...f.it,img:url,wmV2:true,oldImg:f.it.img};done[updated.id]={img:url,wmV2:true,oldImg:f.it.img};items=items.map(x=>x.id===updated.id?updated:x);ok++;
+        if(Object.keys(done).length>=5){await saveFresh(done,CHUNK_PREFIX);done={}}}
       catch(e){console.error(e);bad++}}
     // حفظ كل التعديلات دفعة وحدة (حتى ما يكتب تعديل فوق تعديل)
-    if(ok){$('wmStatus').textContent='جاري الحفظ...';await saveItemsBatch(done);applyLocal(done)}
+    if(Object.keys(done).length){$('wmStatus').textContent='جاري الحفظ...';await saveFresh(done,CHUNK_PREFIX)}window.__bgBusy=false;keepAwake(false);
     $('wmStop').style.display='none';renderItemsTable();found=[];
     $('wmStatus').textContent='خلص ✓ — انحدّثت '+ok+' صورة'+(bad?(' — وما زبطت '+bad+' (جرّب افحص من جديد)'):'')+'. الصور القديمة محفوظة احتياط.';
   };
@@ -1373,6 +1470,7 @@ document.getElementById('btnUpload').addEventListener('click', async ()=>{
         price: document.getElementById('upPrice').value.trim(),
         img: imgUrl
       };
+      if(!newItem.title){try{const cat=(newItem.category||'').trim(),t=TT.make([...items.filter(x=>(x.category||'').trim()===cat),newItem],false)[newItem.id];if(t){newItem.title=t.title;newItem.titleV2=true}}catch(e){}}
       items.unshift(newItem);
       renderItemsTable();
       await saveNewItem(newItem);
@@ -1672,6 +1770,7 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
       ext: ext,
       url: videoUrl
     };
+    if(!newVideo.title){try{const cat=(newVideo.category||'').trim(),t=TT.make([...videos.filter(x=>(x.category||'').trim()===cat),newVideo],true)[newVideo.id];if(t){newVideo.title=t.title;newVideo.titleV2=true}}catch(e){}}
     videos.unshift(newVideo);
     renderVideosTable();
     await saveNewVideo(newVideo);
