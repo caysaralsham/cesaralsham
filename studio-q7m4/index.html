@@ -2758,5 +2758,305 @@ if(EMBED){
 }
 
 </script>
+<style id="cl-style">
+#clWrap{position:fixed;inset:0;z-index:60;background:rgba(20,13,7,.6);display:none;overflow-y:auto;direction:rtl}
+#clWrap.on{display:block}
+.cl-box{background:var(--panel);color:var(--ink);max-width:1100px;width:calc(100% - 20px);box-sizing:border-box;margin:16px auto;border-radius:18px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.cl-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.cl-head h2{margin:0;font-size:1.25rem}
+.cl-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:820px){.cl-grid{grid-template-columns:minmax(0,1fr)}}
+.cl-sec{border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.cl-sec h3{margin:0;font-size:1rem}
+.cl-sec h3 small{font-weight:400;color:var(--muted)}
+.cl-drop{border:2px dashed var(--line);border-radius:12px;min-height:170px;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;padding:10px;color:var(--muted);position:relative;overflow:hidden}
+.cl-drop img{max-width:100%;max-height:320px;border-radius:8px;display:block}
+.cl-refs{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:6px;max-height:260px;overflow-y:auto;padding:2px}
+.cl-refs button{border:3px solid transparent;border-radius:10px;padding:0;background:var(--bg);cursor:pointer;aspect-ratio:1;overflow:hidden;position:relative}
+.cl-refs button img{width:100%;height:100%;object-fit:cover;display:block}
+.cl-refs button[aria-pressed="true"]{border-color:var(--accent,#9A6A3A)}
+.cl-refs button[aria-pressed="true"]::after{content:"✓";position:absolute;top:3px;left:3px;background:var(--accent,#9A6A3A);color:#fff;border-radius:50%;width:20px;height:20px;font-size:13px;line-height:20px;text-align:center}
+.cl-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.cl-row label,.cl-sec>label{display:flex;flex-direction:column;gap:3px;font-size:.88rem;font-weight:700}
+.cl-sec select,.cl-sec textarea,.cl-sec input[type=text]{font:inherit;font-weight:400;padding:7px 9px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);width:100%;box-sizing:border-box}
+.cl-chips{display:flex;flex-wrap:wrap;gap:6px}
+.cl-chips label{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:.85rem;cursor:pointer;font-weight:600}
+.cl-go{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.cl-status{font-weight:700;font-size:.92rem;min-height:1.4em}
+.cl-status.err{color:#A6453D}
+.cl-res{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:start}
+@media (max-width:820px){.cl-res{grid-template-columns:minmax(0,1fr)}}
+.cl-res figure{margin:0;display:flex;flex-direction:column;gap:4px;min-width:0}
+.cl-res figcaption{font-size:.82rem;color:var(--muted);font-weight:700}
+.cl-res img{width:100%;border-radius:10px;border:1px solid var(--line);display:block}
+.cl-hist{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.cl-hist img{height:64px;border-radius:6px;cursor:pointer;border:2px solid transparent}
+.cl-hist img.on{border-color:var(--accent,#9A6A3A)}
+.cl-note{font-size:.8rem;color:var(--muted)}
+</style>
+<div id="clWrap" role="dialog" aria-modal="true" aria-labelledby="clT"><div class="cl-box">
+  <div class="cl-head"><h2 id="clT">🏠 تغليف واجهة بالذكاء الاصطناعي</h2><button class="btn sm" id="clClose">إغلاق</button></div>
+  <div class="cl-grid">
+    <div class="cl-sec">
+      <h3>١) صورة بيت الزبون</h3>
+      <div class="cl-drop" id="clDrop" tabindex="0"><span id="clDropTxt">اضغط هون واختار صورة الواجهة<br><small>(أو اسحبها لهون) — صورة من قدّام وواضحة بتعطي أحسن نتيجة</small></span></div>
+      <input type="file" id="clFile" accept="image/*" hidden>
+    </div>
+    <div class="cl-sec">
+      <h3>٢) أسلوب من شغلك <small>— اختار لحد 4 صور (أو خلّيها أوتوماتيك)</small></h3>
+      <div class="cl-row">
+        <label>القسم<select id="clCat">
+          <option value="a3mal-facades-de-maisons-en-pierre">واجهات حجر</option>
+          <option value="a3mal-fenetres-en-marbre">شبابيك</option>
+          <option value="a3mal-colonnes-et-balustrades-en-marbre">أعمدة ودرابزين</option>
+        </select></label>
+        <label>&nbsp;<button class="btn sm" id="clAuto" type="button">اختيار أوتوماتيك</button></label>
+      </div>
+      <div class="cl-refs" id="clRefs"><span class="cl-note">عم يحمّل صور شغلك…</span></div>
+    </div>
+  </div>
+  <div class="cl-sec" style="margin-top:16px">
+    <h3>٣) شو بدك</h3>
+    <div class="cl-row">
+      <label>نوع الحجر<select id="clStone">
+        <option value="same">متل صور شغلي</option>
+        <option value="cut">حجر مقصوص ناعم (بلوكات)</option>
+        <option value="rough">حجر طبيعي خشن (مطبّه)</option>
+        <option value="marble">رخام لامع</option>
+        <option value="travertine">ترافرتين</option>
+      </select></label>
+      <label>اللون<select id="clColor">
+        <option value="same">متل صور شغلي</option>
+        <option value="beige">بيج</option>
+        <option value="white">أبيض</option>
+        <option value="cream">كريمي</option>
+        <option value="grey">رمادي</option>
+        <option value="brown">بني</option>
+        <option value="mix">بيج مع إطارات بيضا</option>
+      </select></label>
+      <label>وين التغليف<select id="clScope">
+        <option value="all">الواجهة كلها</option>
+        <option value="ground">الطابق الأرضي بس</option>
+        <option value="frames">حول الشبابيك والأبواب والزوايا بس</option>
+        <option value="columns">الأعمدة والزوايا بس</option>
+      </select></label>
+      <label>الجودة<select id="clQ">
+        <option value="pro">عالية (أدق، أبطأ شوي)</option>
+        <option value="fast">سريعة (أرخص)</option>
+      </select></label>
+    </div>
+    <div class="cl-chips" id="clExtras">
+      <label><input type="checkbox" value="frames"> إطارات حجر للشبابيك</label>
+      <label><input type="checkbox" value="columns"> أعمدة كلاسيكية</label>
+      <label><input type="checkbox" value="arches"> أقواس</label>
+      <label><input type="checkbox" value="cornice"> كورنيش فوق</label>
+      <label><input type="checkbox" value="balustrade"> درابزين حجر</label>
+    </div>
+    <label>ملاحظات بكلامك (اختياري)<textarea id="clNote" rows="2" placeholder="مثلاً: حجر بيج فاتح، والمدخل بقوس، وخلّي البلكون متل ما هو"></textarea></label>
+    <div class="cl-go"><button class="btn primary" id="clGo">✨ غلّفها</button><span class="cl-status" id="clStatus" role="status"></span></div>
+  </div>
+  <div class="cl-sec" id="clOut" style="margin-top:16px" hidden>
+    <h3>النتيجة <small>— صورة تخيّلية للعرض على الزبون</small></h3>
+    <div class="cl-res">
+      <figure><figcaption>قبل</figcaption><img id="clBefore" alt="الواجهة قبل"></figure>
+      <figure><figcaption>بعد</figcaption><img id="clAfter" alt="الواجهة بعد التغليف"></figure>
+    </div>
+    <div class="cl-hist" id="clHist"></div>
+    <label>عدّل على النتيجة (اختياري)<input type="text" id="clFix" placeholder="مثلاً: فتّح لون الحجر شوي، أو زيد إطار أبيض حول الباب"></label>
+    <div class="cl-go">
+      <button class="btn wa" id="clWa">واتساب</button>
+      <button class="btn gold" id="clSave">حفظ الصورة</button>
+      <button class="btn" id="clFixGo">طبّق التعديل</button>
+      <button class="btn" id="clAgain">جرّب نسخة تانية</button>
+    </div>
+    <p class="cl-note">كل صورة بتنعمل بتنحسب من رصيد Gemini (تقريباً 4–20 سنت). الصورة عليها شعارك أوتوماتيك.</p>
+  </div>
+</div></div>
+<script>
+(function(){
+  if(typeof RENDER!=='undefined'&&RENDER)return;
+  const $c=id=>document.getElementById(id);
+  const say=(m,err)=>{const s=$c('clStatus');s.textContent=m;s.classList.toggle('err',!!err)};
+  const tst=m=>{try{toast(m)}catch(e){say(m)}};
+  // زر بالشريط
+  const tools=document.querySelector('header.top .tools');
+  if(tools){const b=document.createElement('button');b.className='btn sm primary';b.id='clBtn';b.textContent='🏠 تغليف بالذكاء';tools.insertBefore(b,$c('mirBtn')||tools.firstChild);b.onclick=open}
+  $c('clClose').onclick=()=>{$c('clWrap').classList.remove('on');document.body.style.overflow=''};
+  $c('clWrap').addEventListener('click',e=>{if(e.target.id==='clWrap')$c('clClose').click()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$c('clWrap').classList.contains('on'))$c('clClose').click()});
+
+  let house=null;           // {b64, w, h, url}
+  let refs=[];              // [{src, alt}]
+  let picked=new Set();
+  let cur=null, hist=[];    // آخر نتيجة (dataURL خام بلا شعار) + السجل
+  let busyNow=false;
+
+  function open(){$c('clWrap').classList.add('on');document.body.style.overflow='hidden';if(!refs.length)loadRefs()}
+
+  // ---------- صورة البيت ----------
+  $c('clDrop').onclick=()=>$c('clFile').click();
+  $c('clDrop').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$c('clFile').click()}};
+  $c('clDrop').addEventListener('dragover',e=>{e.preventDefault()});
+  $c('clDrop').addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(f)takeHouse(f)});
+  $c('clFile').onchange=()=>{const f=$c('clFile').files[0];if(f)takeHouse(f);$c('clFile').value=''};
+  function loadImg(src){return new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=()=>rej(new Error('img'));im.src=src})}
+  function toJpeg(im,max,crop){ // crop: نسبة بتنقص من تحت (لنشيل الشعار عن صور المراجع)
+    const sh=Math.round(im.naturalHeight*(1-(crop||0))),sc=Math.min(1,max/Math.max(im.naturalWidth,sh));
+    const c=document.createElement('canvas');c.width=Math.round(im.naturalWidth*sc);c.height=Math.round(sh*sc);
+    const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,im.naturalWidth,sh,0,0,c.width,c.height);
+    const url=c.toDataURL('image/jpeg',0.9);return{b64:url.split(',')[1],w:c.width,h:c.height,url}}
+  async function takeHouse(f){
+    if(!/^image\//.test(f.type||'image/')){say('هيدا مش ملف صورة',1);return}
+    try{const u=URL.createObjectURL(f);const im=await loadImg(u);house=toJpeg(im,1536);URL.revokeObjectURL(u);
+      $c('clDropTxt').innerHTML='';const p=new Image();p.src=house.url;p.alt='صورة البيت';$c('clDrop').replaceChildren(p);say('')}
+    catch(e){say('ما قدرت افتح الصورة — جرّب صورة JPG أو PNG',1)}
+  }
+
+  // ---------- صور شغلك من صفحات الموقع ----------
+  $c('clCat').onchange=loadRefs;
+  async function loadRefs(){
+    const box=$c('clRefs');box.innerHTML='<span class="cl-note">عم يحمّل صور شغلك…</span>';picked.clear();refs=[];
+    try{const r=await fetch('/'+$c('clCat').value+'.html?v='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;
+      const doc=new DOMParser().parseFromString(await r.text(),'text/html');
+      refs=[...doc.querySelectorAll('figure.card img')].map(i=>({src:i.getAttribute('src'),alt:i.getAttribute('alt')||''})).filter(x=>/^https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/basel-7b29b\./.test(x.src||''));
+      if(!refs.length)throw 0;
+      box.innerHTML='';refs.forEach((x,i)=>{const b=document.createElement('button');b.type='button';b.setAttribute('aria-pressed','false');b.title=x.alt.split(' - ')[0];
+        const im=new Image();im.loading='lazy';im.src=x.src;im.alt=b.title;b.appendChild(im);
+        b.onclick=()=>{if(picked.has(i)){picked.delete(i);b.setAttribute('aria-pressed','false')}else{if(picked.size>=4){tst('أكتر شي 4 صور');return}picked.add(i);b.setAttribute('aria-pressed','true')}};box.appendChild(b)});
+    }catch(e){box.innerHTML='<span class="cl-note">ما قدرت جيب صور شغلك هلق — بتشتغل الأداة بلاها (بالوصف بس)، أو جرّب بعد شوي.</span>'}
+  }
+  $c('clAuto').onclick=()=>{const bs=[...$c('clRefs').querySelectorAll('button')];if(!bs.length)return;picked.clear();bs.forEach(b=>b.setAttribute('aria-pressed','false'));
+    bs.slice(0,3).forEach((b,i)=>{picked.add(i);b.setAttribute('aria-pressed','true')});tst('اخترت أول 3 صور من شغلك')};
+  async function refImgs(){
+    let idx=[...picked];if(!idx.length&&refs.length)idx=refs.slice(0,3).map((_,i)=>i);
+    const out=[];for(const i of idx){try{const im=await loadImg('/img-proxy?u='+encodeURIComponent(refs[i].src));out.push({...toJpeg(im,1024,0.22),alt:refs[i].alt.split(' - ')[0]})}catch(e){}}
+    return out;
+  }
+
+  // ---------- التعليمات ----------
+  const T={stone:{same:'the same kind of stone and cut as in the reference photos',cut:'smooth sawn natural stone blocks (ashlar) with fine joints',rough:'rough split-face natural stone with a hand-chiselled texture',marble:'polished natural marble slabs',travertine:'natural travertine stone'},
+    color:{same:'the same stone colour as in the reference photos',beige:'warm beige',white:'white',cream:'light cream',grey:'grey',brown:'brown',mix:'warm beige walls with white stone frames and trims'},
+    scope:{all:'all the external walls of the facade',ground:'only the ground floor walls (keep upper floors as they are)',frames:'only the frames around windows and doors and the building corners (keep the rest of the wall as it is)',columns:'only the columns, pillars and building corners'},
+    extra:{frames:'carved stone frames around every window',columns:'classical stone columns at the entrance',arches:'stone arches over the entrance and main openings',cornice:'a carved stone cornice along the top of the facade',balustrade:'stone balustrades on balconies and terraces'}};
+  function prompt(nRefs,altList){
+    const ex=[...$c('clExtras').querySelectorAll('input:checked')].map(i=>T.extra[i.value]);
+    const note=$c('clNote').value.trim();
+    return ['You are an expert architectural visualizer for "Qaysar Al-Sham", a natural stone and marble company in Algeria that clads house facades.',
+      'IMAGE 1 is a photo of a client\'s house. Edit IMAGE 1 only: clad its facade with natural stone.',
+      nRefs?`IMAGES 2 to ${nRefs+1} are photos of real facades built by Qaysar Al-Sham (${altList.join(' / ')}). Copy their style exactly: stone type, block sizes, joints, colour tones, mouldings and window frames. Ignore any logo or text in them.`:'',
+      `Stone: ${T.stone[$c('clStone').value]}. Colour: ${T.color[$c('clColor').value]}. Apply to: ${T.scope[$c('clScope').value]}.`,
+      ex.length?`Also add: ${ex.join('; ')}.`:'',
+      note?`Client request (Arabic, follow it): «${note}».`:'',
+      'STRICT RULES: keep the exact same building, camera angle, perspective, proportions, number and position of windows, doors, balconies, railings, roof, garden, street, cars, sky and lighting. Change only the wall finishes (and the requested additions). Photorealistic result with realistic stone scale and natural daylight shadows. Do not add any text, logo, watermark or people.'
+    ].filter(Boolean).join('\n');
+  }
+  function fixPrompt(t){return `This image shows a house clad in natural stone by Qaysar Al-Sham. Apply this change requested by the client (Arabic): «${t}». Keep everything else exactly the same (building, angle, windows, doors, lighting, stone style). Photorealistic. No text, logo or watermark.`}
+  const RATIOS=[['1:1',1],['4:3',4/3],['3:4',3/4],['3:2',1.5],['2:3',2/3],['16:9',16/9],['9:16',9/16],['5:4',1.25],['4:5',.8],['21:9',21/9]];
+  const ratioOf=(w,h)=>{const r=w/h;return RATIOS.reduce((a,b)=>Math.abs(Math.log(b[1]/r))<Math.abs(Math.log(a[1]/r))?b:a)[0]};
+
+  // ---------- الطلب لـ Gemini (عبر سيرفرنا) ----------
+  const ORDER={pro:['gemini-3-pro-image','gemini-3-pro-image-preview','gemini-3.1-flash-image','gemini-3.1-flash-image-preview','gemini-2.5-flash-image'],
+               fast:['gemini-3.1-flash-image','gemini-3.1-flash-image-preview','gemini-2.5-flash-image','gemini-3-pro-image']};
+  async function callGemini(parts,ratio){
+    let lastErr='';
+    for(const m of ORDER[$c('clQ').value]||ORDER.pro){
+      for(const withCfg of [true,false]){
+        const body={contents:[{role:'user',parts}],generationConfig:{responseModalities:['TEXT','IMAGE'],temperature:0.4}};
+        if(withCfg&&ratio)body.generationConfig.imageConfig={aspectRatio:ratio};
+        let r,d;
+        try{r=await fetch('/api/ai-clad?m='+m,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});d=await r.json().catch(()=>({}))}
+        catch(e){throw new Error('النت مقطوع أو ضعيف — جرّب كمان مرة')}
+        const msg=(d.error&&(d.error.message||d.error))||'';
+        if(r.status===402)throw new Error('رصيد Gemini خلص — اشحن من AI Studio (Billing) وجرّب');
+        if(r.status===429)throw new Error('وصلت لحد الصرف أو الطلبات — استنّى دقيقة وجرّب، أو شوف حد الصرف بـ AI Studio');
+        if(r.status===403)throw new Error('الأداة بتشتغل بس من موقعك (cesar-alcham.com)');
+        if(r.status===503)throw new Error('مفتاح Gemini مش محطوط بـ Cloudflare');
+        if(r.status===413)throw new Error('الصور كبيرة كتير — خفّف عدد صور المراجع');
+        if(r.status===404){lastErr=msg;break}
+        if(r.status===400&&withCfg&&/aspect|image_?config|imageConfig/i.test(msg)){lastErr=msg;continue}
+        if(r.status===400&&/not (found|supported)|unsupported|modalit/i.test(msg)){lastErr=msg;break}
+        if(!r.ok){lastErr=msg||('خطأ '+r.status);if(r.status>=500)break;throw new Error('ما زبط: '+lastErr)}
+        const c=(d.candidates||[])[0];const ps=(c&&c.content&&c.content.parts)||[];
+        const imgs=ps.filter(p=>!p.thought&&(p.inlineData||p.inline_data)&&((p.inlineData||p.inline_data).data)),img=imgs[imgs.length-1];
+        if(img){const x=img.inlineData||img.inline_data;return{url:'data:'+(x.mimeType||x.mime_type||'image/png')+';base64,'+x.data,model:m}}
+        const txt=ps.map(p=>p.text||'').join(' ').trim();
+        const why=(c&&c.finishReason)||(d.promptFeedback&&d.promptFeedback.blockReason)||'';
+        throw new Error('غوغل ما رجّع صورة'+(why?' ('+why+')':'')+(txt?': '+txt.slice(0,160):'')+' — جرّب صورة تانية أو غيّر الملاحظات');
+      }
+    }
+    throw new Error('ما في موديل صور متاح هلق'+(lastErr?' — '+String(lastErr).slice(0,140):''));
+  }
+
+  // ---------- الشعار (نفس شعار الموقع) ----------
+  function computeBoxOrigin(canvasW,canvasH,boxW,boxH,position,margin){let x=margin,y=margin;
+    if(position.includes('right'))x=canvasW-boxW-margin;if(position.includes('bottom'))y=canvasH-boxH-margin;return{x,y}}
+  function drawLogoWithInfo(ctx,canvasW,canvasH,logoImg,sizePercent,position,margin,opacity,phone,address){
+    const logoTargetW=canvasW*(sizePercent/100),scale=logoTargetW/logoImg.naturalWidth,logoTargetH=logoImg.naturalHeight*scale;
+    const rawLines=[];if(address)rawLines.push({text:address,bold:false});if(phone)rawLines.push({text:phone,bold:true});
+    const baseFontSize=Math.max(13,Math.round(canvasW*0.015)),lineGap=Math.round(baseFontSize*0.35),padY=Math.round(baseFontSize*0.55),padX=Math.round(baseFontSize*0.9);
+    const blockW=logoTargetW,maxTextW=Math.max(20,blockW-padX*2);
+    const fit=(t,b)=>{let fs=baseFontSize;ctx.font=`${b?'bold ':''}${fs}px Tahoma, Arial, sans-serif`;while(ctx.measureText(t).width>maxTextW&&fs>9){fs--;ctx.font=`${b?'bold ':''}${fs}px Tahoma, Arial, sans-serif`}return fs};
+    const lines=rawLines.map(l=>({...l,fontSize:fit(l.text,l.bold)}));
+    const textBlockH=lines.length?lines.reduce((s,l)=>s+l.fontSize+lineGap,0)-lineGap+padY*2:0;
+    const gapBetween=lines.length?Math.round(baseFontSize*0.5):0,blockH=logoTargetH+gapBetween+textBlockH;
+    const o=computeBoxOrigin(canvasW,canvasH,blockW,blockH,position,margin);
+    ctx.save();ctx.globalAlpha=opacity;ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=Math.max(6,baseFontSize*0.7);ctx.shadowOffsetY=Math.max(2,baseFontSize*0.15);
+    ctx.drawImage(logoImg,o.x,o.y,logoTargetW,logoTargetH);ctx.restore();
+    if(lines.length){const bx=o.x,by=o.y+logoTargetH+gapBetween,rad=Math.max(6,baseFontSize*0.4);
+      ctx.save();ctx.globalAlpha=opacity;ctx.shadowColor='rgba(0,0,0,0.4)';ctx.shadowBlur=Math.max(5,baseFontSize*0.5);ctx.shadowOffsetY=2;
+      const g=ctx.createLinearGradient(bx,by,bx,by+textBlockH);g.addColorStop(0,'rgba(24,17,10,0.82)');g.addColorStop(1,'rgba(8,6,4,0.90)');ctx.fillStyle=g;
+      if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bx,by,blockW,textBlockH,rad);ctx.fill()}else ctx.fillRect(bx,by,blockW,textBlockH);ctx.restore();
+      ctx.save();ctx.globalAlpha=opacity;ctx.strokeStyle='rgba(212,175,55,0.85)';ctx.lineWidth=Math.max(1,baseFontSize*0.06);ctx.beginPath();ctx.moveTo(bx+rad,by+ctx.lineWidth/2);ctx.lineTo(bx+blockW-rad,by+ctx.lineWidth/2);ctx.stroke();
+      ctx.fillStyle='#ffffff';ctx.textBaseline='top';ctx.textAlign='center';let ty=by+padY;
+      lines.forEach(l=>{ctx.font=`${l.bold?'bold ':''}${l.fontSize}px Tahoma, Arial, sans-serif`;ctx.fillText(l.text,bx+blockW/2,ty);ty+=l.fontSize+lineGap});ctx.restore()}
+  }
+  let logoP=null;const getLogo=()=>logoP||(logoP=loadImg('/img/site/logo-wm.png').catch(()=>{logoP=null;return null}));
+  async function stamp(url){
+    const im=await loadImg(url),c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d');x.drawImage(im,0,0);
+    const logo=await getLogo();if(logo)drawLogoWithInfo(x,c.width,c.height,logo,12,'bottom-right',Math.round(c.width*0.0125),0.9,'0541737888','الجزائر - دالي ابراهيم');
+    const fs=Math.max(11,Math.round(c.width*0.013));x.save();x.font=`${fs}px Tahoma, Arial, sans-serif`;x.textBaseline='bottom';x.textAlign='left';x.fillStyle='rgba(255,255,255,.9)';x.shadowColor='rgba(0,0,0,.7)';x.shadowBlur=4;
+    x.fillText('صورة تخيّلية — قيصر الشام للحجر والرخام',Math.round(c.width*0.0125),c.height-Math.round(c.width*0.0125));x.restore();
+    return new Promise(res=>c.toBlob(b=>res(b),'image/jpeg',0.92));
+  }
+
+  // ---------- التشغيل ----------
+  let finalBlob=null,finalUrl='';
+  async function show(rawUrl){
+    cur=rawUrl;finalBlob=await stamp(rawUrl);if(finalUrl)URL.revokeObjectURL(finalUrl);finalUrl=URL.createObjectURL(finalBlob);
+    $c('clBefore').src=house.url;$c('clAfter').src=finalUrl;$c('clOut').hidden=false;
+    hist.push(rawUrl);if(hist.length>8)hist.shift();renderHist();
+    $c('clOut').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  function renderHist(){const h=$c('clHist');h.innerHTML='';if(hist.length<2)return;hist.forEach(u=>{const i=new Image();i.src=u;i.alt='نسخة';if(u===cur)i.className='on';i.onclick=()=>{hist=hist.filter(x=>x!==u);show(u)};h.appendChild(i)})}
+  async function run(kind){
+    if(busyNow)return;
+    if(kind!=='fix'&&!house){say('أول شي اختار صورة بيت الزبون',1);return}
+    if(kind==='fix'&&(!cur||!$c('clFix').value.trim())){say('اكتب شو بدك تعدّل',1);return}
+    busyNow=true;const btns=['clGo','clFixGo','clAgain','clWa','clSave'].map($c);btns.forEach(b=>b.disabled=true);
+    const t0=Date.now();const tick=setInterval(()=>say('عم يغلّف… '+Math.round((Date.now()-t0)/1000)+' ثانية (بياخد عادةً 15–60 ثانية)'),1000);
+    try{
+      let parts,ratio;
+      if(kind==='fix'){const im=await loadImg(cur);const j=toJpeg(im,1536);ratio=ratioOf(j.w,j.h);parts=[{text:fixPrompt($c('clFix').value.trim())},{inlineData:{mimeType:'image/jpeg',data:j.b64}}]}
+      else{say('عم جهّز صور شغلك…');const rf=await refImgs();ratio=ratioOf(house.w,house.h);
+        parts=[{text:prompt(rf.length,rf.map(x=>x.alt))},{inlineData:{mimeType:'image/jpeg',data:house.b64}},...rf.map(x=>({inlineData:{mimeType:'image/jpeg',data:x.b64}}))]}
+      const r=await callGemini(parts,ratio);
+      clearInterval(tick);await show(r.url);say('خلص ✓ — '+Math.round((Date.now()-t0)/1000)+' ثانية');if(kind==='fix')$c('clFix').value='';
+    }catch(e){clearInterval(tick);say(e.message||String(e),1)}
+    finally{busyNow=false;btns.forEach(b=>b.disabled=false)}
+  }
+  $c('clGo').onclick=()=>run('new');
+  $c('clAgain').onclick=()=>run('new');
+  $c('clFixGo').onclick=()=>run('fix');
+  $c('clFix').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();run('fix')}});
+  const fname=()=>'تغليف-قيصر-الشام-'+new Date().toISOString().slice(0,10)+'.jpg';
+  function download(){const a=document.createElement('a');a.href=finalUrl;a.download=fname();document.body.appendChild(a);a.click();a.remove()}
+  $c('clSave').onclick=()=>{if(finalBlob){download();tst('انحفظت الصورة')}};
+  $c('clWa').onclick=async()=>{if(!finalBlob)return;const file=new File([finalBlob],fname(),{type:'image/jpeg'});
+    const text='تصوّر لواجهة بيتك بالحجر من قيصر الشام للحجر والرخام — 0541737888';
+    if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],text});return}catch(e){if(e.name==='AbortError')return}}
+    download();tst('انحفظت الصورة — افتح واتساب وابعتها للزبون');setTimeout(()=>{window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank','noopener')},600)};
+})();
+</script>
+
 </body>
 </html>
