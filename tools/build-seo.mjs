@@ -71,7 +71,7 @@ function imgUrl(it){
 }
 const abs = u => u.startsWith('/') ? SITE + u : u;
 const waPrice = (name, link) => `https://wa.me/${WA}?text=${encodeURIComponent('السلام عليكم، أريد معرفة سعر هذا العمل: ' + name + '\n' + link)}`;
-const altOf = (it, cat) => `${(it.title && splitName(it.title).ar) || splitName(cat).ar} - قيصر الشام للحجر والرخام${splitName(cat).fr ? ' - ' + splitName(cat).fr : ''}`;
+const altOf = (it, cat) => it.aiAltAr ? `${it.aiAltAr} - قيصر الشام للحجر والرخام` : `${(it.title && splitName(it.title).ar) || splitName(cat).ar} - قيصر الشام للحجر والرخام${splitName(cat).fr ? ' - ' + splitName(cat).fr : ''}`;
 
 function inject(html, name, content){
   const a = `<!--SEO:${name}-->`, b = `<!--/SEO:${name}-->`;
@@ -303,7 +303,7 @@ const reviewsHtml = (lang) => `<section class="sec" id="avis"><h2>${lang==='fr'?
 for (const c of cats) {
   const list = byCat.get(c), fr = frOf(c), slug = slugs[c];
   const imgs = list.map(it => ({it, src: imgUrl(it)})).filter(x => x.src);
-  const cards = imgs.map(({it, src}) => `<figure class="card"><a href="${esc(src)}" class="lb"><img src="${esc(src)}" loading="lazy" alt="${esc(frTitle(it, c) + ' - Cesar Al Cham, marbre Algérie')}"></a><figcaption><b>${esc(frTitle(it, c))}</b>${[it.size].filter(Boolean).length ? `<span>${esc(it.size)}</span>` : ''}<a class="pb" target="_blank" rel="nofollow noopener" href="${esc(waFr('Bonjour, je voudrais connaître le prix de ce travail : ' + frTitle(it, c) + '\n' + abs(src)))}">💬 Demander le prix</a></figcaption></figure>`).join('');
+  const cards = imgs.map(({it, src}) => `<figure class="card"><a href="${esc(src)}" class="lb"><img src="${esc(src)}" loading="lazy" alt="${esc((it.aiAltFr || frTitle(it, c)) + ' - Cesar Al Cham, marbre Algérie')}"></a><figcaption><b>${esc(frTitle(it, c))}</b>${[it.size].filter(Boolean).length ? `<span>${esc(it.size)}</span>` : ''}<a class="pb" target="_blank" rel="nofollow noopener" href="${esc(waFr('Bonjour, je voudrais connaître le prix de ce travail : ' + frTitle(it, c) + '\n' + abs(src)))}">💬 Demander le prix</a></figcaption></figure>`).join('');
   const others = cats.filter(x => x !== c).map(x => `<a href="/fr/${slugs[x]}">${esc(frOf(x))}</a>`).join('');
   wr(`fr/${slug}.html`, frLayout({title: `${fr} - Cesar Al Cham, marbre et pierre naturelle en Algérie`, desc: `${fr} : conception, fabrication et pose sur mesure en marbre et pierre naturelle par Cesar Al Cham, Dely Ibrahim (Alger). Devis gratuit au 0541 73 78 88.`, path: `/fr/${slug}`, arPath: `/${slug}`, og: imgs[0] ? abs(imgs[0].src) : '',
     body: `<div class="crumbs"><a href="/fr/">Accueil</a> › <a href="/fr/works">Nos réalisations</a> › ${esc(fr)}</div><h1>${esc(fr)}</h1>

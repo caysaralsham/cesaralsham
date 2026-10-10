@@ -302,7 +302,7 @@ function renderGallery(){
     shown=ents.map(([c,{it}])=>({src:it.img,name:short(c)}));
     grid.innerHTML = ents.map(([c,{it,n}],i) => `
     <div class="card" data-go="${c.replace(/"/g,'&quot;')}">
-      <div class="img-wrap"><img src="${it.img}" loading="lazy" alt="${short(c)} - قيصر الشام"></div>
+      <div class="img-wrap"><img src="${it.img}" loading="lazy" alt="${it.aiAltAr||short(c)} - قيصر الشام"></div>
       <div class="body">
         <div class="title">${short(c)}</div>
         <div class="meta">${n} صورة — اضغط لعرضها جميعًا</div>
@@ -324,7 +324,7 @@ function renderGallery(){
   shown=filtered.map(it=>({src:it.img,name:short(it.title)||short(it.category)||'قطعة رخام وحجر'}));
   grid.innerHTML = filtered.map((it,i) => `
     <div class="card" data-lb="${i}">
-      <div class="img-wrap"><img src="${it.img}" loading="lazy" alt="${(short(it.title)||short(it.category)||'رخام وحجر طبيعي')} - قيصر الشام"></div>
+      <div class="img-wrap"><img src="${it.img}" loading="lazy" alt="${(it.aiAltAr||short(it.title)||short(it.category)||'رخام وحجر طبيعي')} - قيصر الشام"></div>
       <div class="body">
         <div class="title">${short(it.title) || short(it.category) || 'قطعة رخام وحجر'}</div>
         <div class="meta">${[short(it.category), it.size, it.color].filter(Boolean).join(' · ')}</div>

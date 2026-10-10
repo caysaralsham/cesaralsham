@@ -214,6 +214,14 @@
   <!-- ================= تحديثات الموقع ================= -->
   <section class="view" id="view-updates">
     <div style="font-size:13px;color:#6b5a48;margin:0 0 14px">أدوات لصيانة الموقع. كل أداة بتحفظ شغلها أول بأول — إذا طلعت من الصفحة ورجعت، اكبس نفس الزر وبتكمّل من وين وقفت.</div>
+    <div class="panel" id="aiPanel">
+      <h2>🤖 عناوين أدق بالذكاء الاصطناعي (Gemini)</h2>
+      <p style="font-size:13px;color:#6b5a48;margin:0 0 10px">الذكاء الاصطناعي بيشوف كل صورة: لون الحجر الحقيقي، نوعه، وشو مميز فيها (زخرفة، أعمدة، قوس...) — وبيكتب عنوان خاص فيها بالعربي والفرنسي + وصف للصورة لغوغل. كل صورة بتنحلّل مرة وحدة وبيتحفظ أول بأول. اللون اللي كاتبه إنت بإيدك ما بيتغيّر.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="aiTest">١) جرّب على 3 صور</button><button class="btn" id="aiRun" style="background:#1F8F55">٢) حلّل كل الصور</button><button class="btn btn-ghost" id="aiStop" style="display:none">وقّف</button></div>
+      <div id="aiStatus" style="font-size:13px;margin-top:10px;font-weight:700"></div>
+      <div id="aiSample" style="font-size:12.5px;margin-top:8px;line-height:1.9"></div>
+    </div>
+
     <div class="panel" id="titlesPanel">
       <h2>✨ عناوين احترافية (عربي + فرنسي) لكل الصور والفيديوهات</h2>
       <p style="font-size:13px;color:#6b5a48;margin:0 0 10px">بيكتب لكل صورة وفيديو عنوان خاص فيه، مختلف عن غيره: القسم + اللون + وصف + رقم موديل — بالعربي للصفحة العربية وبالفرنسي للصفحة الفرنسية. اللون إذا مش مكتوب بيقرّبه من الصورة. العنوان القديم بيضل محفوظ. الصور اللي بترفعها بعدين بياخدوا عنوان لحالهن إذا تركت العنوان فاضي.</p>
@@ -1349,7 +1357,7 @@ const TT=(()=>{
     const byCat={};list.forEach(it=>{const k=(it.category||'').trim()||'—';(byCat[k]=byCat[k]||[]).push(it)});const out={};
     for(const [cat,arr] of Object.entries(byCat)){const s=split(cat),catAr=s.ar||'رخام وحجر',catFr=sing(s.fr)||'Marbre et pierre';
       arr.sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
-      arr.forEach((it,i)=>{const n=pad(i+1,arr.length),[dA,dF]=DESC[i%DESC.length],col=colorOf(it.color);
+      arr.forEach((it,i)=>{const n=pad(i+1,arr.length),[dA,dF]=it.aiDescAr?[it.aiDescAr,it.aiDescFr||DESC[i%DESC.length][1]]:DESC[i%DESC.length],col=(it.aiColorAr&&(it.colorAuto||!String(it.color||'').trim()))?{ar:it.aiColorAr,fr:it.aiColorFr||''}:colorOf(it.color);
         const ar=isVideo?`فيديو ${catAr} ${dA} — عمل ${n}`:`${catAr}${col?' '+col.ar:''} ${dA} — موديل ${n}`;
         const fr=isVideo?`Vidéo : ${catFr} ${dF} — réalisation ${n}`:`${catFr}${col&&col.fr?' '+col.fr:''} ${dF} — modèle ${n}`;
         out[it.id]={title:`${ar} | ${fr}`};});}
@@ -1384,6 +1392,55 @@ const TT=(()=>{
       $('ttStatus').textContent='خلص ✓ — انحدّثت '+a+' صورة و'+b+' فيديو. الصفحات بتتحدّث لحالها خلال 3 ساعات.';$('ttSample').innerHTML=ex;
     }catch(e){$('ttStatus').textContent=e.message==='stopped'?'وقّفت — اكبس الزر مرة تانية بيكمّل من وين وقف':'ما زبط: '+(e.message||e);console.error(e)}
     finally{window.__bgBusy=false;keepAwake(false);$('ttRun').disabled=false;$('ttStop').style.display='none'}
+  };
+})();
+
+// ---------- عناوين بالذكاء الاصطناعي ----------
+(function(){
+  const $=id=>document.getElementById(id);let stop=false;
+  const ERR={'no-key':'لازم ينحط مفتاح Gemini بـ Cloudflare (GEMINI_API_KEY)','rate':'غوغل طلب نستنّى شوي (حد الطلبات)','not-allowed':'صورة مش من معرضنا'};
+  async function ask(it){
+    for(let t=0;t<4;t++){
+      const r=await fetch('/api/ai-title',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({img:it.img,cat:it.category||''})});
+      const d=await r.json().catch(()=>({ok:false,error:'http-'+r.status}));
+      if(d.ok)return d;
+      if(d.error==='rate'){await new Promise(z=>setTimeout(z,15000*(t+1)));continue}
+      const e=new Error(ERR[d.error]||(d.error+(d.detail?' — '+d.detail:'')));e.code=d.error;throw e;
+    }
+    const e=new Error(ERR.rate);e.code='rate';throw e;
+  }
+  const pack=d=>({aiColorAr:d.colorAr,aiColorFr:d.colorFr,aiStoneAr:d.stoneAr,aiStoneFr:d.stoneFr,aiDescAr:d.descAr,aiDescFr:d.descFr,aiAltAr:d.altAr,aiAltFr:d.altFr,aiKindOk:d.kindOk,aiV:1});
+  $('aiStop').onclick=()=>{stop=true};
+  $('aiTest').onclick=async()=>{
+    const pick=items.filter(it=>it.img).sort(()=>Math.random()-.5).slice(0,3);$('aiSample').innerHTML='';$('aiStatus').textContent='عم حلّل 3 صور...';
+    try{let h='';for(const it of pick){const d=await ask(it);const t={...it,...pack(d)};
+        const ti=TT.make([...items.filter(x=>(x.category||'').trim()===(it.category||'').trim()&&x.id!==it.id),t],false)[it.id];
+        h+=`<div style="display:flex;gap:10px;align-items:flex-start;margin:8px 0"><img src="${it.img}" style="width:110px;border-radius:8px;border:1px solid #e6d6bc"><div><b>${ti.title.split(' | ')[0]}</b><br><span dir="ltr" style="color:#888">${ti.title.split(' | ')[1]||''}</span><br><span style="color:#6b5a48">${d.altAr}</span>${d.kindOk?'':'<br><b style="color:#A6453D">⚠️ يمكن هالصورة مش بقسمها الصح</b>'}</div></div>`}
+      $('aiSample').innerHTML=h;$('aiStatus').textContent='هيك رح تطلع العناوين ✓ — إذا عجبوك اكبس «حلّل كل الصور»';
+    }catch(e){$('aiStatus').textContent='ما زبط: '+e.message}
+  };
+  $('aiRun').onclick=async()=>{
+    const need=items.filter(it=>it.img&&it.aiV!==1);
+    if(!need.length&&!confirm('كل الصور محلّلة. بدك بس تعيد كتابة العناوين؟'))return;
+    if(need.length&&!confirm('تحليل '+need.length+' صورة بالذكاء الاصطناعي وكتابة عناوين جديدة؟ العناوين القديمة بتضل محفوظة.'))return;
+    stop=false;window.__bgBusy=true;keepAwake(true);$('aiRun').disabled=true;$('aiTest').disabled=true;$('aiStop').style.display='';
+    let pend={},k=0,bad=0,wrong=[];
+    try{
+      for(const it of need){if(stop)break;k++;$('aiStatus').textContent='عم حلّل الصور: '+k+' من '+need.length+(bad?' (ما زبط '+bad+')':'');
+        try{const d=await ask(it);const p=pack(d);pend[it.id]=p;Object.assign(it,p);if(!d.kindOk)wrong.push(it)}
+        catch(e){if(e.code==='no-key'||e.code==='rate')throw e;bad++}
+        if(Object.keys(pend).length>=10){await saveFresh(pend,CHUNK_PREFIX);pend={}}}
+      if(Object.keys(pend).length){await saveFresh(pend,CHUNK_PREFIX);pend={}}
+      if(stop)throw new Error('stopped');
+      $('aiStatus').textContent='بكتب العناوين...';
+      const ti=TT.make(items,false);
+      for(const it of items){if(ti[it.id]){ti[it.id].oldTitle=it.oldTitle||it.title||'';ti[it.id].titleV2=true}}
+      const a=await saveFresh(ti,CHUNK_PREFIX);items=items.map(it=>ti[it.id]?{...it,...ti[it.id]}:it);renderItemsTable();
+      $('aiStatus').textContent='خلص ✓ — '+a+' صورة صار إلها عنوان ذكي'+(bad?' ('+bad+' ما زبطت — اكبس مرة تانية بيحاول فيهن)':'')+'. الصفحات بتتحدّث لحالها خلال 3 ساعات.';
+      $('aiSample').innerHTML=(wrong.length?'<b style="color:#A6453D">⚠️ صور يمكن مش بقسمها الصح ('+wrong.length+'):</b><br>'+wrong.slice(0,30).map(it=>`<a href="${it.img}" target="_blank"><img src="${it.img}" style="width:70px;height:70px;object-fit:cover;border-radius:6px;margin:2px"></a>`).join('')+'<br>':'')+items.filter(it=>it.aiV===1).slice(0,4).map(it=>'• '+it.title.replace(' | ','<br><span style="color:#888" dir="ltr">')+'</span>').join('<br>');
+    }catch(e){if(Object.keys(pend).length)try{await saveFresh(pend,CHUNK_PREFIX)}catch(_){}
+      $('aiStatus').textContent=e.message==='stopped'?'وقّفت — اكبس الزر مرة تانية بيكمّل من وين وقف':'وقف: '+e.message+' — اكبس مرة تانية بيكمّل من وين وقف'}
+    finally{window.__bgBusy=false;keepAwake(false);$('aiRun').disabled=false;$('aiTest').disabled=false;$('aiStop').style.display='none'}
   };
 })();
 

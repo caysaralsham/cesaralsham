@@ -1216,7 +1216,7 @@ function renderHomeShowcase(){
   const short = c => c.split('|')[0].trim();
   wrap.innerHTML = [...per.entries()].flatMap(([cat, list]) => list.map(it => `
     <a class="sc-item" href="/works?category=${encodeURIComponent(cat)}">
-      <img src="${it.img}" loading="lazy" alt="${(it.title||short(cat))} - قيصر الشام">
+      <img src="${it.img}" loading="lazy" alt="${(it.aiAltAr||it.title||short(cat))} - قيصر الشام">
       <span>${short(cat)}</span>
     </a>`)).join('');
 }
