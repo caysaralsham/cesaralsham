@@ -15,7 +15,7 @@ export async function onRequest({ request, env, waitUntil }) {
     const u = new URL(request.url);
     if (u.searchParams.get('selftest') !== 'clad7' || !key) return json({ ok: !!key, models: MODELS });
     // فحص لمرة وحدة: أي موديل صور بيرجّع صورة فعلاً (النتيجة بتنحفظ يوم كامل حتى ما ينصرف رصيد)
-    const ck = new Request('https://cache.local/ai-clad-selftest-v4'); const hit = await caches.default.match(ck); if (hit) return hit;
+    const ck = new Request('https://cache.local/ai-clad-selftest-v5'); const hit = await caches.default.match(ck); if (hit) return hit;
     const keep = o => new Response(JSON.stringify(o), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=86400' } });
     const run = async () => {
       const out = {};
@@ -31,11 +31,11 @@ export async function onRequest({ request, env, waitUntil }) {
         out[m] = info; await caches.default.put(ck, keep({ ok: true, out }));
       }
     };
-    const lk = new Request('https://cache.local/ai-clad-selftest-v4-lock');
-    if (await caches.default.match(lk)) return json({ ok: true, running: true });
-    await caches.default.put(lk, new Response('1', { headers: { 'cache-control': 'public, max-age=300' } }));
-    waitUntil(run());
-    return json({ ok: true, started: true });
+    // بث مباشر: مسافات كل 3 ثواني حتى ما ينقطع الاتصال، وبالآخر النتيجة
+    const ts = new TransformStream(), w = ts.writable.getWriter(), enc = new TextEncoder();
+    const ka = setInterval(() => { w.write(enc.encode(' ')).catch(() => {}); }, 3000);
+    waitUntil((async () => { try { await run(); const h = await caches.default.match(ck); await w.write(enc.encode(h ? await h.text() : '{"ok":false}')); } catch (e) { await w.write(enc.encode('{"err":"' + e.message + '"}')); } clearInterval(ka); await w.close(); })());
+    return new Response(ts.readable, { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
   }
   if (request.method !== 'POST') return json({ ok: false, error: 'post-only' }, 405);
   if (!key) return json({ ok: false, error: 'no-key' }, 503);
