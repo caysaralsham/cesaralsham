@@ -8,10 +8,10 @@
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script crossorigin="anonymous" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script crossorigin="anonymous" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script crossorigin="anonymous" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script crossorigin="anonymous" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
@@ -167,6 +167,7 @@
     <div class="tab" data-view="categories">الأقسام</div>
     <div class="tab" data-view="faq">الأسئلة الشائعة</div>
     <div class="tab" data-view="reviews">آراء الزبائن</div>
+    <div class="tab" data-view="updates">🛠 تحديثات الموقع</div>
   </div>
 
   <!-- ================= الصور ================= -->
@@ -204,6 +205,15 @@
       <button class="btn" style="width:100%; justify-content:center;" id="btnUpload">رفع الصورة</button>
     </div>
 
+    <div class="panel">
+      <h2>كل الصور (<span id="itemsCount">0</span>)</h2>
+      <div id="itemsTableWrap"></div>
+    </div>
+  </section>
+
+  <!-- ================= تحديثات الموقع ================= -->
+  <section class="view" id="view-updates">
+    <div style="font-size:13px;color:#6b5a48;margin:0 0 14px">أدوات لصيانة الموقع. كل أداة بتحفظ شغلها أول بأول — إذا طلعت من الصفحة ورجعت، اكبس نفس الزر وبتكمّل من وين وقفت.</div>
     <div class="panel" id="titlesPanel">
       <h2>✨ عناوين احترافية (عربي + فرنسي) لكل الصور والفيديوهات</h2>
       <p style="font-size:13px;color:#6b5a48;margin:0 0 10px">بيكتب لكل صورة وفيديو عنوان خاص فيه، مختلف عن غيره: القسم + اللون + وصف + رقم موديل — بالعربي للصفحة العربية وبالفرنسي للصفحة الفرنسية. اللون إذا مش مكتوب بيقرّبه من الصورة. العنوان القديم بيضل محفوظ. الصور اللي بترفعها بعدين بياخدوا عنوان لحالهن إذا تركت العنوان فاضي.</p>
@@ -220,10 +230,14 @@
       <div id="wmPreview" style="display:none;gap:12px;margin-top:10px;flex-wrap:wrap"><figure style="margin:0;flex:1;min-width:220px"><figcaption style="font-size:12px">قبل</figcaption><img id="wmBefore" style="width:100%;border:1px solid #e6d6bc;border-radius:8px"></figure><figure style="margin:0;flex:1;min-width:220px"><figcaption style="font-size:12px">بعد</figcaption><img id="wmAfter" style="width:100%;border:1px solid #e6d6bc;border-radius:8px"></figure></div>
     </div>
 
-    <div class="panel">
-      <h2>كل الصور (<span id="itemsCount">0</span>)</h2>
-      <div id="itemsTableWrap"></div>
+    <div class="panel" id="brokenPanel">
+      <h2>🩺 فحص الصور والفيديوهات</h2>
+      <p style="font-size:13px;color:#6b5a48;margin:0 0 10px">بيلاقي الصور اللي ما عم تفتح (ملفها انحذف أو خربان) — هيدي بتطلع بالموقع مربع فاضي — والصور اللي بلا قسم. بتقدر تحذف الخربانة دفعة وحدة.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="bkRun">افحص</button><button class="btn btn-danger" id="bkDel" style="display:none">احذف الصور الخربانة من الموقع</button></div>
+      <div id="bkStatus" style="font-size:13px;margin-top:10px;font-weight:700"></div>
+      <div id="bkList" style="font-size:12.5px;margin-top:8px;line-height:1.8"></div>
     </div>
+
   </section>
 
   <!-- ================= الفيديوهات ================= -->
@@ -366,14 +380,20 @@
     localStorage.removeItem('videoProcessCheckpoint');
   }catch(e){}
 })();
+// أخطاء غير متوقعة: رسالة صغيرة مرة وحدة بس (مش نافذة بترجع كل شوي)
+// «Script error.» بلا سطر = خطأ من سكربت خارجي (فايربيز أو كلاودفلير) ما فيه أي معلومة — منتجاهله
+const __errSeen=new Set();
+function __errNote(t){if(__errSeen.has(t))return;__errSeen.add(t);try{toast(t)}catch(_){console.warn(t)}}
 window.addEventListener('error', (e)=>{
   console.error('window error', e.error || e.message);
-  alert('حدث خطأ غير متوقع في الصفحة:\n' + (e.message || 'unknown') + '\n(سطر: ' + e.lineno + ')');
+  if(!e.error && (/^Script error/i.test(e.message||'') || !e.lineno)) return;
+  __errNote('خطأ بالصفحة: ' + (e.message || '') + (e.lineno ? ' (سطر ' + e.lineno + ')' : ''));
 });
 window.addEventListener('unhandledrejection', (e)=>{
   console.error('unhandled rejection', e.reason);
-  const msg = (e.reason && (e.reason.message || e.reason.toString())) || 'unknown';
-  alert('حدث خطأ غير متوقع (promise):\n' + msg);
+  const msg = (e.reason && (e.reason.message || e.reason.toString())) || '';
+  if(!msg || /network|offline|unavailable|Failed to fetch/i.test(msg)) return;
+  __errNote('خطأ: ' + msg);
 });
 const firebaseConfig = {
   apiKey: "AIzaSyDi1Pn7guMnyc0CetV8Z9IUC-k0gtav2_8",
@@ -1338,6 +1358,28 @@ const TT=(()=>{
     }catch(e){$('ttStatus').textContent=e.message==='stopped'?'وقّفت — اكبس الزر مرة تانية بيكمّل من وين وقف':'ما زبط: '+(e.message||e);console.error(e)}
     finally{window.__bgBusy=false;keepAwake(false);$('ttRun').disabled=false;$('ttStop').style.display='none'}
   };
+})();
+
+// ---------- فحص الصور والفيديوهات ----------
+(function(){
+  const $=id=>document.getElementById(id);let bad=[];
+  const ok=u=>new Promise(r=>{if(!u)return r(false);const im=new Image();const t=setTimeout(()=>{im.src='';r(false)},20000);im.onload=()=>{clearTimeout(t);r(im.naturalWidth>0)};im.onerror=()=>{clearTimeout(t);r(false)};im.src=u});
+  $('bkRun').onclick=async()=>{bad=[];$('bkDel').style.display='none';$('bkList').innerHTML='';window.__bgBusy=true;keepAwake(true);
+    const noCat=items.filter(it=>!(it.category||'').trim()),noVidCat=videos.filter(v=>!(v.category||'').trim());let k=0;
+    for(let i=0;i<items.length;i+=6){const part=items.slice(i,i+6);const rs=await Promise.all(part.map(it=>ok(it.img)));
+      part.forEach((it,j)=>{if(!rs[j])bad.push(it)});k+=part.length;$('bkStatus').textContent='بفحص '+k+' من '+items.length+' — خربانة: '+bad.length}
+    const vb=videos.filter(v=>v.poster).length?(await Promise.all(videos.filter(v=>v.poster).map(v=>ok(v.poster).then(r=>r?null:v)))).filter(Boolean):[];
+    window.__bgBusy=false;keepAwake(false);
+    const lines=[];
+    if(bad.length)lines.push('<b>صور ما عم تفتح ('+bad.length+'):</b><br>'+bad.map(it=>'• '+((it.title||'').split('|')[0].trim()||it.category||it.id)).join('<br>'));
+    if(noCat.length)lines.push('<b>صور بلا قسم ('+noCat.length+'):</b> افتحها من «الصور» وحطلها قسم.');
+    if(noVidCat.length)lines.push('<b>فيديوهات بلا قسم ('+noVidCat.length+')</b>');
+    if(vb.length)lines.push('<b>فيديوهات صورة غلافها ما عم تفتح ('+vb.length+'):</b> '+vb.map(v=>(v.title||'').split('|')[0].trim()||v.id).join('، '));
+    $('bkList').innerHTML=lines.join('<br><br>');
+    $('bkStatus').textContent=lines.length?'خلص الفحص — شوف التفاصيل تحت':'خلص الفحص ✓ — كل الصور والفيديوهات تمام';
+    $('bkDel').style.display=bad.length?'':'none';};
+  $('bkDel').onclick=async()=>{if(!bad.length||!confirm('حذف '+bad.length+' صورة خربانة من الموقع؟'))return;const map={};bad.forEach(it=>map[it.id]=null);applyLocal(map);await saveItemsBatch(map);
+    $('bkStatus').textContent='انحذفت '+bad.length+' صورة خربانة ✓';$('bkList').innerHTML='';$('bkDel').style.display='none';bad=[]};
 })();
 
 // ---------- تحديث اللوغو على الصور القديمة (الشريط القديم ← اللوغو الجديد) ----------
