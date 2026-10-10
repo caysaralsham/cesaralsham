@@ -80,11 +80,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="/js/price-req.js" defer></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <style>
   :root{
     --ink:#3B2414; --gold:#9A6A3A; --gold-deep:#6E4524; --cream:#FBF6EE; --cream-2:#F5ECDD;
@@ -423,7 +419,7 @@
   <p style="text-align:center;font-size:15px;margin-top:-4px">آخر أعمالنا وفيديوهاتنا على صفحاتنا</p>
   <div class="follow-grid">
     <div class="follow-card"><div class="follow-head">▶️ يوتيوب</div><div class="follow-embed" data-embed="youtube"><a class="follow-btn" href="https://www.youtube.com/@Baselakash" target="_blank" rel="noopener">قناتنا على يوتيوب</a></div><a class="follow-btn" href="https://www.youtube.com/@Baselakash?sub_confirmation=1" target="_blank" rel="noopener">اشترك بقناتنا على يوتيوب</a></div>
-    <div class="follow-card"><div class="follow-head">🎵 تيك توك</div><div class="follow-embed" data-embed="tiktok"><a class="follow-btn" href="https://www.tiktok.com/@basel.akash" target="_blank" rel="noopener">@basel.akash</a></div><a class="follow-btn" href="https://www.tiktok.com/@basel.akash" target="_blank" rel="noopener">تابعنا على تيك توك</a></div>
+    <div class="follow-card"><div class="follow-head">🎵 تيك توك</div><a class="follow-embed follow-ig follow-tk" href="https://www.tiktok.com/@basel.akash" target="_blank" rel="noopener"><div class="ig-avatar tk-avatar">قيصر الشام</div><b dir="ltr">@basel.akash</b><span>فيديوهات أعمالنا بالرخام والحجر</span></a><a class="follow-btn" href="https://www.tiktok.com/@basel.akash" target="_blank" rel="noopener">تابعنا على تيك توك</a></div>
     <div class="follow-card"><div class="follow-head">📘 فيسبوك</div><div class="follow-embed" data-embed="facebook"><a class="follow-btn" href="https://www.facebook.com/baselalakash" target="_blank" rel="noopener">صفحتنا على فيسبوك</a></div><a class="follow-btn" href="https://www.facebook.com/baselalakash" target="_blank" rel="noopener">تابعنا على فيسبوك</a></div>
     <div class="follow-card"><div class="follow-head">📸 إنستغرام</div><div class="follow-embed follow-ig"><div class="ig-avatar">قيصر الشام</div><b dir="ltr">@cesar_du_sham2</b><span>صور أعمالنا بالرخام والحجر</span></div><a class="follow-btn" href="https://www.instagram.com/cesar_du_sham2" target="_blank" rel="noopener">تابعنا على إنستغرام</a></div>
   </div>
@@ -438,15 +434,15 @@
   .follow-ig{flex-direction:column;gap:10px;text-align:center;color:var(--ink)}
   .ig-avatar{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;background:linear-gradient(45deg,#f09433,#dc2743,#bc1888)}
   .follow-ig span{font-size:13px;color:var(--gold-deep)}
+  .follow-tk{text-decoration:none}.tk-avatar{background:linear-gradient(45deg,#25F4EE,#000 55%,#FE2C55)}
 </style>
 <script>
 // تيك توك وفيسبوك بينحمّلوا بس لما توصل لهالقسم (حتى ما يبطّوا الصفحة)
 (function(){const sec=document.getElementById('follow');if(!sec)return;let done=false;
   const load=()=>{if(done)return;done=true;
-    const tk=sec.querySelector('[data-embed="tiktok"]');if(tk){tk.innerHTML='<blockquote class="tiktok-embed" cite="https://www.tiktok.com/@basel.akash" data-unique-id="basel.akash" data-embed-type="creator" style="max-width:100%;min-width:288px;margin:0"><section><a target="_blank" href="https://www.tiktok.com/@basel.akash?refer=creator_embed">@basel.akash</a></section></blockquote>';const sc=document.createElement('script');sc.async=true;sc.src='https://www.tiktok.com/embed.js';document.body.appendChild(sc)}
     const yt=sec.querySelector('[data-embed="youtube"]');if(yt)yt.innerHTML='<iframe title="آخر فيديوهات قيصر الشام على يوتيوب" src="https://www.youtube-nocookie.com/embed/videoseries?list=UU3ErMPUSjReq-mG8GQ-7lKw" style="width:100%;height:100%;min-height:420px" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>';
-    const fb=sec.querySelector('[data-embed="facebook"]');if(fb){const w=Math.min(500,Math.max(280,Math.round(fb.clientWidth||340)));fb.innerHTML='<iframe title="صفحة قيصر الشام على فيسبوك" src="https://www.facebook.com/plugins/page.php?href='+encodeURIComponent('https://www.facebook.com/baselalakash')+'&tabs=timeline&width='+w+'&height=420&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false" width="'+w+'" height="420" scrolling="no" loading="lazy" allow="encrypted-media; web-share"></iframe>'}};
-  if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){load();io.disconnect()}},{rootMargin:'400px'});io.observe(sec)}else load();
+    const fb=sec.querySelector('[data-embed="facebook"]');if(fb){const w=Math.min(500,Math.max(180,Math.floor(fb.getBoundingClientRect().width||300)));fb.innerHTML='<iframe title="صفحة قيصر الشام على فيسبوك" src="https://www.facebook.com/plugins/page.php?href='+encodeURIComponent('https://www.facebook.com/baselalakash')+'&tabs=timeline&width='+w+'&height=420&small_header=true&adapt_container_width=true&hide_cover=true&show_facepile=false" width="'+w+'" height="420" scrolling="no" loading="lazy" allow="encrypted-media; web-share"></iframe>'}};
+  if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){load();io.disconnect()}},{rootMargin:'150px'});io.observe(sec)}else load();
 })();
 </script>
 <section class="faq" id="faq">
@@ -612,6 +608,11 @@
   });
 })();
 </script>
+<!-- مكتبات فايربيز هون (مش فوق بالراس) حتى تبيّن الصفحة فوراً وما تستنى تحميلها -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyDi1Pn7guMnyc0CetV8Z9IUC-k0gtav2_8",
