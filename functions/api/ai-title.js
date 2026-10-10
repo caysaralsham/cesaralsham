@@ -33,8 +33,17 @@ function prompt(cat) {
 }
 
 export async function onRequest({ request, env, waitUntil }) {
-  if (request.method !== 'POST') return json({ ok: false, error: 'post-only' }, 405);
   const key = env.GEMINI_API_KEY;
+  if (request.method === 'GET') { // فحص سريع: المفتاح موجود؟ والموديلات شغالة؟ (بلا صور)
+    if (!key) return json({ ok: false, error: 'no-key' });
+    const res = {};
+    for (const m of MODELS) {
+      const g = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': key }, body: JSON.stringify({ contents: [{ parts: [{ text: 'قل: تمام' }] }] }) });
+      const d = await g.json().catch(() => ({})); res[m] = g.status + (d.error ? ' ' + d.error.message : '');
+    }
+    return json({ ok: true, keyLen: key.length, keyStart: key.slice(0, 4), res });
+  }
+  if (request.method !== 'POST') return json({ ok: false, error: 'post-only' }, 405);
   if (!key) return json({ ok: false, error: 'no-key' }, 503);
   let body; try { body = await request.json(); } catch (e) { return json({ ok: false, error: 'bad-json' }, 400); }
   const img = String(body.img || ''), cat = String(body.cat || '').slice(0, 200);
