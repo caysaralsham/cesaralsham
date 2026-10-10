@@ -2084,7 +2084,7 @@ function drawColumn(s){
   if(kind==='block'){const v=outer*outer*H/1e6;stats.push(['الحجم (بلوك '+outer+' × '+outer+' × '+H+')',v.toFixed(3)+' م³'],['عدد القطع',nb+' × '+Math.round(H/nb)+' سم']);cut.push({cells:['جسم العامود (كتلة)',(shape==='round'?'قطر ':'عرض ')+outer+'، ارتفاع '+Math.round(H/nb),nb]});qty=v.toFixed(3);unit='م³'}
   if(kind==='wrap'){const v=outer*outer*H/1e6;stats.push(['سماكة الرخام',th+' سم'],['الحجم (كتلة '+outer+' × '+outer+' × '+H+')',v.toFixed(3)+' م³'],['عدد القطع',nb+' × قطعتين، ارتفاع '+Math.round(H/nb)+' سم']);
     cut.push({cells:['نص عامود',(shape==='round'?'قطر ':'عرض ')+outer+'، ارتفاع '+Math.round(H/nb)+'، سماكة '+th,2*nb]});qty=v.toFixed(3);unit='م³'}
-  if(kind==='tiles'){const nA=Math.max(1,Math.round(per/+s.tW)),pw=per/nA,a=per*H/1e4;stats.push(['سماكة الرخام',th+' سم'],['قطع بالدورة',nA],['عدد القطع (لفوق)',nb],['مجموع القطع',nA*nb],['المساحة',a.toFixed(2)+' م²']);
+  if(kind==='tiles'){const nA=Math.max(1,Math.round(per/+s.tW)),pw=per/nA,dm=outer/100,hm=H/100,a=shape==='round'?dm*3.14*hm:shape==='square'?dm*4*hm:per*H/1e4;stats.push(['سماكة الرخام',th+' سم'],['قطع بالدورة',nA],['عدد القطع (لفوق)',nb],['مجموع القطع',nA*nb],['المساحة',(shape==='round'?dm.toFixed(2)+' × 3.14 × '+hm.toFixed(2)+' = ':shape==='square'?dm.toFixed(2)+' × 4 × '+hm.toFixed(2)+' = ':'')+a.toFixed(2)+' م²']);
     cut.push({cells:['قطعة لصق',pw.toFixed(1)+' × '+Math.round(tHc)+' سم، سماكة '+th,nA*nb]});qty=a.toFixed(2);unit='م²'}
   if(bH){stats.push(['القاعدة',BT[bT]+'، '+bW+' × '+bH+' سم']);cut.push({cells:['قاعدة '+BT[bT],'عرض '+bW+'، ارتفاع '+bH,Math.max(1,+s.cnt||1)]})}
   if(cH){stats.push(['التاج',CTp[cT]+'، '+cW+' × '+cH+' سم']);cut.push({cells:['تاج '+CTp[cT],'عرض '+cW+'، ارتفاع '+cH,Math.max(1,+s.cnt||1)]})}
