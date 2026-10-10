@@ -422,13 +422,14 @@
   <h2>تابعنا</h2>
   <p style="text-align:center;font-size:15px;margin-top:-4px">آخر أعمالنا وفيديوهاتنا على صفحاتنا</p>
   <div class="follow-grid">
+    <div class="follow-card"><div class="follow-head">▶️ يوتيوب</div><div class="follow-embed" data-embed="youtube"><a class="follow-btn" href="https://www.youtube.com/@Baselakash" target="_blank" rel="noopener">قناتنا على يوتيوب</a></div><a class="follow-btn" href="https://www.youtube.com/@Baselakash?sub_confirmation=1" target="_blank" rel="noopener">اشترك بقناتنا على يوتيوب</a></div>
     <div class="follow-card"><div class="follow-head">🎵 تيك توك</div><div class="follow-embed" data-embed="tiktok"><a class="follow-btn" href="https://www.tiktok.com/@basel.akash" target="_blank" rel="noopener">@basel.akash</a></div><a class="follow-btn" href="https://www.tiktok.com/@basel.akash" target="_blank" rel="noopener">تابعنا على تيك توك</a></div>
     <div class="follow-card"><div class="follow-head">📘 فيسبوك</div><div class="follow-embed" data-embed="facebook"><a class="follow-btn" href="https://www.facebook.com/baselalakash" target="_blank" rel="noopener">صفحتنا على فيسبوك</a></div><a class="follow-btn" href="https://www.facebook.com/baselalakash" target="_blank" rel="noopener">تابعنا على فيسبوك</a></div>
     <div class="follow-card"><div class="follow-head">📸 إنستغرام</div><div class="follow-embed follow-ig"><div class="ig-avatar">قيصر الشام</div><b dir="ltr">@cesar_du_sham2</b><span>صور أعمالنا بالرخام والحجر</span></div><a class="follow-btn" href="https://www.instagram.com/cesar_du_sham2" target="_blank" rel="noopener">تابعنا على إنستغرام</a></div>
   </div>
 </section>
 <style>
-  .follow-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;max-width:1150px;margin:14px auto 0}
+  .follow-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;max-width:1150px;margin:14px auto 0}
   .follow-card{background:#fff;border:1px solid #E6D6BC;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;align-items:center;box-shadow:0 8px 20px rgba(59,36,20,.06)}
   .follow-head{font-weight:800;font-size:16px;color:var(--ink)}
   .follow-embed{width:100%;min-height:420px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:12px;background:var(--cream)}
@@ -443,6 +444,7 @@
 (function(){const sec=document.getElementById('follow');if(!sec)return;let done=false;
   const load=()=>{if(done)return;done=true;
     const tk=sec.querySelector('[data-embed="tiktok"]');if(tk){tk.innerHTML='<blockquote class="tiktok-embed" cite="https://www.tiktok.com/@basel.akash" data-unique-id="basel.akash" data-embed-type="creator" style="max-width:100%;min-width:288px;margin:0"><section><a target="_blank" href="https://www.tiktok.com/@basel.akash?refer=creator_embed">@basel.akash</a></section></blockquote>';const sc=document.createElement('script');sc.async=true;sc.src='https://www.tiktok.com/embed.js';document.body.appendChild(sc)}
+    const yt=sec.querySelector('[data-embed="youtube"]');if(yt)yt.innerHTML='<iframe title="آخر فيديوهات قيصر الشام على يوتيوب" src="https://www.youtube-nocookie.com/embed/videoseries?list=UU3ErMPUSjReq-mG8GQ-7lKw" style="width:100%;height:100%;min-height:420px" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>';
     const fb=sec.querySelector('[data-embed="facebook"]');if(fb){const w=Math.min(500,Math.max(280,Math.round(fb.clientWidth||340)));fb.innerHTML='<iframe title="صفحة قيصر الشام على فيسبوك" src="https://www.facebook.com/plugins/page.php?href='+encodeURIComponent('https://www.facebook.com/baselalakash')+'&tabs=timeline&width='+w+'&height=420&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false" width="'+w+'" height="420" scrolling="no" loading="lazy" allow="encrypted-media; web-share"></iframe>'}};
   if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){load();io.disconnect()}},{rootMargin:'400px'});io.observe(sec)}else load();
 })();
