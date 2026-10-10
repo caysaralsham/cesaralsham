@@ -1242,6 +1242,7 @@ document.getElementById('btnSaveEditItem').addEventListener('click', async ()=>{
     type: document.getElementById('editType').value.trim(),
     price: document.getElementById('editPrice').value.trim(),
   };
+  if ((updated.color || '') !== (it.color || '')) updated.colorAuto = false; // لون كتبته بإيدك ما بيتغيّر أوتوماتيك
   items = items.map(x => x.id === editingItemId ? updated : x);
   renderItemsTable();
   document.getElementById('editItemOverlay').classList.remove('show');
@@ -1307,16 +1308,42 @@ const TT=(()=>{
   const sing=f=>{if(!f)return f;if(/\bet\b/.test(f.split(' en ')[0]))return f;const w=f.split(' ');
     const one=x=>/aux$/i.test(x)?x.replace(/aux$/i,'au'):(/[^s]s$/i.test(x)&&x.length>3?x.slice(0,-1):x);
     w[0]=one(w[0]);if(w[1]&&!/^(en|de|du|des|et|à|au)$/i.test(w[1]))w[1]=one(w[1]);return w.join(' ').replace(/^Salle de bains/i,'Salle de bain').replace(/ de maisons\b/i,' de maison')};
-  const DESC=[['بتصميم كلاسيكي','au design classique'],['بنقش يدوي','sculpté à la main'],['بستايل مودرن','au style moderne'],['بلمسة فاخرة','de luxe'],['بتشطيب لامع','à finition polie'],
-    ['بتفاصيل منحوتة','aux détails sculptés'],['بلمسة عربية','à touche orientale'],['حسب الطلب','sur mesure'],['بزخارف نباتية','à motifs floraux'],['بخطوط هندسية','à lignes géométriques'],['بتنفيذ دقيق','d\'exécution soignée']];
+  const DESC=[['بنحت CNC','sculpté en CNC'],['بتصميم كلاسيكي','au design classique'],['بلمسة فاخرة','de luxe'],['بتشطيب لامع','à finition polie'],
+    ['بتفاصيل منحوتة CNC','aux détails sculptés en CNC'],['حسب الطلب','sur mesure'],['بتنفيذ دقيق','d\'exécution soignée'],['بقص وتشطيب احترافي','à découpe et finition professionnelles']];
   const COL=[[/(أبيض|ابيض).*كرار|كرار.*(أبيض|ابيض)/,'أبيض كرارا','blanc de Carrare'],[/كرار/,'كرارا','de Carrare'],[/أبيض|ابيض|بيضاء/,'أبيض','blanc'],[/بيج/,'بيج','beige'],[/كريم/,'كريمي','crème'],[/رمادي|رصاصي/,'رمادي','gris'],[/أسود|اسود/,'أسود','noir'],
     [/بني/,'بني','marron'],[/أحمر|احمر/,'أحمر','rouge'],[/أخضر|اخضر/,'أخضر','vert'],[/أصفر|اصفر/,'أصفر','jaune'],[/ذهبي/,'ذهبي','doré'],[/وردي|زهري/,'وردي','rose']];
   const colorOf=t=>{t=String(t||'');for(const [re,a,f] of COL)if(re.test(t))return{ar:a,fr:f};return t.trim()?{ar:t.trim(),fr:''}:null};
-  // لون تقريبي من نص الصورة (اللي غالباً فيه القطعة)
-  function guessColor(im){try{const c=document.createElement('canvas');c.width=48;c.height=48;const x=c.getContext('2d',{willReadFrequently:true});const w=im.naturalWidth,h=im.naturalHeight;x.drawImage(im,w*.25,h*.2,w*.5,h*.55,0,0,48,48);
-    const d=x.getImageData(0,0,48,48).data;let r=0,g=0,b=0,n=0;for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2];n++}r/=n;g/=n;b/=n;
-    const mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,sat=mx?(mx-mn)/mx:0;
-    if(l>200&&sat<.12)return'أبيض';if(l<60)return'أسود';if(sat<.10)return'رمادي';if(r>g&&g>b&&sat<.35&&l>150)return'بيج';if(r>g&&g>b&&l<=150&&sat<.5)return'بني';if(r>g*1.25&&r>b*1.25)return'أحمر';if(g>r&&g>b)return'أخضر';return''}catch(e){return''}}
+  // لون الحجر من الصورة — تحليل ذكي لكل بكسل: تصحيح إضاءة الكاميرا، تجاهل السما واللوغو،
+  // وفصل الحجر الملوّن (بيج/بني...) عن الحيطان والدرج الأبيض/الرمادي. الظل ما بيخلّي البيج بني.
+  function hsl(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,d=mx-mn;let h=0,s=0;
+    if(d>1e-6){s=d/(1-Math.abs(2*l-1));if(mx===r)h=((g-b)/d)%6;else if(mx===g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60;if(h<0)h+=360}return[h,s,l]}
+  const pct=(arr,q)=>{if(!arr.length)return 0;arr.sort((a,b)=>a[0]-b[0]);const tot=arr.reduce((a,x)=>a+x[1],0);let acc=0;for(const x of arr){acc+=x[1];if(acc>=tot*q)return x[0]}return arr[arr.length-1][0]};
+  function guessColor(im){try{const N=96,c=document.createElement('canvas');c.width=N;c.height=N;const x=c.getContext('2d',{willReadFrequently:true});
+    x.drawImage(im,0,0,N,N);const d=x.getImageData(0,0,N,N).data;const P=[];
+    for(let y=0;y<N;y++)for(let X=0;X<N;X++){
+      if(X>N*.72&&y>N*.70)continue; // اللوغو تحت يمين
+      const dx=X/N-.5,dy=y/N-.5,w=Math.exp(-(dx*dx+dy*dy)/(2*.32*.32)),i=(y*N+X)*4;P.push([d[i],d[i+1],d[i+2],w])}
+    // 1) تصحيح الإضاءة الزرقا (بس إذا الأبيض بالصورة مزرّق — ما منشيل دفا الحجر)
+    let R=0,G=0,B=0,n=0;P.forEach(p=>{const [,s,l]=hsl(p[0],p[1],p[2]);if(l>0.6&&s<0.14){R+=p[0];G+=p[1];B+=p[2];n++}});
+    if(n>P.length*.03&&B>R){const m=(R+G+B)/3,cl=v=>Math.min(1.15,Math.max(0.9,v)),gr=cl(m/R),gg=cl(m/G),gb=cl(m/B);P.forEach(p=>{p[0]*=gr;p[1]*=gg;p[2]*=gb})}
+    // 2) تصنيف البكسلات
+    const warm=[],neu=[];let wW=0,wN=0,hx=0,hy=0,sS=0,red=0,grn=0,tot=0;
+    for(const p of P){const [r,g,b,w]=p,[h,s,l]=hsl(r,g,b),mx=Math.max(r,g,b,1),wa=(r-b)/mx;tot+=w;
+      if(h>=185&&h<260&&s>0.2&&wa<-0.06)continue; // سما/زجاج
+      if(h>=70&&h<170&&s>0.2){grn+=w;continue}
+      if((h<14||h>=340)&&s>0.45&&l>0.22&&l<0.62)red+=w;
+      if(l>0.08&&r>=b&&(l<0.5?wa>0.06:wa>0.11)){warm.push([l,w]);wW+=w;hx+=Math.cos(h*Math.PI/180)*w;hy+=Math.sin(h*Math.PI/180)*w;sS+=s*w}
+      else{neu.push([l,w]);wN+=w}}
+    if(grn>tot*.35)return'أخضر';
+    if(red>tot*.25)return'أحمر';
+    // 3) إذا في حجر دافي واضح → لونه من الأجزاء المضوية (الربع الفاتح)، مش من الظل
+    if(wW>(wW+wN)*.22){const L=pct(warm,0.75),hue=(Math.atan2(hy,hx)*180/Math.PI+360)%360,sat=sS/wW;
+      if(hue>=48&&hue<70&&sat>0.35&&L>0.45)return'أصفر';
+      const deep=warm.filter(x=>x[0]<0.30).reduce((a,x)=>a+x[1],0)/wW; // ظل البيج نادراً ينزل تحت 0.30 — الحجر البني بينزل
+      if(L<0.40||deep>0.30)return'بني';if(L>0.86)return'كريمي';return'بيج'}
+    // 4) حجر حيادي: أبيض / رمادي / أسود
+    const dark=neu.filter(x=>x[0]<0.2).reduce((a,x)=>a+x[1],0);if(dark>wN*.35)return'أسود';
+    const L=pct(neu,0.5);return L>0.75?'أبيض':(L<0.22?'أسود':'رمادي')}catch(e){return''}}
   const pad=(n,t)=>String(n).padStart(t>99?3:2,'0');
   function make(list,isVideo){ // بيرجّع id -> {title}
     const byCat={};list.forEach(it=>{const k=(it.category||'').trim()||'—';(byCat[k]=byCat[k]||[]).push(it)});const out={};
@@ -1338,9 +1365,9 @@ const TT=(()=>{
     stop=false;window.__bgBusy=true;keepAwake(true);$('ttRun').disabled=true;$('ttStop').style.display='';
     try{
       // 1) لون تقريبي للصور اللي ما إلها لون (بيتحفظ كل 10 صور — إذا طلعت من الصفحة بيكمّل من وين وقف)
-      const need=items.filter(it=>!String(it.color||'').trim()&&!it.colorAuto&&it.img);let pend={},k=0;
+      const need=items.filter(it=>it.img&&((!String(it.color||'').trim()&&!it.colorAuto)||(it.colorAuto&&it.colorAutoV!==2)));let pend={},k=0;
       for(const it of need){if(stop)break;k++;$('ttStatus').textContent='بقرّب ألوان الصور: '+k+' من '+need.length;
-        try{const im=await loadImgEl(it.img);const c=TT.guessColor(im);pend[it.id]={color:c,colorAuto:true};it.color=c;it.colorAuto=true}catch(e){}
+        try{const im=await loadImgEl(it.img);const c=TT.guessColor(im);pend[it.id]={color:c,colorAuto:true,colorAutoV:2};it.color=c;it.colorAuto=true;it.colorAutoV=2}catch(e){}
         if(Object.keys(pend).length>=10){await saveFresh(pend,CHUNK_PREFIX);pend={}}}
       if(Object.keys(pend).length)await saveFresh(pend,CHUNK_PREFIX);
       if(stop)throw new Error('stopped');
@@ -1354,7 +1381,7 @@ const TT=(()=>{
       items=items.map(it=>ti[it.id]?{...it,...ti[it.id]}:it);videos=videos.map(v=>tv[v.id]?{...v,...tv[v.id]}:v);
       renderItemsTable();if(typeof renderVideosTable==='function')renderVideosTable();
       const ex=items.slice(0,4).map(it=>'• '+it.title.replace(' | ','<br><span style="color:#888" dir="ltr">')+'</span>').join('<br>');
-      $('ttStatus').textContent='خلص ✓ — انحدّثت '+a+' صورة و'+b+' فيديو. الصفحة الفرنسية بتتحدّث لحالها خلال يوم.';$('ttSample').innerHTML=ex;
+      $('ttStatus').textContent='خلص ✓ — انحدّثت '+a+' صورة و'+b+' فيديو. الصفحات بتتحدّث لحالها خلال 3 ساعات.';$('ttSample').innerHTML=ex;
     }catch(e){$('ttStatus').textContent=e.message==='stopped'?'وقّفت — اكبس الزر مرة تانية بيكمّل من وين وقف':'ما زبط: '+(e.message||e);console.error(e)}
     finally{window.__bgBusy=false;keepAwake(false);$('ttRun').disabled=false;$('ttStop').style.display='none'}
   };

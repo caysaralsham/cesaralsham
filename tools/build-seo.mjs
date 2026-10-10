@@ -203,7 +203,7 @@ for (const s of Object.values(saved)) if (!live.has(s + '.html') && fs.existsSyn
   wr(s + '.html', `<!DOCTYPE html><html lang="ar"><head><meta charset="UTF-8"><meta name="robots" content="noindex"><link rel="canonical" href="${SITE}/works"><meta http-equiv="refresh" content="0; url=/works"><title>أعمالنا</title></head><body><a href="/works">أعمالنا</a></body></html>\n`);
 
 // works.html: صور ثابتة (Google بيشوفها قبل ما تشتغل الصفحة) وروابط الأقسام
-const card = (it, c) => { const src = imgUrl(it); return src ? `<div class="card"><div class="img-wrap"><img src="${esc(src)}" loading="lazy" alt="${esc(altOf(it, c))}"></div><div class="body"><div class="title">${esc(it.title || splitName(c).ar)}</div><div class="meta">${esc(splitName(c).ar)}</div></div></div>` : ''; };
+const card = (it, c) => { const src = imgUrl(it); return src ? `<div class="card"><div class="img-wrap"><img src="${esc(src)}" loading="lazy" alt="${esc(altOf(it, c))}"></div><div class="body"><div class="title">${esc((it.title && splitName(it.title).ar) || splitName(c).ar)}</div><div class="meta">${esc(splitName(c).ar)}</div></div></div>` : ''; };
 let w = rd('works.html');
 w = inject(w, 'GALLERY', cats.map(c => card(byCat.get(c)[0], c).replace('<div class="card">', `<div class="card"><a href="/${slugs[c]}" style="display:contents">`).replace(/<\/div><\/div>$/, '</div></a></div>')).join(''));
 w = inject(w, 'CATS', cats.map(c => `<li><a href="/${slugs[c]}">${esc(splitName(c).ar)}</a> <span>(${byCat.get(c).length})</span></li>`).join(''));
