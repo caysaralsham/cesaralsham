@@ -15,14 +15,14 @@ export async function onRequest({ request, env }) {
     const u = new URL(request.url);
     if (u.searchParams.get('selftest') !== 'clad7' || !key) return json({ ok: !!key, models: MODELS });
     // فحص لمرة وحدة: أي موديل صور بيرجّع صورة فعلاً (النتيجة بتنحفظ يوم كامل حتى ما ينصرف رصيد)
-    const ck = new Request('https://cache.local/ai-clad-selftest-v1'); const hit = await caches.default.match(ck); if (hit) return hit;
+    const ck = new Request('https://cache.local/ai-clad-selftest-v2'); const hit = await caches.default.match(ck); if (hit) return hit;
     const out = {};
     for (const m of MODELS) {
       const g = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
         body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: 'A small photorealistic square swatch of beige natural stone wall cladding.' }] }], generationConfig: { responseModalities: ['TEXT', 'IMAGE'], imageConfig: { aspectRatio: '1:1' } } }) });
-      const t = await g.text(); let info = g.status + '';
-      if (g.ok) { const n = (t.match(/"(inlineData|inline_data)"/g) || []).length; info += ' images=' + n; out[m] = info; if (n) break; }
-      else { try { info += ' ' + JSON.parse(t).error.message.slice(0, 120); } catch (e) {} out[m] = info; }
+      let info = g.status + '';
+      if (g.ok) { let n = 0; const rd = g.body.getReader(); for (;;) { const { done, value } = await rd.read(); if (done) break; n += value.byteLength; } info += ' bytes=' + n; out[m] = info; if (n > 30000) break; }
+      else { const t = await g.text(); info += ' ' + t.slice(0, 220).replace(/\s+/g, ' '); out[m] = info; }
     }
     const res = json({ ok: true, out }); res.headers.set('cache-control', 'public, max-age=86400');
     await caches.default.put(ck, res.clone()); return res;
