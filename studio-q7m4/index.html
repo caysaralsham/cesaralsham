@@ -2705,6 +2705,24 @@ function billLines(){const R=lastR||{},T=SCHEMAS[tab].title;if(R.lines)return R.
   if(tab==='jurn'&&cutT){const sh=cutT.rows.find(r=>r.cells[0]==='الشكل');if(sh)pre=' '+sh.cells[1]}
   const st=(R.stats||[]).filter(x=>!/^السعة/.test(x[0])).map(x=>x[0]+': '+x[1]).join('؛ ');
   return[{desc:T+pre+(st?' — '+st:''),qty:1,unit:''}]}
+// ---- محرك الرسم المشترك: المعرض والمعمل بيبعتوا قياسات الرسمة، والمرسم بيرسمها ويرجّع الصورة (بلا ما تنزل صورة من السحابة) ----
+const RENDER=new URLSearchParams(location.search).has('render')&&window.parent!==window;
+if(RENDER){
+  autosave=function(){}; // ما منغيّر آخر شغل محفوظ بالمرسم
+  const okO=o=>/^https:\/\/([a-z0-9-]+\.)*(github\.io|cesar-alcham\.com|pages\.dev)$/.test(o)||/^http:\/\/localhost(:\d+)?$/.test(o);
+  let q=Promise.resolve();
+  window.addEventListener('message',e=>{
+    const d=e.data;if(!okO(e.origin)||!d||d.type!=='mirsam-render')return;
+    q=q.then(async()=>{
+      try{const ms=d.mstate||{};if(!SCHEMAS[ms.tab])throw new Error('no tab');
+        tab=ms.tab;state[tab]={...defaults(tab),...(ms.state||{})};render();
+        const img=await pureImage();
+        e.source.postMessage({type:'mirsam-rendered',id:d.id,img,stats:(lastR&&lastR.stats)||[]},e.origin);
+      }catch(err){e.source.postMessage({type:'mirsam-rendered',id:d.id,err:String(err&&err.message||err)},e.origin)}
+    });
+  });
+  window.parent.postMessage({type:'mirsam-render-ready'},'*');
+}
 const EMBED=new URLSearchParams(location.search).has('embed')&&window.parent!==window;
 const HUB=new URLSearchParams(location.search).has('hub');
 if(EMBED){
