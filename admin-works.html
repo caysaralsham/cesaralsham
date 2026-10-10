@@ -1013,8 +1013,10 @@ function renderBulkBar(){
   document.getElementById('bulkDel').onclick=async()=>{
     if(!confirm(`حذف ${selected.size} صورة؟`)) return;
     const ids=[...selected], map={}; ids.forEach(id=>map[id]=null);
+    const imgs=items.filter(it=>ids.includes(it.id)).flatMap(it=>[it.img,it.oldImg]).filter(u=>u&&/firebasestorage/.test(u));
     selected.clear(); applyLocal(map); await saveItemsBatch(map);
     for(const id of ids){ try{ await storage.ref('gallery/' + id + '.jpg').delete(); }catch(e){} }
+    for(const u of imgs){ try{ await storage.refFromURL(u).delete(); }catch(e){} }
     toast('تم الحذف');
   };
 }
@@ -1075,10 +1077,12 @@ document.addEventListener('toggle',e=>{const d=e.target;if(!(d.classList&&d.clas
   else openCats.delete(d.dataset.key)},true);
 async function deleteItem(id){
   if(!confirm('حذف هذه الصورة؟')) return;
+  const del=items.find(it=>it.id===id);
   items = items.filter(it => it.id !== id);
   renderItemsTable();
   await removeItemCloud(id);
   try{ await storage.ref('gallery/' + id + '.jpg').delete(); }catch(e){}
+  for(const u of [del&&del.img,del&&del.oldImg]){ if(u&&/firebasestorage/.test(u)) try{ await storage.refFromURL(u).delete(); }catch(e){} }
   toast('تم الحذف');
 }
 
