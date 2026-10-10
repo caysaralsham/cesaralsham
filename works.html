@@ -115,6 +115,22 @@
   .price-btn:hover{background:#18744A}
   .lightbox-overlay{flex-direction:column;gap:14px}
   .lightbox-overlay .price-btn{font-size:15px;padding:10px 20px;margin:0}
+
+  /* شاشة الكمبيوتر: عرض أكبر، 3-4 أعمدة، الأقسام قائمة وحدة على اليمين */
+  @media (min-width:961px){
+    .page-head,.works-layout,.seo-text{max-width:1600px}
+    .works-layout{grid-template-columns:240px 1fr; gap:28px}
+    .filters{grid-template-columns:1fr; gap:6px}
+    .filter-btn{font-size:13.5px; padding:8px 12px}
+    .gallery-grid{grid-template-columns:repeat(3,1fr); gap:20px}
+    .card .img-wrap{height:340px}
+    .card .img-wrap img{width:auto; max-width:100%; height:auto; max-height:100%; object-fit:contain}
+    .card .title{font-size:15.5px}
+    .seo-text{font-size:15.5px}
+  }
+  @media (min-width:1400px){ .gallery-grid{grid-template-columns:repeat(4,1fr)} }
+  .lightbox-overlay img{max-height:80vh}
+  .lightbox-cap{color:#F5ECDD; font-weight:800; font-size:17px; text-align:center}
 </style>
 </head>
 <body>
@@ -174,6 +190,7 @@
 <div class="lightbox-overlay" id="lightboxOverlay">
   <span class="lightbox-close" id="lightboxClose">×</span>
   <img id="lightboxImg" src="">
+  <div class="lightbox-cap" id="lightboxCap"></div>
   <a class="price-btn" id="lightboxPrice" href="#" target="_blank" rel="noopener">💬 اطلب السعر</a>
 </div>
 
@@ -321,7 +338,7 @@ function renderGallery(){
 
 function openLightbox(i){
   const x=shown[i];if(!x)return;
-  document.getElementById('lightboxImg').src = x.src;
+  document.getElementById('lightboxImg').src = x.src;{const c=document.getElementById('lightboxCap');if(c)c.textContent=x.cat||x.category||x.name||'';}
   const pb=document.getElementById('lightboxPrice');pb.href=waHref(x.name,'');pb.onclick=e=>{if(window.askPrice){e.preventDefault();imgLink(x.src).then(l=>askPrice(x.name,l)).catch(()=>askPrice(x.name,''))}};imgLink(x.src).then(l=>{if(l)pb.href=waHref(x.name,l)}).catch(()=>{});
   document.getElementById('lightboxOverlay').classList.add('show');
 }

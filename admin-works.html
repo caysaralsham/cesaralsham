@@ -187,6 +187,14 @@
       <button class="btn" style="width:100%; justify-content:center;" id="btnUpload">رفع الصورة</button>
     </div>
 
+    <div class="panel" id="wmFixPanel">
+      <h2>🔄 تحديث اللوغو على الصور القديمة</h2>
+      <p style="font-size:13px;color:#6b5a48;margin:0 0 10px">بيلاقي الصور اللي عليها الشريط القديم («الجزائر · قيصر الشام · الرقم»)، بيقص الشريط من تحت، وبيحط اللوغو الجديد: اللوغو، تحته «الجزائر - دالي ابراهيم»، وتحته الرقم — يمين تحت. الصورة القديمة بتضل محفوظة احتياط.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="wmScan">١) افحص الصور وورّيني مثال</button><button class="btn" id="wmGo" style="display:none;background:#1F8F55">٢) كمّل على كل الصور</button><button class="btn" id="wmStop" style="display:none;background:#A6453D">وقّف</button></div>
+      <div id="wmStatus" style="font-size:13px;margin-top:10px;font-weight:700"></div>
+      <div id="wmPreview" style="display:none;gap:12px;margin-top:10px;flex-wrap:wrap"><figure style="margin:0;flex:1;min-width:220px"><figcaption style="font-size:12px">قبل</figcaption><img id="wmBefore" style="width:100%;border:1px solid #e6d6bc;border-radius:8px"></figure><figure style="margin:0;flex:1;min-width:220px"><figcaption style="font-size:12px">بعد</figcaption><img id="wmAfter" style="width:100%;border:1px solid #e6d6bc;border-radius:8px"></figure></div>
+    </div>
+
     <div class="panel">
       <h2>كل الصور (<span id="itemsCount">0</span>)</h2>
       <div id="itemsTableWrap"></div>
@@ -1231,6 +1239,57 @@ document.getElementById('watermarkFileInput').addEventListener('change', async (
   }catch(e){ console.error(e); toast('تعذّرت إضافة الشعار'); }
   finally{ btn.textContent = originalLabel; btn.disabled = false; }
 });
+
+// ---------- تحديث اللوغو على الصور القديمة (الشريط القديم ← اللوغو الجديد) ----------
+(function(){
+  const $=id=>document.getElementById(id);let stop=false,found=[];
+  const loadImgEl=u=>new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=()=>rej(new Error('تعذر فتح الصورة'));im.src='/img-proxy?u='+encodeURIComponent(u)});
+  const L=(d,i)=>0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+  // بيرجّع كم سطر لازم ينقص من تحت (الشريط الغامق القديم يمين تحت مع كتابة بيضا)، أو 0 إذا ما في
+  function findStrip(im){
+    // الشريط القديم مستطيل غامق نص شفاف: حافته الفوقانية خط أفقي حاد (كل البكسلات تحته أغمق فجأة بحوالي النص)
+    const w=im.naturalWidth,h=im.naturalHeight,c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(im,0,0);
+    const x0=Math.round(w*.70),x1=w-14,maxH=Math.round(Math.min(h*.22,w*.14+40)),y0=h-maxH-2,rw=x1-x0;
+    const d=x.getImageData(x0,y0,rw,h-y0).data,Lp=(xx,yy)=>{const i=((yy-y0)*rw+xx)*4;return 0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]};
+    const edge=y=>{if(y<=y0+1||y>=h-1)return 0;let n=0,k=0;for(let xx=0;xx<rw;xx+=2){const a=Lp(xx,y-1),b=Lp(xx,y);if(a>30){n++;if(b<a*.75)k++}}return n?k/n:0};
+    // مكان الشريط المتوقع (نفس حساب الكود القديم): ارتفاعه 2.4×الخط+16، وفوق الحافة بـ10
+    const fs=Math.max(11,Math.round(w*0.022)),yE=h-10-Math.round(fs*2.4+16);
+    let best=0,by=-1;for(let y=yE-4;y<=yE+4;y++){const f=edge(y);if(f>best){best=f;by=y}}
+    if(best<.3){best=0;by=-1;for(let y=h-14;y>y0+1;y--){const f=edge(y);if(f>best){best=f;by=y}}if(best<.5)return 0}
+    by=Math.min(by,yE); // نقص كل الشريط أكيد
+    // تأكيد: لازم يكون في كتابة بيضا جوّا الشريط
+    let wh=0,tot=0;for(let y=by+2;y<h-12;y+=2)for(let xx=0;xx<rw;xx+=2){tot++;if(Lp(xx,y)>200)wh++}
+    if(!tot||wh/tot<.01)return 0;
+    return h-by+3;
+  }
+  async function makeNew(im,cut){
+    const w=im.naturalWidth,h=im.naturalHeight-cut,c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(im,0,0,w,h,0,0,w,h);
+    await drawWatermark(x,w,h);return c;
+  }
+  $('wmScan').onclick=async()=>{
+    stop=false;found=[];$('wmGo').style.display='none';$('wmPreview').style.display='none';
+    const list=items.filter(it=>it.img&&!it.wmV2);let i=0;
+    for(const it of list){if(stop)break;i++;$('wmStatus').textContent='جاري الفحص '+i+' من '+list.length+' — لقيت '+found.length+' صورة عليها الشريط القديم';
+      try{const im=await loadImgEl(it.img);const cut=findStrip(im);if(cut){found.push({it,cut});
+        if(found.length===1){const c=await makeNew(im,cut);$('wmBefore').src=im.src;$('wmAfter').src=c.toDataURL('image/jpeg',.85);$('wmPreview').style.display='flex'}}}catch(e){console.warn(it.id,e)}}
+    $('wmStatus').textContent=found.length?('لقيت '+found.length+' صورة عليها الشريط القديم. شوف المثال تحت — إذا تمام اكبس «كمّل على كل الصور».'):'ما في صور عليها الشريط القديم 👍';
+    $('wmGo').style.display=found.length?'':'none';
+  };
+  $('wmStop').onclick=()=>{stop=true};
+  $('wmGo').onclick=async()=>{
+    if(!found.length||!confirm('تحديث اللوغو على '+found.length+' صورة؟ الصور القديمة بتضل محفوظة احتياط.'))return;
+    stop=false;$('wmGo').style.display='none';$('wmStop').style.display='';let ok=0,bad=0;const done={};
+    for(const [k,f] of found.entries()){if(stop)break;$('wmStatus').textContent='جاري التحديث '+(k+1)+' من '+found.length+'...';
+      try{const im=await loadImgEl(f.it.img);const c=await makeNew(im,f.cut);const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.88));
+        const ref=storage.ref('gallery/'+f.it.id+'-v2-'+Date.now().toString(36)+'.jpg');await ref.put(blob,{contentType:'image/jpeg'});const url=await ref.getDownloadURL();
+        const updated={...f.it,img:url,wmV2:true,oldImg:f.it.img};done[updated.id]=updated;ok++}
+      catch(e){console.error(e);bad++}}
+    // حفظ كل التعديلات دفعة وحدة (حتى ما يكتب تعديل فوق تعديل)
+    if(ok){$('wmStatus').textContent='جاري الحفظ...';await saveItemsBatch(done);applyLocal(done)}
+    $('wmStop').style.display='none';renderItemsTable();found=[];
+    $('wmStatus').textContent='خلص ✓ — انحدّثت '+ok+' صورة'+(bad?(' — وما زبطت '+bad+' (جرّب افحص من جديد)'):'')+'. الصور القديمة محفوظة احتياط.';
+  };
+})();
 
 // ---------- upload ----------
 let loadedImage = null;
