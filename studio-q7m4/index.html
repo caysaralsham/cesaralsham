@@ -2090,7 +2090,7 @@ function drawColumn(s){
   if(cH){stats.push(['التاج',CTp[cT]+'، '+cW+' × '+cH+' سم']);cut.push({cells:['تاج '+CTp[cT],'عرض '+cW+'، ارتفاع '+cH,Math.max(1,+s.cnt||1)]})}
   const cnt=Math.max(1,+s.cnt||1);if(cnt>1){stats.splice(1,0,['عدد العواميد',cnt]);if(qty)stats.push([unit==='م³'?'الحجم الكلي لـ '+cnt+' عواميد':'المساحة الكلية لـ '+cnt+' عواميد',(qty*cnt).toFixed(unit==='م³'?3:2)+' '+unit])}
   // سطر واحد بالسعر (بالمكعب أو بالمتر) حتى ما ينحسب المبلغ مرتين
-  const lines=[{desc:`عامود ${nm} — ${kn} — ${shape==='round'?'قطر':'عرض'} ${outer} سم، ارتفاع ${H} سم${kind!=='block'?'، باطون '+core+'، سماكة '+th:''} — ${cnt} ${cnt>1?'عواميد':'عامود'}`,qty:qty?+(qty*cnt).toFixed(3):cnt,unit:qty?unit:'عامود'}];
+  const lines=[{desc:`عامود ${nm} — ${kn} — ${shape==='round'?'قطر':'عرض'} ${outer} سم، ارتفاع ${H} سم${kind!=='block'?'، باطون '+core+'، سماكة '+th:''} — ${cnt} ${cnt>1?'عواميد':'عامود'}${qty?'، العامود الواحد '+qty+' '+unit:''}`,qty:qty?+(qty*cnt).toFixed(3):cnt,unit:qty?unit:'عامود'}];
   if(bH)lines.push({desc:`قاعدة عامود ${BT[bT]} — ${bW}×${bH} سم`,qty:cnt,unit:'قاعدة'});
   if(cH)lines.push({desc:`تاج عامود ${CTp[cT]} — ${cW}×${cH} سم`,qty:cnt,unit:'تاج'});
   return{svg:o,insets:[inset],box:[-Math.max(bW,cW)/2-S*.1,xr+S*.2,-tot-S*.08,S*.08],stats,tables:[{title:'قائمة القطع للمعمل',head:['القطعة','القياس (سم)','العدد'],rows:cut}],lines,note:''};
