@@ -190,7 +190,7 @@
     <div class="panel" id="wmFixPanel">
       <h2>🔄 تحديث اللوغو على الصور القديمة</h2>
       <p style="font-size:13px;color:#6b5a48;margin:0 0 10px">بيلاقي الصور اللي عليها الشريط القديم («الجزائر · قيصر الشام · الرقم»)، بيقص الشريط من تحت، وبيحط اللوغو الجديد: اللوغو، تحته «الجزائر - دالي ابراهيم»، وتحته الرقم — يمين تحت. الصورة القديمة بتضل محفوظة احتياط.</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="wmScan">١) افحص الصور وورّيني مثال</button><button class="btn" id="wmGo" style="display:none;background:#1F8F55">٢) كمّل على كل الصور</button><button class="btn" id="wmStop" style="display:none;background:#A6453D">وقّف</button></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="wmScan">١) افحص الصور وورّيني مثال</button><button class="btn" id="wmGo" style="display:none;background:#1F8F55">٢) كمّل على كل الصور</button><button class="btn" id="wmStop" style="display:none;background:#A6453D">وقّف</button><button class="btn" id="wmNext" style="display:none">مثال تاني ←</button></div>
       <div id="wmStatus" style="font-size:13px;margin-top:10px;font-weight:700"></div>
       <div id="wmPreview" style="display:none;gap:12px;margin-top:10px;flex-wrap:wrap"><figure style="margin:0;flex:1;min-width:220px"><figcaption style="font-size:12px">قبل</figcaption><img id="wmBefore" style="width:100%;border:1px solid #e6d6bc;border-radius:8px"></figure><figure style="margin:0;flex:1;min-width:220px"><figcaption style="font-size:12px">بعد</figcaption><img id="wmAfter" style="width:100%;border:1px solid #e6d6bc;border-radius:8px"></figure></div>
     </div>
@@ -1257,6 +1257,11 @@ document.getElementById('watermarkFileInput').addEventListener('change', async (
     let best=0,by=-1;for(let y=yE-4;y<=yE+4;y++){const f=edge(y);if(f>best){best=f;by=y}}
     if(best<.3){best=0;by=-1;for(let y=h-14;y>y0+1;y--){const f=edge(y);if(f>best){best=f;by=y}}if(best<.5)return 0}
     by=Math.min(by,yE); // نقص كل الشريط أكيد
+    // إذا في لوغو تاني (لوحة فاتحة) فوق الشريط يمين — منقصّه كمان حتى ما يطلعوا لوغوين فوق بعض
+    {const px0=Math.round(w*.905),px1=Math.round(w*.982),pw=px1-px0,maxUp=Math.round(w*.32),top0=Math.max(0,by-maxUp);
+     const pd=x.getImageData(px0,top0,pw,by-top0).data,rowPanel=y=>{let k=0,n=0;for(let xx=0;xx<pw;xx+=2){const i=((y-top0)*pw+xx)*4,r=pd[i],g=pd[i+1],b=pd[i+2],l=0.299*r+0.587*g+0.114*b;n++;if(l>190&&Math.max(r,g,b)-Math.min(r,g,b)<28)k++}return n?k/n:0};
+     let y=by-1,miss=0,ptop=-1,rows=0;for(;y>top0;y--){if(rowPanel(y)>.35){ptop=y;rows++;miss=0}else if(++miss>8)break}
+     if(ptop>0&&rows>w*.04&&(by-ptop)<maxUp)by=ptop-2;}
     // تأكيد: لازم يكون في كتابة بيضا جوّا الشريط
     let wh=0,tot=0;for(let y=by+2;y<h-12;y+=2)for(let xx=0;xx<rw;xx+=2){tot++;if(Lp(xx,y)>200)wh++}
     if(!tot||wh/tot<.01)return 0;
@@ -1267,15 +1272,17 @@ document.getElementById('watermarkFileInput').addEventListener('change', async (
     await drawWatermark(x,w,h);return c;
   }
   $('wmScan').onclick=async()=>{
-    stop=false;found=[];$('wmGo').style.display='none';$('wmPreview').style.display='none';
+    stop=false;found=[];$('wmGo').style.display='none';$('wmNext').style.display='none';$('wmPreview').style.display='none';$('wmStop').style.display='';
     const list=items.filter(it=>it.img&&!it.wmV2);let i=0;
     for(const it of list){if(stop)break;i++;$('wmStatus').textContent='جاري الفحص '+i+' من '+list.length+' — لقيت '+found.length+' صورة عليها الشريط القديم';
       try{const im=await loadImgEl(it.img);const cut=findStrip(im);if(cut){found.push({it,cut});
         if(found.length===1){const c=await makeNew(im,cut);$('wmBefore').src=im.src;$('wmAfter').src=c.toDataURL('image/jpeg',.85);$('wmPreview').style.display='flex'}}}catch(e){console.warn(it.id,e)}}
+    $('wmStop').style.display='none';
     $('wmStatus').textContent=found.length?('لقيت '+found.length+' صورة عليها الشريط القديم. شوف المثال تحت — إذا تمام اكبس «كمّل على كل الصور».'):'ما في صور عليها الشريط القديم 👍';
-    $('wmGo').style.display=found.length?'':'none';
+    $('wmGo').style.display=found.length?'':'none';$('wmNext').style.display=found.length>1?'':'none';ex=0;
   };
   $('wmStop').onclick=()=>{stop=true};
+  let ex=0;$('wmNext').onclick=async()=>{if(!found.length)return;ex=(ex+1)%found.length;const f=found[ex];try{const im=await loadImgEl(f.it.img);const c=await makeNew(im,f.cut);$('wmBefore').src=im.src;$('wmAfter').src=c.toDataURL('image/jpeg',.85);$('wmStatus').textContent='مثال '+(ex+1)+' من '+found.length+(f.it.title?(' — '+f.it.title):'')}catch(e){}};
   $('wmGo').onclick=async()=>{
     if(!found.length||!confirm('تحديث اللوغو على '+found.length+' صورة؟ الصور القديمة بتضل محفوظة احتياط.'))return;
     stop=false;$('wmGo').style.display='none';$('wmStop').style.display='';let ok=0,bad=0;const done={};
