@@ -41,7 +41,9 @@ export async function onRequest({ request, env, waitUntil }) {
       const g = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': key }, body: JSON.stringify({ contents: [{ parts: [{ text: 'قل: تمام' }] }] }) });
       const d = await g.json().catch(() => ({})); res[m] = g.status + (d.error ? ' ' + d.error.message : '');
     }
-    return json({ ok: true, res });
+    let models = [];
+    try { const l = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: { 'x-goog-api-key': key } }); const d = await l.json(); models = (d.models || []).map(x => x.name.replace('models/', '')).filter(n => /image|imagen|flash|pro/i.test(n)); } catch (e) {}
+    return json({ ok: true, res, models });
   }
   if (request.method !== 'POST') return json({ ok: false, error: 'post-only' }, 405);
   if (!key) return json({ ok: false, error: 'no-key' }, 503);
