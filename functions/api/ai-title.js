@@ -2,7 +2,7 @@
 // المفتاح محفوظ مشفّر بـ Cloudflare (GEMINI_API_KEY) وما بيطلع للمتصفح.
 // محصور بصور معرضنا بس، وكل صورة بتنحلّل مرة وحدة (النتيجة بتنحفظ بالكاش) — حتى ما حدا يقدر يصرف الرصيد.
 const ALLOW = /^https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/basel-7b29b\.(firebasestorage\.app|appspot\.com)\/o\/gallery%2F[^?]+\?alt=media(&token=[A-Za-z0-9-]+)?$/;
-const MODELS = ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.0-flash'];
+const MODELS = ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-2.5-flash'];
 const json = (o, st = 200, cache = 0) => new Response(JSON.stringify(o), { status: st, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': cache ? `public, max-age=${cache}` : 'no-store' } });
 
 function b64(buf) { const u = new Uint8Array(buf); let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); }
@@ -41,7 +41,7 @@ export async function onRequest({ request, env, waitUntil }) {
       const g = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': key }, body: JSON.stringify({ contents: [{ parts: [{ text: 'قل: تمام' }] }] }) });
       const d = await g.json().catch(() => ({})); res[m] = g.status + (d.error ? ' ' + d.error.message : '');
     }
-    return json({ ok: true, keyLen: key.length, keyStart: key.slice(0, 4), res });
+    return json({ ok: true, res });
   }
   if (request.method !== 'POST') return json({ ok: false, error: 'post-only' }, 405);
   if (!key) return json({ ok: false, error: 'no-key' }, 503);
