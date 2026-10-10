@@ -411,7 +411,7 @@
 </section>
 <section class="faq" id="reviews" style="padding-bottom:10px">
   <h2>آراء زبائننا</h2>
-  <p style="text-align:center;font-size:16px">⭐ <b>4.3</b> من 5 على غوغل &nbsp; <a href="https://maps.app.goo.gl/g6wBPVBsZmQipM2j6" target="_blank" rel="noopener" style="display:inline-block;background:#1F8F55;color:#fff;padding:8px 16px;border-radius:10px;font-weight:800">قيّمنا على غوغل</a></p>
+  <p style="text-align:center;font-size:16px">⭐ <b id="gRating">4.3</b> من 5 على غوغل<span id="gCount"></span> &nbsp; <a href="https://maps.app.goo.gl/g6wBPVBsZmQipM2j6" target="_blank" rel="noopener" style="display:inline-block;background:#1F8F55;color:#fff;padding:8px 16px;border-radius:10px;font-weight:800">قيّمنا على غوغل</a></p>
   <div id="reviewsList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;margin-top:14px"></div>
 </section>
 <section class="faq" id="follow" style="padding-top:10px">
@@ -1168,7 +1168,18 @@ function renderFaq(list){
   sec.querySelectorAll('details').forEach(d=>d.remove());
   sec.insertAdjacentHTML('beforeend', list.filter(x=>x&&x.q&&x.a).map(x=>`<details><summary>${e(x.q)}</summary><p>${e(x.a).replace(/\n/g,'<br>')}</p></details>`).join(''));
 }
+// آراء غوغل الحقيقية (من /api/google-reviews) — إذا ما اشتغلت بتضل الآراء المكتوبة باليد
+let googleReviewsOn=false;
+(function(){fetch('/api/google-reviews').then(r=>r.ok?r.json():null).then(d=>{if(!d||!d.ok||!d.reviews||!d.reviews.length)return;googleReviewsOn=true;
+  const e=t=>String(t||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  if(d.rating){const g=document.getElementById('gRating');if(g)g.textContent=(+d.rating).toFixed(1)}
+  if(d.count){const c=document.getElementById('gCount');if(c)c.textContent=' ('+d.count+' تقييم)'}
+  const w=document.getElementById('reviewsList');if(!w)return;
+  w.innerHTML=d.reviews.map(r=>`<div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px"><div style="display:flex;align-items:center;gap:8px">${r.photo?`<img src="${e(r.photo)}" alt="" width="34" height="34" loading="lazy" referrerpolicy="no-referrer" style="border-radius:50%">`:''}<div><b dir="auto">${e(r.name)}</b><div style="font-size:12px;color:var(--gold-deep)">${e(r.when)}</div></div></div><div style="color:#E0A100;letter-spacing:2px">${'★'.repeat(Math.max(1,Math.min(5,Math.round(+r.stars||5))))}</div><p dir="auto" style="margin:0;line-height:1.7">${e(r.text.length>320?r.text.slice(0,317)+'…':r.text)}</p></div>`).join('')
+    +`<div style="grid-column:1/-1;text-align:center;font-size:12.5px;color:var(--gold-deep)">الآراء من <a href="${e(d.url||'https://maps.app.goo.gl/g6wBPVBsZmQipM2j6')}" target="_blank" rel="noopener" style="color:inherit;font-weight:700">غوغل</a></div>`;
+}).catch(()=>{})})();
 function renderReviews(list){
+  if(googleReviewsOn) return;
   const w=document.getElementById('reviewsList'); if(!w||!Array.isArray(list)) return;
   const e=t=>String(t||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   w.innerHTML=list.filter(r=>r&&r.text).map(r=>`<div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px"><div style="color:#E0A100;letter-spacing:2px">${'★'.repeat(Math.max(1,Math.min(5,+r.stars||5)))}</div><p style="margin:6px 0">${e(r.text)}</p><b>${e(r.name)}</b></div>`).join('');
