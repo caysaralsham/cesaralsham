@@ -840,7 +840,7 @@ getWmLogo();
 async function drawWatermark(ctx, w, h){
   const logo = await getWmLogo();
   if(!logo) return;
-  drawLogoWithInfo(ctx, w, h, logo, 18, 'bottom-right', Math.round(w*0.0125), 0.9, WM_PHONE, WM_ADDR);
+  drawLogoWithInfo(ctx, w, h, logo, 12, 'bottom-right', Math.round(w*0.0125), 0.9, WM_PHONE, WM_ADDR);
 }
 // كشف تقريبي: إذا في شريط داكن بمكان الهاتف والعنوان (يعني الصورة عليها اللوغو من قبل)
 function hasWatermarkAlready(img){
