@@ -1548,38 +1548,124 @@ function getLogoImage(){
 }
 getLogoImage();
 
+function computeBoxOrigin(canvasW, canvasH, boxW, boxH, position, margin) {
+  let x, y;
+  switch (position) {
+    case 'top-left': x = margin; y = margin; break;
+    case 'top-right': x = canvasW - boxW - margin; y = margin; break;
+    case 'bottom-left': x = margin; y = canvasH - boxH - margin; break;
+    case 'center': x = (canvasW - boxW) / 2; y = (canvasH - boxH) / 2; break;
+    case 'bottom-right':
+    default: x = canvasW - boxW - margin; y = canvasH - boxH - margin; break;
+  }
+  return { x, y };
+}
+
+function drawLogoWithInfo(ctx, canvasW, canvasH, logoImg, sizePercent, position, margin, opacity, phone, address) {
+  const logoTargetW = canvasW * (sizePercent / 100);
+  const scale = logoTargetW / logoImg.naturalWidth;
+  const logoTargetH = logoImg.naturalHeight * scale;
+
+  const rawLines = [];
+  // تحت اللوغو: العنوان، وتحته الهاتف
+  if (address && address.trim()) rawLines.push({ text: address.trim(), bold: false });
+  if (phone && phone.trim()) rawLines.push({ text: phone.trim(), bold: true });
+
+  const baseFontSize = Math.max(13, Math.round(canvasW * 0.015));
+  const lineGap = Math.round(baseFontSize * 0.35);
+  const padY = Math.round(baseFontSize * 0.55);
+  const padX = Math.round(baseFontSize * 0.9);
+
+  // شريط النص بنفس عرض اللوغو بالضبط (مظهر موحّد ومرتّب، بدل عرضين مختلفين فوق بعض)
+  const blockW = logoTargetW;
+  const maxTextW = Math.max(20, blockW - padX * 2);
+
+  // تصغير الخط تلقائياً لو النص أطول من عرض اللوغو، بدل ما يطفح أو يتقطع
+  function fitFontSize(text, bold) {
+    let fs = baseFontSize;
+    ctx.font = `${bold ? 'bold ' : ''}${fs}px Tahoma, Arial, sans-serif`;
+    while (ctx.measureText(text).width > maxTextW && fs > 9) {
+      fs -= 1;
+      ctx.font = `${bold ? 'bold ' : ''}${fs}px Tahoma, Arial, sans-serif`;
+    }
+    return fs;
+  }
+
+  const lines = rawLines.map(l => ({ ...l, fontSize: fitFontSize(l.text, l.bold) }));
+  const textBlockH = lines.length
+    ? lines.reduce((sum, l) => sum + l.fontSize + lineGap, 0) - lineGap + padY * 2
+    : 0;
+
+  const gapBetween = lines.length ? Math.round(baseFontSize * 0.5) : 0;
+  const blockH = logoTargetH + gapBetween + textBlockH;
+
+  const origin = computeBoxOrigin(canvasW, canvasH, blockW, blockH, position, margin);
+
+  // ظل ناعم خلف اللوغو نفسه، يخليه يبين "ملصق" باحتراف فوق الصورة بدل ما يبدو مسطّح
+  ctx.save();
+  ctx.globalAlpha = opacity;
+  ctx.shadowColor = 'rgba(0,0,0,0.5)';
+  ctx.shadowBlur = Math.max(6, baseFontSize * 0.7);
+  ctx.shadowOffsetY = Math.max(2, baseFontSize * 0.15);
+  ctx.drawImage(logoImg, origin.x, origin.y, logoTargetW, logoTargetH);
+  ctx.restore();
+
+  if (lines.length) {
+    const boxX = origin.x;
+    const boxY = origin.y + logoTargetH + gapBetween;
+    const radius = Math.max(6, baseFontSize * 0.4);
+
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    ctx.shadowColor = 'rgba(0,0,0,0.4)';
+    ctx.shadowBlur = Math.max(5, baseFontSize * 0.5);
+    ctx.shadowOffsetY = 2;
+
+    // خلفية داكنة دافئة متدرّجة (بدل الأسود الفاحم المسطّح) تنسجم مع لون اللوغو الذهبي
+    const grad = ctx.createLinearGradient(boxX, boxY, boxX, boxY + textBlockH);
+    grad.addColorStop(0, 'rgba(24,17,10,0.82)');
+    grad.addColorStop(1, 'rgba(8,6,4,0.90)');
+    ctx.fillStyle = grad;
+    if (ctx.roundRect) {
+      ctx.beginPath();
+      ctx.roundRect(boxX, boxY, blockW, textBlockH, radius);
+      ctx.fill();
+    } else {
+      ctx.fillRect(boxX, boxY, blockW, textBlockH);
+    }
+    ctx.restore();
+
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    // خط ذهبي رفيع أعلى الشريط يربطه بصرياً بلون اللوغو
+    ctx.strokeStyle = 'rgba(212,175,55,0.85)';
+    ctx.lineWidth = Math.max(1, baseFontSize * 0.06);
+    ctx.beginPath();
+    ctx.moveTo(boxX + radius, boxY + ctx.lineWidth / 2);
+    ctx.lineTo(boxX + blockW - radius, boxY + ctx.lineWidth / 2);
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.textBaseline = 'top';
+    ctx.textAlign = 'center';
+    const centerX = boxX + blockW / 2;
+    let ty = boxY + padY;
+    lines.forEach(l => {
+      ctx.font = `${l.bold ? 'bold ' : ''}${l.fontSize}px Tahoma, Arial, sans-serif`;
+      ctx.fillText(l.text, centerX, ty);
+      ty += l.fontSize + lineGap;
+    });
+    ctx.restore();
+  }
+}
+
+// نفس لوغو الموقع ولوحة الموقع: اللوغو تحت يمين (12%)، وتحته العنوان، وتحته الهاتف
+let wmLogoP=null;
+function getWmLogo(){ if(!wmLogoP) wmLogoP=new Promise(res=>{const im=new Image();im.onload=()=>res(im);im.onerror=()=>res(null);im.src='/img/site/logo-wm.png';}); return wmLogoP; }
 async function drawWatermark(ctx, w, h){
-  const logoImg = await getLogoImage();
-  const hasLogo = !!(logoImg && logoImg.naturalWidth > 0);
-  const wmText = 'الجزائر · قيصر الشام للحجر والرخام · 0541.73.78.88';
-  let fontSize = Math.max(11, Math.round(w * 0.022));
-  ctx.font = `700 ${fontSize}px Tajawal, Arial`;
-  let textW = ctx.measureText(wmText).width;
-  let logoH = hasLogo ? fontSize * 2.4 : 0;
-  let logoW = hasLogo ? logoImg.width * (logoH / logoImg.height) : 0;
-  const padX = 12, padY = 8, gap = hasLogo ? 8 : 0;
-  let boxW = textW + padX*2 + logoW + gap;
-  const maxBoxW = w - 20;
-  if(boxW > maxBoxW){
-    const scale = Math.max(0.35, maxBoxW / boxW);
-    fontSize = Math.max(8, Math.round(fontSize * scale));
-    ctx.font = `700 ${fontSize}px Tajawal, Arial`;
-    textW = ctx.measureText(wmText).width;
-    logoH = hasLogo ? fontSize * 2.4 : 0;
-    logoW = hasLogo ? logoImg.width * (logoH / logoImg.height) : 0;
-    boxW = textW + padX*2 + logoW + gap;
-  }
-  const boxH = Math.max(fontSize, logoH) + padY*2;
-  const boxX = Math.max(10, w - boxW - 10);
-  ctx.fillStyle = 'rgba(0,0,0,0.45)';
-  ctx.fillRect(boxX, h - boxH - 10, boxW, boxH);
-  if(hasLogo){
-    ctx.drawImage(logoImg, boxX + padX, h - boxH - 10 + (boxH - logoH)/2, logoW, logoH);
-  }
-  ctx.fillStyle = '#fff';
-  ctx.textBaseline = 'middle';
-  ctx.textAlign = 'right';
-  ctx.fillText(wmText, boxX + boxW - padX, h - 10 - boxH/2);
+  const logo = await getWmLogo();
+  if(!logo) return;
+  drawLogoWithInfo(ctx, w, h, logo, 12, 'bottom-right', Math.round(w*0.0125), 0.9, '0541737888', 'الجزائر - دالي ابراهيم');
 }
 
 document.getElementById('btnUpload').addEventListener('click', async ()=>{

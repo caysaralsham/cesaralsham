@@ -740,8 +740,9 @@ function drawLogoWithInfo(ctx, canvasW, canvasH, logoImg, sizePercent, position,
   const logoTargetH = logoImg.naturalHeight * scale;
 
   const rawLines = [];
-  if (phone && phone.trim()) rawLines.push({ text: phone.trim(), bold: true });
+  // تحت اللوغو: العنوان، وتحته الهاتف
   if (address && address.trim()) rawLines.push({ text: address.trim(), bold: false });
+  if (phone && phone.trim()) rawLines.push({ text: phone.trim(), bold: true });
 
   const baseFontSize = Math.max(13, Math.round(canvasW * 0.015));
   const lineGap = Math.round(baseFontSize * 0.35);
