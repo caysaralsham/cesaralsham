@@ -2106,13 +2106,13 @@ SCHEMAS.calc={title:'حاسبة القياسات',draw:drawCalc,controls:[
   {id:'mat',label:'لون الرخام',type:'mat',val:'beigeL'}]};
 SCHEMAS.column={title:'عامود',draw:drawColumn,controls:[
   head('العامود'),
-  {id:'cnt',label:'عدد العواميد',type:'range',min:1,max:40,step:1,val:1},
+  {id:'cnt',label:'عدد العواميد',type:'range',min:1,max:40,step:1,val:1,unit:''},
   {id:'shape',label:'الشكل',type:'seg',options:[['round','مدور'],['square','مربع'],['oct','مضلع']],val:'round'},
   {id:'kind',label:'التنفيذ',type:'seg',options:[['block','كتلة'],['wrap','تغليف كتلة (قطعتين)'],['tiles','قطع لصق']],val:'block'},
   {id:'D',label:'القطر / العرض من برّا',type:'range',min:10,max:150,step:1,val:35},
   {id:'th',label:'سماكة الرخام',type:'range',min:1,max:10,step:.5,val:3,show:s=>s.kind!=='block'},
   {id:'H',label:'ارتفاع الجسم',type:'range',min:50,max:600,step:1,val:250},
-  {id:'nb',label:'عدد القطع',type:'range',min:1,max:20,step:1,val:1},
+  {id:'nb',label:'عدد القطع',type:'range',min:1,max:20,step:1,val:1,unit:''},
   {id:'tW',label:'عرض قطعة اللصق',type:'range',min:5,max:60,step:1,val:15,show:s=>s.kind==='tiles'},
   head('القاعدة'),
   {id:'bType',label:'شكل القاعدة',type:'seg',options:[['none','بدون'],['plain','مربعة'],['step2','بدرجتين'],['torus','مدورة'],['attic','كلاسيكية']],val:'attic'},
