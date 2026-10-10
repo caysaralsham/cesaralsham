@@ -2021,7 +2021,7 @@ function drawCalc(s){
 function colPoly(shape,R0){if(shape==='round')return null;const n=shape==='square'?4:8,off=shape==='square'?Math.PI/4:Math.PI/8,rr=shape==='square'?R0*Math.SQRT2:R0/Math.cos(Math.PI/8);
   return Array.from({length:n},(_,i)=>[rr*Math.cos(off+i*2*Math.PI/n),rr*Math.sin(off+i*2*Math.PI/n)])}
 function drawColumn(s){
-  const kind=s.kind,shape=s.shape,th=+s.th,core=+s.core,outer=kind==='block'?+s.D:core+2*th,H=+s.H;
+  const kind=s.kind,shape=s.shape,th=+s.th,outer=+s.D,core=kind==='block'?outer:Math.max(5,outer-2*th),H=+s.H,nb=Math.max(1,+s.nb||1),tHc=H/nb;
   const bT=s.bType,cT=s.cType,bH=bT==='none'?0:+s.bH,cH=cT==='none'?0:+s.cH,bW=Math.max(+s.bW,outer),cW=Math.max(+s.cW,outer);
   const tot=bH+H+cH,S=Math.max(tot,bW*2.2);setScale(S);const m=M(s.mat),hw=outer/2;let o='';
   // القاعدة
@@ -2036,9 +2036,9 @@ function drawColumn(s){
   const y0=-bH,y1=-bH-H;o+=R(-hw,y1,outer,H,m);
   if(shape==='round')for(const t of [-.35,.35])o+=L(t*outer,y1,t*outer,y0,'rgba(0,0,0,.18)',LW*.6);
   if(shape==='oct')for(const t of [-.29,.29])o+=L(t*outer,y1,t*outer,y0,'rgba(0,0,0,.35)',LW*.6);
-  if(kind==='block'){const nb=Math.max(1,+s.nb);for(let k=1;k<nb;k++){const y=y0-H*k/nb;o+=L(-hw,y,hw,y,INK,LW*.9)}}
+  if(kind==='block'||kind==='wrap'){for(let k=1;k<nb;k++){const y=y0-H*k/nb;o+=L(-hw,y,hw,y,INK,LW*.9)}}
   if(kind==='wrap')o+=L(0,y1,0,y0,DIM,LW*1.4,'stroke-dasharray="'+f(S/90)+' '+f(S/120)+'"');
-  if(kind==='tiles'){const rows=Math.ceil(H/+s.tH);for(let k=1;k<rows;k++){const y=y0-k*+s.tH;o+=L(-hw,y,hw,y,INK,LW*.5)}
+  if(kind==='tiles'){for(let k=1;k<nb;k++){const y=y0-k*tHc;o+=L(-hw,y,hw,y,INK,LW*.5)}
     const per=shape==='round'?Math.PI*outer:shape==='square'?4*outer:8*outer*Math.tan(Math.PI/8);const nAr=Math.max(1,Math.round(per/+s.tW)),vis=Math.max(1,Math.round(nAr/(shape==='round'?2:shape==='square'?4:3)));
     for(let k=1;k<vis;k++){const x=-hw+outer*k/vis;o+=L(x,y1,x,y0,INK,LW*.5)}}
   // التاج
@@ -2069,28 +2069,28 @@ function drawColumn(s){
   const Rr=outer/2,pS=outer*1.6;let p='';const poly=colPoly(shape,Rr),polyC=colPoly(shape,core/2);
   const shapeEl=(pts,r,fill,sw)=>pts?P('M'+pts.map(q=>f(q[0])+' '+f(q[1])).join('L')+'Z',fill,sw):C(0,0,r,fill,sw);
   p+=shapeEl(poly,Rr,m,outer/120);
-  if(kind!=='block'){p+=shapeEl(polyC,core/2,'#9E9E9E',outer/150)+`<text x="0" y="${f(outer*.03)}" font-size="${f(outer*.09)}" text-anchor="middle" fill="#fff" font-family="Cairo">باطون ${core}</text>`;
+  if(kind!=='block'){p+=shapeEl(polyC,core/2,'#9E9E9E',outer/150)+`<text x="0" y="${f(outer*.03)}" font-size="${f(outer*.09)}" text-anchor="middle" fill="#fff" font-family="Cairo">باطون</text>`;
     if(kind==='wrap')p+=L(-Rr*1.15,0,-core/2,0,DIM,outer/70)+L(core/2,0,Rr*1.15,0,DIM,outer/70);
     if(kind==='tiles'){const per=shape==='round'?Math.PI*outer:shape==='square'?4*outer:8*outer*Math.tan(Math.PI/8),nA=Math.max(1,Math.round(per/+s.tW));for(let k=0;k<nA;k++){const a=k*2*Math.PI/nA;p+=L(Math.cos(a)*core/2,Math.sin(a)*core/2,Math.cos(a)*Rr*1.05,Math.sin(a)*Rr*1.05,INK,outer/250)}}}
-  const inset={label:kind==='wrap'?'مقطع من فوق — قطعتين حوالين الباطون':kind==='tiles'?'مقطع من فوق — قطع لصق':'مقطع من فوق',box:[-pS/2,pS/2,-pS/2,pS/2],svg:p};
+  const inset={label:kind==='wrap'?'مقطع من فوق — تغليف كتلة قطعتين':kind==='tiles'?'مقطع من فوق — قطع لصق':'مقطع من فوق',box:[-pS/2,pS/2,-pS/2,pS/2],svg:p};
   // حسابات
   const per=shape==='round'?Math.PI*outer:shape==='square'?4*outer:8*outer*Math.tan(Math.PI/8);
   const areaSec=shape==='round'?Math.PI*Rr*Rr:shape==='square'?outer*outer:2*(1+Math.SQRT2)*Math.pow(outer*Math.tan(Math.PI/8),2);
   const coreA=shape==='round'?Math.PI*core*core/4:shape==='square'?core*core:2*(1+Math.SQRT2)*Math.pow(core*Math.tan(Math.PI/8),2);
-  const nm={round:'مدور',square:'مربع',oct:'مضلع'}[shape],kn={block:'كتلة',wrap:'تغليف عامود باطون — قطعتين',tiles:'تلبيس بقطع لصق'}[kind];
-  const BT={none:'بدون',plain:'مربعة بسيطة',step2:'مربعة بدرجتين',torus:'مدورة (توروس)',attic:'كلاسيكية'},CTp={none:'بدون',plain:'بسيط',classic:'كلاسيكي',doric:'دوري',ionic:'إيوني',corinth:'كورنثي'};
+  const nm={round:'مدور',square:'مربع',oct:'مضلع'}[shape],kn={block:'كتلة',wrap:'تغليف كتلة — قطعتين',tiles:'قطع لصق'}[kind];
+  const BT={none:'بدون',plain:'مربعة بسيطة',step2:'مربعة بدرجتين',torus:'مدورة (توروس)',attic:'كلاسيكية'},CTp={none:'بدون',plain:'بسيط',classic:'كلاسيكي',doric:'دوري',ionic:'أيوني',corinth:'كورنثي'};
   const stats=[['العامود',nm+' — '+kn],['الارتفاع الكلي',fmt(tot)],[shape==='round'?'القطر من برّا':'العرض من برّا',outer+' سم']];
   const cut=[];let qty='',unit='';
-  if(kind==='block'){const nb=Math.max(1,+s.nb),v=outer*outer*H/1e6;stats.push(['الحجم (بلوك '+outer+' × '+outer+' × '+H+')',v.toFixed(3)+' م³'],['عدد القطع',nb+' × '+Math.round(H/nb)+' سم']);cut.push({cells:['جسم العامود (كتلة)',(shape==='round'?'قطر ':'عرض ')+outer+'، ارتفاع '+Math.round(H/nb),nb]});qty=v.toFixed(3);unit='م³'}
-  if(kind==='wrap'){const mid=shape==='round'?Math.PI*(core+th):per-4*th*(shape==='square'?1:0),a=mid*H/1e4,v=(areaSec-coreA)*H/1e6;stats.push(['الباطون',core+' سم'],['سماكة الرخام',th+' سم'],['المساحة',a.toFixed(2)+' م²'],['الحجم',v.toFixed(3)+' م³']);
-    cut.push({cells:['نص عامود (قطعتين)',(shape==='round'?'قطر داخلي '+core+'، خارجي '+outer:'عرض '+outer)+'، ارتفاع '+H+'، سماكة '+th,2]});qty=a.toFixed(2);unit='م²'}
-  if(kind==='tiles'){const nA=Math.max(1,Math.round(per/+s.tW)),nR=Math.ceil(H/+s.tH),a=per*H/1e4;stats.push(['الباطون',core+' سم'],['قطع بالدورة',nA],['صفوف',nR],['مجموع القطع',nA*nR],['المساحة',a.toFixed(2)+' م²']);
-    cut.push({cells:['قطعة لصق',+s.tW+' × '+s.tH+' سم، سماكة '+th,nA*nR]});qty=a.toFixed(2);unit='م²'}
+  if(kind==='block'){const v=outer*outer*H/1e6;stats.push(['الحجم (بلوك '+outer+' × '+outer+' × '+H+')',v.toFixed(3)+' م³'],['عدد القطع',nb+' × '+Math.round(H/nb)+' سم']);cut.push({cells:['جسم العامود (كتلة)',(shape==='round'?'قطر ':'عرض ')+outer+'، ارتفاع '+Math.round(H/nb),nb]});qty=v.toFixed(3);unit='م³'}
+  if(kind==='wrap'){const v=outer*outer*H/1e6;stats.push(['سماكة الرخام',th+' سم'],['الحجم (كتلة '+outer+' × '+outer+' × '+H+')',v.toFixed(3)+' م³'],['عدد القطع',nb+' × قطعتين، ارتفاع '+Math.round(H/nb)+' سم']);
+    cut.push({cells:['نص عامود',(shape==='round'?'قطر ':'عرض ')+outer+'، ارتفاع '+Math.round(H/nb)+'، سماكة '+th,2*nb]});qty=v.toFixed(3);unit='م³'}
+  if(kind==='tiles'){const nA=Math.max(1,Math.round(per/+s.tW)),pw=per/nA,a=per*H/1e4;stats.push(['سماكة الرخام',th+' سم'],['قطع بالدورة',nA],['عدد القطع (لفوق)',nb],['مجموع القطع',nA*nb],['المساحة',a.toFixed(2)+' م²']);
+    cut.push({cells:['قطعة لصق',pw.toFixed(1)+' × '+Math.round(tHc)+' سم، سماكة '+th,nA*nb]});qty=a.toFixed(2);unit='م²'}
   if(bH){stats.push(['القاعدة',BT[bT]+'، '+bW+' × '+bH+' سم']);cut.push({cells:['قاعدة '+BT[bT],'عرض '+bW+'، ارتفاع '+bH,Math.max(1,+s.cnt||1)]})}
   if(cH){stats.push(['التاج',CTp[cT]+'، '+cW+' × '+cH+' سم']);cut.push({cells:['تاج '+CTp[cT],'عرض '+cW+'، ارتفاع '+cH,Math.max(1,+s.cnt||1)]})}
   const cnt=Math.max(1,+s.cnt||1);if(cnt>1){stats.splice(1,0,['عدد العواميد',cnt]);if(qty)stats.push([unit==='م³'?'الحجم الكلي لـ '+cnt+' عواميد':'المساحة الكلية لـ '+cnt+' عواميد',(qty*cnt).toFixed(unit==='م³'?3:2)+' '+unit])}
   // سطر واحد بالسعر (بالمكعب أو بالمتر) حتى ما ينحسب المبلغ مرتين
-  const lines=[{desc:`عامود ${nm} — ${kn} — ${shape==='round'?'قطر':'عرض'} ${outer} سم، ارتفاع ${H} سم${kind!=='block'?'، باطون '+core+'، سماكة '+th:''} — ${cnt} ${cnt>1?'عواميد':'عامود'}${qty?'، العامود الواحد '+qty+' '+unit:''}`,qty:qty?+(qty*cnt).toFixed(3):cnt,unit:qty?unit:'عامود'}];
+  const lines=[{desc:`عامود ${nm} — ${kn} — ${shape==='round'?'قطر':'عرض'} ${outer} سم، ارتفاع ${H} سم${kind!=='block'?'، سماكة '+th:''} — ${cnt} ${cnt>1?'عواميد':'عامود'}${qty?'، العامود الواحد '+qty+' '+unit:''}`,qty:qty?+(qty*cnt).toFixed(3):cnt,unit:qty?unit:'عامود'}];
   if(bH)lines.push({desc:`قاعدة عامود ${BT[bT]} — ${bW}×${bH} سم`,qty:cnt,unit:'قاعدة'});
   if(cH)lines.push({desc:`تاج عامود ${CTp[cT]} — ${cW}×${cH} سم`,qty:cnt,unit:'تاج'});
   return{svg:o,insets:[inset],box:[-Math.max(bW,cW)/2-S*.1,xr+S*.2,-tot-S*.08,S*.08],stats,tables:[{title:'قائمة القطع للمعمل',head:['القطعة','القياس (سم)','العدد'],rows:cut}],lines,note:''};
@@ -2108,20 +2108,18 @@ SCHEMAS.column={title:'عامود',draw:drawColumn,controls:[
   head('العامود'),
   {id:'cnt',label:'عدد العواميد',type:'range',min:1,max:40,step:1,val:1},
   {id:'shape',label:'الشكل',type:'seg',options:[['round','مدور'],['square','مربع'],['oct','مضلع']],val:'round'},
-  {id:'kind',label:'التنفيذ',type:'seg',options:[['block','كتلة'],['wrap','تغليف باطون (قطعتين)'],['tiles','قطع لصق']],val:'block'},
-  {id:'D',label:'القطر / العرض',type:'range',min:10,max:150,step:1,val:35,show:s=>s.kind==='block'},
-  {id:'core',label:'قياس الباطون',type:'range',min:10,max:150,step:1,val:30,show:s=>s.kind!=='block'},
+  {id:'kind',label:'التنفيذ',type:'seg',options:[['block','كتلة'],['wrap','تغليف كتلة (قطعتين)'],['tiles','قطع لصق']],val:'block'},
+  {id:'D',label:'القطر / العرض من برّا',type:'range',min:10,max:150,step:1,val:35},
   {id:'th',label:'سماكة الرخام',type:'range',min:1,max:10,step:.5,val:3,show:s=>s.kind!=='block'},
   {id:'H',label:'ارتفاع الجسم',type:'range',min:50,max:600,step:1,val:250},
-  {id:'nb',label:'عدد القطع فوق بعض',type:'range',min:1,max:8,step:1,val:1,show:s=>s.kind==='block'},
+  {id:'nb',label:'عدد القطع',type:'range',min:1,max:20,step:1,val:1},
   {id:'tW',label:'عرض قطعة اللصق',type:'range',min:5,max:60,step:1,val:15,show:s=>s.kind==='tiles'},
-  {id:'tH',label:'ارتفاع قطعة اللصق',type:'range',min:5,max:100,step:1,val:30,show:s=>s.kind==='tiles'},
   head('القاعدة'),
   {id:'bType',label:'شكل القاعدة',type:'seg',options:[['none','بدون'],['plain','مربعة'],['step2','بدرجتين'],['torus','مدورة'],['attic','كلاسيكية']],val:'attic'},
   {id:'bH',label:'ارتفاع القاعدة',type:'range',min:5,max:80,step:1,val:25,show:s=>s.bType!=='none'},
   {id:'bW',label:'عرض القاعدة',type:'range',min:10,max:200,step:1,val:50,show:s=>s.bType!=='none'},
   head('التاج'),
-  {id:'cType',label:'شكل التاج',type:'seg',options:[['none','بدون'],['plain','بسيط'],['classic','كلاسيكي'],['doric','دوري'],['ionic','إيوني'],['corinth','كورنثي']],val:'doric'},
+  {id:'cType',label:'شكل التاج',type:'seg',options:[['none','بدون'],['plain','بسيط'],['classic','كلاسيكي'],['doric','دوري'],['ionic','أيوني'],['corinth','كورنثي']],val:'doric'},
   {id:'cH',label:'ارتفاع التاج',type:'range',min:5,max:80,step:1,val:25,show:s=>s.cType!=='none'},
   {id:'cW',label:'عرض التاج',type:'range',min:10,max:200,step:1,val:50,show:s=>s.cType!=='none'},
   {id:'mat',label:'لون الرخام',type:'mat',val:'italian'}]};
