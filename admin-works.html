@@ -216,7 +216,7 @@
     <div style="font-size:13px;color:#6b5a48;margin:0 0 14px">أدوات لصيانة الموقع. كل أداة بتحفظ شغلها أول بأول — إذا طلعت من الصفحة ورجعت، اكبس نفس الزر وبتكمّل من وين وقفت.</div>
     <div class="panel" id="aiPanel">
       <h2>🤖 عناوين أدق بالذكاء الاصطناعي (Gemini)</h2>
-      <p style="font-size:13px;color:#6b5a48;margin:0 0 10px">الذكاء الاصطناعي بيشوف كل صورة: لون الحجر الحقيقي، نوعه، وشو مميز فيها (زخرفة، أعمدة، قوس...) — وبيكتب عنوان خاص فيها بالعربي والفرنسي + وصف للصورة لغوغل. كل صورة بتنحلّل مرة وحدة وبيتحفظ أول بأول. اللون اللي كاتبه إنت بإيدك ما بيتغيّر.</p>
+      <p style="font-size:13px;color:#6b5a48;margin:0 0 10px">الذكاء الاصطناعي بيشوف كل صورة: لون الحجر الحقيقي، نوعه، وشو مميز فيها (زخرفة، أعمدة، قوس...) — وبيكتب عنوان خاص فيها بالعربي والفرنسي + وصف للصورة لغوغل. كل صورة بتنحلّل مرة وحدة وبيتحفظ أول بأول. اللون اللي كاتبه إنت بإيدك ما بيتغيّر. الصور الجديدة اللي بترفعها (إذا تركت العنوان فاضي) بتتحلّل لحالها.</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="aiTest">١) جرّب على 3 صور</button><button class="btn" id="aiRun" style="background:#1F8F55">٢) حلّل كل الصور</button><button class="btn btn-ghost" id="aiStop" style="display:none">وقّف</button></div>
       <div id="aiStatus" style="font-size:13px;margin-top:10px;font-weight:700"></div>
       <div id="aiSample" style="font-size:12.5px;margin-top:8px;line-height:1.9"></div>
@@ -1410,6 +1410,7 @@ const TT=(()=>{
     const e=new Error(ERR.rate);e.code='rate';throw e;
   }
   const pack=d=>({aiColorAr:d.colorAr,aiColorFr:d.colorFr,aiStoneAr:d.stoneAr,aiStoneFr:d.stoneFr,aiDescAr:d.descAr,aiDescFr:d.descFr,aiAltAr:d.altAr,aiAltFr:d.altFr,aiKindOk:d.kindOk,aiV:1});
+  window.aiAnalyze=async it=>pack(await ask(it));
   $('aiStop').onclick=()=>{stop=true};
   $('aiTest').onclick=async()=>{
     const pick=items.filter(it=>it.img).sort(()=>Math.random()-.5).slice(0,3);$('aiSample').innerHTML='';$('aiStatus').textContent='عم حلّل 3 صور...';
@@ -1600,6 +1601,7 @@ document.getElementById('btnUpload').addEventListener('click', async ()=>{
         price: document.getElementById('upPrice').value.trim(),
         img: imgUrl
       };
+      if(!newItem.title&&window.aiAnalyze){try{toast('عم يحلّل الصورة بالذكاء الاصطناعي...');Object.assign(newItem,await Promise.race([window.aiAnalyze(newItem),new Promise((_,r)=>setTimeout(()=>r(new Error('t')),25000))]))}catch(e){}}
       if(!newItem.title){try{const cat=(newItem.category||'').trim(),t=TT.make([...items.filter(x=>(x.category||'').trim()===cat),newItem],false)[newItem.id];if(t){newItem.title=t.title;newItem.titleV2=true}}catch(e){}}
       items.unshift(newItem);
       renderItemsTable();
