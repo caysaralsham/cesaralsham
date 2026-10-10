@@ -2090,7 +2090,7 @@ function drawColumn(s){
   if(cH){stats.push(['التاج',CTp[cT]+'، '+cW+' × '+cH+' سم']);cut.push({cells:['تاج '+CTp[cT],'عرض '+cW+'، ارتفاع '+cH,Math.max(1,+s.cnt||1)]})}
   const cnt=Math.max(1,+s.cnt||1);if(cnt>1){stats.splice(1,0,['عدد العواميد',cnt]);if(qty)stats.push([unit==='م³'?'الحجم الكلي لـ '+cnt+' عواميد':'المساحة الكلية لـ '+cnt+' عواميد',(qty*cnt).toFixed(unit==='م³'?3:2)+' '+unit])}
   // سطر واحد بالسعر (بالمكعب أو بالمتر) حتى ما ينحسب المبلغ مرتين
-  const lines=[{desc:`عامود ${nm} — ${kn} — ${shape==='round'?'قطر':'عرض'} ${outer} سم، ارتفاع ${H} سم${kind!=='block'?'، سماكة '+th:''} — ${cnt} ${cnt>1?'عواميد':'عامود'}${qty?'، العامود الواحد '+qty+' '+unit:''}`,qty:qty&&kind!=='tiles'?+(qty*cnt).toFixed(3):cnt,unit:qty&&kind!=='tiles'?unit:'عامود'}];
+  const lines=[{desc:`عامود ${nm} — ${kn} — ${shape==='round'?'قطر':'عرض'} ${outer} سم، ارتفاع ${H} سم${kind!=='block'?'، سماكة '+th:''} — ${cnt} ${cnt>1?'عواميد':'عامود'}${qty?'، العامود الواحد '+qty+' '+unit:''}`,qty:qty?+(qty*cnt).toFixed(3):cnt,unit:qty?unit:'عامود'}];
   if(bH)lines.push({desc:`قاعدة عامود ${BT[bT]} — ${bW}×${bH} سم`,qty:cnt,unit:'قاعدة'});
   if(cH)lines.push({desc:`تاج عامود ${CTp[cT]} — ${cW}×${cH} سم`,qty:cnt,unit:'تاج'});
   return{svg:o,insets:[inset],box:[-Math.max(bW,cW)/2-S*.1,xr+S*.2,-tot-S*.08,S*.08],stats,tables:[{title:'قائمة القطع للمعمل',head:['القطعة','القياس (سم)','العدد'],rows:cut}],lines,note:''};
@@ -2709,10 +2709,10 @@ const HUB=new URLSearchParams(location.search).has('hub');
 if(EMBED){
   const OK=o=>/^https:\/\/([a-z0-9-]+\.)*(github\.io|cesar-alcham\.com|pages\.dev)$/.test(o)||/^http:\/\/localhost(:\d+)?$/.test(o);
   let parentOrigin=null;
-  const bar=document.createElement('div');bar.id='embedBar';
-  bar.innerHTML='<b>✏️ مرسم ديكور</b><span id="embedWho"></span><button class="btn sm primary" id="embedSend">↩ تحويل</button><button class="btn sm" id="embedCancel">إلغاء</button>';
-  document.body.prepend(bar);
-  const st=document.createElement('style');st.textContent='#embedBar{position:sticky;top:0;z-index:60;display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#1F8F55;color:#fff;padding:8px 16px}#embedBar b{font-size:.95rem}#embedBar span{flex:1;font-size:.82rem;opacity:.9}#embedBar .btn{background:#fff;color:#111;border-color:#fff}#embedBar .btn.primary{background:#111;color:#fff;border-color:#111}.tabbar{top:46px}'+(HUB?'#mirBtn{display:none}':'#shareBtn,#fileBtn,#projBtn,#mirBtn{display:none}')+'html{direction:ltr;overflow-y:auto;height:auto}body{direction:rtl}@media (max-width:860px){#embedBar{padding:6px 10px;gap:6px;flex-wrap:nowrap}#embedBar b{display:none}#embedBar span{font-size:.72rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#embedBar .btn{padding:6px 10px;font-size:.8rem;white-space:nowrap}.tabbar{top:40px}}';
+  // زرّين «تحويل» و«إلغاء» جنب «حفظ ملف مشروع» بدل الشريط الأخضر فوق (صفحة وحدة بلا شرايط زيادة)
+  const fb=document.getElementById('fileBtn');
+  fb.insertAdjacentHTML('afterend','<button class="btn sm emb-send" id="embedSend">↩ تحويل</button><button class="btn sm" id="embedCancel">إلغاء</button><span id="embedWho" hidden></span>');
+  const st=document.createElement('style');st.textContent='#embedSend{background:#1F8F55;color:#fff;border-color:#1F8F55;font-weight:800}'+(HUB?'#mirBtn{display:none}':'#shareBtn,#projBtn,#mirBtn{display:none}')+'html{direction:ltr;overflow-y:auto;height:auto}body{direction:rtl}';
   document.head.appendChild(st);
   const send=m=>{if(parentOrigin)window.parent.postMessage(m,parentOrigin)};
   window.addEventListener('message',e=>{
