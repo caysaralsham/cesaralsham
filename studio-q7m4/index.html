@@ -307,7 +307,7 @@ input[type=range]{height:16px}
 
 <script>
 const MATS={
-  beigeL:{name:'بيج فاتح',c:'#E8DAC0',d:'#CDBB98',v:'#B39B74',n:3,o:.3,dots:1},
+  beigeL:{name:'بيج',c:'#E8DAC0',d:'#CDBB98',v:'#B39B74',n:3,o:.3,dots:1},
   black:{name:'بني غامق بعروق بيج',c:'#2F2721',d:'#191410',v:'#C9AE84',n:6,o:.5},
   italian:{name:'أبيض بعروق رمادي',c:'#F2F2F0',d:'#D2D3D2',v:'#98A0A8',n:8,o:.5}
 };
@@ -1499,7 +1499,7 @@ function drawJurn(s){
   if(hasBase)o+=dimH(-bW/2,bW/2,S*.19,fmt(bW))+dimV(0,-bH,Ln/2+S*.05,fmt(bH));
   const vol=Ln*Wp*H/1e6;
   const mN=k=>(MATS[k]||MATS[MAL[k]]||MATS.italian).name,SHN={round:'مدور',oval:'بيضوي',half:'نص دائرة',globe:'كروي'};
-  const stats=[['الطول',fmt(Ln)],['العرض',fmt(Wp)],['الارتفاع الكلي',fmt(H)],['اللون',mN(s.mat)]];
+  const stats=(sh==='oval'?[['العرض',fmt(Ln)]]:[['الطول',fmt(Ln)],['العرض',fmt(Wp)]]).concat([['الارتفاع',fmt(H)],['اللون',mN(s.mat)]]);
   var jurnCut=[{title:'قائمة القطع للمعمل',head:['القطعة','القياس','العدد'],rows:[{cells:['بلوك الجرن (للقص)',Ln+' × '+Wp+' × '+(H-bH)+' سم','1']},{cells:['الشكل',{round:'مدور',oval:'بيضوي',half:'نص دائرة',globe:'كروي'}[sh]+(barrel?' كروي '+Math.round(kS*100)+'%':'')+'، حافة '+rim+' سم','-']}].concat(hasBase?[{cells:['القاعدة',bW+' × '+bH+' سم','1']}]:[])}];
   if(hasBase)stats.push(['القاعدة',bW+' عرض × '+bH+' ارتفاع']);
   if(seatOn){stats.push(['الكرسي',sp.txt+' سم، لون '+mN(s.smat)]);jurnCut[0].rows.push({cells:['الكرسي ('+sp.name+')',(sp.sh==='square'?sp.w+' × '+sp.d:(sp.sh==='round'?'قطر ':'عرض ')+sp.w)+' × '+sp.h+' سم','1']})}
@@ -1528,7 +1528,7 @@ function drawJurn(s){
    const cavN=barrel?'حفر كروي':{straight:'مستقيم',rounded:'قعر مسطح بزوايا مدورة',bowl:'مقعّر'}[globe?'rounded':cav];
    jurnCut[0].rows.push({cells:['الحفر من جوّا','عمق '+Math.round(D)+' ('+cavN+')','-']},{cells:['السعة',(vFull/1000).toFixed(1)+' لتر كاملة، '+(vEff/1000).toFixed(1)+' لتر فعلية','-']});}
   if(seatOn)insetsJ.push(seatInset(sp,M(s.smat)));
-  const lines=[{desc:'جرن '+SHN[sh]+'، '+((sh==='round'||sh==='globe')?'قطر '+Ln:Ln+' × '+Wp)+' سم، ارتفاع '+H+' سم'+(hasBase?'، مع قاعدة':'')+'، لون '+mN(s.mat),qty:1,unit:'قطعة'}];
+  const lines=[{desc:'جرن '+SHN[sh]+'، '+((sh==='round'||sh==='globe')?'قطر '+Ln:sh==='oval'?'عرض '+Ln:Ln+' × '+Wp)+' سم، ارتفاع '+H+' سم'+(hasBase?'، مع قاعدة':'')+'، لون '+mN(s.mat),qty:1,unit:'قطعة'}];
   if(seatOn)lines.push({desc:'كرسي '+sp.txt+' سم، لون '+mN(s.smat),qty:1,unit:'قطعة'});
   return{svg:o,insets:insetsJ,tables:jurnCut,lines,box:[-Ln/2-S*.14,xR+S*(seatOn?.25:.2),pTop-S*.13,S*(hasBase?.24:.15)],stats,
     note:((sh==='round'||sh==='globe')?'بالشكل المدور القطر هو الطول. ':'')+(hasBase&&+s.baseW>Ln?'القاعدة ما بتقدر تكون أعرض من الجرن. ':'')};
@@ -3182,6 +3182,10 @@ function render(){
   if(tab==='fountain'){applyAuto(state.fountain);for(let k=1;k<=6;k++){setNum('h'+k,state.fountain['h'+k]);setNum('c'+k,state.fountain['c'+k])}updGroups()}
   for(const c of flat(tab)){const v=state[tab][c.id];if(c.type==='mat'&&!MATS[v])state[tab][c.id]=MAL[v]||c.val;if(c.type==='seg'&&!c.options.some(o=>String(o[0])===String(v)))state[tab][c.id]=c.val}
   const r=SCHEMAS[tab].draw(state[tab]);lastR=r;
+  try{const st=state[tab],ms=flat(tab).filter(c=>c.type==='mat'&&(!c.show||c.show(st))),nm=c=>(MATS[st[c.id]]||MATS[MAL[st[c.id]]]||{}).name||'';
+    if(ms.length){const uniq=[...new Set(ms.map(nm).filter(Boolean))];
+      if(r.stats&&!r.stats.some(x=>/^(اللون|الألوان)/.test(x[0])))r.stats.push(ms.length===1?['اللون',nm(ms[0])]:['الألوان',[...new Set(ms.map(c=>c.label.replace(/^(رخام|لون)\s*/,'')+': '+nm(c)))].join('، ')]);
+      if(r.lines&&r.lines.length&&!/لون/.test(r.lines[0].desc))r.lines[0].desc+='، لون '+uniq.join(' و')}}catch(e){}
   {const b=r.box,dx=(b[1]-b[0])*.04,dy=(b[3]-b[2])*.04;r.box=[b[0]-dx,b[1]+dx,b[2]-dy,b[3]+dy]}
   const [x0,x1,y0,y1]=r.box,S=Math.max(x1-x0,y1-y0);
   let ground=r.noGround?'':L(x0,0,x1,0,INK,LW*2.2);
