@@ -646,13 +646,15 @@ const db = firebase.firestore();
 (function trackVisit(){
   const today = new Date().toISOString().slice(0,10); // YYYY-MM-DD
   const docRef = db.collection('cesar_stats').doc(today);
-  docRef.set({
+  const pCount = docRef.set({
     date: today,
     count: firebase.firestore.FieldValue.increment(1)
   }, {merge:true}).catch(()=>{ /* صامت إذا صلاحيات Firestore ما بتسمح بعد */ });
 
-  // تحديد الدولة من عنوان IP (خدمة مجانية بدون مفتاح API)
-  fetch('https://ipwho.is/')
+  // تحديد الدولة من عنوان IP (خدمة مجانية بدون مفتاح API) — بحد أقصى 5 ثواني
+  const ctl = ('AbortController' in window) ? new AbortController() : null;
+  if(ctl) setTimeout(()=>ctl.abort(), 5000);
+  const pGeo = fetch('https://ipwho.is/', ctl ? {signal: ctl.signal} : undefined)
     .then(r => r.json())
     .then(geo => {
       const code = (geo && geo.country_code) ? geo.country_code : 'XX';
@@ -661,6 +663,7 @@ const db = firebase.firestore();
       }, {merge:true});
     })
     .catch(()=>{ /* صامت إذا الخدمة ما ردّت أو تجاوزنا الحد المجاني */ });
+  window.__visitDone = Promise.all([pCount, pGeo]);
 })();
 const storage = firebase.storage();
 const FS_COLLECTION = 'cesar_website';
@@ -1104,8 +1107,20 @@ document.getElementById('watermarkFileInput').addEventListener('change', async (
   }
 });
 
+// الزوار: قراءة واحدة ثم إغلاق اتصال Firestore (بدون اتصال مفتوح يسبب أخطاء ويبطئ الهاتف)
+// لوحة الإعدادات (?panel=settings): مزامنة مباشرة كما كانت
+const SYNC_LIVE = new URLSearchParams(location.search).get('panel') === 'settings';
 function startSync(){
-  db.collection(FS_COLLECTION).onSnapshot(async (snap)=>{
+  const col = db.collection(FS_COLLECTION);
+  if(SYNC_LIVE){ col.onSnapshot(handleSnap, (err)=>{ console.error(err); }); return; }
+  col.get().then(handleSnap).catch((err)=>{ console.warn(err); })
+    .finally(()=>{
+      Promise.resolve(window.__visitDone).catch(()=>{})
+        .finally(()=>{ db.terminate().catch(()=>{}); });
+    });
+}
+async function handleSnap(snap){
+  {
     let mainDoc = null;
     const itemChunks = {};
     const videoChunks = {};
@@ -1122,7 +1137,7 @@ function startSync(){
 
     // ترحيل تلقائي: لو لسا في بيانات قديمة (كل الصور بمستند واحد)، ننقلها
     // للنظام الموزّع الجديد مرة وحدة بس.
-    if(Object.keys(itemChunks).length === 0 && mainDoc && Array.isArray(mainDoc.items) && mainDoc.items.length){
+    if(SYNC_LIVE && Object.keys(itemChunks).length === 0 && mainDoc && Array.isArray(mainDoc.items) && mainDoc.items.length){
       const now = Date.now();
       const legacy = mainDoc.items.map((it,i)=>({...it, createdAt: it.createdAt || (now - i)}));
       await chunkAndWriteItems(legacy);
@@ -1130,7 +1145,7 @@ function startSync(){
       return; // بتنعاد المزامنة تلقائيًا بعد الكتابة
     }
 
-    if(!mainDoc && Object.keys(itemChunks).length === 0){
+    if(SYNC_LIVE && !mainDoc && Object.keys(itemChunks).length === 0){
       const now = Date.now();
       const seeded = DEFAULT_ITEMS.map((it,i)=>({...it, createdAt: now - i}));
       await db.collection(FS_COLLECTION).doc(FS_DOC).set({settings: DEFAULT_SETTINGS});
@@ -1162,7 +1177,7 @@ function startSync(){
     renderHomeShowcase();
     renderVideoShowcase();
     reScrollToHashIfNeeded();
-  }, (err)=>{ console.error(err); });
+  }
 }
 
 // الأسئلة الشائعة من لوحة التحكم (مستند site_faq)
