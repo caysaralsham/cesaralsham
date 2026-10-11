@@ -241,6 +241,11 @@ input[type=range]{height:16px}
 .zoomctl button:hover{background:#F2ECE0}
 .zoomctl .zlab{width:auto;min-width:52px;font-size:.8rem;color:#6B655B}
 #draw,#insets svg{direction:ltr}
+
+/* القياسات: خانة رقم بس (بلا شريط سحب ولا أسهم) */
+#panel input[type=range]{display:none!important}
+#panel .num{width:62px;font-size:1rem;padding:4px 6px;-moz-appearance:textfield;appearance:textfield}
+#panel .num::-webkit-inner-spin-button,#panel .num::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 </style>
 <style id="sb-right">/* شريط التمرير على اليمين (كمبيوتر بس — عالجوال بيمنع التحريك يمين/يسار) */@media (min-width:900px) and (hover:hover){html{direction:ltr}body{direction:rtl}}</style>
 </head>
@@ -2292,18 +2297,22 @@ bathCtrls.push(
 const SCHEMAS={
   fountain:{title:'نافورة',draw:drawFountain,controls:fountainCtrls},
   jurn:{title:'جرن',draw:drawJurn,controls:[
-    {id:'shape',label:'شكل الجرن',type:'seg',options:[['oval','بيضوي (أوفال)'],['round','مدور'],['cone','مدور كونيك (أعرض من فوق)'],['half','نص دائرة'],['corner','زاوية (ربع دائرة)'],['cornerSlab','زاوية بلوح (مضلّع)']],val:'oval'},
-    {id:'L',label:'الطول (القطر للمدور، من فوق للكونيك، الضلع/اللوح للزاوية)',type:'range',min:30,max:100,step:1,val:50},
+    {id:'shape',label:'شكل الجرن',type:'seg',options:[['half','نص دائرة'],['oval','بيضوي (أوفال)'],['round','مدور'],['cone','مدور كونيك (أعرض من فوق)'],['corner','زاوية (ربع دائرة)'],['cornerSlab','زاوية بلوح (مضلّع)']],val:'oval'},
+    {id:'L',label:'الطول',type:'range',min:30,max:100,step:1,val:50,show:s=>s.shape==='half'||s.shape==='oval'},
+    {id:'L',label:'القطر',type:'range',min:30,max:100,step:1,val:50,show:s=>s.shape==='round'},
+    {id:'L',label:'العرض من فوق',type:'range',min:30,max:100,step:1,val:50,show:s=>s.shape==='cone'},
+    {id:'L',label:'طول الضلع (على الحيط)',type:'range',min:30,max:100,step:1,val:50,show:s=>s.shape==='corner'},
+    {id:'L',label:'طول اللوح (على الحيط)',type:'range',min:30,max:100,step:1,val:50,show:s=>s.shape==='cornerSlab'},
     {id:'Lb',label:'العرض من تحت',type:'range',min:10,max:100,step:1,val:45,show:s=>s.shape==='cone'},
-    {id:'W',label:'العرض',type:'range',min:20,max:100,step:1,val:40,show:s=>s.shape!=='round'&&s.shape!=='cone'&&!String(s.shape).startsWith('corner')},
-    {id:'sph',label:'كروي (من فوق ومن تحت)',type:'range',min:0,max:100,step:5,val:0,unit:'%',show:s=>s.shape==='round'},
-    {id:'topw',label:'الحافة من فوق',type:'seg',options:[[0,'عادية'],[1,'مموّجة']],val:0,show:s=>!String(s.shape).startsWith('corner')&&s.shape!=='cone'},
-    {id:'rimStyle',label:'الحافة من قدّام',type:'seg',options:[['flat','بدون'],['round','مدورة سميكة'],['wavy','مموّجة']],val:'flat',show:s=>!(s.shape==='round'&&+s.sph>0)&&!String(s.shape).startsWith('corner')},
+    {id:'W',label:'العرض',type:'range',min:20,max:100,step:1,val:40,show:s=>s.shape==='half'||s.shape==='oval'},
     {id:'pD',label:'قطر الجرن',type:'range',min:25,max:80,step:1,val:40,show:s=>s.shape==='cornerSlab'},
-    {id:'pT',label:'سماكة اللوح',type:'range',min:3,max:10,step:.5,val:5,show:s=>s.shape==='cornerSlab'},
-    {id:'pLw',label:'عرض الأذن (على الحيط)',type:'range',min:6,max:25,step:1,val:12,show:s=>s.shape==='cornerSlab'},
     {id:'H',label:'الارتفاع',type:'range',min:20,max:70,step:1,val:30},
     {id:'dep',label:'عمق الحفر (0 = تلقائي)',type:'range',min:0,max:100,step:1,val:0,show:s=>+s.H>30},
+    {id:'sph',label:'كروي (من فوق ومن تحت)',type:'range',min:0,max:100,step:5,val:0,unit:'%',show:s=>s.shape==='round'},
+    {id:'pT',label:'سماكة اللوح',type:'range',min:3,max:10,step:.5,val:5,show:s=>s.shape==='cornerSlab'},
+    {id:'pLw',label:'عرض الأذن (على الحيط)',type:'range',min:6,max:25,step:1,val:12,show:s=>s.shape==='cornerSlab'},
+    {id:'topw',label:'الحافة من فوق',type:'seg',options:[[0,'عادية'],[1,'مموّجة']],val:0,show:s=>!String(s.shape).startsWith('corner')&&s.shape!=='cone'},
+    {id:'rimStyle',label:'الحافة من قدّام',type:'seg',options:[['flat','بدون'],['round','مدورة سميكة'],['wavy','مموّجة']],val:'flat',show:s=>!(s.shape==='round'&&+s.sph>0)&&!String(s.shape).startsWith('corner')},
     {id:'rim',label:'سماكة الحافة',type:'range',min:3,max:10,step:.5,val:5},
     {id:'cav',label:'شكل الحفر من جوّا',type:'seg',options:[['rounded','قعر مسطح بزوايا مدورة'],['straight','مستقيم'],['bowl','مقعّر']],val:'rounded',show:s=>!String(s.shape).startsWith('corner')&&s.shape!=='cone'&&!(s.shape==='round'&&+s.sph>0)&&!String(s.shape).startsWith('corner')},
     {id:'deco',label:'الزخرفة',type:'seg',options:[['none','بدون'],['petals','أوراق كبيرة'],['flute','تضليع'],['band','حزام محفور'],['tiles','شريط زليج ملون']],val:'none'},
