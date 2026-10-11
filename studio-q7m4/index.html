@@ -15,6 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Aref+Ruqaa:wght@700&family=Reem+Kufi:wght@700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#F5ECDD; --panel:#FBF6EE; --ink:#3B2414; --muted:#7A5C40; --line:#E6D6BC;
@@ -142,6 +143,7 @@ main{max-width:1400px;grid-template-columns:330px minmax(0,1fr);gap:14px;padding
 .sec>summary::-webkit-details-marker{display:none}
 .secb{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;padding:0 2px 8px}
 .secb .ctrl{padding:4px 0;border:0}
+.txtin{width:100%;box-sizing:border-box;font:inherit;font-size:1rem;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);margin-top:4px}
 .secb .ctrl.full{grid-column:1/-1}
 .secb .ctrl .row{margin-bottom:2px;gap:4px}
 .ctrl label,.ctrl .lbl{font-size:.76rem;font-weight:700}
@@ -305,8 +307,15 @@ input[type=range]{height:16px}
 const MATS={
   italian:{name:'أبيض إيطالي',c:'#F2F2F0',d:'#D2D3D2',v:'#98A0A8',n:8,o:.5},
   beigeL:{name:'بيج مصري',c:'#E8DAC0',d:'#CDBB98',v:'#B39B74',n:3,o:.3,dots:1},
-  black:{name:'بني على أسود',c:'#2F2721',d:'#191410',v:'#7D6B5C',n:6,o:.4}
+  black:{name:'بني على أسود',c:'#2F2721',d:'#191410',v:'#7D6B5C',n:6,o:.4},
+  crema:{name:'كريما',c:'#EFE4CF',d:'#D9C9A8',v:'#BFA987',n:3,o:.25,dots:1},
+  emper:{name:'إمبرادور بني',c:'#5B4232',d:'#3E2B1F',v:'#C9B297',n:7,o:.45},
+  nero:{name:'أسود',c:'#232326',d:'#141416',v:'#D9D9DC',n:5,o:.45},
+  red:{name:'أحمر',c:'#A44E3F',d:'#7E3528',v:'#D9A08F',n:5,o:.35},
+  green:{name:'أخضر',c:'#2F5B47',d:'#1E3E30',v:'#9CC2AE',n:6,o:.4},
+  giallo:{name:'أصفر',c:'#D9B871',d:'#B8954E',v:'#F2DDA6',n:4,o:.35}
 };
+const BASE_MATS=['italian','beigeL','black'],ALL_MATS=['crema','beigeL','italian','emper','black','nero','red','green','giallo'];
 const MAL={beigeD:'beigeL',brown:'black'};
 const INK='#2B3238', DIM='#9C3A25', WATER='#4F9BC2', BRASS='#B08A3E', IRON='#1E1F21';
 let LW=1, FS=10;
@@ -1616,6 +1625,241 @@ function drawFrame(s){
     box:[-OW/2-S*.14,OW/2+S*(rect?(crown&&cTop<fTop?.27:.2):(crown&&cTop<fTop?.5:.43)),top-S*.05,S*.12],stats,note:''};
 }
 
+/* ---------- تابلو (أرضي تطعيم / حائط نحت) ---------- */
+const TB_FONTS={naskh:['Amiri',700,'نسخ'],kufi:['Reem Kufi',700,'كوفي'],ruqaa:['Aref Ruqaa',700,'رقعة'],latin:['Playfair Display',700,'فرنسي']};
+const TB_MODE={inlay:'تطعيم بلون',engrave:'حفر',relief:'نفر (بارز)',flat:'مسح (نفس المستوى)'};
+const TB_SHAPE={rect:'مستطيل',round:'مدور',oval:'بيضوي',half:'نص دائرة',oct:'مثمن',arch:'قوس من فوق'};
+const TB_DES={plain:'سادة',compass:'نجمة البوصلة',sun:'مثلثات (شمس)',rosette:'وردة 16 بمثمن',star8:'نجمة 8 إسلامية',lotus:'زهرة لوتس',scroll:'أرابيسك نباتي',carpet:'سجادة هندسية',feather:'ريشة',branch:'غصن ورد'};
+const escX=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const tbPt=(r,a,cx=0,cy=0)=>[cx+r*Math.sin(a),cy-r*Math.cos(a)];
+const tbPoly=pts=>'M'+pts.map(p=>f(p[0])+' '+f(p[1])).join('L')+'Z';
+const tbCirc=(r,cx=0,cy=0)=>`M${f(cx-r)} ${f(cy)}A${f(r)} ${f(r)} 0 1 0 ${f(cx+r)} ${f(cy)}A${f(r)} ${f(r)} 0 1 0 ${f(cx-r)} ${f(cy)}Z`;
+const tbEll=(rx,ry,cx=0,cy=0)=>`M${f(cx-rx)} ${f(cy)}A${f(rx)} ${f(ry)} 0 1 0 ${f(cx+rx)} ${f(cy)}A${f(rx)} ${f(ry)} 0 1 0 ${f(cx-rx)} ${f(cy)}Z`;
+function tbShape(sh,hw,hh){
+  hw=Math.max(.5,hw);hh=Math.max(.5,hh);
+  if(sh==='round')return tbCirc(hw);
+  if(sh==='oval')return tbEll(hw,hh);
+  if(sh==='half')return `M${f(-hw)} ${f(hh)}A${f(hw)} ${f(2*hh)} 0 0 1 ${f(hw)} ${f(hh)}Z`;
+  if(sh==='oct'){const c=Math.min(hw,hh)*(2-Math.SQRT2);return tbPoly([[-hw+c,-hh],[hw-c,-hh],[hw,-hh+c],[hw,hh-c],[hw-c,hh],[-hw+c,hh],[-hw,hh-c],[-hw,-hh+c]])}
+  if(sh==='arch'){const ri=Math.min(hw,hh);return `M${f(-hw)} ${f(hh)}V${f(-hh+ri)}A${f(hw)} ${f(ri)} 0 0 1 ${f(hw)} ${f(-hh+ri)}V${f(hh)}Z`}
+  return `M${f(-hw)} ${f(-hh)}H${f(hw)}V${f(hh)}H${f(-hw)}Z`;
+}
+function tbArea(sh,L,W){const a=L/2,b=W/2;
+  if(sh==='round')return Math.PI*a*a;if(sh==='oval'||sh==='half')return Math.PI*a*b;
+  if(sh==='oct'){const c=Math.min(a,b)*(2-Math.SQRT2);return L*W-2*c*c}
+  if(sh==='arch'){const ri=Math.min(a,b);return L*(W-ri)+Math.PI*a*ri/2}
+  return L*W}
+// path from normalized quadrant commands (u right, v up) mirrored by sx,sy
+function tbQ(cmds,A,B,sx,sy,cx=0,cy=0){let d='';for(const c of cmds){if(c[0]==='Z'){d+='Z';continue}d+=c[0];for(let i=1;i<c.length;i+=2)d+=f(cx+c[i]*A*sx)+' '+f(cy-c[i+1]*B*sy)+(i+2<c.length?' ':'')}return d}
+const MIR=[[1,1],[-1,1],[1,-1],[-1,-1]];
+function tbDesign(des,cx,cy,A,B,R){
+  const it=[],add=(d,slot=0,sw=0,o={})=>it.push({d,slot,sw,...o});
+  if(des==='compass'){
+    add(tbCirc(R,cx,cy)+tbCirc(R*.9,cx,cy),0,0,{rule:1});
+    add(tbCirc(R*.72,cx,cy)+tbCirc(R*.69,cx,cy),0,0,{rule:1});
+    for(let i=0;i<16;i++){const a=i*Math.PI/8,lng=i%2===0,tip=lng?R*.88:R*.6,w=lng?Math.PI/16:Math.PI/14,base=R*.2;
+      const t=tbPt(tip,a,cx,cy),l=tbPt(base,a-w*1.6,cx,cy),r=tbPt(base,a+w*1.6,cx,cy),c0=[cx,cy];
+      add(tbPoly([c0,l,t]),lng?0:1);add(tbPoly([c0,t,r]),lng?1:0)}
+    for(let i=0;i<16;i++){const a=(i+.5)*Math.PI/8,p=tbPt(R*.8,a,cx,cy),q=R*.035;add(tbPoly([[p[0],p[1]-q*1.6],[p[0]+q,p[1]],[p[0],p[1]+q*1.6],[p[0]-q,p[1]]]),1)}
+    add(tbCirc(R*.14,cx,cy),0);
+  }else if(des==='sun'){
+    add(tbCirc(R,cx,cy)+tbCirc(R*.95,cx,cy),0,0,{rule:1});
+    const n=24;for(let i=0;i<n;i++){const a=i*2*Math.PI/n,w=Math.PI/n;add(tbPoly([tbPt(R*.62,a-w,cx,cy),tbPt(R*.93,a,cx,cy),tbPt(R*.62,a+w,cx,cy)]),0);
+      add(tbCirc(R*.025,...tbPt(R*.9,a+w,cx,cy)),1);
+      add(tbPoly([tbPt(R*.55,a+w-w*.8,cx,cy),tbPt(R*.4,a+w,cx,cy),tbPt(R*.55,a+w+w*.8,cx,cy)]),1)}
+    add(tbCirc(R*.6,cx,cy)+tbCirc(R*.57,cx,cy),0,0,{rule:1});
+    add(tbCirc(R*.38,cx,cy)+tbCirc(R*.36,cx,cy),0,0,{rule:1});
+  }else if(des==='rosette'){
+    const oc=k=>{const p=[];for(let i=0;i<8;i++)p.push(tbPt(R*k/Math.cos(Math.PI/8),(i+.5)*Math.PI/4,cx,cy));return tbPoly(p)};
+    add(oc(1)+oc(.92),0,0,{rule:1});
+    for(let i=0;i<16;i++){const a=i*Math.PI/8,w=Math.PI/16;add(tbPoly([tbPt(R*.3,a,cx,cy),tbPt(R*.58,a-w,cx,cy),tbPt(R*.86,a,cx,cy),tbPt(R*.58,a+w,cx,cy)]),i%2)}
+    const st=[];for(let i=0;i<32;i++)st.push(tbPt(i%2?R*.13:R*.27,i*Math.PI/16,cx,cy));add(tbPoly(st),1);
+    add(tbCirc(R*.09,cx,cy),0);
+  }else if(des==='star8'){
+    const sq=(r,a0)=>tbPoly([0,1,2,3].map(i=>tbPt(r,a0+i*Math.PI/2,cx,cy)));
+    add(sq(R*.95,0),0);add(sq(R*.95,Math.PI/4),0);
+    add(sq(R*.62,0),1);add(sq(R*.62,Math.PI/4),1);
+    const st=[];for(let i=0;i<16;i++)st.push(tbPt(i%2?R*.2:R*.34,i*Math.PI/8,cx,cy));add(tbPoly(st),0);
+    add(tbCirc(R,cx,cy)+tbCirc(R*.975,cx,cy),0,0,{rule:1});
+  }else if(des==='lotus'){
+    add(tbCirc(R,cx,cy)+tbCirc(R*.92,cx,cy),0,0,{rule:1});
+    const pet=(a,r0,r1,w)=>{const p0=tbPt(r0,a,cx,cy),p1=tbPt(r1,a,cx,cy),m=(r0+r1)/2,pl=tbPt(m,a-w,cx,cy),pr=tbPt(m,a+w,cx,cy);
+      return `M${f(p0[0])} ${f(p0[1])}Q${f(pl[0])} ${f(pl[1])} ${f(p1[0])} ${f(p1[1])}Q${f(pr[0])} ${f(pr[1])} ${f(p0[0])} ${f(p0[1])}Z`};
+    for(let i=0;i<8;i++)add(pet(i*Math.PI/4,R*.22,R*.9,.62),0,R*.045);
+    for(let i=0;i<8;i++)add(pet((i+.5)*Math.PI/4,R*.22,R*.66,.55),0,R*.035);
+    add(`M${f(cx-R*.2)} ${f(cy)}A${f(R*.2)} ${f(R*.2)} 0 0 1 ${f(cx+R*.2)} ${f(cy)}Z`,0);add(`M${f(cx-R*.2)} ${f(cy)}A${f(R*.2)} ${f(R*.2)} 0 0 0 ${f(cx+R*.2)} ${f(cy)}Z`,1);
+  }else if(des==='scroll'){
+    const m=Math.min(A,B),sw=m*.04;
+    const S1=[['M',.18,.04],['C',.35,0,.55,.02,.66,.12],['C',.78,.23,.74,.4,.62,.4],['C',.53,.4,.5,.31,.56,.27],['C',.61,.24,.66,.28,.64,.33]];
+    const S2=[['M',.04,.2],['C',0,.38,.04,.58,.14,.68],['C',.24,.78,.4,.74,.4,.62],['C',.4,.53,.31,.5,.27,.56],['C',.24,.61,.28,.66,.33,.64]];
+    const S3=[['M',.66,.12],['C',.78,.05,.88,.12,.86,.22]],S4=[['M',.14,.68],['C',.08,.8,.14,.9,.24,.88]];
+    const L1=[['M',.68,0],['C',.78,.1,.9,.08,1,0],['Z']],L2=[['M',0,.7],['C',.1,.78,.08,.92,0,1],['Z']];
+    const L3=[['M',.36,.28],['C',.44,.44,.56,.52,.72,.6],['C',.58,.44,.5,.34,.36,.28],['Z']];
+    for(const [sx,sy] of MIR){add(tbQ(S1,A,B,sx,sy,cx,cy),0,sw);add(tbQ(S2,A,B,sx,sy,cx,cy),0,sw);add(tbQ(S3,A,B,sx,sy,cx,cy),0,sw*.6);add(tbQ(S4,A,B,sx,sy,cx,cy),0,sw*.6);
+      add(tbQ(L1,A,B,sx,sy,cx,cy),1);add(tbQ(L2,A,B,sx,sy,cx,cy),1);add(tbQ(L3,A,B,sx,sy,cx,cy),0);
+      add(tbEll(A*.028,B*.028,cx+.86*A*sx,cy-.3*B*sy),1);add(tbEll(A*.028,B*.028,cx+.3*A*sx,cy-.86*B*sy),1)}
+    add(tbCirc(m*.19,cx,cy)+tbCirc(m*.15,cx,cy),0,0,{rule:1});add(tbCirc(m*.11,cx,cy),1);
+  }else if(des==='carpet'){
+    const sz=Math.min(2*A,2*B)/3,nx=Math.max(1,Math.round(2*A/sz)),ny=Math.max(1,Math.round(2*B/sz)),tw=2*A/nx,th=2*B/ny,r=Math.min(tw,th)*.42;
+    for(let i=0;i<nx;i++)for(let j=0;j<ny;j++){const x=cx-A+tw*(i+.5),y=cy-B+th*(j+.5),sl=(i+j)%2;
+      const sq=a0=>tbPoly([0,1,2,3].map(k=>tbPt(r,a0+k*Math.PI/2,x,y)));add(sq(0),sl);add(sq(Math.PI/4),sl);add(tbCirc(r*.3,x,y),1-sl)}
+    for(let i=0;i<=nx;i++)for(let j=0;j<=ny;j++){const x=cx-A+tw*i,y=cy-B+th*j,q=Math.min(tw,th)*.1;add(tbPoly([[x,y-q],[x+q,y],[x,y+q],[x-q,y]]),1)}
+    add(`M${f(cx-A)} ${f(cy-B)}H${f(cx+A)}V${f(cy+B)}H${f(cx-A)}Z`,0,Math.min(A,B)*.02);
+  }else if(des==='feather'){
+    const bz=t=>{const P=[[.2*A,.98*B],[-.15*A,.3*B],[.3*A,-.4*B],[-.05*A,-.98*B]],u=1-t;return[cx+u*u*u*P[0][0]+3*u*u*t*P[1][0]+3*u*t*t*P[2][0]+t*t*t*P[3][0],cy+u*u*u*P[0][1]+3*u*u*t*P[1][1]+3*u*t*t*P[2][1]+t*t*t*P[3][1]]};
+    const N=40,left=[],right=[],sh=[];
+    for(let i=0;i<=N;i++){const t=i/N,p=bz(t),q=bz(Math.min(1,t+.01)),o=bz(Math.max(0,t-.01)),dx=q[0]-o[0],dy=q[1]-o[1],ln=Math.hypot(dx,dy)||1,nx=-dy/ln,ny=dx/ln;
+      sh.push(p);if(t<.12)continue;const tt=(t-.12)/.88,w=A*.62*Math.pow(Math.sin(Math.PI*Math.min(1,tt*1.05)),.75)*(1-.25*tt);
+      left.push([p[0]+nx*w,p[1]+ny*w-B*.02*tt]);right.push([p[0]-nx*w*.85,p[1]-ny*w*.85-B*.02*tt])}
+    add(tbPoly([...left,...right.reverse()]),0);
+    for(let i=6;i<N;i+=2){const t=i/N,p=bz(t),j=i-Math.ceil(.12*N);const a=left[j],b=right[right.length-1-j];
+      if(a)add(`M${f(p[0])} ${f(p[1])}Q${f((p[0]+a[0])/2)} ${f((p[1]+a[1])/2+B*.03)} ${f(a[0])} ${f(a[1]-B*.04)}`,1,Math.min(A,B)*.012,{line:1});
+      if(b)add(`M${f(p[0])} ${f(p[1])}Q${f((p[0]+b[0])/2)} ${f((p[1]+b[1])/2+B*.03)} ${f(b[0])} ${f(b[1]-B*.04)}`,1,Math.min(A,B)*.012,{line:1})}
+    add('M'+sh.map(p=>f(p[0])+' '+f(p[1])).join('L'),1,Math.min(A,B)*.035);
+  }else if(des==='branch'){
+    const m=Math.min(A,B);
+    add(`M${f(cx-A*.55)} ${f(cy+B*.98)}C${f(cx-A*.3)} ${f(cy+B*.3)} ${f(cx+A*.5)} ${f(cy+B*.1)} ${f(cx+A*.1)} ${f(cy-B*.6)}`,0,m*.07);
+    add(`M${f(cx-A*.3)} ${f(cy+B*.42)}C${f(cx-A*.7)} ${f(cy+B*.2)} ${f(cx-A*.7)} ${f(cy-B*.1)} ${f(cx-A*.45)} ${f(cy-B*.3)}`,0,m*.04);
+    add(`M${f(cx+A*.22)} ${f(cy+B*.05)}C${f(cx+A*.6)} ${f(cy-B*.05)} ${f(cx+A*.7)} ${f(cy-B*.3)} ${f(cx+A*.62)} ${f(cy-B*.55)}`,0,m*.035);
+    const fl=(x,y,p)=>{for(let k=0;k<5;k++){const q=tbPt(p*.55,k*2*Math.PI/5,x,y);add(tbCirc(p*.45,q[0],q[1]),0)}add(tbCirc(p*.3,x,y),1)};
+    fl(cx+A*.1,cy-B*.62,m*.22);fl(cx-A*.45,cy-B*.32,m*.2);fl(cx+A*.62,cy-B*.57,m*.18);fl(cx-A*.05,cy+B*.2,m*.16);fl(cx+A*.55,cy-B*.08,m*.13);
+    const lf=(x,y,a,l)=>{const t=tbPt(l,a,x,y),p1=tbPt(l*.5,a-.5,x,y),p2=tbPt(l*.5,a+.5,x,y);add(`M${f(x)} ${f(y)}Q${f(p1[0])} ${f(p1[1])} ${f(t[0])} ${f(t[1])}Q${f(p2[0])} ${f(p2[1])} ${f(x)} ${f(y)}Z`,1)};
+    lf(cx-A*.4,cy+B*.62,-1.2,m*.35);lf(cx+A*.05,cy+B*.45,1.3,m*.32);lf(cx+A*.35,cy-B*.25,.6,m*.28);lf(cx-A*.6,cy+B*.1,-.4,m*.26);
+    add(tbCirc(m*.08,cx-A*.2,cy-B*.85),1);add(tbCirc(m*.06,cx-A*.05,cy-B*.92),1);
+  }
+  return it;
+}
+function tbCorners(hw,hh,c){const it=[];
+  const CU=[['M',.06,.62],['C',.06,.22,.22,.06,.62,.06]],LF=[['M',.12,.12],['C',.32,.16,.46,.3,.52,.52],['C',.3,.46,.16,.32,.12,.12],['Z']],C2=[['M',.62,.06],['C',.78,.06,.84,.18,.74,.24]],C3=[['M',.06,.62],['C',.06,.78,.18,.84,.24,.74]];
+  for(const [sx,sy] of MIR){const ox=-sx*hw,oy=sy*hh;it.push({d:tbQ(CU,c,c,sx,sy,ox,oy),slot:0,sw:c*.05},{d:tbQ(C2,c,c,sx,sy,ox,oy),slot:0,sw:c*.035},{d:tbQ(C3,c,c,sx,sy,ox,oy),slot:0,sw:c*.035},{d:tbQ(LF,c,c,sx,sy,ox,oy),slot:1})}
+  return it}
+function tbGreek(hw,hh,h){ // meander band along a rectangle, band from outer edge (hw,hh) inward h
+  let d='';const g=h/5,st=[];
+  const side=(x0,y0,ux,uy,vx,vy,len)=>{const n=Math.max(1,Math.floor((len-2*h)/(4*g))),gg=(len-2*h)/(n*4);
+    for(let i=0;i<n;i++){const b=h+i*4*gg,P=(a,c)=>[x0+ux*(b+a*gg)+vx*(g*.5+c*g),y0+uy*(b+a*gg)+vy*(g*.5+c*g)];
+      const pts=[P(0,0),P(0,3),P(3,3),P(3,1),P(1,1),P(1,2),P(2,2)];st.push('M'+pts.map(p=>f(p[0])+' '+f(p[1])).join('L'))}
+  };
+  side(-hw,-hh,1,0,0,1,2*hw);side(hw,hh,-1,0,0,-1,2*hw);side(hw,-hh,0,1,-1,0,2*hh);side(-hw,hh,0,-1,1,0,2*hh);
+  const cs=[[-hw,-hh,1,1],[hw,-hh,-1,1],[hw,hh,-1,-1],[-hw,hh,1,-1]];
+  for(const [x,y,sx,sy] of cs)st.push(`M${f(x+sx*g*1.2)} ${f(y+sy*g*1.2)}H${f(x+sx*(h-g*1.2))}V${f(y+sy*(h-g*1.2))}H${f(x+sx*g*1.2)}Z`);
+  return st.join('')}
+function drawTablo(s){
+  const sh=s.shape,L=+s.L,W=sh==='round'?L:+s.W,hw=L/2,hh=W/2,th=+s.th,T=th*10;
+  const S=Math.max(L,W)*1.35;setScale(S);
+  const TM=M(s.tmat),cor=s.cor!=='none',cw=cor?Math.min(+s.cw,Math.min(hw,hh)*.4):0,cp=cor?+s.cp:0;
+  const des=s.des,hasD=des!=='plain',corn=sh==='rect'&&+s.corn,txt=+s.txt&&String(s.text||'').trim();
+  const dm=s.dmode,tm=s.tmode,bord=s.bord==='greek'&&sh!=='rect'?'double':s.bord,bw=+s.bw,bg=+s.bgap;
+  const mm=dm==='relief'?+s.dht:dm==='engrave'?+s.ddep:0,Rm=Math.min(hw,hh);
+  const kOf=v=>Math.max(LW*1.5,Rm*.01*Math.min(5,1+v/4));
+  const mats=[M(s.dmat),M(s.d2mat)];
+  const elP=(it,col,dx=0,dy=0,sw=null,extra='')=>{const tr=dx||dy?` transform="translate(${f(dx)} ${f(dy)})"`:'';
+    return it.sw?`<path d="${it.d}" fill="none" stroke="${col}" stroke-width="${f(sw==null?it.sw:sw)}" stroke-linecap="round" stroke-linejoin="round"${tr} ${extra}/>`
+      :(sw!=null?`<path d="${it.d}" fill="none" stroke="${col}" stroke-width="${f(sw)}" stroke-linejoin="round"${it.rule?' fill-rule="evenodd"':''}${tr} ${extra}/>`:`<path d="${it.d}" fill="${col}"${it.rule?' fill-rule="evenodd"':''}${tr} ${extra}/>`)};
+  function paint(items,mode,k,matOf){let o='';
+    if(mode==='relief')for(const it of items)if(!it.line)o+=elP(it,'rgba(45,28,12,.55)',k*1.4,k*1.4);
+    for(const it of items){
+      if(it.line){o+=elP(it,mode==='inlay'?matOf(it):'rgba(60,40,22,.55)');continue}
+      if(mode==='inlay'){o+=it.sw?elP(it,INK,0,0,it.sw+LW*1.4)+elP(it,matOf(it)):elP(it,matOf(it))+elP(it,INK,0,0,LW*.55)}
+      else if(mode==='relief'){o+=it.sw?elP(it,'rgba(60,40,20,.55)',0,0,it.sw+LW*.8)+elP(it,TM)+elP(it,'rgba(255,255,255,.6)',-it.sw*.12,-it.sw*.12,it.sw*.28)
+        :elP(it,TM)+elP(it,'rgba(255,255,255,.85)',-k*.4,-k*.4,LW*1.6)+elP(it,'rgba(50,32,15,.75)',0,0,LW*.7)}
+      else if(mode==='engrave'){o+=elP(it,'rgba(62,40,18,.45)')+elP(it,'rgba(255,255,255,.5)',k*.35,k*.35,it.sw?it.sw*.2:LW*.9)+(it.sw?'':elP(it,'rgba(40,25,10,.7)',0,0,LW*.5))}
+      else o+=elP(it,'rgba(255,255,255,.5)')+(it.sw?'':elP(it,'rgba(80,60,40,.55)',0,0,LW*.5));
+    }return o}
+  // ---- slab + cornice ----
+  let o=P(tbShape(sh,hw,hh),TM,LW*1.2);
+  const ring=(a,b)=>tbShape(sh,hw-a,hh-a)+tbShape(sh,hw-b,hh-b);
+  if(cor){
+    if(s.cor==='step'){o+=`<path d="${ring(0,cw*.34)}" fill-rule="evenodd" fill="rgba(255,255,255,.28)"/><path d="${ring(cw*.68,cw)}" fill-rule="evenodd" fill="rgba(70,45,20,.16)"/>`;
+      for(const t of[.34,.68])o+=`<path d="${tbShape(sh,hw-cw*t,hh-cw*t)}" fill="none" stroke="rgba(60,40,20,.55)" stroke-width="${f(LW*.7)}"/>`}
+    else if(s.cor==='round')o+=`<path d="${ring(0,cw*.5)}" fill-rule="evenodd" fill="rgba(255,255,255,.32)"/><path d="${ring(cw*.5,cw)}" fill-rule="evenodd" fill="rgba(70,45,20,.17)"/>`;
+    else o+=`<path d="${ring(0,cw)}" fill-rule="evenodd" fill="rgba(255,255,255,.2)"/><path d="${tbShape(sh,hw-cw*.5,hh-cw*.5)}" fill="none" stroke="rgba(60,40,20,.35)" stroke-width="${f(LW*.6)}"/>`;
+    const k=kOf(cp);o+=`<path d="${tbShape(sh,hw-cw,hh-cw)}" fill="none" stroke="rgba(40,25,10,.4)" stroke-width="${f(k*1.6)}" transform="translate(${f(k*.6)} ${f(k*.6)})"/>`+P(tbShape(sh,hw-cw,hh-cw),'none',LW*.8);
+  }
+  const fw=hw-cw,fh=hh-cw,fid=nid('tbf');
+  o+=`<clipPath id="${fid}"><path d="${tbShape(sh,fw,fh)}"/></clipPath><g clip-path="url(#${fid})">`;
+  // ---- border (inlay) ----
+  let inset=0;
+  if(bord!=='none'){const bm=M(s.bmat);
+    const rg=(a,b)=>P(tbShape(sh,fw-a,fh-a)+tbShape(sh,fw-b,fh-b),bm,LW*.5,'fill-rule="evenodd"');
+    if(bord==='line'){o+=rg(bg,bg+bw);inset=bg+bw}
+    else if(bord==='double'){o+=rg(bg,bg+bw)+rg(bg+bw*2,bg+bw*3);inset=bg+bw*3}
+    else{const e=Math.max(LW,bw*.1);o+=rg(bg,bg+e)+rg(bg+bw-e,bg+bw);o+=`<path d="${tbGreek(fw-bg-e,fh-bg-e,bw-2*e)}" fill="none" stroke="${bm}" stroke-width="${f(bw*.1)}" stroke-linejoin="miter" stroke-linecap="square"/>`;inset=bg+bw}
+    inset+=Math.max(2,bw*.8)}
+  const dw=Math.max(2,fw-inset),dh=Math.max(2,fh-inset);
+  // ---- design ----
+  const ds=+s.dsz/100;let dItems=[];
+  if(hasD){let cx=0,cy=0,A=dw*ds,B=dh*ds,R=Math.min(dw,dh)*ds;
+    if(sh==='half'){cy=dh;R=Math.min(dw,2*dh)*ds;A=dw*ds;B=dh*ds;if(!['compass','sun','rosette','star8','lotus'].includes(des)){cy=dh*.15;B=dh*.8*ds}}
+    if(sh==='arch'&&['compass','sun','rosette','star8','lotus'].includes(des)){R=Math.min(dw,dh)*ds*.9}
+    if(txt&&s.tpos==='arc'&&['round','oval','half','oct'].includes(sh)){const q=Math.max(.5,1-(+s.tsz*1.35*1.15)/Math.min(dw,sh==='half'?2*dh:dh));R*=q;A*=q;B*=q}
+    dItems=tbDesign(des,cx,cy,A,B,R)}
+  if(corn){const c=Math.min(dw,dh)*.5;dItems=dItems.concat(tbCorners(dw*.98,dh*.98,c))}
+  o+=paint(dItems,dm,kOf(mm),it=>mats[it.slot||0]);
+  // ---- text ----
+  let tNote='',tW=0;
+  if(txt){const [fam,wt]=TB_FONTS[s.font]||TB_FONTS.naskh,fs=+s.tsz*1.35,tv=escX(String(s.text).trim());
+    const arc=s.tpos==='arc'&&['round','oval','half','oct'].includes(sh);let y=s.tpos==='top'?-dh+fs*.95:s.tpos==='mid'?fs*.33:dh-fs*.35;
+    if(sh==='half'&&s.tpos==='top')y=dh*.1;if(sh==='arch'&&s.tpos==='top')y=-dh+Math.min(dw,dh)*.55;
+    const pid=nid('tbp'),ra=Math.max(fs,Math.min(dw,sh==='half'?2*dh:dh)-fs*.95),acy=sh==='half'?dh:0;
+    const defs=arc?`<path id="${pid}" d="M${f(-ra)} ${f(acy)}A${f(ra)} ${f(ra)} 0 0 1 ${f(ra)} ${f(acy)}" fill="none"/>`:'';
+    tW=String(s.text).trim().length*fs*(s.font==='latin'?.55:.42);const avail=arc?Math.PI*ra*.9:2*dw*.95;
+    if(tW>avail)tNote='النص أطول من مساحة التابلو، صغّر ارتفاع الحرف أو قصّر النص';
+    const tel=(fill,dx=0,dy=0,stroke='',sw=0)=>`<text ${arc?'':`x="${f(dx)}" y="${f(y+dy)}"`}${arc&&(dx||dy)?` transform="translate(${f(dx)} ${f(dy)})"`:''} text-anchor="middle" font-family="'${fam}',Amiri,serif" font-weight="${wt}" font-size="${f(fs)}" fill="${fill}"${stroke?` stroke="${stroke}" stroke-width="${f(sw)}" paint-order="stroke"`:''} data-tfont="${s.font}">${arc?`<textPath href="#${pid}" startOffset="50%">${tv}</textPath>`:tv}</text>`;
+    const tk=kOf(tm==='relief'?+s.tht:+s.tdep);let t=defs;
+    if(tm==='inlay')t+=tel(M(s.xmat),0,0,INK,LW*.7)+tel(M(s.xmat));
+    else if(tm==='relief')t+=tel('rgba(50,32,15,.45)',tk,tk)+tel(TM,0,0,'rgba(60,40,20,.6)',LW*.6)+tel('none',-tk*.3,-tk*.3,'rgba(255,255,255,.6)',LW*.6);
+    else if(tm==='engrave')t+=tel('rgba(62,40,18,.55)')+tel('none',tk*.3,tk*.3,'rgba(255,255,255,.45)',LW*.6);
+    else t+=tel('rgba(255,255,255,.55)',0,0,'rgba(80,60,40,.55)',LW*.5);
+    o+=t}
+  o+='</g>'+P(tbShape(sh,hw,hh),'none',LW*1.4);
+  // ---- dims ----
+  if(sh==='round')o+=dimH(-hw,hw,-hh-FS*1.6,'القطر '+fmt(L));
+  else{o+=dimH(-hw,hw,-hh-FS*1.6,'الطول '+fmt(L));o+=dimV(hh,-hh,hw+FS*1.8,'العرض '+fmt(W))}
+  if(cor)o+=dimH(-hw,-hw+cw,sh==='rect'||sh==='arch'?hh*.55:0,fmt(cw),C_FR);
+  // ---- section inset (mm) ----
+  const feats=[];if(hasD||corn)feats.push({n:'الرسمة',mode:dm,v:dm==='relief'?+s.dht:dm==='engrave'?+s.ddep:0,mat:s.dmat});
+  if(txt)feats.push({n:'الكتابة',mode:tm,v:tm==='relief'?+s.tht:tm==='engrave'?+s.tdep:0,mat:s.xmat});
+  const relMax=Math.max(0,...feats.filter(q=>q.mode==='relief').map(q=>q.v)),lower=Math.max(cp,relMax),base=T-lower;
+  const depMax=Math.max(0,...feats.filter(q=>q.mode==='engrave').map(q=>q.v)),rest=base-depMax;
+  let warn='';if(rest<8)warn='انتبه: السماكة الباقية تحت الحفر/المسح '+f(rest)+' مم بس — زيد سماكة اللوح أو خفّف العمق';
+  const v=Math.min(4,110/Math.max(T,10)),Wd=320,fsI=11,lw=1;let q='';
+  const yb=0,yT=-T*v,yB=-base*v,cwU=cor?40:0;
+  q+=`<path d="M0 0H${Wd}V${f(cor?yT:yB)}H${Wd-cwU}V${f(yB)}H${cwU}V${f(cor?yT:yB)}H0Z" fill="${TM}" stroke="${INK}" stroke-width="${lw}"/>`;
+  const segW=(Wd-2*cwU)/(feats.length+1);
+  feats.forEach((ft,i)=>{const xm=cwU+segW*(i+1),w2=Math.min(60,segW*.6),x1=xm-w2/2,oy=i*fsI*1.5;
+    if(ft.mode==='engrave'){q+=`<rect x="${f(x1)}" y="${f(yB)}" width="${f(w2)}" height="${f(ft.v*v)}" fill="#fff" stroke="${INK}" stroke-width="${lw}"/>`;q+=`<text x="${f(xm)}" y="${f(yB+ft.v*v+fsI*1.2+oy)}" font-size="${fsI}" text-anchor="middle" fill="${C_TAB}" font-weight="700">${ft.n}: حفر ${ft.v} مم</text>`}
+    else if(ft.mode==='relief'){q+=`<rect x="${f(x1)}" y="${f(yB-ft.v*v)}" width="${f(w2)}" height="${f(ft.v*v)}" fill="${TM}" stroke="${INK}" stroke-width="${lw}"/>`;q+=`<text x="${f(xm)}" y="${f(yB-ft.v*v-fsI*.5-oy)}" font-size="${fsI}" text-anchor="middle" fill="${C_TAB}" font-weight="700">${ft.n}: نفر ${ft.v} مم</text>`}
+    else if(ft.mode==='inlay'){q+=`<rect x="${f(x1)}" y="${f(yB)}" width="${f(w2)}" height="${f(-yB)}" fill="${M(ft.mat)}" stroke="${INK}" stroke-width="${lw}"/>`;q+=`<text x="${f(xm)}" y="${f(yB-fsI*.5-oy)}" font-size="${fsI}" text-anchor="middle" fill="${C_TAB}" font-weight="700">${ft.n}: تطعيم</text>`}
+    else{q+=`<line x1="${f(x1)}" y1="${f(yB)}" x2="${f(x1+w2)}" y2="${f(yB)}" stroke="${C_TAB}" stroke-width="3" stroke-dasharray="4 3"/>`;q+=`<text x="${f(xm)}" y="${f(yB-fsI*.5-oy)}" font-size="${fsI}" text-anchor="middle" fill="${C_TAB}" font-weight="700">${ft.n}: مسح، نفس المستوى</text>`}});
+  const dv=(y1,y2,x,lab,col)=>`<line x1="${x}" y1="${f(y1)}" x2="${x}" y2="${f(y2)}" stroke="${col}" stroke-width="1"/><line x1="${x-4}" y1="${f(y1)}" x2="${x+4}" y2="${f(y1)}" stroke="${col}"/><line x1="${x-4}" y1="${f(y2)}" x2="${x+4}" y2="${f(y2)}" stroke="${col}"/><text x="${x+6}" y="${f((y1+y2)/2+4)}" font-size="${fsI}" fill="${col}" font-weight="700">${lab}</text>`;
+  q+=dv(0,yT,Wd+6,'السماكة '+T+' مم',DIM);
+  if(lower>0)q+=dv(yT,yB,-8,'',C_FR)+`<text x="-12" y="${f((yT+yB)/2+4)}" font-size="${fsI}" fill="${C_FR}" font-weight="700" text-anchor="end">${cor?'الكورنيش ':'مسح الأرضية '}${f(lower)} مم</text>`;
+  const insets=[{svg:q,box:[-120,Wd+90,yT-30-(relMax*v)-feats.length*fsI*1.5,Math.max(30,depMax*v+fsI*2+feats.length*fsI*1.5)],label:'مقطع جانبي (بالمليمتر — مكبّر)'}];
+  // ---- stats / lines / tables ----
+  const area=tbArea(sh,L,W)/1e4,KN=s.kind==='wall'?'تابلو حائط':'تابلو أرضي';
+  const sizeT=sh==='round'?'قطر '+L+' سم':'طول '+L+' × عرض '+W+' سم';
+  const stats=[['النوع',KN+'، '+TB_SHAPE[sh]],['القياس',sizeT],['المساحة',area.toFixed(2)+' م²'],['سماكة اللوح',th+' سم ('+T+' مم)']];
+  const how=(mode,v)=>TB_MODE[mode]+(mode==='engrave'?' بعمق '+v+' مم':mode==='relief'?' بارتفاع '+v+' مم':'');
+  if(hasD)stats.push(['الرسمة',TB_DES[des]+'، '+how(dm,mm)+(dm==='inlay'?' ('+MATS[s.dmat].name+' و'+MATS[s.d2mat].name+')':'')]);
+  if(corn)stats.push(['الزوايا','زوايا مزخرفة'+(hasD?'':'، '+how(dm,mm))]);
+  if(txt)stats.push(['الكتابة','«'+String(s.text).trim()+'» — خط '+(TB_FONTS[s.font]||TB_FONTS.naskh)[2]+'، '+how(tm,tm==='relief'?+s.tht:+s.tdep)+'، ارتفاع الحرف '+s.tsz+' سم'+(tm==='inlay'?' ('+MATS[s.xmat].name+')':'')]);
+  if(cor)stats.push(['الكورنيش','من نفس التابلو، '+{flat:'كادر بارز سادة',step:'متدرج',round:'حافة مدورة'}[s.cor]+'، عرض '+cw+' سم، بارز '+cp+' مم عن الأرضية']);
+  if(lower>0&&!cor)stats.push(['مسح الأرضية','تنزيل الأرضية '+lower+' مم مشان يطلع النفر']);
+  if(bord!=='none')stats.push(['خط الكادر',{line:'خط',double:'خطين',greek:'مفتاح يوناني'}[bord]+'، عرض '+bw+' سم، بُعده عن الطرف '+bg+' سم ('+MATS[s.bmat].name+')']);
+  const descr=[KN+' '+TB_SHAPE[sh]+' — '+sizeT+'، سماكة '+th+' سم'];
+  if(hasD)descr.push('رسمة '+TB_DES[des]+' '+how(dm,mm));if(txt)descr.push('كتابة '+how(tm,tm==='relief'?+s.tht:+s.tdep));if(cor)descr.push('مع كورنيش من نفس القطعة');
+  const lines=[{desc:descr.join('، ')+' ('+area.toFixed(2)+' م²)',qty:1,unit:'قطعة'}];
+  const rows=[{cells:['قص اللوح',TB_SHAPE[sh]+'، '+sizeT,'سماكة '+th+' سم']}];
+  if(cor)rows.push({cells:['الكورنيش',{flat:'كادر بارز سادة',step:'متدرج',round:'حافة مدورة'}[s.cor]+'، عرض '+cw+' سم','بروز '+cp+' مم']});
+  if(lower>0)rows.push({cells:[cor?'مسح الأرضية جوّا الكورنيش':'مسح الأرضية حوالين النفر','تنزيل '+lower+' مم','الباقي '+f(base)+' مم']});
+  if(bord!=='none')rows.push({cells:['خط الكادر (تطعيم)',{line:'خط',double:'خطين',greek:'مفتاح يوناني'}[bord]+' عرض '+bw+' سم','بُعده '+bg+' سم، '+MATS[s.bmat].name]});
+  if(hasD||corn)rows.push({cells:['الرسمة: '+(hasD?TB_DES[des]:'زوايا'),how(dm,mm),dm==='inlay'?MATS[s.dmat].name+' + '+MATS[s.d2mat].name:'من نفس الحجر']});
+  if(txt)rows.push({cells:['الكتابة: '+String(s.text).trim(),how(tm,tm==='relief'?+s.tht:+s.tdep),'خط '+(TB_FONTS[s.font]||TB_FONTS.naskh)[2]+'، حرف '+s.tsz+' سم']});
+  const note=[warn,tNote].filter(Boolean).join(' — ');
+  return{svg:o,lines,insets,noGround:true,tables:[{title:'تفصيل الشغل للمعمل',head:['الشغلة','التفصيل','ملاحظة'],rows}],
+    box:[-hw-S*.1,hw+S*.2,-hh-S*.13,hh+S*.1],stats,note};
+}
+
 /* ---------- schemas ---------- */
 const YN=[[1,'نعم'],[0,'لا']];
 const head=(label,collapsed)=>({type:'head',label,collapsed});
@@ -1899,6 +2143,43 @@ const SCHEMAS={
     {id:'stripL',label:'طول قطعة الكادر',type:'range',min:30,max:300,step:5,val:200,show:s=>!+s.full&&+s.fw>0},
     {id:'fstyle',label:'شكل الكادر',type:'seg',options:[['plain','سادة'],['double','بدرجتين']],val:'double',show:s=>+s.fw>0},
     {id:'fmat',label:'مادة الكادر',type:'mat',val:'black',show:s=>+s.fw>0}]},
+  tablo:{title:'تابلو',draw:drawTablo,controls:[
+    head('التابلو'),
+    {id:'kind',label:'نوع التابلو',type:'seg',options:[['floor','أرضي (تطعيم)'],['wall','حائط (نحت)']],val:'floor',preset:{
+      floor:{shape:'round',L:120,W:120,des:'compass',dmode:'inlay',cor:'none',bord:'line',bw:3,corn:0},
+      wall:{shape:'rect',L:60,W:110,des:'feather',dmode:'relief',dht:6,cor:'step',bord:'none',corn:0,tmat:'beigeL'}}},
+    {id:'shape',label:'الشكل',type:'seg',options:[['rect','مستطيل أو مربع'],['round','مدور'],['oval','بيضوي'],['half','نص دائرة'],['oct','مثمن'],['arch','قوس من فوق']],val:'round'},
+    {id:'L',label:'الطول (القطر للمدور)',type:'range',min:20,max:800,step:1,val:120},
+    {id:'W',label:'العرض',type:'range',min:20,max:800,step:1,val:120,show:s=>s.shape!=='round'},
+    {id:'th',label:'سماكة اللوح',type:'range',min:1,max:10,step:.5,val:2},
+    {id:'tmat',label:'رخام التابلو',type:'mat',val:'crema',mats:ALL_MATS},
+    head('الرسمة'),
+    {id:'des',label:'الرسمة',type:'seg',options:Object.entries(TB_DES),val:'compass'},
+    {id:'dsz',label:'حجم الرسمة',type:'range',min:30,max:100,step:5,val:85,unit:'%',show:s=>s.des!=='plain'},
+    {id:'corn',label:'زوايا مزخرفة',type:'seg',options:YN,val:0,show:s=>s.shape==='rect'},
+    {id:'dmode',label:'طريقة تنفيذ الرسمة',type:'seg',options:Object.entries(TB_MODE),val:'inlay',show:s=>s.des!=='plain'||(s.shape==='rect'&&+s.corn)},
+    {id:'ddep',label:'عمق حفر الرسمة',type:'range',min:1,max:15,step:.5,val:3,unit:'مم',show:s=>s.dmode==='engrave'&&(s.des!=='plain'||(s.shape==='rect'&&+s.corn))},
+    {id:'dht',label:'ارتفاع نفر الرسمة',type:'range',min:1,max:20,step:.5,val:5,unit:'مم',show:s=>s.dmode==='relief'&&(s.des!=='plain'||(s.shape==='rect'&&+s.corn))},
+    {id:'dmat',label:'لون الرسمة 1',type:'mat',val:'emper',mats:ALL_MATS,show:s=>s.dmode==='inlay'&&(s.des!=='plain'||(s.shape==='rect'&&+s.corn))},
+    {id:'d2mat',label:'لون الرسمة 2',type:'mat',val:'nero',mats:ALL_MATS,show:s=>s.dmode==='inlay'&&(s.des!=='plain'||(s.shape==='rect'&&+s.corn))},
+    head('الكتابة'),
+    {id:'txt',label:'كتابة على التابلو',type:'seg',options:[[0,'بدون'],[1,'مع كتابة']],val:0},
+    {id:'text',label:'النص',type:'text',val:'بسم الله الرحمن الرحيم',show:s=>+s.txt},
+    {id:'font',label:'الخط',type:'seg',options:[['naskh','نسخ'],['kufi','كوفي'],['ruqaa','رقعة'],['latin','فرنسي']],val:'naskh',show:s=>+s.txt},
+    {id:'tmode',label:'طريقة الكتابة',type:'seg',options:[['engrave','حفر'],['relief','نفر'],['flat','مسح'],['inlay','تطعيم بلون']],val:'engrave',show:s=>+s.txt},
+    {id:'tdep',label:'عمق حفر الكتابة',type:'range',min:1,max:15,step:.5,val:3,unit:'مم',show:s=>+s.txt&&s.tmode==='engrave'},
+    {id:'tht',label:'ارتفاع نفر الكتابة',type:'range',min:1,max:20,step:.5,val:4,unit:'مم',show:s=>+s.txt&&s.tmode==='relief'},
+    {id:'tsz',label:'ارتفاع الحرف',type:'range',min:2,max:60,step:1,val:8,show:s=>+s.txt},
+    {id:'tpos',label:'مكان الكتابة',type:'seg',options:[['top','فوق'],['mid','بالنص'],['bot','تحت'],['arc','على دائرة']],val:'bot',show:s=>+s.txt},
+    {id:'xmat',label:'لون الكتابة',type:'mat',val:'nero',mats:ALL_MATS,show:s=>+s.txt&&s.tmode==='inlay'},
+    head('الكورنيش والكادر'),
+    {id:'cor',label:'كورنيش من نفس التابلو',type:'seg',options:[['none','بدون'],['flat','كادر بارز سادة'],['step','متدرج (متل كورنيش الجرن)'],['round','حافة مدورة']],val:'none'},
+    {id:'cw',label:'عرض الكورنيش',type:'range',min:2,max:25,step:.5,val:6,show:s=>s.cor!=='none'},
+    {id:'cp',label:'بروز الكورنيش عن الأرضية',type:'range',min:2,max:30,step:1,val:8,unit:'مم',show:s=>s.cor!=='none'},
+    {id:'bord',label:'خط الكادر (تطعيم)',type:'seg',options:[['none','بدون'],['line','خط'],['double','خطين'],['greek','مفتاح يوناني (للمستطيل)']],val:'line',preset:{line:{bw:3},double:{bw:2},greek:{bw:10}}},
+    {id:'bw',label:'عرض الخط (للمفتاح: عرض الشريط)',type:'range',min:1,max:25,step:.5,val:3,show:s=>s.bord!=='none'},
+    {id:'bgap',label:'بُعد الخط عن الطرف',type:'range',min:0,max:80,step:1,val:8,show:s=>s.bord!=='none'},
+    {id:'bmat',label:'لون خط الكادر',type:'mat',val:'nero',mats:ALL_MATS,show:s=>s.bord!=='none'}]},
   bath:{title:'حمام',draw:drawBath,controls:bathCtrls},
   frame:{title:'كورنيش',draw:drawFrame,controls:[
     head('النوع'),
@@ -2145,8 +2426,9 @@ function ctrlHTML(c,st){
   if(c.type==='counter')return `<div class="ctrl full"><div class="row"><span class="lbl">${c.label}</span><output>${v}</output></div><div class="seg"><button data-act="inc" data-id="${c.id}"${+v>=c.max?' disabled':''}>+ ${c.addLabel}</button><button data-act="dec" data-id="${c.id}"${+v<=c.min?' disabled':''}>− ${c.remLabel}</button></div></div>`;
   if(c.type==='action')return `<div class="ctrl full"><button class="btn sm" data-act="${c.act}">${c.label}</button></div>`;
   if(c.type==='range'){const mt=isM(c),k=mt?100:1;return `<div class="ctrl"><div class="row"><label for="c-${c.id}">${c.label}</label><span class="numw"><input class="num" type="number" inputmode="decimal" id="n-${c.id}" data-id="${c.id}"${mt?' data-m="1"':''} min="${c.min/k}" max="${c.max/k}" step="${mt?0.01:c.step}" value="${+(v/k).toFixed(2)}"><small>${mt?'م':unitOf(c)}</small></span></div><input type="range" id="c-${c.id}" data-id="${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${v}"></div>`;}
+  if(c.type==='text')return `<div class="ctrl full"><div class="row"><label for="t-${c.id}">${c.label}</label></div><input type="text" class="txtin" id="t-${c.id}" data-tid="${c.id}" dir="auto" value="${escX(v==null?'':v)}"></div>`;
   if(c.type==='seg')return `<div class="ctrl${c.half?'':' full'}"><div class="row"><span class="lbl">${c.label}</span></div><div class="seg">${c.options.map(([ov,ol])=>`<button data-id="${c.id}" data-v="${ov}" aria-pressed="${String(ov)===String(v)}">${ol}</button>`).join('')}</div></div>`;
-  return `<div class="ctrl full"><div class="row"><span class="lbl">${c.label}</span><output id="o-${c.id}">${MATS[v]?MATS[v].name:''}</output></div><div class="mats">${Object.entries(MATS).map(([mk,m])=>`<button class="sw" title="${m.name}" aria-label="${m.name}" data-id="${c.id}" data-v="${mk}" style="--c:${m.c};--d:${m.d}" aria-pressed="${mk===v}"></button>`).join('')}</div></div>`;
+  return `<div class="ctrl full"><div class="row"><span class="lbl">${c.label}</span><output id="o-${c.id}">${MATS[v]?MATS[v].name:''}</output></div><div class="mats">${Object.entries(MATS).filter(([mk])=>(c.mats||BASE_MATS).includes(mk)).map(([mk,m])=>`<button class="sw" title="${m.name}" aria-label="${m.name}" data-id="${c.id}" data-v="${mk}" style="--c:${m.c};--d:${m.d}" aria-pressed="${mk===v}"></button>`).join('')}</div></div>`;
 }
 const closedH=new Set();for(const k in SCHEMAS)for(const c of SCHEMAS[k].controls)if(c.type==='head'&&c.collapsed)closedH.add(k+':'+c.label);
 function buildPanel(){
@@ -2169,6 +2451,7 @@ function buildPanel(){
 function rebuildKeep(){const y=window.scrollY;buildPanel();try{window.scrollTo(0,y)}catch(e){}}
 function updGroups(){for(const g of SCHEMAS[tab].controls)if(g.type==='group'){const el=document.getElementById('gs-'+g.gid);if(el)el.textContent=g.title(state[tab])}}
 const ctrlOf=id=>flat(tab).find(x=>x.id===id);
+panel.addEventListener('input',e=>{const t=e.target;if(!t.dataset||!t.dataset.tid)return;state[tab][t.dataset.tid]=t.value;render()});
 panel.addEventListener('toggle',e=>{const d=e.target;if(!d.dataset)return;if(d.dataset.g){d.open?openG.add(d.dataset.g):openG.delete(d.dataset.g)}if(d.dataset.h){d.open?closedH.delete(d.dataset.h):closedH.add(d.dataset.h)}},true);
 panel.addEventListener('input',e=>{
   const t=e.target;if(t.type!=='range'&&t.type!=='number')return;
@@ -2265,6 +2548,18 @@ function today(sep='/'){const d=new Date();return p2(d.getDate())+sep+p2(d.getMo
 function updTitle(){$('tCompany').textContent=CO.name;$('tProject').textContent=SCHEMAS[tab].title+'   '+today()}
 let toastT;function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),3500)}
 
+const tbFontCache={};
+async function tbEmbedFonts(el){
+  const ts=[...el.querySelectorAll('text[data-tfont]')];if(!ts.length)return;
+  const by={};ts.forEach(t=>{const k=t.dataset.tfont;by[k]=(by[k]||'')+t.textContent});
+  let css='';
+  for(const [k,txt] of Object.entries(by)){const fo=TB_FONTS[k];if(!fo)continue;const key=k+'|'+txt;
+    try{if(!tbFontCache[key]){const r=await fetch('https://fonts.googleapis.com/css2?family='+fo[0].replace(/ /g,'+')+':wght@'+fo[1]+'&text='+encodeURIComponent(txt));let c=await r.text();
+        for(const u of [...new Set(c.match(/https:[^)'"]+/g)||[])]){const b=await (await fetch(u)).arrayBuffer();let bin='';const a=new Uint8Array(b);for(let i=0;i<a.length;i+=8192)bin+=String.fromCharCode.apply(null,a.subarray(i,i+8192));c=c.split(u).join('data:font/woff2;base64,'+btoa(bin))}
+        tbFontCache[key]=c}
+      css+=tbFontCache[key]}catch(e){}}
+  if(css){const st=document.createElementNS('http://www.w3.org/2000/svg','style');st.textContent=css;(el.querySelector('defs')||el).prepend(st)}
+}
 async function makePNG(opt={}){
   await document.fonts.ready;
   const SC=opt.sc||2,mode=opt.mode||pngMode,F='"Cairo","Tajawal",Tahoma,sans-serif';
@@ -2327,7 +2622,7 @@ async function makePNG(opt={}){
   let px=PW-MG;(mode==='shop'?[['الزبون',cust.name]]:[['الزبون',cust.name],['الهاتف',cust.phone],['العنوان',cust.addr]]).filter(p=>p[1]).forEach(([k,v])=>{x.font='600 13px '+F;x.fillStyle='#6B655B';x.fillText(k,px,HEAD+24);x.font='800 18px '+F;x.fillStyle='#111';x.fillText(v,px,HEAD+50);px-=Math.max(x.measureText(v).width,80)+50});
   x.textAlign='left';x.font='600 13px '+F;x.fillStyle='#6B655B';x.fillText('التاريخ',MG,HEAD+24);x.direction='ltr';x.font='800 18px '+F;x.fillStyle='#111';x.fillText(today(),MG,HEAD+50);x.direction='rtl';
   // drawing
-  const clone=svg.cloneNode(true);clone.setAttribute('width',Math.round(lay.dW*SC*1.6));clone.setAttribute('height',Math.round(lay.dH*SC*1.6));
+  const clone=svg.cloneNode(true);await tbEmbedFonts(clone);clone.setAttribute('width',Math.round(lay.dW*SC*1.6));clone.setAttribute('height',Math.round(lay.dH*SC*1.6));
   if(mode==='clean')clone.querySelectorAll('.dim').forEach(n=>n.remove());
   const img=await toImg(clone);
   let dx,dy=top;
@@ -2567,8 +2862,9 @@ $('setSave').onclick=()=>{const pv=$('apiProv').value;LS.set('stone-prov',pv);LS
 
 function schemaText(){
   return Object.entries(SCHEMAS).map(([k,sc])=>`- ${k} (${sc.title}): `+flat(k).map(c=>
-    (c.type==='range'||c.type==='counter')?`${c.id}="${c.label}" رقم ${c.min}-${c.max}${c.unit===''?'':' سم'}`:
+    (c.type==='range'||c.type==='counter')?`${c.id}="${c.label}" رقم ${c.min}-${c.max}${c.unit===''?'':' '+(c.unit||'سم')}`:
     c.type==='seg'?`${c.id}="${c.label}" واحد من {${c.options.map(o=>o[0]+'='+o[1]).join(', ')}}`:
+    c.type==='text'?`${c.id}="${c.label}" نص حر`:
     `${c.id}="${c.label}" مادة`).join('؛ ')).join('\n');
 }
 function buildPrompt(msg){
@@ -2622,6 +2918,7 @@ function applyAI(res){
   for(const [id,raw] of Object.entries(set)){
     const c=flat(tk).find(x=>x.id===id);if(!c)continue;
     if(c.type==='range'||c.type==='counter'){let v=+raw;if(isNaN(v))continue;v=Math.min(c.max,Math.max(c.min,Math.round(v/(c.step||1))*(c.step||1)));state[tk][id]=v;n++}
+    else if(c.type==='text'){state[tk][id]=String(raw);n++}
     else if(c.type==='seg'){const o=c.options.find(o=>String(o[0])===String(raw)||o[1]===raw);if(o){state[tk][id]=String(o[0]);n++}}
     else{const k=MATS[raw]?raw:Object.keys(MATS).find(k=>MATS[k].name===raw);if(k){state[tk][id]=k;n++}}
   }
