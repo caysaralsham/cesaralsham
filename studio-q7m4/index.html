@@ -2460,6 +2460,92 @@ function drawBalus(s){
   return{svg:o,noGround:!stair?false:true,lines,stats,tables:[{title:'قائمة القطع للمعمل',head:['القطعة','الكمية','القياس'],rows}],box:[-pw-S*.06,xr+S*.12,top-S*.06,(stair?rise*1.2:0)+S*.1],note:''};
 }
 
+/* ---------- سبيل / شلال حائط ---------- */
+function sbTop(type,hw,yb,yT){ // closed outline: bottom at yb, overall top at yT (negative up)
+  const H=yb-yT;
+  if(type==='arch'){const r=Math.min(hw,H*.6),ys=yT+r;return `M${f(-hw)} ${f(yb)}L${f(-hw)} ${f(ys)}A${f(hw)} ${f(r)} 0 0 1 ${f(hw)} ${f(ys)}L${f(hw)} ${f(yb)}Z`}
+  if(type==='gable'){const r=Math.min(hw*.7,H*.35),ys=yT+r;return `M${f(-hw)} ${f(yb)}L${f(-hw)} ${f(ys)}L0 ${f(yT)}L${f(hw)} ${f(ys)}L${f(hw)} ${f(yb)}Z`}
+  if(type==='lobed'){const r=Math.min(hw*1.1,H*.45),ys=yT+r,a=hw;
+    return `M${f(-a)} ${f(yb)}L${f(-a)} ${f(ys)}Q${f(-a)} ${f(ys-r*.35)} ${f(-a*.78)} ${f(ys-r*.42)}Q${f(-a*.82)} ${f(ys-r*.72)} ${f(-a*.5)} ${f(ys-r*.72)}Q${f(-a*.45)} ${f(yT+r*.05)} ${f(-a*.15)} ${f(yT+r*.12)}Q${f(-a*.05)} ${f(yT)} 0 ${f(yT)}Q${f(a*.05)} ${f(yT)} ${f(a*.15)} ${f(yT+r*.12)}Q${f(a*.45)} ${f(yT+r*.05)} ${f(a*.5)} ${f(ys-r*.72)}Q${f(a*.82)} ${f(ys-r*.72)} ${f(a*.78)} ${f(ys-r*.42)}Q${f(a)} ${f(ys-r*.35)} ${f(a)} ${f(ys)}L${f(a)} ${f(yb)}Z`}
+  if(type==='baroque'){const r=Math.min(hw*.6,H*.25),ys=yT+r*1.1;
+    return `M${f(-hw)} ${f(yb)}L${f(-hw)} ${f(ys)}C${f(-hw)} ${f(ys-r*.7)} ${f(-hw*.82)} ${f(ys-r*.75)} ${f(-hw*.72)} ${f(ys-r*.45)}C${f(-hw*.6)} ${f(ys-r*.2)} ${f(-hw*.45)} ${f(yT+r*.2)} ${f(-hw*.3)} ${f(yT+r*.35)}Q${f(-hw*.25)} ${f(yT)} 0 ${f(yT)}Q${f(hw*.25)} ${f(yT)} ${f(hw*.3)} ${f(yT+r*.35)}C${f(hw*.45)} ${f(yT+r*.2)} ${f(hw*.6)} ${f(ys-r*.2)} ${f(hw*.72)} ${f(ys-r*.45)}C${f(hw*.82)} ${f(ys-r*.75)} ${f(hw)} ${f(ys-r*.7)} ${f(hw)} ${f(ys)}L${f(hw)} ${f(yb)}Z`}
+  if(type==='wavy'){const n=Math.max(4,Math.round(hw*2/12)),st=hw*2/n,a=st*.35;let d=`M${f(-hw)} ${f(yb)}`;
+    const m=Math.max(3,Math.round(H/14)),sv=H/m;for(let i=0;i<m;i++)d+=`Q${f(-hw-a*(i%2?1:-1))} ${f(yb-sv*(i+.5))} ${f(-hw)} ${f(yb-sv*(i+1))}`;
+    for(let i=0;i<n;i++)d+=`Q${f(-hw+st*(i+.5))} ${f(yT-a*(i%2?1:-1))} ${f(-hw+st*(i+1))} ${f(yT)}`;
+    for(let i=0;i<m;i++)d+=`Q${f(hw+a*(i%2?1:-1))} ${f(yT+sv*(i+.5))} ${f(hw)} ${f(yT+sv*(i+1))}`;return d+'Z'}
+  return `M${f(-hw)} ${f(yb)}L${f(-hw)} ${f(yT)}L${f(hw)} ${f(yT)}L${f(hw)} ${f(yb)}Z`;
+}
+function sbGeo(x0,y0,w,h,u,col,bg){ // interlaced star lattice
+  let o=R(x0,y0,w,h,bg,0);for(let x=x0-u;x<x0+w+u;x+=u)for(let y=y0-u;y<y0+h+u;y+=u){const cx=x+u/2,cy=y+u/2,r=u*.5;
+    o+=`<path d="${starPolyD(cx,cy,r,r*.62,8)}" fill="none" stroke="${col}" stroke-width="${f(u*.07)}"/>`+`<path d="${starPolyD(cx,cy,r*.38,r*.22,8)}" fill="${col}" opacity=".85"/>`}
+  return o}
+function sbMosaic(x0,y0,w,h,u,c1,bg){let o=R(x0,y0,w,h,bg,0);let r=0;for(let y=y0;y<y0+h+u;y+=u*.86,r++)for(let x=x0+(r%2)*u/2;x<x0+w+u;x+=u){o+=`<path d="${starPolyD(x,y,u*.32,u*.17,6)}" fill="${c1}"/>`+C(x+u/2,y,u*.18,'#F4F1EA',LW*.3)}return o}
+function sbWaves(x0,y0,w,h,g){let o='';for(let y=y0+g*.6;y<y0+h;y+=g){let d=`M${f(x0)} ${f(y)}`;for(let x=x0;x<x0+w;x+=g*2.2)d+=`Q${f(x+g*.55)} ${f(y-g*.35)} ${f(x+g*1.1)} ${f(y)}T${f(x+g*2.2)} ${f(y)}`;o+=`<path d="${d}" fill="none" stroke="rgba(70,45,20,.4)" stroke-width="${f(g*.12)}"/><path d="${d}" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="${f(g*.06)}" transform="translate(0 ${f(-g*.12)})"/>`}return o}
+function drawSabil(s){
+  const PW=+s.W,PH=+s.H,BW=+s.bW,BH=+s.bH,ped=+s.ped,fw=+s.fw,top=s.top,basin=s.basin,frame=s.frame,dec=s.dec,out=s.out;
+  const m=M(s.mat),m2=M(s.mat2),mc=M(s.mat3);const S=Math.max(PW,BW,PH)*1.2;setScale(S);let o='';
+  const hw=PW/2,yT=-PH,basinTop=-(ped+BH),yb=basinTop+BH*.35;
+  // back panel
+  const outer=sbTop(top,hw,yb,yT);o+=P(outer,m,LW*1.2);
+  const ip=frame==='none'?outer:sbTop(top==='wavy'?'rect':top,hw-fw,yb,yT+fw);
+  const cid=nid('sb'),ix0=-hw+fw,iy0=yT+fw,iw=PW-2*fw,ih=yb-iy0;
+  let g='';
+  if(dec==='geo')g+=sbGeo(ix0,iy0,iw,ih,Math.max(12,iw/4),mc,M(s.mat));
+  else if(dec==='mosaic')g+=sbMosaic(ix0,iy0,iw,ih,Math.max(6,iw/10),mc,M(s.mat));
+  else if(dec==='waves')g+=sbWaves(ix0,iy0,iw,ih,Math.max(5,ih/14));
+  else if(dec==='carved'){g+=baroque(0,iy0+ih*.48,iw*.85,ih*.6)+acanthus(0,iy0+ih*.25,iw*.55,ih*.22);for(const sd of[-1,1])g+=carve(spiral(sd*iw*.3,iy0+ih*.82,iw*.09,1.4,sd),LW*.6)+leaf(sd*iw*.15,iy0+ih*.86,iw*.25,iw*.06,sd>0?-20:-160,RELIEF,3)}
+  else if(dec==='rosette')g+=rosette(0,iy0+ih*.32,Math.min(iw,ih)*.13,LW*.7);
+  else if(dec==='lattice'){const r=Math.min(iw,ih)*.06;for(let row=0;row<4;row++)for(let k=0;k<=row;k++){const cx=(k-row/2)*r*2.6,cy=iy0+ih*.2+row*r*2.4;g+=P(`M${f(cx)} ${f(cy-r)}Q${f(cx+r)} ${f(cy-r*.2)} ${f(cx+r*.55)} ${f(cy+r)}L${f(cx-r*.55)} ${f(cy+r)}Q${f(cx-r)} ${f(cy-r*.2)} ${f(cx)} ${f(cy-r)}Z`,'#3A302A',LW*.5)}}
+  if(frame!=='none'){o+=P(ip,dec==='geo'||dec==='mosaic'?M(s.mat):m,LW*.8);}
+  o+=`<clipPath id="${cid}"><path d="${ip}"/></clipPath><g clip-path="url(#${cid})">${g}</g>`;
+  if(frame!=='none')o+=P(ip,'none',LW*.8);
+  if(frame==='mold')o+=`<path d="${sbTop(top==='wavy'?'rect':top,hw-fw*.45,yb,yT+fw*.45)}" fill="none" stroke="${INK}" stroke-width="${f(LW*.5)}"/>`;
+  if(frame==='pil'){const pw=Math.max(6,fw*1.2);for(const sd of[-1,1]){const x=sd*(hw-pw/2);o+=R(x-pw/2,yT+PH*.25,pw,yb-(yT+PH*.25),m)+R(x-pw*.7,yT+PH*.25-pw*.6,pw*1.4,pw*.6,m)+R(x-pw*.65,yb-pw*.5,pw*1.3,pw*.5,m)+L(x,yT+PH*.25+pw,x,yb-pw,'rgba(0,0,0,.25)',LW*.6)}}
+  if(frame==='vous'&&(top==='arch')){const r=Math.min(hw,PH*.6),ys=yT+r,n=9;for(let i=0;i<=n;i++){const a=Math.PI+Math.PI*i/n,x1=Math.cos(a)*hw,y1=ys+Math.sin(a)*r,x2=Math.cos(a)*(hw-fw),y2=ys+Math.sin(a)*(r-fw);o+=L(x1,y1,x2,y2,INK,LW*.6)}
+    for(const sd of[-1,1])for(let k=1;k<4;k++){const y=ys+(yb-ys)*k/4;o+=L(sd*hw,y,sd*(hw-fw),y,INK,LW*.6)}
+    const kw=fw*1.4;o+=P(`M${f(-kw/2)} ${f(yT-fw*.3)}L${f(kw/2)} ${f(yT-fw*.3)}L${f(kw*.32)} ${f(yT+fw*1.2)}L${f(-kw*.32)} ${f(yT+fw*1.2)}Z`,mc)}
+  // outlet
+  const oy=iy0+ih*(dec==='rosette'?.5:.42);
+  if(out==='tap'){o+=R(-2.5,oy-4,5,8,BRASS,LW*.5)+P(`M0 ${f(oy)}L0 ${f(oy+3)}Q0 ${f(oy+9)} 4 ${f(oy+10)}L4 ${f(oy+13)}L1 ${f(oy+13)}L1 ${f(oy+11)}Q-3 ${f(oy+10)} -3 ${f(oy+3)}Z`,BRASS,LW*.5)+C(0,oy-6,3,BRASS,LW*.4);
+    if(+s.water)o+=`<path d="M2.5 ${f(oy+13)}L2.5 ${f(basinTop+4)}" stroke="${WATER}" stroke-width="${f(LW*2)}" opacity=".7"/>`}
+  if(out==='spout'){const n=Math.max(1,+s.ns||1);for(let i=0;i<n;i++){const x=n===1?0:-iw*.3+iw*.6*i/(n-1),y=oy+(i%2)*ih*.12,w=Math.min(30,iw*.25);o+=R(x-w/2,y,w,2.2,'#9BA3A8',LW*.4);
+    if(+s.water)o+=`<path d="M${f(x-w/2)} ${f(y+2)}L${f(x-w/2)} ${f(basinTop+3)}L${f(x+w/2)} ${f(basinTop+3)}L${f(x+w/2)} ${f(y+2)}Z" fill="rgba(80,150,200,.25)"/>`}}
+  if(out==='shells'){const n=Math.max(1,+s.ns||2),r0=Math.min(iw*.2,22);let yy=iy0+ih*.18;o+=R(-r0*.25,yy-r0*.9,r0*.5,r0*.7,m2,LW*.5);
+    for(let i=0;i<n;i++){const r=r0*(1+i*.3);yy+=ih*.55/n;o+=P(`M${f(-r)} ${f(yy)}L${f(r)} ${f(yy)}Q${f(r*.7)} ${f(yy+r*.6)} 0 ${f(yy+r*.65)}Q${f(-r*.7)} ${f(yy+r*.6)} ${f(-r)} ${f(yy)}Z`,m2)+shell(0,yy+r*.02,r*.55,m2).replace(/<circle[^>]*>$/,'');
+      if(+s.water)for(const sd of[-1,1])o+=`<path d="M${f(sd*r)} ${f(yy+1)}Q${f(sd*r*1.15)} ${f(yy+ih*.1)} ${f(sd*r*1.1)} ${f(yy+ih*.55/n)}" fill="none" stroke="${WATER}" stroke-width="${f(LW*1.6)}" opacity=".6"/>`}}
+  // basin
+  const bw=BW/2,bt=basinTop,bb=-ped;
+  if(ped>0)o+=R(-bw*.35,bb,bw*.7,ped,m2)+R(-bw*.45,-6,bw*.9,6,m2);
+  let bd;
+  if(basin==='trough'||basin==='wavy')bd=`M${f(-bw)} ${f(bt)}L${f(bw)} ${f(bt)}L${f(bw*.97)} ${f(bb)}L${f(-bw*.97)} ${f(bb)}Z`;
+  else if(basin==='pool')bd=`M${f(-bw)} ${f(bt)}L${f(bw)} ${f(bt)}L${f(bw)} ${f(bb)}L${f(-bw)} ${f(bb)}Z`;
+  else bd=`M${f(-bw)} ${f(bt)}L${f(bw)} ${f(bt)}C${f(bw)} ${f(bt+BH*.75)} ${f(bw*.55)} ${f(bb)} ${f(bw*.3)} ${f(bb)}L${f(-bw*.3)} ${f(bb)}C${f(-bw*.55)} ${f(bb)} ${f(-bw)} ${f(bt+BH*.75)} ${f(-bw)} ${f(bt)}Z`;
+  o+=P(bd,m2,LW*1.1);const bid=nid('bs');let bg='';
+  const bdec=s.bdec;
+  if(basin==='petal'||bdec==='petals'){const n=Math.max(5,Math.round(BW/14));for(let i=1;i<n;i++){const x=-bw+BW*i/n;bg+=carve(`M${f(x)} ${f(bt+BH*.12)}Q${f(x*.9)} ${f(bt+BH*.7)} ${f(x*.45)} ${f(bb)}`,LW*.6,.6)}}
+  if(bdec==='leaves'){const n=Math.max(4,Math.round(BW/18));for(let i=0;i<n;i++){const x=-bw*.85+bw*1.7*(i+.5)/n;bg+=leaf(x,bb-2,BH*.8,BW/n*.22,-90+x/bw*20,RELIEF,3)}}
+  if(bdec==='inlay'){const u=Math.max(8,BH*.55),n=Math.max(1,Math.floor(BW*.85/u));for(let i=0;i<n;i++){const x=-u*n/2+u*(i+.5),y=bt+BH*.5;bg+=`<path d="${starPolyD(x,y,u*.4,u*.24,8)}" fill="none" stroke="${mc}" stroke-width="${f(u*.08)}"/>`}bg+=`<path d="M${f(-bw)} ${f(bt+BH*.12)}H${f(bw)}M${f(-bw)} ${f(bb-BH*.1)}H${f(bw)}" stroke="${mc}" stroke-width="${f(BH*.06)}"/>`}
+  o+=`<clipPath id="${bid}"><path d="${bd}"/></clipPath><g clip-path="url(#${bid})">${bg}</g>`;
+  // rim
+  if(basin==='petal'){const n=Math.max(5,Math.round(BW/14)),lw=BW/n;let d=`M${f(-bw)} ${f(bt+BH*.1)}`;for(let i=0;i<n;i++)d+=`Q${f(-bw+lw*(i+.5))} ${f(bt-BH*.12)} ${f(-bw+lw*(i+1))} ${f(bt+BH*.1)}`;o+=P(d+`L${f(bw)} ${f(bt+BH*.15)}L${f(-bw)} ${f(bt+BH*.15)}Z`,m2,LW*.8)}
+  else if(basin==='wavy'){const n=Math.max(5,Math.round(BW/12)),lw=BW/n;let d=`M${f(-bw-2)} ${f(bt+BH*.16)}`;for(let i=0;i<n;i++)d+=`Q${f(-bw+lw*(i+.5))} ${f(bt-BH*.05*(i%2?1:-1))} ${f(-bw+lw*(i+1))} ${f(bt+BH*.08)}`;o+=P(d+`L${f(bw+2)} ${f(bt+BH*.16)}Z`,m2,LW*.8)}
+  else o+=R(-bw-2,bt-2,BW+4,Math.max(3,BH*.12),m2,LW*.8);
+  if(+s.water)o+=R(-bw+3,bt+.5,BW-6,2,'rgba(80,150,200,.5)',0);
+  // dims
+  const xr=Math.max(hw,bw)+S*.05;
+  o+=dimH(-hw,hw,yT-FS*1.6,'اللوح '+fmt(PW));o+=dimH(-bw,bw,FS*2,'الجرن '+fmt(BW),C_TAB);
+  o+=dimV(0,yT,xr+S*.07,'الكلي '+fmt(PH));o+=dimV(bb,bt,xr,'الجرن '+fmt(BH),C_TAB);if(ped)o+=dimV(0,bb,xr,'رجل '+fmt(ped),C_FR);
+  if(frame!=='none')o+=dimH(-hw,-hw+fw,yb-(yb-yT)*.3,fmt(fw),C_FR);
+  const TN={rect:'مستطيل',arch:'قوس',baroque:'كلاسيك بأذنين',lobed:'مغربي مفصّص',gable:'جملون مدبّب',wavy:'أطراف مموّجة'},DN={plain:'سادة',carved:'نحت كلاسيك (أكانتس)',geo:'تطعيم هندسي',mosaic:'موزاييك نجوم',rosette:'وردة',waves:'موج (رملي)',lattice:'تفريغ CNC'},
+    BN={half:'نص دائري',petal:'بتلات',trough:'مستطيل (حوض)',wavy:'حوض بحافة مموّجة',pool:'حوض أرضي عريض'},FN={none:'بدون',mold:'كادر بارز',pil:'عضادات بتيجان',vous:'قوس بحجارة ومفتاح'},ON={none:'بدون',tap:'حنفية نحاس',spout:'شفرة شلال ستانلس',shells:'صحون صدف'};
+  const area=PW*PH/1e4;
+  const stats=[['اللوح',TN[top]+'، '+PW+' × '+PH+' سم ('+area.toFixed(2)+' م²)'],['الزخرفة',DN[dec]],['الكادر',FN[frame]+(frame!=='none'?'، عرض '+fw+' سم':'')],['الماء',ON[out]+((out==='spout'||out==='shells')?' × '+s.ns:'')],
+    ['الجرن',BN[basin]+'، عرض '+BW+'، ارتفاع '+BH+(ped?'، على رجل '+ped:'')+' سم'+(bdec!=='none'?'، '+{petals:'تضليع',leaves:'أوراق منحوتة',inlay:'تطعيم هندسي'}[bdec]:'')]];
+  const rows=[{cells:['لوح الظهر',TN[top],PW+' × '+PH]},{cells:['الجرن',BN[basin],BW+' × '+BH]}];if(frame!=='none')rows.push({cells:['الكادر',FN[frame],'عرض '+fw]});if(ped)rows.push({cells:['رجل الجرن','-','ارتفاع '+ped]});
+  const lines=[{desc:'سبيل/شلال حائط — لوح '+TN[top]+' '+PW+'×'+PH+' سم، '+DN[dec]+'، جرن '+BN[basin]+' '+BW+' سم',qty:1,unit:'قطعة'}];
+  return{svg:o,stats,lines,tables:[{title:'قائمة القطع للمعمل',head:['القطعة','النوع','القياس (سم)'],rows}],box:[-Math.max(hw,bw)-S*.08,xr+S*.18,yT-S*.1,S*.1],note:''};
+}
+
 function colPoly(shape,R0){if(shape==='round')return null;const n=shape==='square'?4:8,off=shape==='square'?Math.PI/4:Math.PI/8,rr=shape==='square'?R0*Math.SQRT2:R0/Math.cos(Math.PI/8);
   return Array.from({length:n},(_,i)=>[rr*Math.cos(off+i*2*Math.PI/n),rr*Math.sin(off+i*2*Math.PI/n)])}
 function drawColumn(s){
@@ -2559,6 +2645,29 @@ SCHEMAS.balus={title:'درابزين',draw:drawBalus,controls:[
   {id:'brH',label:'ارتفاع القاعدة من تحت',type:'range',min:4,max:25,step:1,val:10},
   {id:'mat',label:'رخام الدرابزين',type:'mat',val:'crema'},
   {id:'mat2',label:'رخام العواميد',type:'mat',val:'crema'}]};
+SCHEMAS.sabil={title:'سبيل وشلال',draw:drawSabil,controls:[
+  head('اللوح'),
+  {id:'kind',label:'النوع',type:'seg',options:[['sabil','سبيل (لوح وجرن)'],['cascade','شلال حائط']],val:'sabil',preset:{
+    sabil:{W:80,H:170,bW:70,bH:35,ped:25,top:'baroque',dec:'carved',out:'tap',basin:'half',frame:'mold'},
+    cascade:{W:300,H:250,bW:320,bH:45,ped:0,top:'rect',dec:'waves',out:'spout',ns:3,basin:'pool',frame:'mold'}}},
+  {id:'top',label:'شكل اللوح من فوق',type:'seg',options:[['baroque','كلاسيك بأذنين'],['arch','قوس'],['lobed','مغربي مفصّص'],['gable','جملون مدبّب'],['rect','مستطيل'],['wavy','أطراف مموّجة']],val:'baroque'},
+  {id:'W',label:'عرض اللوح',type:'range',min:30,max:600,step:1,val:80},
+  {id:'H',label:'الارتفاع الكلي من الأرض',type:'range',min:60,max:500,step:1,val:170},
+  {id:'dec',label:'زخرفة اللوح',type:'seg',options:[['carved','نحت كلاسيك'],['geo','تطعيم هندسي'],['mosaic','موزاييك نجوم'],['rosette','وردة'],['waves','موج رملي'],['lattice','تفريغ CNC'],['plain','سادة']],val:'carved'},
+  {id:'frame',label:'الكادر',type:'seg',options:[['mold','كادر بارز'],['pil','عضادات بتيجان'],['vous','قوس بحجارة ومفتاح'],['none','بدون']],val:'mold'},
+  {id:'fw',label:'عرض الكادر',type:'range',min:3,max:40,step:1,val:8,show:s=>s.frame!=='none'},
+  {id:'out',label:'طلعة الماء',type:'seg',options:[['tap','حنفية نحاس'],['spout','شفرة شلال'],['shells','صحون صدف'],['none','بدون']],val:'tap'},
+  {id:'ns',label:'العدد',type:'range',min:1,max:6,step:1,val:2,unit:'',show:s=>s.out==='spout'||s.out==='shells'},
+  {id:'water',label:'الماء',type:'seg',options:YN,val:1},
+  head('الجرن'),
+  {id:'basin',label:'شكل الجرن',type:'seg',options:[['half','نص دائري'],['petal','بتلات'],['trough','حوض مستطيل'],['wavy','حوض حافة مموّجة'],['pool','حوض أرضي عريض']],val:'half'},
+  {id:'bdec',label:'زخرفة الجرن',type:'seg',options:[['none','سادة'],['petals','تضليع'],['leaves','أوراق منحوتة'],['inlay','تطعيم هندسي']],val:'none'},
+  {id:'bW',label:'عرض الجرن',type:'range',min:30,max:700,step:1,val:70},
+  {id:'bH',label:'ارتفاع الجرن',type:'range',min:10,max:100,step:1,val:35},
+  {id:'ped',label:'ارتفاع الرجل تحت الجرن (0 = عالأرض)',type:'range',min:0,max:80,step:1,val:25},
+  {id:'mat',label:'رخام اللوح',type:'mat',val:'crema'},
+  {id:'mat2',label:'رخام الجرن',type:'mat',val:'crema'},
+  {id:'mat3',label:'لون التطعيم والمفتاح',type:'mat',val:'green'}]};
 SCHEMAS.calc={title:'حاسبة القياسات',draw:drawCalc,controls:[
   head('القياسات'),
   {id:'rows',type:'html',val:calcDefault(),render:calcPanel},
