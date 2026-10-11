@@ -3602,6 +3602,12 @@ async function pureImage(){return await (async()=>{const svg=$('draw'),vb=svg.vi
     const cl=svg.cloneNode(true);cl.setAttribute('width',w*1.5);cl.setAttribute('height',h*1.5);
     const im=await new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(cl))});
     const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.imageSmoothingQuality='high';x.drawImage(im,0,0,w,h);return c.toDataURL('image/jpeg',.9)})()}
+// صورة «مقطع من النص» لحالها (للمعمل)
+async function sectionImage(){const box=[...document.querySelectorAll('#insets .inset')].find(e=>/مقطع/.test(e.textContent||''));if(!box)return null;const svg=box.querySelector('svg');if(!svg)return null;
+  const vb=svg.viewBox.baseVal;let w=1000,h=Math.round(w*vb.height/vb.width);if(h>1100){h=1100;w=Math.round(h*vb.width/vb.height)}
+  const cl=svg.cloneNode(true);cl.setAttribute('width',w);cl.setAttribute('height',h);cl.setAttribute('xmlns','http://www.w3.org/2000/svg');cl.removeAttribute('style');
+  const im=await new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(cl))});
+  const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(im,0,0,w,h);return c.toDataURL('image/jpeg',.9)}
 async function saveProjectFile(pn){
   const pure=await pureImage();
   const full=await makePNG({mode:'full',sc:1,dataUrl:true}),clean=await makePNG({mode:'clean',sc:1,dataUrl:true}),shop=await makePNG({mode:'shop',sc:1,dataUrl:true}),Q=quoteData();
@@ -3867,7 +3873,7 @@ if(RENDER){
     q=q.then(async()=>{
       try{const ms=d.mstate||{};if(!SCHEMAS[ms.tab])throw new Error('no tab');
         tab=ms.tab;state[tab]={...defaults(tab),...(ms.state||{})};render();
-        const img=await pureImage();
+        const img=d.part==='section'?await sectionImage():await pureImage();
         e.source.postMessage({type:'mirsam-rendered',id:d.id,img,stats:(lastR&&lastR.stats)||[]},e.origin);
       }catch(err){e.source.postMessage({type:'mirsam-rendered',id:d.id,err:String(err&&err.message||err)},e.origin)}
     });
