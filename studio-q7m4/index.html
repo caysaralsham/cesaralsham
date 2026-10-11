@@ -2362,6 +2362,83 @@ function drawCalc(s){
   return{svg:o,noGround:true,insets,box:[-4,W+4,-Hh-6,6],stats,tables,lines,note:''};
 }
 /* ================= 🏛 عامود ================= */
+function colDeco(s,hw,outer,y0,y1,m){
+  const dec=s.deco||'none',H=y0-y1,shape=s.shape;let o='';const id=nid('cd');
+  if(dec==='flute'){const n=shape==='round'?9:shape==='square'?5:4,mg=H*.04;let g='';
+    for(let i=0;i<n;i++){let xa,xb;if(shape==='round'){const t0=-Math.PI/2+Math.PI*(i+.18)/n,t1=-Math.PI/2+Math.PI*(i+.82)/n;xa=hw*Math.sin(t0);xb=hw*Math.sin(t1)}else{const cw=outer/n;xa=-hw+cw*(i+.2);xb=-hw+cw*(i+.8)}
+      const w=xb-xa;if(w<.5)continue;g+=R(xa,y1+mg,w,H-2*mg,'rgba(0,0,0,.09)',LW*.5,`rx="${f(w/2)}"`)+L(xa+w*.3,y1+mg+w/2,xa+w*.3,y0-mg-w/2,'rgba(255,255,255,.55)',LW*.6)}
+    o+=g}
+  else if(dec==='twist'){const st=outer*1.1;let g='';for(let y=y0+st;y>y1-st;y-=st*.5)g+=carve(`M${f(-hw)} ${f(y)}Q0 ${f(y-st*.15)} ${f(hw)} ${f(y-st*.55)}`,LW*.6,.6);
+    o+=`<clipPath id="${id}"><rect x="${f(-hw)}" y="${f(y1)}" width="${f(outer)}" height="${f(H)}"/></clipPath><g clip-path="url(#${id})">${g}</g>`}
+  else if(dec==='panel'||dec==='leaves'){const mx=Math.max(2,outer*.12),my=Math.max(4,H*.04),px=-hw+mx,py=y1+my,pw=outer-2*mx,ph=H-2*my;
+    o+=R(px,py,pw,ph,'rgba(0,0,0,.05)',LW*.6)+R(px+mx*.35,py+mx*.35,pw-mx*.7,ph-mx*.7,'none',LW*.4);
+    if(dec==='leaves'){let g='';const cx=px+pw/2,lw=pw*.42,n=Math.max(3,Math.round(ph/(lw*.9)));
+      g+=carve(`M${f(cx)} ${f(py+ph-my)}C${f(cx-pw*.18)} ${f(py+ph*.66)} ${f(cx+pw*.18)} ${f(py+ph*.33)} ${f(cx)} ${f(py+my)}`,LW*.8);
+      for(let i=0;i<n;i++){const t=(i+.5)/n,y=py+ph-ph*t,xo=cx+Math.sin(t*Math.PI*2)*pw*.09,sd=i%2?1:-1;g+=leaf(xo,y,lw,lw*.26,sd>0?-35:-145,RELIEF,4)}
+      g+=leaf(cx,py+my*2,lw*.8,lw*.2,-90,RELIEF,3);
+      o+=`<clipPath id="${id}"><rect x="${f(px)}" y="${f(py)}" width="${f(pw)}" height="${f(ph)}"/></clipPath><g clip-path="url(#${id})">${g}</g>`}}
+  if(+s.ring){const ry=y0-H*(+s.ringY/100),rh=Math.max(3,outer*.1);o+=R(-hw-outer*.04,ry-rh/2,outer*1.08,rh,m,LW*.8,`rx="${f(rh*.4)}"`)}
+  return o;
+}
+/* ---------- balustrade ---------- */
+function balusterSvg(cx,yb,h,w,type,m){
+  const k=w/2;let o='';
+  if(type==='square'){o+=R(cx-k,yb-h*.1,w,h*.1,m,LW*.6)+R(cx-k*.62,yb-h*.9,w*.62,h*.8,m,LW*.6)+R(cx-k*.4,yb-h*.62,w*.4,h*.24,'rgba(0,0,0,.08)',LW*.4)+R(cx-k,yb-h,w,h*.1,m,LW*.6);return o}
+  if(type==='twist'){o+=R(cx-k,yb-h*.1,w,h*.1,m,LW*.6)+R(cx-k*.55,yb-h*.9,w*.55,h*.8,m,LW*.6);const n=7;for(let i=0;i<n;i++){const y=yb-h*.12-h*.76*i/n;o+=carve(`M${f(cx-k*.55)} ${f(y)}Q${f(cx)} ${f(y-h*.02)} ${f(cx+k*.55)} ${f(y-h*.1)}`,LW*.5)}o+=R(cx-k,yb-h,w,h*.1,m,LW*.6);return o}
+  // turned profiles: list of [t (0 bottom..1 top), half-width as fraction of k]
+  const PR={vase:[[0,1],[.08,1],[.08,.75],[.12,.75],[.15,.55],[.32,.95],[.5,.7],[.68,.32],[.78,.3],[.82,.5],[.86,.5],[.88,.75],[.92,.75],[.92,1],[1,1]],
+    vase2:[[0,1],[.07,1],[.07,.72],[.1,.72],[.12,.4],[.28,.9],[.42,.45],[.47,.3],[.5,.55],[.53,.3],[.58,.45],[.72,.9],[.88,.4],[.9,.72],[.93,.72],[.93,1],[1,1]],
+    slim:[[0,.7],[.06,.7],[.06,.45],[.1,.45],[.12,.3],[.2,.42],[.26,.25],[.6,.22],[.75,.3],[.8,.42],[.82,.25],[.9,.3],[.92,.5],[.94,.5],[.94,.7],[1,.7]]}[type]||[[0,1],[1,1]];
+  const pts=PR.map(([t,r])=>[cx+r*k,yb-h*t]),lp=PR.slice().reverse().map(([t,r])=>[cx-r*k,yb-h*t]);
+  let d='M'+f(pts[0][0])+' '+f(pts[0][1]);for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i];if(Math.abs(a[1]-b[1])<.01||Math.abs(a[0]-b[0])<.01)d+='L'+f(b[0])+' '+f(b[1]);else d+=`Q${f(Math.max(a[0],b[0])+k*.05)} ${f((a[1]+b[1])/2)} ${f(b[0])} ${f(b[1])}`}
+  for(let i=0;i<lp.length;i++){const b=lp[i],a=i?lp[i-1]:pts[pts.length-1];if(!i||Math.abs(a[1]-b[1])<.01||Math.abs(a[0]-b[0])<.01)d+='L'+f(b[0])+' '+f(b[1]);else d+=`Q${f(Math.min(a[0],b[0])-k*.05)} ${f((a[1]+b[1])/2)} ${f(b[0])} ${f(b[1])}`}
+  o+=P(d+'Z',m,LW*.6)+L(cx-k*.15,yb-h*.15,cx-k*.15,yb-h*.85,'rgba(255,255,255,.4)',LW*.8);
+  return o;
+}
+function drawBalus(s){
+  const stair=s.run==='stair',L0=+s.L,Hh=+s.H,rise=+s.rise,go=+s.go,ang=stair?Math.atan2(rise,go):0,tn=Math.tan(ang),cs=Math.cos(ang);
+  const pw=+s.pw,hrH=+s.hrH,brH=+s.brH,type=s.bal,geo=s.fill==='geo',sp=+s.sp,bw=Math.min(sp*.85,+s.bw),postEvery=+s.pe,cap=s.cap;
+  const S=Math.max(L0,Hh+L0*tn)*1.15;setScale(S);const m=M(s.mat),m2=M(s.mat2);let o='';
+  const yAt=x=>-x*tn; // floor/nosing line
+  if(stair){const n=Math.ceil(L0/go)+1;let d=`M${f(-pw)} 0`;for(let i=0;i<n;i++){const x=i*go;d+=`L${f(x)} ${f(-i*rise)}L${f(x+go)} ${f(-i*rise)}L${f(x+go)} ${f(-(i+1)*rise)}`}
+    const xe=n*go;d+=`L${f(xe+go)} ${f(-(n)*rise)}L${f(xe+go)} ${f(rise*1.2)}L${f(-pw)} ${f(rise*1.2)}Z`;
+    o+=P(d,'#E7E1D6',LW*.6);for(let i=0;i<n;i++)o+=L(i*go,-i*rise,i*go,-(i+1)*rise,INK,LW*.5)}
+  // posts positions
+  const nSeg=Math.max(1,Math.round(L0/postEvery)),segL=L0/nSeg,posts=[];for(let i=0;i<=nSeg;i++)posts.push(i*segL);
+  const capH=cap==='none'?0:cap==='ball'?pw*.9:cap==='pyr'?pw*.6:pw*.25,postH=Hh+hrH*.3;
+  let balCount=0;
+  for(let i=0;i<nSeg;i++){const xa=posts[i]+pw/2,xb=posts[i+1]-pw/2,len=xb-xa;if(len<=2)continue;
+    const yb=x=>yAt(x)-(stair?rise*.15:0)-brH,yt=x=>yAt(x)-Hh+hrH;
+    // bottom rail
+    o+=P(`M${f(xa)} ${f(yAt(xa)-(stair?rise*.15:0))}L${f(xb)} ${f(yAt(xb)-(stair?rise*.15:0))}L${f(xb)} ${f(yb(xb))}L${f(xa)} ${f(yb(xa))}Z`,m);
+    if(geo){const id=nid('bg'),poly=`M${f(xa)} ${f(yb(xa))}L${f(xb)} ${f(yb(xb))}L${f(xb)} ${f(yt(xb))}L${f(xa)} ${f(yt(xa))}Z`,gh=Math.abs(yb(xa)-yt(xa)),u=Math.max(10,gh/2.2);
+      let g=`<path d="${poly}" fill="${m}"/>`;const yTop=Math.min(yt(xa),yt(xb))-u,yBot=Math.max(yb(xa),yb(xb))+u;
+      for(let x=xa-u;x<xb+u;x+=u)for(let y=yTop;y<yBot;y+=u){const cx=x+u/2,cy=y+u/2+(stair?0:0),r=u*.42;g+=`<path d="${starPolyD(cx,cy,r,r*.62,8)}" fill="#FBFAF7" stroke="${INK}" stroke-width="${f(LW*.4)}"/>`;g+=`<path d="M${f(cx-u/2)} ${f(cy-u/2)}L${f(cx-u/2+u*.14)} ${f(cy-u/2)}L${f(cx-u/2)} ${f(cy-u/2+u*.14)}Z" fill="#FBFAF7"/>`}
+      o+=`<clipPath id="${id}"><path d="${poly}"/></clipPath><g clip-path="url(#${id})">${g}</g>`+P(poly,'none',LW*.7);
+    }else{const n=Math.max(1,Math.floor(len/sp));const gap=len/n;
+      for(let j=0;j<n;j++){const cx=xa+gap*(j+.5),b=yb(cx),t=yt(cx);o+=balusterSvg(cx,b,b-t,bw,type,m);balCount++}}
+    // handrail
+    const ht=x=>yAt(x)-Hh;o+=P(`M${f(xa)} ${f(ht(xa)+hrH)}L${f(xb)} ${f(ht(xb)+hrH)}L${f(xb)} ${f(ht(xb))}L${f(xa)} ${f(ht(xa))}Z`,m)+L(xa,ht(xa)+hrH*.35,xb,ht(xb)+hrH*.35,'rgba(0,0,0,.18)',LW*.6);
+  }
+  for(const x of posts){const y=yAt(x),top=y-postH;o+=R(x-pw/2,top,pw,postH+(stair?0:0),m2)+R(x-pw*.38,top+pw*.3,pw*.76,postH-pw*.6,'none',LW*.4)+R(x-pw*.6,top-pw*.12,pw*1.2,pw*.18,m2);
+    if(cap==='ball')o+=R(x-pw*.25,top-pw*.25,pw*.5,pw*.14,m2)+C(x,top-pw*.25-pw*.32,pw*.34,m2);
+    else if(cap==='pyr')o+=P(`M${f(x-pw*.55)} ${f(top-pw*.12)}L${f(x)} ${f(top-pw*.12-capH)}L${f(x+pw*.55)} ${f(top-pw*.12)}Z`,m2);
+    else if(cap==='flat')o+=R(x-pw*.5,top-pw*.12-capH,pw,capH,m2)}
+  // dims
+  const xr=L0+pw/2+S*.05;
+  o+=dimH(0,L0,(stair?rise*1.2:0)+FS*2.2,'الطول '+fmt(L0));
+  o+=dimV(yAt(L0),yAt(L0)-Hh,xr,'الارتفاع '+fmt(Hh),C_TAB);
+  if(!geo&&posts.length>1){const xa=posts[0]+pw/2,len=posts[1]-pw/2-xa,n=Math.max(1,Math.floor(len/sp)),gap=len/n,yy=yAt(xa)-Hh-FS*1.2;o+=dimH(xa+gap*.5,xa+gap*1.5,yy-gap*tn,fmt(gap),C_FR)}
+  const rl=L0/cs/100,BN={vase:'بلستر بطن واحد',vase2:'بلستر بطنين',slim:'خرطة رفيعة',square:'مربع',twist:'ملفوف'};
+  const stats=[['النوع',stair?'درابزين درج (ميل '+Math.round(ang*180/Math.PI)+'°)':'درابزين مستقيم (تراس/بلكون)'],['الطول',fmt(L0)+(stair?'، على الميل '+Math.round(L0/cs)+' سم':'')],['الارتفاع',fmt(Hh)],
+    [geo?'الحشوة':'البلستر',geo?'حشوة رخام مفرّغة هندسي (CNC)':BN[type]+'، عرض '+bw+' سم، كل '+sp+' سم'],['عدد البلسترات',geo?'—':balCount],['العواميد (البوستات)',posts.length+' × عرض '+pw+' سم'+(cap!=='none'?'، راس '+{ball:'كرة',pyr:'هرم',flat:'مسطح'}[cap]:'')],['الدرابزين من فوق',rl.toFixed(2)+' م.ط، ارتفاع '+hrH+' سم'],['القاعدة من تحت',rl.toFixed(2)+' م.ط، ارتفاع '+brH+' سم']];
+  const rows=[{cells:['الدرابزين من فوق (المسكة)',rl.toFixed(2)+' م.ط','ارتفاع '+hrH+' سم']},{cells:['القاعدة من تحت',rl.toFixed(2)+' م.ط','ارتفاع '+brH+' سم']},{cells:['عامود (بوست)',posts.length+' قطعة','عرض '+pw+'، ارتفاع '+Math.round(postH)]}];
+  if(geo)rows.push({cells:['حشوة مفرّغة',nSeg+' قطعة','طول '+Math.round(segL-pw)+' × ارتفاع '+Math.round(Hh-hrH-brH)]});else rows.push({cells:['بلستر '+BN[type],balCount+' قطعة','ارتفاع '+Math.round(Hh-hrH-brH)+'، عرض '+bw]});
+  const lines=[{desc:(stair?'درابزين درج':'درابزين')+' — '+(geo?'حشوة مفرّغة هندسي':BN[type])+'، ارتفاع '+Hh+' سم',qty:+(rl).toFixed(2),unit:'م.ط'}];
+  const top=Math.min(yAt(L0),0)-postH-capH-pw;
+  return{svg:o,noGround:!stair?false:true,lines,stats,tables:[{title:'قائمة القطع للمعمل',head:['القطعة','الكمية','القياس'],rows}],box:[-pw-S*.06,xr+S*.12,top-S*.06,(stair?rise*1.2:0)+S*.1],note:''};
+}
+
 function colPoly(shape,R0){if(shape==='round')return null;const n=shape==='square'?4:8,off=shape==='square'?Math.PI/4:Math.PI/8,rr=shape==='square'?R0*Math.SQRT2:R0/Math.cos(Math.PI/8);
   return Array.from({length:n},(_,i)=>[rr*Math.cos(off+i*2*Math.PI/n),rr*Math.sin(off+i*2*Math.PI/n)])}
 function drawColumn(s){
@@ -2381,6 +2458,7 @@ function drawColumn(s){
   if(shape==='round')for(const t of [-.35,.35])o+=L(t*outer,y1,t*outer,y0,'rgba(0,0,0,.18)',LW*.6);
   if(shape==='oct')for(const t of [-.29,.29])o+=L(t*outer,y1,t*outer,y0,'rgba(0,0,0,.35)',LW*.6);
   if(kind==='block'||kind==='wrap'){for(let k=1;k<nb;k++){const y=y0-H*k/nb;o+=L(-hw,y,hw,y,INK,LW*.9)}}
+  o+=colDeco(s,hw,outer,y0,y1,m);
   if(kind==='wrap')o+=L(0,y1,0,y0,DIM,LW*1.4,'stroke-dasharray="'+f(S/90)+' '+f(S/120)+'"');
   if(kind==='tiles'){for(let k=1;k<nb;k++){const y=y0-k*tHc;o+=L(-hw,y,hw,y,INK,LW*.5)}
     const per=shape==='round'?Math.PI*outer:shape==='square'?4*outer:8*outer*Math.tan(Math.PI/8);const nAr=Math.max(1,Math.round(per/+s.tW)),vis=Math.max(1,Math.round(nAr/(shape==='round'?2:shape==='square'?4:3)));
@@ -2423,7 +2501,8 @@ function drawColumn(s){
   const coreA=shape==='round'?Math.PI*core*core/4:shape==='square'?core*core:2*(1+Math.SQRT2)*Math.pow(core*Math.tan(Math.PI/8),2);
   const nm={round:'مدور',square:'مربع',oct:'مضلع'}[shape],kn={block:'كتلة',wrap:'تغليف كتلة — قطعتين',tiles:'قطع لصق'}[kind];
   const BT={none:'بدون',plain:'مربعة بسيطة',step2:'مربعة بدرجتين',torus:'مدورة (توروس)',attic:'كلاسيكية'},CTp={none:'بدون',plain:'بسيط',classic:'كلاسيكي',doric:'دوري',ionic:'أيوني',corinth:'كورنثي'};
-  const stats=[['العامود',nm+' — '+kn],['الارتفاع الكلي',fmt(tot)],[shape==='round'?'القطر من برّا':'العرض من برّا',outer+' سم']];
+  const DN={none:'',flute:'، مخدد',twist:'، ملفوف',panel:'، حشوة غائرة',leaves:'، حشوة منحوتة أوراق'};
+  const stats=[['العامود',nm+' — '+kn+(DN[s.deco||'none']||'')+(+s.ring?'، مع حلقة':'')],['الارتفاع الكلي',fmt(tot)],[shape==='round'?'القطر من برّا':'العرض من برّا',outer+' سم']];
   const cut=[];let qty='',unit='';
   if(kind==='block'){const v=outer*outer*H/1e6;stats.push(['الحجم (بلوك '+outer+' × '+outer+' × '+H+')',v.toFixed(3)+' م³'],['عدد القطع',nb+' × '+Math.round(H/nb)+' سم']);cut.push({cells:['جسم العامود (كتلة)',(shape==='round'?'قطر ':'عرض ')+outer+'، ارتفاع '+Math.round(H/nb),nb]});qty=v.toFixed(3);unit='م³'}
   if(kind==='wrap'){const v=outer*outer*H/1e6;stats.push(['سماكة الرخام',th+' سم'],['الحجم (كتلة '+outer+' × '+outer+' × '+H+')',v.toFixed(3)+' م³'],['عدد القطع',nb+' × قطعتين، ارتفاع '+Math.round(H/nb)+' سم']);
@@ -2439,6 +2518,26 @@ function drawColumn(s){
   if(cH)lines.push({desc:`تاج عامود ${CTp[cT]} — ${cW}×${cH} سم`,qty:cnt,unit:'تاج'});
   return{svg:o,insets:[inset],box:[-Math.max(bW,cW)/2-S*.1,xr+S*.2,-tot-S*.08,S*.08],stats,tables:[{title:'قائمة القطع للمعمل',head:['القطعة','القياس (سم)','العدد'],rows:cut}],lines,note:''};
 }
+SCHEMAS.balus={title:'درابزين',draw:drawBalus,controls:[
+  head('الدرابزين'),
+  {id:'run',label:'المكان',type:'seg',options:[['straight','مستقيم (تراس / بلكون)'],['stair','على درج']],val:'straight'},
+  {id:'L',label:'الطول (أفقي)',type:'range',min:50,max:1500,step:1,val:300},
+  {id:'H',label:'الارتفاع',type:'range',min:50,max:150,step:1,val:90},
+  {id:'rise',label:'ارتفاع الدرجة',type:'range',min:10,max:25,step:.5,val:17,show:s=>s.run==='stair'},
+  {id:'go',label:'عرض الدرجة (النايمة)',type:'range',min:20,max:45,step:1,val:30,show:s=>s.run==='stair'},
+  head('الحشوة'),
+  {id:'fill',label:'بين العواميد',type:'seg',options:[['bal','بلسترات'],['geo','حشوة مفرّغة هندسي (CNC)']],val:'bal'},
+  {id:'bal',label:'شكل البلستر',type:'seg',options:[['vase2','بطنين'],['vase','بطن واحد'],['slim','خرطة رفيعة'],['square','مربع'],['twist','ملفوف']],val:'vase2',show:s=>s.fill==='bal'},
+  {id:'bw',label:'عرض البلستر',type:'range',min:4,max:25,step:.5,val:12,show:s=>s.fill==='bal'},
+  {id:'sp',label:'المسافة بين البلسترات (من النص للنص)',type:'range',min:6,max:40,step:.5,val:16,show:s=>s.fill==='bal'},
+  head('العواميد والمسكة'),
+  {id:'pw',label:'عرض العامود (البوست)',type:'range',min:10,max:50,step:1,val:25},
+  {id:'pe',label:'عامود كل',type:'range',min:60,max:500,step:5,val:200},
+  {id:'cap',label:'راس العامود',type:'seg',options:[['ball','كرة'],['pyr','هرم'],['flat','مسطح'],['none','بدون']],val:'ball'},
+  {id:'hrH',label:'ارتفاع المسكة من فوق',type:'range',min:4,max:25,step:1,val:12},
+  {id:'brH',label:'ارتفاع القاعدة من تحت',type:'range',min:4,max:25,step:1,val:10},
+  {id:'mat',label:'رخام الدرابزين',type:'mat',val:'crema'},
+  {id:'mat2',label:'رخام العواميد',type:'mat',val:'crema'}]};
 SCHEMAS.calc={title:'حاسبة القياسات',draw:drawCalc,controls:[
   head('القياسات'),
   {id:'rows',type:'html',val:calcDefault(),render:calcPanel},
@@ -2458,6 +2557,9 @@ SCHEMAS.column={title:'عامود',draw:drawColumn,controls:[
   {id:'H',label:'ارتفاع الجسم',type:'range',min:50,max:600,step:1,val:250},
   {id:'nb',label:'عدد القطع',type:'range',min:1,max:20,step:1,val:1,unit:''},
   {id:'tW',label:'عرض قطعة اللصق',type:'range',min:5,max:60,step:1,val:15,show:s=>s.kind==='tiles'},
+  {id:'deco',label:'شكل الجسم',type:'seg',options:[['none','سادة'],['flute','مخدد (تخديد)'],['twist','ملفوف'],['panel','حشوة غائرة'],['leaves','حشوة منحوتة أوراق']],val:'none'},
+  {id:'ring',label:'حلقة على الجسم',type:'seg',options:YN,val:0},
+  {id:'ringY',label:'مكان الحلقة من تحت',type:'range',min:10,max:90,step:1,val:33,unit:'%',show:s=>+s.ring},
   head('القاعدة'),
   {id:'bType',label:'شكل القاعدة',type:'seg',options:[['none','بدون'],['plain','مربعة'],['step2','بدرجتين'],['torus','مدورة'],['attic','كلاسيكية']],val:'attic'},
   {id:'bH',label:'ارتفاع القاعدة',type:'range',min:5,max:80,step:1,val:25,show:s=>s.bType!=='none'},
