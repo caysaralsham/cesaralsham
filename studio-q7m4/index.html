@@ -1479,7 +1479,7 @@ function drawJurnCone(s0){
   o+=T(xR+S*(seatOn?.1:.05),cy,'مسقط',FS*.7,'start','#5D656B')+T(xR+S*(seatOn?.1:.05),-H/2,'واجهة',FS*.7,'start','#5D656B');
   o+=dimH(-Dt/2,Dt/2,pTop-S*.04,'قطر '+fmt(Dt))+dimH(-Dt/2,Dt/2,-H-FS*1.3,'من فوق '+fmt(Dt))+dimH(-Db/2,Db/2,S*.1,'من تحت '+fmt(Db),C_FR)+dimV(0,-H,-Dt/2-S*.06,fmt(H));
   // مقطع
-  const bt=(+s.H>30&&+s.dep>0)?Math.max(3,H-Math.min(+s.dep,H-3)):Math.max(3,Math.min(8,H*.15)),D=H-bt,[hd,hu]=hatch(),fs=Math.max(4,S/16),kx=(Dt-Db)/2/H,rr=Math.min(D*.3,(Dt/2-rim)*.4);
+  const bt=true?Math.max(3,H-Math.min(depOf(s),H-3)):Math.max(3,Math.min(8,H*.15)),D=H-bt,[hd,hu]=hatch(),fs=Math.max(4,S/16),kx=(Dt-Db)/2/H,rr=Math.min(D*.3,(Dt/2-rim)*.4);
   const tpC=tapOf(s)/2,xi=y=>Dt/2-rim-kx*(y+H)-tpC*Math.min(1,(y+H)/Math.max(1,D));// y from -H..0
   const sec=`M${f(-Dt/2)} ${f(-H)}L${f(Dt/2)} ${f(-H)}L${f(Db/2)} 0L${f(-Db/2)} 0Z`;
   const cav=cavPath(0,xi(-H),2*(xi(-H)-xi(-bt)),-H,-bt);
@@ -1534,7 +1534,7 @@ function drawJurnCornerSlab(s){
   o+=dimH(-Wt/2,Wt/2,S*.1,'العرض '+fmt(Math.round(Wt)))+dimV(0,-H,-Wt/2-S*.05,fmt(H))+dimV(yS+ts,yS,Wt/2+FS*1.1,''+ts,C_FR);
   o+=T(xR+S*.05,pc+front*.5,'مسقط',FS*.7,'start','#5D656B')+T(xR+S*.05,-H/2,'واجهة',FS*.7,'start','#5D656B');
   // مقطع
-  const fs=Math.max(4,S/16),[hd,hu]=hatch(),D=(+s.H>30&&+s.dep>0)?Math.min(+s.dep,H-3):Math.max(8,H-ts-ring-6),bt=H-D;
+  const fs=Math.max(4,S/16),[hd,hu]=hatch(),D=true?Math.min(depOf(s),H-3):Math.max(8,H-ts-ring-6),bt=H-D;
   const sec=`M0 ${f(-H)}L${f(front)} ${f(-H)}L${f(front)} ${f(-H+ts)}L${f(Bc[1]+Db/2+rimO*.6)} ${f(-H+ts)}L${f(Bc[1]+Db/2+rimO*.6)} ${f(yb0)}C${f(Bc[1]+Db/2)} ${f(-H*.15)} ${f(Bc[1]+foot/2)} 0 ${f(Bc[1])} 0L${f(Bc[1]-foot/2)} 0C${f(Bc[1]-Db/2)} ${f(-H*.15)} ${f(Bc[1]-Db/2-rimO*.6)} ${f(-H*.5)} ${f(Bc[1]-Db/2-rimO*.6)} ${f(yb0)}L${f(Bc[1]-Db/2-rimO*.6)} ${f(-H+ts)}L0 ${f(-H+ts)}Z`;
   const tpq=tapOf(s)/2,cav=`M${f(Bc[1]-Db/2)} ${f(-H)}L${f(Bc[1]+Db/2)} ${f(-H)}C${f(Bc[1]+Db/2-tpq)} ${f(-H+D*.8)} ${f(Bc[1]+Db*.2)} ${f(-bt)} ${f(Bc[1])} ${f(-bt)}C${f(Bc[1]-Db*.2)} ${f(-bt)} ${f(Bc[1]-Db/2+tpq)} ${f(-H+D*.8)} ${f(Bc[1]-Db/2)} ${f(-H)}Z`;
   const q=hd+P(sec,hu,LW*.8)+P(cav,'#FFFFFF',LW*.8)+L(0,-H-4,0,4,INK,LW*1.6)+sdimV(-bt,-H,front+fs*.8,'عمق '+Math.round(D),fs);
@@ -1552,7 +1552,8 @@ function drawJurnCornerSlab(s){
 function cavPath(cx,a,tp,yTop,yBot){const b=Math.max(2,a-tp/2),D=yBot-yTop,r=Math.min(D*.55,b*.75),ys=yBot-r;
   const xs=y=>a-(a-b)*Math.min(1,(y-yTop)/Math.max(1e-6,D));const x1=xs(ys);
   return `M${f(cx-a)} ${f(yTop)}L${f(cx+a)} ${f(yTop)}L${f(cx+x1)} ${f(ys)}C${f(cx+x1-r*.08)} ${f(ys+r*.6)} ${f(cx+b-r*.55)} ${f(yBot)} ${f(cx+b-r)} ${f(yBot)}L${f(cx-b+r)} ${f(yBot)}C${f(cx-b+r*.55)} ${f(yBot)} ${f(cx-x1+r*.08)} ${f(ys+r*.6)} ${f(cx-x1)} ${f(ys)}Z`}
-const tapOf=s=>5; // الحفر دايماً أضيق من تحت بـ 5 سم
+const tapOf=s=>5;
+const depOf=s=>{const d=+s.dep;return Math.max(8,Math.min(40,d>0?d:22))}; // عمق الحفر: افتراضي 22، من 8 لـ 40 // الحفر دايماً أضيق من تحت بـ 5 سم
 // على الرخام الغامق: خطوط النحت والزخرفة بتنرسم فاتحة حتى تبين
 const isDarkMat=k=>(MAL[k]||k)==='black';
 function darkFix(str){return str.split(`stroke="${INK}"`).join('stroke="#E9DCC2"').split(`fill="${RELIEF}"`).join('fill="rgba(255,255,255,.07)"').replace(/rgba\((30,25,20|0,0,0),\.(\d+)\)/g,'rgba(240,228,205,.$2)')}
@@ -1586,7 +1587,7 @@ function drawJurnCorner(s){
   o+=T(xR+S*(seatOn?.1:.05),pc+Rr*.5,'مسقط',FS*.7,'start','#5D656B')+T(xR+S*(seatOn?.1:.05),-H/2,'واجهة',FS*.7,'start','#5D656B');
   o+=dimH(-Wf/2,Wf/2,S*.1,'من قدّام '+fmt(Math.round(Wf)))+dimV(0,-H,-Wf/2-S*.06,fmt(H));
   // ---- مقطع من النص (من الزاوية لقدّام) ----
-  const bt=(+s.H>30&&+s.dep>0)?Math.max(3,H-Math.min(+s.dep,H-3)):Math.max(3,Math.min(8,H*.15)),D=H-bt,[hd,hu]=hatch(),fs=Math.max(4,S/16);
+  const bt=true?Math.max(3,H-Math.min(depOf(s),H-3)):Math.max(3,Math.min(8,H*.15)),D=H-bt,[hd,hu]=hatch(),fs=Math.max(4,S/16);
   const sec=`M0 ${f(-H)}L${f(Rr)} ${f(-H)}L${f(Rr)} ${f(-H+H*.58)}C${f(Rr)} ${f(-H*.1)} ${f(Rr*.6)} 0 ${f(Rr*.4)} 0L0 0Z`;
   const x0c=rim*r2*.7,x1c=Rr-rim,tpk=tapOf(s)/2,x2c=x1c-tpk,rc=Math.min(D*.55,(x2c-x0c)*.6),ysc=-bt-rc,xm=x1c-tpk*Math.min(1,(ysc+H)/D);
   const cav=`M${f(x0c)} ${f(-H)}L${f(x1c)} ${f(-H)}L${f(xm)} ${f(ysc)}C${f(xm-rc*.08)} ${f(ysc+rc*.6)} ${f(x2c-rc*.55)} ${f(-bt)} ${f(x2c-rc)} ${f(-bt)}L${f(x0c+rc*.4)} ${f(-bt)}Q${f(x0c)} ${f(-bt)} ${f(x0c)} ${f(-bt-rc*.4)}Z`;
@@ -1675,7 +1676,7 @@ function drawJurn(s){
   if(hasBase)stats.push(['القاعدة',bW+' عرض × '+bH+' ارتفاع']);
   if(seatOn){stats.push(['الكرسي',sp.txt+' سم، لون '+mN(s.smat)]);jurnCut[0].rows.push({cells:['الكرسي ('+sp.name+')',(sp.sh==='cone'?'فوق '+sp.w+'، تحت '+sp.bw:sp.sh==='square'?sp.w+' × '+sp.d:(sp.sh==='round'?'قطر ':'عرض ')+sp.w)+' × '+sp.h+' سم','1']})}
 
-  {const [hd,hu]=hatch(),bt=(+s.H>30&&+s.dep>0)?Math.max(2,H-bH-Math.min(+s.dep,H-bH-2)):Math.max(2,Math.min(8,H-bH-5)),yT=-H,yCB=-(bH+bt),D=yCB-yT,wm=Math.min(3,D-1),fs=Math.max(4,S/16);
+  {const [hd,hu]=hatch(),bt=true?Math.max(2,H-bH-Math.min(depOf(s),H-bH-2)):Math.max(2,Math.min(8,H-bH-5)),yT=-H,yCB=-(bH+bt),D=yCB-yT,wm=Math.min(3,D-1),fs=Math.max(4,S/16);
    const bez=(a,b,c,d,t)=>(1-t)**3*a+3*(1-t)**2*t*b+3*(1-t)*t*t*c+t**3*d;
    const P0=globe?[topW/2,yL]:[Ln/2,yL],P1=globe?[Ln*.56,yL+(yB-yL)*.1]:[Ln/2,yL+(yB-yL)*.62],P2=globe?[Ln*.54,yL+(yB-yL)*.8]:[footW/2+(Ln-footW)*.18,yB],P3=[footW/2,yB];
    const smp=[];for(let k=0;k<=240;k++){const t=k/240;smp.push([bez(P0[0],P1[0],P2[0],P3[0],t),bez(P0[1],P1[1],P2[1],P3[1],t)])}
@@ -2316,7 +2317,7 @@ const SCHEMAS={
     {id:'W',label:'العرض',type:'range',min:20,max:100,step:1,val:40,show:s=>s.shape==='half'||s.shape==='oval'},
     {id:'pD',label:'قطر الجرن',type:'range',min:25,max:80,step:1,val:40,show:s=>s.shape==='cornerSlab'},
     {id:'H',label:'الارتفاع',type:'range',min:20,max:70,step:1,val:30},
-    {id:'dep',label:'عمق الحفر (0 = تلقائي)',type:'range',min:0,max:100,step:1,val:0,show:s=>+s.H>30},
+    {id:'dep',label:'عمق الحفر',type:'range',min:8,max:40,step:1,val:22},
     {id:'sph',label:'كروي (من فوق ومن تحت)',type:'range',min:0,max:100,step:5,val:0,unit:'%',show:s=>s.shape==='round'},
     {id:'pT',label:'سماكة اللوح',type:'range',min:3,max:10,step:.5,val:5,show:s=>s.shape==='cornerSlab'},
     {id:'pLw',label:'عرض الأذن (على الحيط)',type:'range',min:6,max:25,step:1,val:12,show:s=>s.shape==='cornerSlab'},
