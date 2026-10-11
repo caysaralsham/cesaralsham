@@ -320,9 +320,9 @@ input[type=range]{height:16px}
 
 <script>
 const MATS={
-  beigeL:{name:'بيج',c:'#E8DAC0',d:'#CDBB98',v:'#B39B74',n:3,o:.3,dots:1},
-  black:{name:'بني غامق',c:'#2F2721',d:'#191410',v:'#C9AE84',n:6,o:.5},
-  italian:{name:'أبيض بعروق رمادي',c:'#F2F2F0',d:'#D2D3D2',v:'#98A0A8',n:8,o:.5}
+  beigeL:{name:'بيج',c:'#E9DCC1',d:'#D3C29F',v:'#B89A6C',n:0,o:.3,curl:1},
+  black:{name:'بني غامق',c:'#2C2627',d:'#161213',v:'#C8A77E',n:5,o:.55},
+  italian:{name:'رمادي',c:'#EFEFED',d:'#D5D6D7',v:'#7D8490',n:6,o:.55}
 };
 const BASE_MATS=['beigeL','black','italian'],ALL_MATS=BASE_MATS;
 const MAL={beigeD:'beigeL',brown:'black',crema:'beigeL',travert:'beigeL',giallo:'beigeL',emper:'black',portoro:'black',nero:'black',red:'black',green:'black'};
@@ -345,6 +345,8 @@ function buildPatterns(){
   for(const k in MATS){
     const m=MATS[k],rnd=seeded(seed+=13),W=180,H=120;
     let p=`<pattern id="p-${k}" patternUnits="userSpaceOnUse" width="${W}" height="${H}"><rect width="${W}" height="${H}" fill="${m.c}"/>`;
+    if(m.curl){for(let i=0;i<7;i++){const y=rnd()*H;p+=`<path d="M0 ${f(y)}Q${f(W/2)} ${f(y+(rnd()-.5)*10)} ${W} ${f(y)}" stroke="#D9B97E" stroke-width="${f(2+rnd()*4)}" fill="none" opacity=".22"/>`}
+      for(let i=0;i<70;i++){const x=rnd()*W,y=rnd()*H,r=1.2+rnd()*2.2,a=rnd()*6.28;p+=`<path d="M${f(x)} ${f(y)}q${f(Math.cos(a)*r)} ${f(-r)} ${f(r*1.6)} ${f(Math.sin(a)*r)}t${f(r*1.4)} ${f(r*.6)}" stroke="${m.v}" stroke-width=".45" fill="none" opacity=".45"/>`}}
     if(m.dots)for(let i=0;i<45;i++)p+=`<circle cx="${f(rnd()*W)}" cy="${f(rnd()*H)}" r="${f(.4+rnd()*1)}" fill="${m.v}" opacity=".35"/>`;
     for(let i=0;i<m.n;i++){
       let x=rnd()*W,y=rnd()*H,d=`M${f(x)} ${f(y)}`;
