@@ -9,34 +9,9 @@ const json = (o, st = 200) => new Response(JSON.stringify(o), { status: st, head
 
 function hostOf(u) { try { return new URL(u).hostname; } catch (e) { return ''; } }
 
-export async function onRequest({ request, env, waitUntil }) {
+export async function onRequest({ request, env }) {
   const key = env.GEMINI_API_KEY;
-  if (request.method === 'GET') {
-    const u = new URL(request.url);
-    if (u.searchParams.get('selftest') !== 'clad7' || !key) return json({ ok: !!key, models: MODELS });
-    // فحص لمرة وحدة: أي موديل صور بيرجّع صورة فعلاً (النتيجة بتنحفظ يوم كامل حتى ما ينصرف رصيد)
-    const ck = new Request('https://cache.local/ai-clad-selftest-v5'); const hit = await caches.default.match(ck); if (hit) return hit;
-    const keep = o => new Response(JSON.stringify(o), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=86400' } });
-    const run = async () => {
-      const out = {};
-      for (const m of ['gemini-3.1-flash-image', 'gemini-3-pro-image']) {
-        const t0 = Date.now(); let info;
-        try {
-          const g = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
-            body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: 'A small photorealistic square swatch of beige natural stone wall cladding.' }] }], generationConfig: { responseModalities: ['TEXT', 'IMAGE'], imageConfig: { aspectRatio: '1:1' } } }) });
-          info = g.status + ' ms=' + (Date.now() - t0);
-          if (g.ok) { let n = 0; const rd = g.body.getReader(); for (;;) { const { done, value } = await rd.read(); if (done) break; n += value.byteLength; } info += ' bytes=' + n; }
-          else { const t = await g.text(); info += ' ' + t.slice(0, 220).replace(/\s+/g, ' '); }
-        } catch (e) { info = 'err ' + e.message; }
-        out[m] = info; await caches.default.put(ck, keep({ ok: true, out }));
-      }
-    };
-    // بث مباشر: مسافات كل 3 ثواني حتى ما ينقطع الاتصال، وبالآخر النتيجة
-    const ts = new TransformStream(), w = ts.writable.getWriter(), enc = new TextEncoder();
-    const ka = setInterval(() => { w.write(enc.encode(' ')).catch(() => {}); }, 3000);
-    waitUntil((async () => { try { await run(); const h = await caches.default.match(ck); await w.write(enc.encode(h ? await h.text() : '{"ok":false}')); } catch (e) { await w.write(enc.encode('{"err":"' + e.message + '"}')); } clearInterval(ka); await w.close(); })());
-    return new Response(ts.readable, { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
-  }
+  if (request.method === 'GET') return json({ ok: !!key, models: MODELS });
   if (request.method !== 'POST') return json({ ok: false, error: 'post-only' }, 405);
   if (!key) return json({ ok: false, error: 'no-key' }, 503);
   const src = request.headers.get('origin') || request.headers.get('referer') || '';
