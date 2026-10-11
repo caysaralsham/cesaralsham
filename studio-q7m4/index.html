@@ -307,20 +307,12 @@ input[type=range]{height:16px}
 
 <script>
 const MATS={
-  italian:{name:'أبيض إيطالي',c:'#F2F2F0',d:'#D2D3D2',v:'#98A0A8',n:8,o:.5},
-  beigeL:{name:'بيج مصري',c:'#E8DAC0',d:'#CDBB98',v:'#B39B74',n:3,o:.3,dots:1},
-  black:{name:'بني على أسود',c:'#2F2721',d:'#191410',v:'#7D6B5C',n:6,o:.4},
-  crema:{name:'كريما',c:'#EFE4CF',d:'#D9C9A8',v:'#BFA987',n:3,o:.25,dots:1},
-  emper:{name:'إمبرادور بني',c:'#5B4232',d:'#3E2B1F',v:'#C9B297',n:7,o:.45},
-  nero:{name:'أسود',c:'#232326',d:'#141416',v:'#D9D9DC',n:5,o:.45},
-  red:{name:'أحمر',c:'#A44E3F',d:'#7E3528',v:'#D9A08F',n:5,o:.35},
-  green:{name:'أخضر',c:'#2F5B47',d:'#1E3E30',v:'#9CC2AE',n:6,o:.4},
-  giallo:{name:'أصفر',c:'#D9B871',d:'#B8954E',v:'#F2DDA6',n:4,o:.35},
-  portoro:{name:'أسود بعروق ذهبية',c:'#2A2624',d:'#151312',v:'#C9A25A',n:6,o:.6},
-  travert:{name:'ترافرتين',c:'#E2CFAE',d:'#C7AF88',v:'#B59A70',n:9,o:.22}
+  beigeL:{name:'بيج فاتح',c:'#E8DAC0',d:'#CDBB98',v:'#B39B74',n:3,o:.3,dots:1},
+  black:{name:'بني غامق بعروق بيج',c:'#2F2721',d:'#191410',v:'#C9AE84',n:6,o:.5},
+  italian:{name:'أبيض بعروق رمادي',c:'#F2F2F0',d:'#D2D3D2',v:'#98A0A8',n:8,o:.5}
 };
-const BASE_MATS=['italian','beigeL','black'],ALL_MATS=['italian','crema','beigeL','travert','giallo','emper','black','portoro','nero','red','green'];
-const MAL={beigeD:'beigeL',brown:'black'};
+const BASE_MATS=['beigeL','black','italian'],ALL_MATS=BASE_MATS;
+const MAL={beigeD:'beigeL',brown:'black',crema:'beigeL',travert:'beigeL',giallo:'beigeL',emper:'black',portoro:'black',nero:'black',red:'black',green:'black'};
 const INK='#2B3238', DIM='#9C3A25', WATER='#4F9BC2', BRASS='#B08A3E', IRON='#1E1F21';
 let LW=1, FS=10;
 const f=n=>Math.round(n*100)/100;
@@ -1536,13 +1528,13 @@ function drawJurn(s){
 
 /* ---------- bathroom ---------- */
 function drawBath(s){
-  const W=+s.W,Lr=+s.L,H=+s.H,clH=Math.min(+s.clH,H),WT=12;
+  const W=+s.W,Lr=+s.L,H=+s.H,WT=12,ccH=+s.ccor?Math.min(+s.ccorH||10,40):0;
   const wallW=[0,W,Lr,W,Lr],wallN=['','أمام','يمين','خلف','يسار'];
   const S0=Math.max(W+2*Lr,Math.max(Lr,H)+H)*1.12;setScale(S0);FS*=.8;
   const G=FS*3.6,GV=FS*3.9;
   const dWall=String(s.door),dw=+s.dw,dh=Math.min(+s.dh,H-5);
   const nJ=Math.max(0,Math.min(6,+s.jn)),jL=+s.jL,jWd=+s.jW,jH=+s.jH,jY=Math.max(+s.jY,jH*.6),jm=M(s.jmat),seat=+s.seat,sp=seatSpec(s),sD=sp.sh==='square'?sp.d:sp.fw,sG=20,sTxt=sp.txt;
-  const tw=String(s.twall),cor=+s.cor,corH=+s.corH,corY=Math.min(+s.corY,H-corH);
+  const cor=+s.cor,corH=+s.corH,corY=Math.min(+s.corY,H-corH);
   const doorX=i=>{const w=wallW[i],lim=Math.max(0,w/2-dw/2-5);return w/2+Math.max(-lim,Math.min(lim,+s.dX||0))};
   const J=[];for(let k=1;k<=nJ;k++){const i=Math.max(1,Math.min(4,+s['jw'+k]||1)),w=wallW[i];J.push({k,i,mid:s['jm'+k]!=='e',c:s['jm'+k]!=='e'?w/2:Math.max(jL/2,Math.min(w-jL/2,(+s['jp'+k]||0)+jL/2))})}
   // distance along wall (from the viewer's left, standing inside) -> plan point; d = distance out from the wall
@@ -1576,12 +1568,13 @@ function drawBath(s){
   o+=dimH(0,W,Lr+WT+FS*1.5,'العرض '+fmt(W))+dimV(Lr,0,W+WT+FS*1.4,'الطول '+fmt(Lr));
   /* ---- walls, laid out around the plan ---- */
   const yMid=Math.max(Lr/2+H/2,Lr+WT),pos=[null,[W+WT+G,-WT-GV],[W+WT+G,yMid],[0,-WT-GV],[-WT-G-Lr,yMid]];
-  let kbLen=0,nCount=0;let wallsArea=0,tCount=0,corLen=0,tInfo='',tA=0,tFrL=0,tFrA=0;const wStats=[];
+  let kbLen=0,nCount=0;let wallsArea=0,tCount=0,corLen=0,corAr=0,ccLen=0,tInfo=[],tA=0,tFrL=0,tFrA=0,sbN=0;const wStats=[],sbInfo=[];
   for(let i=1;i<=4;i++){
-    const [x0,yg]=pos[i],w=wallW[i];
-    o+=R(x0,yg-H,w,H,'#F3F0EA',LW*.6)+R(x0,yg-clH,w,clH,M(s.wmat),LW*.6);
+    const [x0,yg]=pos[i],w=wallW[i],clOn=s['cl'+i]===undefined?1:+s['cl'+i],clH=clOn?Math.min(+s['ch'+i]||H,H-ccH):0,wm=M(s['wm'+i]||s.wmat||'italian');
+    o+=R(x0,yg-H,w,H,'#F3F0EA',LW*.6);if(clH)o+=R(x0,yg-clH,w,clH,wm,LW*.6);
     let a=w*clH;
-    if(cor){o+=R(x0,yg-corY-corH,w,corH,M(s.cmat),LW*.6);corLen+=w}
+    if(ccH){o+=R(x0,yg-H,w,ccH,M(s.ccmat),LW*.6)+L(x0,yg-H+ccH*.4,x0+w,yg-H+ccH*.4,'rgba(0,0,0,.25)',LW*.5);ccLen+=w}
+    if(cor){o+=R(x0,yg-corY-corH,w,corH,M(s.cmat),LW*.6);corLen+=w;if(corY<clH)corAr+=w*Math.min(corH,clH-corY)}
     if(+s.kb){const kh=+s.kbH,ky=yg-Math.min(+s.kbY,H-kh)-kh;o+=`<g transform="translate(${f(x0)} ${f(ky)})">`+R(0,0,w,kh,'#F7F4EE',LW*.4)+keyBand(w,kh,M(s.kbmat))+'</g>';kbLen+=w}
     if(s.niW==='all'||s.niW===String(i)){const n=+s.niN,nw=+s.niWd,nh=Math.min(+s.niH,H-20),rows=+s.niR?2:1,ny=+s.niY;const gap=(w-n*nw)/(n+1);
       for(let r=0;r<rows;r++)for(let k=0;k<n;k++){const cx=x0+gap*(k+1)+nw*(k+.5),bot=yg-ny+r*(nh+15)*(rows>1?1:0)-(rows>1?0:0),yb2=yg-ny-r*(nh+15);
@@ -1592,14 +1585,24 @@ function drawBath(s){
         else d=shapePath(cx,nw,top,yb2,sh==='rect'?'rect':sh);
         const fr=Math.max(2.5,nw*.1);o+=P(d.replace(/^/,''),'#D4CCBE',LW*.8)+`<path d="${d}" fill="none" stroke="#FFFFFF" stroke-width="${f(fr)}" opacity=".55"/>`+P(d,'none',LW*.8)+L(cx-nw/2,yb2,cx+nw/2,yb2,INK,LW*1.4);nCount++}
       if(n){const cx=x0+gap+nw/2,yb2=yg-ny;o+=dimH(cx-nw/2,cx+nw/2,yb2+FS*1.2,fmt(nw),C_FR)+dimV(yb2,yb2-nh,cx+nw/2+FS*.8,fmt(nh),C_FR)}}
-    if(tw==='all'||tw===String(i)){let tW=Math.min(+s.tW,w-10);const tH=Math.min(+s.tH,H-10),fw=+s.tfw,gp=fw>0?+s.tgap:0,ring=gp+fw;let cx=x0+w/2;
-      if(dWall===String(i)){const dc=doorX(i),l=dc-dw/2-6,r=w-(dc+dw/2+6);if(l>=r){cx=x0+l/2;tW=Math.min(tW,l-2*ring-10)}else{cx=x0+w-r/2;tW=Math.min(tW,r-2*ring-10)}tW=Math.max(10,tW)}
-      const cy=yg-Math.min(+s.tY,H-tH-2*ring)-ring-tH/2;
-      if(fw>0){o+=R(cx-tW/2-ring,cy-tH/2-ring,tW+2*ring,tH+2*ring,M(s.tfmat),LW*.8)+R(cx-tW/2-gp,cy-tH/2-gp,tW+2*gp,tH+2*gp,M(s.wmat),LW*.5)}
-      o+=R(cx-tW/2,cy-tH/2,tW,tH,M(s.tmat),LW*.8);tCount++;tA+=tW*tH;if(fw>0){tFrL+=2*(tW+tH+4*gp+2*fw);tFrA+=(tW+2*ring)*(tH+2*ring)-(tW+2*gp)*(tH+2*gp)}tInfo=tW+' × '+tH+' سم'+(fw>0?'، كادر '+fw+' سم على بُعد '+gp+' سم':'');
-      o+=dimH(cx-tW/2,cx+tW/2,cy-tH/2+FS*1.3,fmt(tW),C_TAB)+dimV(cy+tH/2,cy-tH/2,cx+tW/2-FS*1.2,fmt(tH),C_TAB)}
+    if(+s['tb'+i]){let tW=Math.min(+s['tbW'+i],w-10);const tH=Math.min(+s['tbH'+i],H-10),fw=+s['tbf'+i]||0,gp=fw>0?+s['tbg'+i]:0,ring=gp+fw;
+      let cx=x0+(s['tbm'+i]==='e'?Math.max(ring+tW/2,Math.min(w-ring-tW/2,(+s['tbp'+i]||0)+ring+tW/2)):w/2);
+      if(dWall===String(i)&&s['tbm'+i]!=='e'){const dc=doorX(i),l=dc-dw/2-6,r=w-(dc+dw/2+6);if(l>=r){cx=x0+l/2;tW=Math.min(tW,l-2*ring-10)}else{cx=x0+w-r/2;tW=Math.min(tW,r-2*ring-10)}tW=Math.max(10,tW)}
+      const cy=yg-Math.min(+s['tbY'+i],H-tH-2*ring)-ring-tH/2;
+      if(fw>0){o+=R(cx-tW/2-ring,cy-tH/2-ring,tW+2*ring,tH+2*ring,M(s.tfmat),LW*.8)+R(cx-tW/2-gp,cy-tH/2-gp,tW+2*gp,tH+2*gp,wm,LW*.5)}
+      o+=R(cx-tW/2,cy-tH/2,tW,tH,M(s['tbk'+i]),LW*.8);tCount++;const tIn=Math.max(0,Math.min(clH,yg-(cy-tH/2-ring))-(yg-(cy+tH/2+ring)));tA+=tW*tH*(tIn>0?1:0);if(fw>0){tFrL+=2*(tW+tH+4*gp+2*fw);tFrA+=(tW+2*ring)*(tH+2*ring)-(tW+2*gp)*(tH+2*gp)}
+      tInfo.push('حائط '+i+': '+tW+' × '+tH+' سم، على '+Math.round(yg-(cy+tH/2))+' سم من الأرض، بُعده '+Math.round(cx-tW/2-x0)+' سم عن الطرف اليسار'+(fw>0?'، كادر '+fw+' على بُعد '+gp:''));
+      o+=dimH(cx-tW/2,cx+tW/2,cy-tH/2+FS*1.3,fmt(tW),C_TAB)+dimV(cy+tH/2,cy-tH/2,cx+tW/2-FS*1.2,fmt(tH),C_TAB)+dimV(yg,cy+tH/2+ring,cx-tW/2+FS*.9,fmt(Math.round(yg-(cy+tH/2+ring))),C_GAP);
+      const lg=cx-tW/2-ring-x0;if(lg>=1)o+=dimH(x0,cx-tW/2-ring,cy,fmt(Math.round(lg)),C_DIST)}
+    if(+s['sb'+i]){const pw=Math.min(+s['sbW'+i],w-10),bw2=Math.min(+s['sbB'+i],w-6),PHt=Math.min(+s['sbH'+i],H-ccH-2),BH=28,ped=25,hw2=Math.max(pw,bw2)/2;
+      const cx=x0+(s['sbm'+i]==='e'?Math.max(hw2,Math.min(w-hw2,(+s['sbp'+i]||0)+hw2)):w/2),bTop=yg-ped-BH,sm=M(s['sbk'+i]);
+      o+=`<g transform="translate(${f(cx)} 0)">`+P(sbTop(s['sbT'+i]||'arch',pw/2,bTop+3,yg-PHt),sm,LW*.9)+P(sbTop(s['sbT'+i]==='lobed'?'lobed':s['sbT'+i]||'arch',pw/2-Math.min(6,pw*.08),bTop+3,yg-PHt+Math.min(6,pw*.08)),'none',LW*.5)+
+        rosette(0,yg-PHt+(PHt-ped-BH)*.4,Math.min(pw,PHt)*.09,LW*.5)+R(-2.5,bTop-26,5,8,BRASS,LW*.4)+R(-2.5,bTop-20,9,3,BRASS,LW*.4)+
+        R(-bw2*.18,yg-ped,bw2*.36,ped,sm,LW*.7)+P(`M${f(-bw2/2)} ${f(bTop)}L${f(bw2/2)} ${f(bTop)}C${f(bw2/2)} ${f(bTop+BH*.75)} ${f(bw2*.28)} ${f(yg-ped)} ${f(bw2*.15)} ${f(yg-ped)}L${f(-bw2*.15)} ${f(yg-ped)}C${f(-bw2*.28)} ${f(yg-ped)} ${f(-bw2/2)} ${f(bTop+BH*.75)} ${f(-bw2/2)} ${f(bTop)}Z`,sm,LW*.8)+R(-bw2/2-1.5,bTop-2.5,bw2+3,3,sm,LW*.6)+'</g>';
+      o+=dimH(cx-pw/2,cx+pw/2,yg-PHt-FS*.6,'سبالة '+fmt(pw),C_TAB)+dimV(yg,yg-PHt,cx+pw/2+FS*.8,fmt(PHt),C_TAB);const lg=cx-hw2-x0;if(lg>=1)o+=dimH(x0,cx-hw2,yg-ped-BH*.5,fmt(Math.round(lg)),C_DIST);
+      sbN++;sbInfo.push('حائط '+i+': لوح '+pw+' سم، ارتفاع كلي '+PHt+' سم، جرن '+bw2+' سم'+(s['sbm'+i]==='e'?'، بُعدها '+Math.round(lg)+' سم عن الطرف اليسار':'، بالنص'))}
     if(dWall===String(i)){const c=x0+doorX(i);o+=R(c-dw/2,yg-dh,dw,dh,'#8A5A2B',LW*.9)+R(c-dw/2+dw*.12,yg-dh*.9,dw*.76,dh*.36,'none',LW*.5)+R(c-dw/2+dw*.12,yg-dh*.48,dw*.76,dh*.38,'none',LW*.5)+C(c+dw/2-8,yg-dh*.48,2.5,BRASS,LW*.4);
-      a-=dw*Math.min(dh,clH);if(cor&&dh>corY)corLen-=dw;
+      a-=dw*Math.min(dh,clH);if(cor&&dh>corY){corLen-=dw;if(corY<clH)corAr-=dw*Math.min(corH,clH-corY)}
       o+=dimH(c-dw/2,c+dw/2,yg-dh+FS*1.4,fmt(dw),C_FR)+dimV(yg,yg-dh,c-dw/2+FS*1.2,fmt(dh),C_FR)}
     const onW=J.filter(j=>j.i===i);
     for(const j of onW){const c=x0+j.c,top=yg-jY,bot=top+jH,bw=jL*(s.jshape==='rect'?.92:.55);
@@ -1616,15 +1619,17 @@ function drawBath(s){
     o+=L(x0-8,yg,x0+w+8,yg,INK,LW*2);
     o+=T(x0+w/2,yg-H-FS*.7,'حائط '+i+' ('+wallN[i]+')',FS*.95,'middle',INK);
     o+=dimH(x0,x0+w,yg+FS*1.8,fmt(w))+dimV(yg,yg-H,x0+w+FS*1.1,fmt(H));
-    if(clH<H)o+=dimV(yg,yg-clH,x0+FS*1.1,'تلبيس '+fmt(clH),C_TAB);
-    wallsArea+=a;wStats.push(['حائط '+i+' ('+wallN[i]+')',w+' × '+clH+' سم = '+(a/1e4).toFixed(2)+' م²'+(dWall===String(i)?' (بعد طرح الباب)':'')]);
+    if(clH&&clH<H)o+=dimV(yg,yg-clH,x0+FS*1.1,'تلبيس '+fmt(clH),C_TAB);
+    wallsArea+=a;wStats.push(['حائط '+i+' ('+wallN[i]+')',clH?w+' × '+clH+' سم = '+(a/1e4).toFixed(2)+' م² — '+MATS[MATS[s['wm'+i]]?s['wm'+i]:'italian'].name+(dWall===String(i)?' (بعد طرح الباب)':''):'بدون تلبيس']);
   }
-  const m2=v=>(v/1e4).toFixed(2),corA=cor&&corY<clH?Math.max(0,corLen)*Math.min(corH,clH-corY):0;
+  const m2=v=>(v/1e4).toFixed(2),corA=Math.max(0,corAr),ceilA=s.ceil==='marble'?W*Lr:0;
   const floorNet=W*Lr-fA-fFrA,wallNet=wallsArea-tA-tFrA-corA;
   const stats=[['مساحة الأرض',m2(W*Lr)+' م² ('+W+' × '+Lr+' سم)']];
   if(fA)stats.push(['تابلو الأرض',ftW+' × '+ftL+' سم'+(fFr?'، كادر عرض '+s.ffw+' على بُعد '+s.fgap+' سم':'')]);
   stats.push(...wStats);
-  if(tCount)stats.push(['تابلو الحائط',tCount+' × ('+tInfo+')']);
+  if(tCount)stats.push(['تابلو الحيطان',tInfo.join(' | ')]);
+  if(sbN)stats.push(['السبالة',sbInfo.join(' | ')]);
+  stats.push(['السقف',s.ceil==='marble'?'رخام '+MATS[MATS[s.ceilmat]?s.ceilmat:'italian'].name+'، '+m2(ceilA)+' م²':'دهان']);if(ccH)stats.push(['كورنيش السقف','عرض '+ccH+' سم، '+(ccLen/100).toFixed(2)+' م.ط']);
   if(cor)stats.push(['الكورنيش','عرض '+corH+'، على ارتفاع '+corY+' سم']);
   if(nCount)stats.push(['الطاقات',nCount+' طاقة '+{lobed:'مغربي مفصّص',arch:'قوس',pointed:'مدبّب',rect:'مستطيل'}[s.niShape]+' '+s.niWd+' × '+s.niH+' سم، على ارتفاع '+s.niY+' سم']);
   if(kbLen)stats.push(['حزام المفتاح اليوناني','عرض '+s.kbH+' سم، على ارتفاع '+s.kbY+' سم، الطول '+(kbLen/100).toFixed(2)+' م.ط']);
@@ -1639,14 +1644,18 @@ function drawBath(s){
   if(tA)bill.push({cells:['تابلو الحائط',m2(tA),'م²']});
   if(tFrL)bill.push({cells:['كادر تابلو الحائط',(tFrL/100).toFixed(2),'م.ط']});
   if(cor)bill.push({cells:['الكورنيش',(Math.max(0,corLen)/100).toFixed(2),'م.ط']});
+  if(ccH)bill.push({cells:['كورنيش السقف',(ccLen/100).toFixed(2),'م.ط']});
+  if(ceilA)bill.push({cells:['رخام السقف',m2(ceilA),'م²']});
+  if(sbN)bill.push({cells:['سبالة (لوح وجرن)',sbN,'قطعة']});
   if(kbLen)bill.push({cells:['حزام مفتاح يوناني',(kbLen/100).toFixed(2),'م.ط']});
   if(nCount)bill.push({cells:['طاقة (نيش)',nCount,'قطعة']});
   if(gobA)bill.push({cells:['المصطبة بالنص',m2(gobA),'م²']});
   if(nJ)bill.push({cells:['جرن',nJ,'قطعة']});
   if(nJ&&seat)bill.push({cells:['كرسي '+sTxt+' سم',nJ,'قطعة']});
-  bill.push({sel:true,cells:['مجموع المساحات',m2(floorNet+fA+wallNet+tA),'م²']});
+  bill.push({sel:true,cells:['مجموع المساحات',m2(floorNet+fA+wallNet+tA+ceilA),'م²']});
   const box=[pos[4][0]-FS*2,pos[2][0]+Math.max(Lr,W)+FS*4.5,pos[3][1]-H-FS*2.6,Math.max(yMid,Lr+WT+FS*2)+FS*3.4];
   const insetsB=nJ&&seat?[seatInset(sp,M(s.smat))]:[];
+  {let q=R(0,0,W,Lr,s.ceil==='marble'?M(s.ceilmat):'#F7F5F0',LW);if(ccH)q+=R(0,0,W,Lr,'none',ccH*2,`stroke="#8C7A62" stroke-opacity=".5"`).replace(`stroke="${INK}" `,'');q+=dimH(0,W,Lr+FS*1.6,'العرض '+fmt(W))+dimV(Lr,0,W+FS*1.3,'الطول '+fmt(Lr));insetsB.unshift({svg:q,box:[-FS*1.2,W+FS*3,-FS*1.2,Lr+FS*2.8],label:'السقف ('+(s.ceil==='marble'?'رخام':'دهان')+')'})}
   return{svg:o,insets:insetsB,noGround:true,box,stats,tables:[{title:'بيان للحساب',head:['البند','الكمية','الوحدة'],rows:bill}],
     note:'كل حائط مرسوم متل ما بتشوفه من جوّا الحمام (حائط 3 فوق المسقط، 4 يسار، 2 يمين، 1 فوق اليمين). بُعد الجرن بيتقاس من طرف الحائط اليسار وإنت واقف قباله.'};
 }
@@ -1979,8 +1988,8 @@ const fountainCtrls=[
   {id:'poolT',label:'سماكة الجدار',type:'range',min:3,max:40,step:1,val:10,show:s=>+s.pool},
   {id:'poolH',label:'ارتفاع الجدار',type:'range',min:20,max:100,step:1,val:40,show:s=>+s.pool},
   {id:'poolStyle',label:'شكل الجدار',type:'seg',options:[['plain','سادة'],['mold','بكورنيش'],['panels','بحشوات'],['scallop','حزام محفور'],['inlay','تطعيم هندسي ملون (شامي)']],val:'mold',show:s=>+s.pool},
-  {id:'mat3',label:'لون التطعيم 1',type:'mat',val:'red',show:s=>+s.pool&&s.poolStyle==='inlay'},
-  {id:'mat4',label:'لون التطعيم 2',type:'mat',val:'green',show:s=>+s.pool&&s.poolStyle==='inlay'},
+  {id:'mat3',label:'لون التطعيم 1',type:'mat',val:'black',show:s=>+s.pool&&s.poolStyle==='inlay'},
+  {id:'mat4',label:'لون التطعيم 2',type:'mat',val:'black',show:s=>+s.pool&&s.poolStyle==='inlay'},
   {id:'mat2',label:'رخام الحوض',type:'mat',val:'beigeL',show:s=>+s.pool},
   head('النافورة'),
   {id:'tiers',label:'عدد الصحون',type:'counter',min:1,max:6,val:1,addLabel:'إضافة صحن',remLabel:'حذف آخر صحن'},
@@ -2016,10 +2025,14 @@ const bathCtrls=[
     {id:'ffw',label:'عرض الكادر (0 = بدون)',type:'range',min:0,max:30,step:1,val:0,show:s=>+s.ftab},
     {id:'fgap',label:'بُعد الكادر عن التابلو',type:'range',min:0,max:100,step:1,val:10,show:s=>+s.ftab&&+s.ffw>0},
     {id:'ffmat',label:'رخام الكادر',type:'mat',val:'black',show:s=>+s.ftab&&+s.ffw>0},
-    head('الحيطان'),
-    {id:'H',label:'ارتفاع الحائط',type:'range',min:200,max:400,step:1,val:260},
-    {id:'clH',label:'ارتفاع التلبيس',type:'range',min:30,max:400,step:1,val:260},
-    {id:'wmat',label:'رخام الحيطان',type:'mat',val:'italian'},
+    head('الحيطان والسقف'),
+    {id:'H',label:'ارتفاع الحيطان (لعند السقف)',type:'range',min:200,max:400,step:1,val:260},
+    {id:'ceil',label:'السقف',type:'seg',options:[['paint','دهان (بدون رخام)'],['marble','رخام']],val:'paint'},
+    {id:'ceilmat',label:'رخام السقف',type:'mat',val:'italian',show:s=>s.ceil==='marble'},
+    {id:'ccor',label:'كورنيش بين الحيطان والسقف',type:'seg',options:YN,val:0},
+    {id:'ccorH',label:'عرض كورنيش السقف',type:'range',min:3,max:30,step:1,val:10,show:s=>+s.ccor},
+    {id:'ccmat',label:'رخام كورنيش السقف',type:'mat',val:'black',show:s=>+s.ccor},
+    {id:'tfmat',label:'رخام كادر التابلو (لكل الحيطان)',type:'mat',val:'black',show:s=>[1,2,3,4].some(k=>+s['tb'+k]&&+s['tbf'+k]>0)},
     head('الجرون'),
     {id:'jn',label:'عدد الجرون',type:'counter',min:0,max:6,val:0,addLabel:'إضافة جرن',remLabel:'حذف آخر جرن'},
     {id:'jshape',label:'شكل الجرن',type:'seg',options:[['oval','بيضوي'],['half','نص دائرة']],val:'oval',show:s=>+s.jn>0},
@@ -2034,6 +2047,29 @@ const bathCtrls=[
     {id:'sW',label:'عرض الكرسي',type:'range',min:20,max:80,step:1,val:30,show:s=>+s.jn>0&&+s.seat&&s.sshape==='square'},
     {id:'sH',label:'ارتفاع الكرسي',type:'range',min:20,max:60,step:1,val:30,show:s=>+s.jn>0&&+s.seat},
     {id:'smat',label:'رخام الكرسي',type:'mat',val:'italian',show:s=>+s.jn>0&&+s.seat}];
+bathCtrls.splice(bathCtrls.findIndex(c=>c.type==='head'&&c.label==='الجرون'),0,{type:'sub',label:'كل حائط لحاله'});
+{const WN=['','أمام','يمين','خلف','يسار'],add=[];for(let k=1;k<=4;k++)add.push({type:'group',gid:'bw'+k,title:s=>'حائط '+k+' ('+WN[k]+'): '+(+s['cl'+k]?'تلبيس '+s['ch'+k]+' سم':'بدون تلبيس')+(+s['tb'+k]?' + تابلو':'')+(+s['sb'+k]?' + سبالة':''),items:[
+  {id:'cl'+k,label:'تلبيس رخام',type:'seg',options:YN,val:1},
+  {id:'ch'+k,label:'ارتفاع التلبيس',type:'range',min:30,max:400,step:1,val:260,show:s=>+s['cl'+k]},
+  {id:'wm'+k,label:'رخام الحائط',type:'mat',val:'italian',show:s=>+s['cl'+k]},
+  {id:'tb'+k,label:'تابلو على هالحائط',type:'seg',options:YN,val:0},
+  {id:'tbW'+k,label:'عرض التابلو',type:'range',min:20,max:600,step:1,val:80,show:s=>+s['tb'+k]},
+  {id:'tbH'+k,label:'ارتفاع التابلو',type:'range',min:20,max:350,step:1,val:120,show:s=>+s['tb'+k]},
+  {id:'tbY'+k,label:'ارتفاعه عن الأرض',type:'range',min:0,max:300,step:1,val:90,show:s=>+s['tb'+k]},
+  {id:'tbm'+k,label:'مكانه',type:'seg',options:[['c','بالنص'],['e','من الطرف']],val:'c',show:s=>+s['tb'+k]},
+  {id:'tbp'+k,label:'بُعده عن طرف الحائط اليسار',type:'range',min:0,max:780,step:1,val:30,show:s=>+s['tb'+k]&&s['tbm'+k]==='e'},
+  {id:'tbk'+k,label:'رخام التابلو',type:'mat',val:'beigeL',show:s=>+s['tb'+k]},
+  {id:'tbf'+k,label:'عرض الكادر (0 = بدون)',type:'range',min:0,max:30,step:1,val:0,show:s=>+s['tb'+k]},
+  {id:'tbg'+k,label:'بُعد الكادر عن التابلو',type:'range',min:0,max:60,step:1,val:10,show:s=>+s['tb'+k]&&+s['tbf'+k]>0},
+  {id:'sb'+k,label:'سبالة على هالحائط',type:'seg',options:YN,val:0},
+  {id:'sbT'+k,label:'شكل لوح السبالة',type:'seg',options:[['baroque','كلاسيك بأذنين'],['arch','قوس'],['lobed','مغربي'],['rect','مستطيل']],val:'arch',show:s=>+s['sb'+k]},
+  {id:'sbW'+k,label:'عرض اللوح',type:'range',min:30,max:300,step:1,val:70,show:s=>+s['sb'+k]},
+  {id:'sbH'+k,label:'الارتفاع الكلي من الأرض',type:'range',min:80,max:350,step:1,val:160,show:s=>+s['sb'+k]},
+  {id:'sbB'+k,label:'عرض جرن السبالة',type:'range',min:30,max:300,step:1,val:60,show:s=>+s['sb'+k]},
+  {id:'sbm'+k,label:'مكانها',type:'seg',options:[['c','بالنص'],['e','من الطرف']],val:'c',show:s=>+s['sb'+k]},
+  {id:'sbp'+k,label:'بُعدها عن طرف الحائط اليسار',type:'range',min:0,max:780,step:1,val:30,show:s=>+s['sb'+k]&&s['sbm'+k]==='e'},
+  {id:'sbk'+k,label:'رخام السبالة',type:'mat',val:'beigeL',show:s=>+s['sb'+k]}]});
+ bathCtrls.splice(bathCtrls.findIndex(c=>c.type==='head'&&c.label==='الجرون'),0,...add)}
 bathCtrls.push({type:'sub',label:'أماكن الجرون',show:s=>+s.jn>0});
 for(let k=1;k<=6;k++)bathCtrls.push({type:'group',gid:'bj'+k,show:s=>+s.jn>=k,title:s=>'جرن '+k+': حائط '+s['jw'+k]+'، '+(s['jm'+k]==='e'?'بُعد '+s['jp'+k]+' سم':'بالنص'),items:[
   {id:'jw'+k,label:'على حائط',type:'seg',options:[[1,'1'],[2,'2'],[3,'3'],[4,'4']],val:[1,2,4,3,1,2][k-1]},
@@ -2051,7 +2087,7 @@ bathCtrls.push(
     {id:'kb',label:'حزام مفتاح يوناني على الحيطان',type:'seg',options:YN,val:0},
     {id:'kbY',label:'ارتفاع الحزام عن الأرض',type:'range',min:20,max:380,step:1,val:100,show:s=>+s.kb},
     {id:'kbH',label:'عرض الحزام',type:'range',min:4,max:30,step:1,val:10,show:s=>+s.kb},
-    {id:'kbmat',label:'لون الحزام',type:'mat',val:'nero',show:s=>+s.kb},
+    {id:'kbmat',label:'لون الحزام',type:'mat',val:'black',show:s=>+s.kb},
     {id:'gob',label:'مصطبة بالنص (جوبك تركي)',type:'seg',options:[[0,'بدون'],['oct','مثمنة'],['rect','مستطيلة']],val:0},
     {id:'gobW',label:'عرض المصطبة',type:'range',min:60,max:400,step:1,val:150,show:s=>s.gob!=0&&s.gob!=='0'},
     {id:'gobL',label:'طول المصطبة',type:'range',min:60,max:500,step:1,val:200,show:s=>s.gob==='rect'},
@@ -2061,15 +2097,6 @@ bathCtrls.push(
     {id:'dw',label:'عرض الباب',type:'range',min:60,max:150,step:1,val:80,show:s=>+s.door},
     {id:'dh',label:'ارتفاع الباب',type:'range',min:180,max:260,step:1,val:205,show:s=>+s.door},
     {id:'dX',label:'تحريك الباب يمين (+) أو يسار (−)',type:'range',min:-350,max:350,step:1,val:0,show:s=>+s.door},
-    head('تابلو بالحائط',true),
-    {id:'twall',label:'التابلو على',type:'seg',options:[['none','بدون'],['1','حائط 1'],['2','حائط 2'],['3','حائط 3'],['4','حائط 4'],['all','كل الحيطان']],val:'none'},
-    {id:'tW',label:'عرض التابلو',type:'range',min:20,max:400,step:1,val:80,show:s=>s.twall!=='none'},
-    {id:'tH',label:'ارتفاع التابلو',type:'range',min:20,max:300,step:1,val:120,show:s=>s.twall!=='none'},
-    {id:'tY',label:'ارتفاعه عن الأرض',type:'range',min:0,max:300,step:1,val:90,show:s=>s.twall!=='none'},
-    {id:'tmat',label:'رخام التابلو',type:'mat',val:'beigeL',show:s=>s.twall!=='none'},
-    {id:'tfw',label:'عرض الكادر (0 = بدون)',type:'range',min:0,max:30,step:1,val:0,show:s=>s.twall!=='none'},
-    {id:'tgap',label:'بُعد الكادر عن التابلو',type:'range',min:0,max:60,step:1,val:10,show:s=>s.twall!=='none'&&+s.tfw>0},
-    {id:'tfmat',label:'رخام الكادر',type:'mat',val:'black',show:s=>s.twall!=='none'&&+s.tfw>0},
     head('الكورنيش',true),
     {id:'cor',label:'كورنيش (حزام) على الحيطان',type:'seg',options:YN,val:0},
     {id:'corY',label:'ارتفاعه عن الأرض',type:'range',min:30,max:380,step:1,val:120,show:s=>+s.cor},
@@ -2288,7 +2315,7 @@ const SCHEMAS={
     {id:'L',label:'الطول (القطر للمدور)',type:'range',min:20,max:800,step:1,val:120},
     {id:'W',label:'العرض',type:'range',min:20,max:800,step:1,val:120,show:s=>s.shape!=='round'},
     {id:'th',label:'سماكة اللوح',type:'range',min:1,max:10,step:.5,val:2},
-    {id:'tmat',label:'رخام التابلو',type:'mat',val:'crema',mats:ALL_MATS},
+    {id:'tmat',label:'رخام التابلو',type:'mat',val:'beigeL',mats:ALL_MATS},
     head('الرسمة'),
     {id:'des',label:'الرسمة',type:'seg',options:Object.entries(TB_DES),val:'compass'},
     {id:'dsz',label:'حجم الرسمة',type:'range',min:30,max:100,step:5,val:85,unit:'%',show:s=>s.des!=='plain'},
@@ -2296,8 +2323,8 @@ const SCHEMAS={
     {id:'dmode',label:'طريقة تنفيذ الرسمة',type:'seg',options:Object.entries(TB_MODE),val:'inlay',show:s=>s.des!=='plain'||(s.shape==='rect'&&+s.corn)},
     {id:'ddep',label:'عمق حفر الرسمة',type:'range',min:1,max:15,step:.5,val:3,unit:'مم',show:s=>s.dmode==='engrave'&&(s.des!=='plain'||(s.shape==='rect'&&+s.corn))},
     {id:'dht',label:'ارتفاع نفر الرسمة',type:'range',min:1,max:20,step:.5,val:5,unit:'مم',show:s=>s.dmode==='relief'&&(s.des!=='plain'||(s.shape==='rect'&&+s.corn))},
-    {id:'dmat',label:'لون الرسمة 1',type:'mat',val:'emper',mats:ALL_MATS,show:s=>s.dmode==='inlay'&&(s.des!=='plain'||(s.shape==='rect'&&+s.corn))},
-    {id:'d2mat',label:'لون الرسمة 2',type:'mat',val:'nero',mats:ALL_MATS,show:s=>s.dmode==='inlay'&&(s.des!=='plain'||(s.shape==='rect'&&+s.corn))},
+    {id:'dmat',label:'لون الرسمة 1',type:'mat',val:'black',mats:ALL_MATS,show:s=>s.dmode==='inlay'&&(s.des!=='plain'||(s.shape==='rect'&&+s.corn))},
+    {id:'d2mat',label:'لون الرسمة 2',type:'mat',val:'black',mats:ALL_MATS,show:s=>s.dmode==='inlay'&&(s.des!=='plain'||(s.shape==='rect'&&+s.corn))},
     head('الكتابة'),
     {id:'txt',label:'كتابة على التابلو',type:'seg',options:[[0,'بدون'],[1,'مع كتابة']],val:0},
     {id:'text',label:'النص',type:'text',val:'بسم الله الرحمن الرحيم',show:s=>+s.txt},
@@ -2307,7 +2334,7 @@ const SCHEMAS={
     {id:'tht',label:'ارتفاع نفر الكتابة',type:'range',min:1,max:20,step:.5,val:4,unit:'مم',show:s=>+s.txt&&s.tmode==='relief'},
     {id:'tsz',label:'ارتفاع الحرف',type:'range',min:2,max:60,step:1,val:8,show:s=>+s.txt},
     {id:'tpos',label:'مكان الكتابة',type:'seg',options:[['top','فوق'],['mid','بالنص'],['bot','تحت'],['arc','على دائرة']],val:'bot',show:s=>+s.txt},
-    {id:'xmat',label:'لون الكتابة',type:'mat',val:'nero',mats:ALL_MATS,show:s=>+s.txt&&s.tmode==='inlay'},
+    {id:'xmat',label:'لون الكتابة',type:'mat',val:'black',mats:ALL_MATS,show:s=>+s.txt&&s.tmode==='inlay'},
     head('الكورنيش والكادر'),
     {id:'cor',label:'كورنيش من نفس التابلو',type:'seg',options:[['none','بدون'],['flat','كادر بارز سادة'],['step','متدرج (متل كورنيش الجرن)'],['round','حافة مدورة']],val:'none'},
     {id:'cw',label:'عرض الكورنيش',type:'range',min:2,max:25,step:.5,val:6,show:s=>s.cor!=='none'},
@@ -2315,7 +2342,7 @@ const SCHEMAS={
     {id:'bord',label:'خط الكادر (تطعيم)',type:'seg',options:[['none','بدون'],['line','خط'],['double','خطين'],['greek','مفتاح يوناني (للمستطيل)']],val:'line',preset:{line:{bw:3},double:{bw:2},greek:{bw:10}}},
     {id:'bw',label:'عرض الخط (للمفتاح: عرض الشريط)',type:'range',min:1,max:25,step:.5,val:3,show:s=>s.bord!=='none'},
     {id:'bgap',label:'بُعد الخط عن الطرف',type:'range',min:0,max:80,step:1,val:8,show:s=>s.bord!=='none'},
-    {id:'bmat',label:'لون خط الكادر',type:'mat',val:'nero',mats:ALL_MATS,show:s=>s.bord!=='none'}]},
+    {id:'bmat',label:'لون خط الكادر',type:'mat',val:'black',mats:ALL_MATS,show:s=>s.bord!=='none'}]},
   bath:{title:'حمام',draw:drawBath,controls:bathCtrls},
   frame:{title:'كورنيش',draw:drawFrame,controls:[
     head('النوع'),
@@ -2614,6 +2641,7 @@ function lvTap(x,y,kind){if(kind==='wall')return R(x-2,y-28,4,10,'#A9B0B5',LW*.4
 function drawLavabo(s){
   const kind=s.kind,H=+s.H,W=+s.W,D=+s.D,th=+s.th,bd=+s.bd,bh=+s.bh,nb=+s.nb,m=M(s.mat),m2=M(s.mat2);
   const mir=s.mir,mH=mir==='none'?0:Math.min(+s.mH,140),S=Math.max(W,H+mH+40)*1.2;setScale(S);let o='';
+  const wt=s.tapAt==='wall'||s.tap==='wall',tk=wt?'wall':(s.tap==='brass'?'brass':'deck');
   let top=-H,widest=W/2,lvPlan=null;const rows=[],stats=[];
   if(kind==='ped'){const pw=+s.pw,pst=s.ped,bt=s.btype;widest=Math.max(bd/2,pw/2+10);
     const bowlTop=-H,trayOn=+s.tray&&pst!=='block',pedTop=-H+bh*(trayOn?1:.85)+(trayOn?4:0);
@@ -2630,21 +2658,19 @@ function drawLavabo(s){
     else if(pst==='column')o+=column(0,0,-pedTop,pw,'vase',m2);
     else o+=R(-pw/2,pedTop,pw,-pedTop,m2)+R(-pw*.6,-6,pw*1.2,6,m2);
     if(pst!=='block'){if(trayOn){const tw2=Math.max(bd+10,pw*1.6);o+=R(-tw2/2,pedTop-4,tw2,4,m2,LW*.7)}o+=lvBowl(0,bowlTop,bd,bh,bt,m)}
-    o+=lvTap(s.tap==='wall'?0:bd*.32,s.tap==='wall'?bowlTop-6:bowlTop,s.tap);
+    o+=lvTap(wt?0:bd*.32,wt?bowlTop-6:bowlTop,tk);
     rows.push({cells:['الرجل',{flute:'مخروط مخدد',block:'بلوك خشن',carved:'عامود منحوت أكانتس',column:'عامود بلستر',plain:'سادة'}[pst],'عرض '+pw+'، ارتفاع '+Math.round(-pedTop)]},{cells:['الجرن',{round:'مدور',oval:'بيضوي',carved:'أوراق منحوتة',chisel:'منقّر'}[bt],'قطر '+bd+'، ارتفاع '+bh]});
     stats.push(['النوع','مغسلة على رجل — '+{flute:'مخروط مخدد',block:'بلوك خشن (قطعة وحدة)',carved:'عامود منحوت أكانتس',column:'عامود بلستر',plain:'سادة'}[pst]],['الارتفاع',fmt(H)],['الجرن',{round:'مدور',oval:'بيضوي',carved:'أوراق منحوتة',chisel:'منقّر'}[bt]+'، قطر '+bd+'، ارتفاع '+bh+' سم']);
     o+=dimH(-bd/2,bd/2,-H-FS*1.4,'الجرن '+fmt(bd),C_TAB)+dimH(-pw/2,pw/2,FS*1.8,'الرجل '+fmt(pw),C_FR);
-    top=-H-(s.tap==='wall'?36:40);
+    top=-H-(wt?36:40);
   }else{
     const yT=-H,edge=s.edge,mount=s.mount;
     if(+s.bs>0)o+=R(-W/2,yT-+s.bs,W,+s.bs,m,LW*.7);
     if(mount==='cab'){const ch=Math.min(55,H-th-15);o+=R(-W/2+3,yT+th,W-6,ch,'#7A5233',LW*.8);const nd=W>110?2:1;for(let i=0;i<nd;i++){const x0=-W/2+3+(W-6)*i/nd,w=(W-6)/nd;o+=R(x0+3,yT+th+3,w-6,ch/2-4.5,'none',LW*.5)+R(x0+3,yT+th+ch/2+1.5,w-6,ch/2-4.5,'none',LW*.5)+L(x0+w/2-8,yT+th+ch/4,x0+w/2+8,yT+th+ch/4,'#C9B08A',LW*1.2)+L(x0+w/2-8,yT+th+ch*.75,x0+w/2+8,yT+th+ch*.75,'#C9B08A',LW*1.2)}}
     if(mount==='legs')for(const sd of[-1,1]){const lw=Math.max(10,W*.1),x=sd*(W/2-lw/2-4);o+=R(x-lw/2,yT+th,lw,H-th,m2)+R(x-lw/2+2,yT+th+5,lw-4,H-th-12,'none',LW*.4)+rose(x,yT+th+(H-th)*.25,lw*.25)+leaf(x,yT+th+(H-th)*.62,(H-th)*.3,lw*.18,90,RELIEF,3);if(sd<0&&!(+s.shelf))o+=R(-W/2+lw,yT+th+(H-th)*.82,W-2*lw,4,m2,LW*.5)}
     if(mount==='ped'){const pw=Math.max(16,W*.18);o+=R(-pw/2,yT+th,pw,H-th,m2)+R(-pw*.7,-6,pw*1.4,6,m2)}
-    const shOn=+s.shelf&&mount!=='cab',shH=Math.min(+s.shH||20,H-th-15),shT=+s.shT||3;
-    if(shOn){const ys=-shH-shT,lw=mount==='legs'?Math.max(10,W*.1)+4:0;
-      if(mount==='wall'){const sw=Math.max(3,shT);for(const sd of[-1,1])o+=R(sd<0?-W/2:W/2-sw,yT+th,sw,ys+shT-(yT+th),m,LW*.8)}
-      o+=R(-W/2+lw,ys,W-2*lw,shT,m,LW*.9);}
+    const shOn=+s.shelf&&mount!=='cab',shH=Math.min(+s.shH||20,H-th-15),shT=Math.max(3,Math.min(10,+s.shT||4));
+    if(shOn){const ys=-shH-shT;o+=R(-W/2,ys,W,shT,m,LW*.9)+L(-W/2,ys+shT*.35,W/2,ys+shT*.35,'rgba(0,0,0,.12)',LW*.5)}
     const apr=edge==='carved'?Math.max(th,Math.min(30,+s.ap||20)):th;
     o+=R(-W/2,yT,W,apr,m,LW*1.1);
     if(edge==='chisel'){for(let x=-W/2+2;x<W/2-1;x+=2.6)o+=L(x,yT+apr*.18,x+.8,yT+apr*.95,'rgba(60,40,20,.35)',LW*.4)}
@@ -2652,34 +2678,38 @@ function drawLavabo(s){
     else if(edge==='step')o+=L(-W/2,yT+apr*.45,W/2,yT+apr*.45,INK,LW*.6)+R(-W/2+4,yT+apr,W-8,3,m,LW*.5);
     else if(edge==='carved'){const cy=yT+apr/2;o+=shell(0,cy+apr*.35,apr*.42,m);for(const sd of[-1,1]){o+=rose(sd*W*.32,cy,apr*.25)+carve(spiral(sd*W*.16,cy,apr*.22,1.4,sd),LW*.55)+leaf(sd*apr*.55,cy+apr*.15,W*.08,apr*.12,sd>0?-8:-172,RELIEF,3)+leaf(sd*W*.22,cy+apr*.2,W*.07,apr*.11,sd>0?10:170,RELIEF,2)}
       o+=`<path d="M${f(-W/2+2)} ${f(yT+apr)}Q0 ${f(yT+apr+apr*.35)} ${f(W/2-2)} ${f(yT+apr)}" fill="${m}" stroke="${INK}" stroke-width="${f(LW*.7)}"/>`}
-    const sink=s.sink;const xs=nb===1?[0]:Array.from({length:nb},(_,i)=>-W/2+W*(i+.5)/nb);
+    const sink=s.sink;let xs=nb===1?[0]:Array.from({length:nb},(_,i)=>-W/2+W*(i+.5)/nb);
     const vsh=(sink==='vessel')?s.vshape:(sink==='vchisel'?'oval':s.ishape||'oval'),isRound=vsh==='round'||vsh==='carved'||vsh==='square';
     const bLen=Math.min(+s.vL||bd,W/nb-6),bWid=isRound?Math.min(bLen,D-6):Math.min(+s.vW||bLen,D-6),bDep=bh;
     const vOn=sink==='vessel'||sink==='vchisel';
-    for(const x of xs){if(vOn){o+=lvBowl(x,yT-bDep,bLen,bDep,sink==='vchisel'?'chisel':vsh,M(s.mat3));o+=lvTap(s.tap==='wall'?x:x+bLen*.5+5,s.tap==='wall'?yT-bDep-8:yT,s.tap)}
-      else if(sink==='inset'){const r=bLen/2;o+=`<path d="M${f(x-r+2)} ${f(yT+apr)}`+(vsh==='rect'||vsh==='square'?`L${f(x-r+2)} ${f(yT+bDep)}L${f(x+r-2)} ${f(yT+bDep)}L${f(x+r-2)} ${f(yT+apr)}`:`Q${f(x-r+2)} ${f(yT+bDep)} ${f(x)} ${f(yT+bDep)}Q${f(x+r-2)} ${f(yT+bDep)} ${f(x+r-2)} ${f(yT+apr)}`)+`" fill="none" stroke="${INK}" stroke-width="${f(LW*.6)}" stroke-dasharray="3 2"/>`+R(x-r,yT-1.5,bLen,1.5,'#F4F2EE',LW*.6)+lvTap(s.tap==='wall'?x:x,s.tap==='wall'?yT-8:yT-1.5,s.tap)}
-      else{o+=`<path d="M${f(x-bLen/2)} ${f(yT+1)}Q${f(x)} ${f(yT+bDep*.8)} ${f(x+bLen/2)} ${f(yT+1)}" fill="none" stroke="${INK}" stroke-width="${f(LW*.6)}" stroke-dasharray="3 2"/>`+lvTap(x,yT,s.tap)}}
+    {const sh0=+s.bxo||0,lo=-W/2+3+bLen/2-xs[0],hi=W/2-3-bLen/2-xs[xs.length-1],sh=Math.max(Math.min(lo,hi),Math.min(Math.max(lo,hi),sh0));xs=xs.map(x=>x+sh)}
+    const cy=Math.max(-D/2+bWid/2+3,Math.min(D/2-bWid/2-3,(vOn?2:3)+(+s.byo||0)));
+    for(const x of xs){if(vOn){if(!wt)o+=lvTap(x,yT,tk);o+=lvBowl(x,yT-bDep,bLen,bDep,sink==='vchisel'?'chisel':vsh,M(s.mat3));if(wt)o+=lvTap(x,yT-bDep+12,tk)}
+      else if(sink==='inset'){const r=bLen/2;o+=`<path d="M${f(x-r+2)} ${f(yT+apr)}`+(vsh==='rect'||vsh==='square'?`L${f(x-r+2)} ${f(yT+bDep)}L${f(x+r-2)} ${f(yT+bDep)}L${f(x+r-2)} ${f(yT+apr)}`:`Q${f(x-r+2)} ${f(yT+bDep)} ${f(x)} ${f(yT+bDep)}Q${f(x+r-2)} ${f(yT+bDep)} ${f(x+r-2)} ${f(yT+apr)}`)+`" fill="none" stroke="${INK}" stroke-width="${f(LW*.6)}" stroke-dasharray="3 2"/>`+R(x-r,yT-1.5,bLen,1.5,'#F4F2EE',LW*.6)+lvTap(wt?x:x,wt?yT-8:yT-1.5,tk)}
+      else{o+=`<path d="M${f(x-bLen/2)} ${f(yT+1)}Q${f(x)} ${f(yT+bDep*.8)} ${f(x+bLen/2)} ${f(yT+1)}" fill="none" stroke="${INK}" stroke-width="${f(LW*.6)}" stroke-dasharray="3 2"/>`+lvTap(x,yT,tk)}}
     const SN={vessel:'جرن فوق الرخامة',vchisel:'جرن منقّر فوق الرخامة',inset:'جرن داخل الرخامة (مُنزّل)',ramp:'محفور بالرخامة (منحدر)',under:'تحت الرخامة'},EN={plain:'سادة',chisel:'منقّرة (خشن)',flute:'مخددة',step:'بدرجة',carved:'واجهة منحوتة (صدفة وورود)'},MN={wall:'معلّقة عالحيط',cab:'فوق خزانة خشب',legs:'على رجلين منحوتين',ped:'على رجل بالنص'};
     const VN={round:'مدور',oval:'بيضوي',carved:'منحوت',square:'مربع',rect:'مستطيل'};
     const isDia=vsh==='round'||vsh==='carved',isEll=isDia||vsh==='oval';const bSize=isDia?'قطر '+bLen:bLen+' × '+bWid,bTxt=SN[sink]+(sink!=='vchisel'&&sink!=='ramp'?' ('+VN[vsh]+')':'')+'، '+bSize+'، عمق '+bDep+' سم';
     stats.push(['النوع','رخامة مغسلة — '+MN[mount]],['الرخامة',W+' × '+D+' سم، سماكة/واجهة '+apr+' سم، حرف '+EN[edge]],['الجرن',nb+' × '+bTxt],['ارتفاع الرخامة',fmt(H)]);
-    if(shOn)stats.push(['رف تحت الجرن',W+' × '+D+' سم، سماكة '+shT+'، على ارتفاع '+shH+' سم من الأرض'+(mount==='wall'?'، مع جانبين رخام':'')]);
+    if(shOn)stats.push(['رف تحت الجرن',W+' × '+D+' سم، سماكة '+shT+'، على ارتفاع '+shH+' سم من الأرض، مثبّت بالحيط']);stats.push(['عين الماء',wt?'بالحائط':'بالمغسلة (ورا الجرن)']);
     rows.push({cells:['الرخامة',W+' × '+D,'واجهة '+apr+'، '+EN[edge]]});if(+s.bs>0)rows.push({cells:['ظهرية',W+' × '+s.bs,'-']});rows.push({cells:['جرن',SN[sink]+' — '+bSize+' × عمق '+bDep,nb+' قطعة']});
     if(sink==='inset'||sink==='under')rows.push({cells:['فتحة الجرن بالرخامة',(isDia?'قطر '+(bLen-4):(bLen-4)+' × '+(bWid-4))+' (تقريبي)',sink==='under'?'حرف مصقول':'حسب حافة الجرن']});
-    if(shOn){rows.push({cells:['رف تحت الجرن',W+' × '+D,'سماكة '+shT]});if(mount==='wall')rows.push({cells:['جانب رخام',2+' × '+D+' × '+Math.round(H-th-shH-shT),'سماكة '+Math.max(3,shT)]})}
+    if(shOn)rows.push({cells:['رف تحت الجرن (مثبّت بالحيط)',W+' × '+D,'سماكة '+shT]});if(!wt)rows.push({cells:['عين ماء بالرخامة',nb+' فتحة','ورا الجرن']});
     o+=dimH(-W/2,W/2,FS*1.8,'الرخامة '+fmt(W));o+=dimV(yT+apr,yT,W/2+FS*1.2,'الواجهة '+apr,C_FR);
     if(shOn)o+=dimV(0,-shH,-W/2-FS*1.4,'الرف '+shH,C_FR);
     if(vOn)o+=dimH(xs[0]-bLen/2,xs[0]+bLen/2,yT-bDep-FS*1.2,'الجرن '+bLen,C_TAB);
+    {const gx=[-W/2];for(const x of xs)gx.push(x-bLen/2,x+bLen/2);gx.push(W/2);const gy=yT+apr+FS*1.4;for(let n=0;n<gx.length-1;n+=2)if(gx[n+1]-gx[n]>=1)o+=dimH(gx[n],gx[n+1],gy,fmt(Math.round(gx[n+1]-gx[n])),C_DIST)}
     // plan from above
     {let q=R(-W/2,-D/2,W,D,m,LW);if(+s.bs>0)q+=R(-W/2,-D/2-2,W,2,m,LW*.6);
-      const cy=sink==='vessel'||sink==='vchisel'?2:3;
       for(const x of xs){if(isEll)q+=`<ellipse cx="${f(x)}" cy="${f(cy)}" rx="${f(bLen/2)}" ry="${f(bWid/2)}" fill="#F4F2EE" stroke="${INK}" stroke-width="${f(LW*.8)}" ${sink==='under'?'stroke-dasharray="3 2"':''}/>`;
         else q+=R(x-bLen/2,cy-bWid/2,bLen,bWid,'#F4F2EE',LW*.8,`rx="${f(Math.min(bLen,bWid)*.12)}" ${sink==='under'?'stroke-dasharray="3 2"':''}`);
-        q+=C(x,cy,1.6,'#9AA',LW*.4)+C(x,-D/2+4,2,'#A9B0B5',LW*.4)}
+        q+=C(x,cy,1.6,'#9AA',LW*.4);const ty=Math.max(-D/2+2.5,Math.min(cy-bWid/2-3,-D/2+(cy-bWid/2+D/2)/2));if(wt)q+=R(x-3,-D/2-3,6,3,'#A9B0B5',LW*.5);else q+=C(x,ty,2.2,'#A9B0B5',LW*.5)}
+      {const gx=[-W/2];for(const x of xs)gx.push(x-bLen/2,x+bLen/2);gx.push(W/2);for(let n=0;n<gx.length-1;n+=2)if(gx[n+1]-gx[n]>=1)q+=dimH(gx[n],gx[n+1],cy+FS*.4,fmt(Math.round(gx[n+1]-gx[n])),C_DIST);
+       const bk=cy-bWid/2+D/2,fr=D/2-(cy+bWid/2),xg=xs[0]-bLen*.28;if(bk>=1)q+=dimV(cy-bWid/2,-D/2,xg,fmt(Math.round(bk)),C_DIST);if(fr>=1)q+=dimV(D/2,cy+bWid/2,xg,fmt(Math.round(fr)),C_DIST)}
       q+=dimH(-W/2,W/2,D/2+FS*1.6,'الرخامة '+fmt(W))+dimV(D/2,-D/2,W/2+FS*1.2,'عمق '+D,C_FR);
       q+=dimH(xs[0]-bLen/2,xs[0]+bLen/2,-D/2-FS*.9,'الجرن '+bLen,C_TAB);if(!isDia)q+=dimV(cy+bWid/2,cy-bWid/2,xs[0]+bLen/2+FS*1.1,''+bWid,C_TAB);
       lvPlan={svg:q,box:[-W/2-FS*1.5,W/2+FS*3,-D/2-FS*2.4,D/2+FS*2.6],label:'من فوق'}}
-    top=Math.min(yT-(vOn?bDep:0)-(+s.bs||0),yT-(vOn?bDep:0)-(s.tap==='wall'?30:38))-(vOn?FS*1.6:0);
+    top=Math.min(yT-(vOn?bDep:0)-(+s.bs||0),yT-(vOn?bDep:0)-(wt?30:38))-(vOn?FS*1.6:0);
   }
   if(mir!=='none'){const mw=Math.min(+s.mW,W*1.1||120),y1=top-15-mH;
     if(mir==='round'){const r=Math.min(mw,mH)/2;o+=C(0,y1+mH/2,r,'#D8E6EE',LW*1.2)+C(0,y1+mH/2,r*.94,'none',LW*.5)}
@@ -2870,8 +2900,8 @@ SCHEMAS.balus={title:'درابزين',draw:drawBalus,controls:[
   {id:'cap',label:'راس العامود',type:'seg',options:[['ball','كرة'],['pyr','هرم'],['flat','مسطح'],['none','بدون']],val:'ball'},
   {id:'hrH',label:'ارتفاع المسكة من فوق',type:'range',min:4,max:25,step:1,val:12},
   {id:'brH',label:'ارتفاع القاعدة من تحت',type:'range',min:4,max:25,step:1,val:10},
-  {id:'mat',label:'رخام الدرابزين',type:'mat',val:'crema'},
-  {id:'mat2',label:'رخام العواميد',type:'mat',val:'crema'}]};
+  {id:'mat',label:'رخام الدرابزين',type:'mat',val:'beigeL'},
+  {id:'mat2',label:'رخام العواميد',type:'mat',val:'beigeL'}]};
 SCHEMAS.sabil={title:'سبالة وشلال',draw:drawSabil,controls:[
   head('اللوح'),
   {id:'kind',label:'النوع',type:'seg',options:[['sabil','سبالة (لوح وجرن)'],['cascade','شلال حائط']],val:'sabil',preset:{
@@ -2893,9 +2923,9 @@ SCHEMAS.sabil={title:'سبالة وشلال',draw:drawSabil,controls:[
   {id:'bW',label:'عرض الجرن',type:'range',min:30,max:700,step:1,val:70},
   {id:'bH',label:'ارتفاع الجرن',type:'range',min:10,max:100,step:1,val:35},
   {id:'ped',label:'ارتفاع الرجل تحت الجرن (0 = عالأرض)',type:'range',min:0,max:80,step:1,val:25},
-  {id:'mat',label:'رخام اللوح',type:'mat',val:'crema'},
-  {id:'mat2',label:'رخام الجرن',type:'mat',val:'crema'},
-  {id:'mat3',label:'لون التطعيم والمفتاح',type:'mat',val:'green'}]};
+  {id:'mat',label:'رخام اللوح',type:'mat',val:'beigeL'},
+  {id:'mat2',label:'رخام الجرن',type:'mat',val:'beigeL'},
+  {id:'mat3',label:'لون التطعيم والمفتاح',type:'mat',val:'black'}]};
 SCHEMAS.lavabo={title:'مغسلة',draw:drawLavabo,controls:[
   head('المغسلة'),
   {id:'kind',label:'النوع',type:'seg',options:[['ped','على رجل (قطعة وحدة)'],['vanity','رخامة مغسلة']],val:'ped',preset:{ped:{H:85,bd:45,bh:18},vanity:{H:85,bd:42,bh:15,W:120}}},
@@ -2916,19 +2946,22 @@ SCHEMAS.lavabo={title:'مغسلة',draw:drawLavabo,controls:[
   {id:'vL',label:'طول الجرن (يمين-يسار)',type:'range',min:25,max:100,step:1,val:50,show:s=>s.kind==='vanity'},
   {id:'vW',label:'عرض الجرن (قدّام-ورا)',type:'range',min:20,max:60,step:1,val:38,show:s=>s.kind==='vanity'&&!(s.sink==='vessel'&&['round','carved','square'].includes(s.vshape))&&!((s.sink==='inset'||s.sink==='under')&&['round','square'].includes(s.ishape))},
   {id:'nb',label:'عدد الجرون',type:'range',min:1,max:3,step:1,val:1,unit:'',show:s=>s.kind==='vanity'},
+  {id:'bxo',label:'تحريك الجرن يمين (+) أو يسار (−)',type:'range',min:-120,max:120,step:1,val:0,show:s=>s.kind==='vanity'},
+  {id:'byo',label:'تحريك الجرن لقدّام (+) أو لورا (−)',type:'range',min:-25,max:25,step:1,val:0,show:s=>s.kind==='vanity'},
   {id:'bs',label:'ظهرية (0 = بدون)',type:'range',min:0,max:30,step:1,val:10,show:s=>s.kind==='vanity'},
   {id:'bd',label:'قطر الجرن',type:'range',min:25,max:80,step:1,val:45,show:s=>s.kind==='ped'},
   {id:'bh',label:'ارتفاع/عمق الجرن',type:'range',min:8,max:40,step:1,val:18},
-  {id:'shelf',label:'رف تحت الجرن',type:'seg',options:YN,val:0,show:s=>s.kind==='vanity'&&s.mount!=='cab'},
+  {id:'shelf',label:'رف تحت الجرن (مثبّت بالحيط، بعرض وعمق المغسلة)',type:'seg',options:YN,val:0,show:s=>s.kind==='vanity'&&s.mount!=='cab'},
   {id:'shH',label:'ارتفاع الرف عن الأرض',type:'range',min:5,max:60,step:1,val:20,show:s=>s.kind==='vanity'&&s.mount!=='cab'&&+s.shelf},
-  {id:'shT',label:'سماكة الرف',type:'range',min:2,max:10,step:1,val:3,show:s=>s.kind==='vanity'&&s.mount!=='cab'&&+s.shelf},
-  {id:'tap',label:'الحنفية',type:'seg',options:[['deck','طويلة كروم'],['brass','نحاس كلاسيك'],['wall','من الحيط']],val:'deck'},
+  {id:'shT',label:'سماكة الرف',type:'range',min:3,max:10,step:1,val:4,show:s=>s.kind==='vanity'&&s.mount!=='cab'&&+s.shelf},
+  {id:'tapAt',label:'عين الماء',type:'seg',options:[['slab','بالمغسلة'],['wall','بالحائط']],val:'slab'},
+  {id:'tap',label:'الحنفية',type:'seg',options:[['deck','كروم'],['brass','نحاس كلاسيك']],val:'deck'},
   head('المراية',true),
   {id:'mir',label:'مراية فوق',type:'seg',options:[['none','بدون'],['rect','مستطيلة'],['round','مدورة'],['led','مع إضاءة LED']],val:'none'},
   {id:'mW',label:'عرض المراية',type:'range',min:30,max:250,step:1,val:80,show:s=>s.mir!=='none'},
   {id:'mH',label:'ارتفاع المراية',type:'range',min:30,max:140,step:1,val:70,show:s=>s.mir!=='none'},
-  {id:'mat',label:'رخام الجرن/الرخامة',type:'mat',val:'crema'},
-  {id:'mat2',label:'رخام الرجل',type:'mat',val:'crema'},
+  {id:'mat',label:'رخام الجرن/الرخامة',type:'mat',val:'beigeL'},
+  {id:'mat2',label:'رخام الرجل',type:'mat',val:'beigeL'},
   {id:'mat3',label:'رخام الجرن فوق الرخامة',type:'mat',val:'italian',show:s=>s.kind==='vanity'}]};
 SCHEMAS.table={title:'طاولة',draw:drawTable,controls:[
   head('الوجه'),
@@ -2945,7 +2978,7 @@ SCHEMAS.table={title:'طاولة',draw:drawTable,controls:[
   {id:'H',label:'ارتفاع الطاولة',type:'range',min:30,max:110,step:1,val:75},
   {id:'mat',label:'رخام الوجه',type:'mat',val:'italian'},
   {id:'mat2',label:'رخام الرجل',type:'mat',val:'italian'},
-  {id:'mat3',label:'لون التطعيم',type:'mat',val:'nero',show:s=>s.inlay!=='none'}]};
+  {id:'mat3',label:'لون التطعيم',type:'mat',val:'black',show:s=>s.inlay!=='none'}]};
 SCHEMAS.mosque={title:'أقواس ومحراب',draw:drawMosque,controls:[
   head('الأقواس'),
   {id:'n',label:'عدد الأقواس',type:'range',min:1,max:9,step:1,val:3,unit:''},
@@ -2965,9 +2998,9 @@ SCHEMAS.mosque={title:'أقواس ومحراب',draw:drawMosque,controls:[
   {id:'text',label:'النص',type:'text',val:'ولا تدعوا مع الله أحدا',show:s=>+s.band},
   {id:'font',label:'الخط',type:'seg',options:[['naskh','نسخ'],['kufi','كوفي'],['ruqaa','رقعة']],val:'naskh',show:s=>+s.band},
   {id:'bh',label:'ارتفاع الحزام',type:'range',min:15,max:80,step:1,val:35,show:s=>+s.band},
-  {id:'mat',label:'رخام الحيط',type:'mat',val:'crema'},
+  {id:'mat',label:'رخام الحيط',type:'mat',val:'beigeL'},
   {id:'mat2',label:'رخام العواميد والأقواس',type:'mat',val:'italian'},
-  {id:'mat3',label:'اللون التاني (الأبلق والحزام)',type:'mat',val:'nero'}]};
+  {id:'mat3',label:'اللون التاني (الأبلق والحزام)',type:'mat',val:'black'}]};
 SCHEMAS.calc={title:'حاسبة القياسات',draw:drawCalc,controls:[
   head('القياسات'),
   {id:'rows',type:'html',val:calcDefault(),render:calcPanel},
