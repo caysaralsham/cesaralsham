@@ -734,6 +734,11 @@ function drawFacade(s){
   var facCut=[{title:'قائمة القطع للمعمل',head:['القطعة','القياس','العدد'],rows:fcut}];
   if(fence)fcut.push({cells:['طربوش السور','طول كلي '+Math.round(coping)+' سم','-']},{cells:['عمود السور','عرض '+(+s.pW)+'، ارتفاع '+(+s.fH+30),pcount+'']});
   if(fence)stats.push(['تلبيس السور (وجه واحد)',(fenceArea/1e4).toFixed(1)+' م²'],['طربوش السور',(coping/100).toFixed(1)+' م.ط'],['أعمدة السور',pcount]);
+  if(+s.dent){const dh=12,dwd=10;for(let x=8;x<W-dwd;x+=dwd*2)o+=R(x,-H+2,dwd,dh,B,LW*.5)}
+  if(s.claus&&s.claus!=='none'&&F>1){const cw=Math.min(+s.clW||90,W*.4),x=s.claus==='left'?25:s.claus==='right'?W-25-cw:W/2-cw/2,y1=-FH+0,y0=-H+(ch?10:30),hgt=y1-y0;
+    o+=R(x-6,y0-6,cw+12,hgt+12,B,LW*.8)+R(x,y0,cw,hgt,A,LW*.6);const u=Math.max(12,cw/6);const id=nid('cl');let g='';
+    if(s.clp==='star')g+=sbGeo(x,y0,cw,hgt,u*1.6,'rgba(40,30,20,.75)','none');else for(let yy=y0+u*.25;yy<y1-u*.5;yy+=u)for(let xx=x+u*.25;xx<x+cw-u*.5;xx+=u)g+=R(xx,yy,u*.55,u*.55,'#2E2823',LW*.3);
+    o+=`<clipPath id="${id}"><rect x="${f(x)}" y="${f(y0)}" width="${f(cw)}" height="${f(hgt)}"/></clipPath><g clip-path="url(#${id})">${g}</g>`;stats.push(['مشربية حجر مفرّغة',cw+' × '+Math.round(hgt)+' سم، '+(s.clp==='star'?'نجوم':'مربعات')])}
   return{svg:o,tables:facCut,box:[xmin-S*(fence?.12:.05),xmax+S*.17,-Ht-roofH-S*.05,S*(fence?.29:.25)],stats,
     note:(+s.ww>ww||+s.wh>wh)?'صغّرتُ الشبابيك لتتسع في الواجهة.':''};
 }
@@ -2109,6 +2114,10 @@ const SCHEMAS={
     {id:'cornice',label:'كورنيش علوي',type:'seg',options:YN,val:1},
     {id:'roof',label:'السطح',type:'seg',options:[['flat','عادي'],['parapet','درابزين حجر'],['tile','قرميد'],['cren','شرفات عربية']],val:'tile'},
     {id:'quoins',label:'حجر زوايا',type:'seg',options:YN,val:1},
+    {id:'dent',label:'مسننات تحت الكورنيش',type:'seg',options:YN,val:0},
+    {id:'claus',label:'مشربية حجر مفرّغة (عمودية)',type:'seg',options:[['none','بدون'],['left','يسار'],['center','بالنص'],['right','يمين']],val:'none'},
+    {id:'clW',label:'عرض المشربية',type:'range',min:40,max:300,step:5,val:90,show:s=>s.claus&&s.claus!=='none'},
+    {id:'clp',label:'نقشة المشربية',type:'seg',options:[['sq','مربعات'],['star','نجوم']],val:'sq',show:s=>s.claus&&s.claus!=='none'},
     {id:'garage',label:'باب كراج',type:'seg',options:YN,val:0},
     head('الشبابيك'),
     {id:'cols',label:'عدد الشبابيك في الطابق',type:'range',min:1,max:8,step:1,val:4,unit:''},
