@@ -122,7 +122,7 @@ function catPage(cat, slug, list, cats, slugs, settings){
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"><link rel="icon" type="image/png" sizes="48x48" href="/img/site/fav-48.png"><link rel="icon" type="image/png" sizes="96x96" href="/img/site/fav-96.png"><link rel="icon" type="image/png" sizes="192x192" href="/img/site/fav-192.png">
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap"></noscript>
 <script type="application/ld+json">${JSON.stringify(schema)}</script>
 <style>
 :root{--ink:#3B2414;--gold:#9A6A3A;--gold-deep:#6E4524;--line:#E6D6BC;--dim:#666;--bg2:#F5ECDD}
@@ -137,7 +137,7 @@ nav{display:flex;gap:18px;flex-wrap:wrap}nav a{color:#fff;font-weight:700;font-s
 h1{font-size:clamp(24px,4vw,36px);font-weight:900;margin:8px 0 6px}h1 small{display:block;font-size:.5em;color:var(--gold-deep);font-weight:700}
 .intro{color:#333;max-width:860px;font-size:15px}
 .cta{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 26px}.cta a{padding:11px 20px;border-radius:12px;font-weight:800;font-size:14px}
-.cta .wa{background:#1F8F55;color:#fff}.cta .ph{border:1.5px solid var(--gold);color:var(--gold-deep)}
+.cta .wa{background:#16774A;color:#fff}.cta .ph{border:1.5px solid var(--gold);color:var(--gold-deep)}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
 .card{margin:0;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(59,36,20,.06)}
 .card img{width:100%;aspect-ratio:4/3;object-fit:cover}.card figcaption{padding:10px 14px;font-size:13.5px}.card figcaption span{display:block;color:var(--dim);font-size:12px}.card figcaption b{display:block}
@@ -145,7 +145,7 @@ h1{font-size:clamp(24px,4vw,36px);font-weight:900;margin:8px 0 6px}h1 small{disp
 .others div{display:flex;flex-wrap:wrap;gap:8px}.others a{border:1.5px solid var(--line);background:#fff;padding:7px 14px;border-radius:10px;font-weight:700;font-size:13px}.others a:hover{border-color:var(--gold)}
 footer{background:#2A190D;color:#C9B08F;text-align:center;padding:24px;font-size:12.5px;margin-top:30px}footer b{color:var(--gold)}
 .lbx{position:fixed;inset:0;background:rgba(20,17,13,.92);display:none;flex-direction:column;gap:14px;align-items:center;justify-content:center;z-index:99;padding:20px}.lbx.on{display:flex}.lbx img{max-height:82vh;border-radius:8px}
-.pb{display:inline-flex;margin-top:8px;background:#1F8F55;color:#fff;font-weight:800;font-size:13px;padding:7px 14px;border-radius:10px}.pb:hover{background:#18744A}.lbx .pb{font-size:15px;padding:10px 20px}
+.pb{display:inline-flex;margin-top:8px;background:#16774A;color:#fff;font-weight:800;font-size:13px;padding:7px 14px;border-radius:10px}.pb:hover{background:#18744A}.lbx .pb{font-size:15px;padding:10px 20px}
 @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -236,7 +236,7 @@ const frOf = c => splitName(c).fr || (slugs[c] ? (t => t.charAt(0).toUpperCase()
 const frTitle = (it, c) => (it.title && splitName(it.title).fr) || frOf(c);
 const waFr = t => `https://wa.me/${WA}?text=${encodeURIComponent(t)}`;
 const reviews = ((docs.site_reviews && docs.site_reviews.items) || []).filter(r => r && r.text);
-function frLayout({title, desc, path: pth, arPath, og, body, schema}){
+function frLayout({title, desc, path: pth, arPath, og, body, schema, motion}){
   return `<!DOCTYPE html>
 <html lang="fr" dir="ltr">
 <head>
@@ -250,7 +250,7 @@ function frLayout({title, desc, path: pth, arPath, og, body, schema}){
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"><link rel="icon" type="image/png" sizes="192x192" href="/img/site/fav-192.png"><link rel="apple-touch-icon" sizes="180x180" href="/img/site/fav-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap"></noscript>
 ${schema ? `<script type="application/ld+json">${JSON.stringify(schema).replace(/</g,'\\u003c')}</script>` : ''}
 <style>
 :root{--ink:#3B2414;--gold:#9A6A3A;--gold-deep:#6E4524;--line:#E6D6BC;--dim:#7A5C40;--bg2:#F5ECDD}
@@ -265,11 +265,11 @@ nav{display:flex;gap:16px;flex-wrap:wrap;align-items:center}nav a{color:#fff;fon
 h1{font-size:clamp(24px,4vw,38px);font-weight:900;margin:8px 0 6px;color:var(--ink)}h2{color:var(--ink)}
 .intro{color:#4A2E1A;max-width:880px;font-size:15.5px}
 .cta{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 26px}.cta a,.btn{display:inline-flex;align-items:center;gap:6px;padding:11px 20px;border-radius:12px;font-weight:800;font-size:14px;border:0;cursor:pointer;font-family:inherit}
-.wa{background:#1F8F55;color:#fff}.ph{border:1.5px solid var(--gold);color:var(--gold-deep)}
+.wa{background:#16774A;color:#fff}.ph{border:1.5px solid var(--gold);color:var(--gold-deep)}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
 .card{margin:0;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(59,36,20,.06)}
 .card img{width:100%;aspect-ratio:4/3;object-fit:cover}.card figcaption,.card .b{padding:10px 14px;font-size:14px}.card figcaption span{display:block;color:var(--dim);font-size:12px}.card figcaption b{display:block}
-.pb{display:inline-flex;margin-top:8px;background:#1F8F55;color:#fff;font-weight:800;font-size:13px;padding:7px 14px;border-radius:10px}
+.pb{display:inline-flex;margin-top:8px;background:#16774A;color:#fff;font-weight:800;font-size:13px;padding:7px 14px;border-radius:10px}
 .sec{margin:34px 0}.sec h2{font-size:24px;margin:0 0 14px}
 .faq details{border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin:10px 0;background:#fff}.faq summary{cursor:pointer;font-weight:800}
 .rv{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}.rv div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}.rv b{display:block}.st{color:#E0A100;letter-spacing:2px}
@@ -279,6 +279,7 @@ footer{background:#2A190D;color:#C9B08F;text-align:center;padding:24px;font-size
 .hidden{display:none}
 @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.grid{grid-template-columns:1fr}}
 </style>
+${motion ? '<script src="/js/motion.js" defer></script>' : ''}
 </head>
 <body>
 <header><div class="hi">
@@ -316,7 +317,7 @@ for (const c of cats) {
 // fr/works
 wr('fr/works.html', frLayout({title: 'Nos réalisations en marbre et pierre - Cesar Al Cham, Algérie', desc: 'Cheminées, fontaines, vasques, façades en pierre, tableaux de sol et colonnes en marbre : découvrez les réalisations de Cesar Al Cham en Algérie.', path: '/fr/works', arPath: '/works',
   body: `<h1 style="margin-top:22px">Nos réalisations</h1><p class="intro">Choisissez une catégorie pour voir toutes les photos.</p>
-  <section class="grid">${cats.map(c => { const it = byCat.get(c)[0], src = imgUrl(it); return src ? `<a class="card" href="/fr/${slugs[c]}"><img src="${esc(src)}" loading="lazy" alt="${esc(frOf(c))}"><div class="b"><b>${esc(frOf(c))}</b><div style="color:var(--dim);font-size:12px">${byCat.get(c).length} photos</div></div></a>` : ''; }).join('')}</section>`}));
+  <section class="grid">${cats.map(c => { const it = byCat.get(c)[0], src = imgUrl(it); return src ? `<a class="card" href="/fr/${slugs[c]}"><img src="${esc(src)}" loading="lazy" alt="${esc('Réalisation Cesar Al Cham : ' + frOf(c))}"><div class="b"><b>${esc(frOf(c))}</b><div style="color:var(--dim);font-size:12px">${byCat.get(c).length} photos</div></div></a>` : ''; }).join('')}</section>`}));
 live.add('fr/works.html');
 // fr/videos
 const vids = videos.filter(x => /^https?:\/\//.test(x.url || ''));
@@ -325,15 +326,15 @@ wr('fr/videos.html', frLayout({title: 'Vidéos de nos réalisations - Cesar Al C
 live.add('fr/videos.html');
 // fr/index
 const FAQ_FR = [['Où êtes-vous situés et quelles régions couvrez-vous ?','Notre atelier se trouve à Dely Ibrahim (Alger). Nous réalisons la conception, la fabrication et la pose dans toutes les wilayas d\'Algérie.'],['Quels travaux réalisez-vous en marbre et en pierre ?','Cheminées en marbre, vasques et bassins de hammam, fontaines, façades en pierre, tableaux de sol et muraux, colonnes, balustrades, encadrements de portes et fenêtres, et décoration de mosquées.'],['Travaillez-vous sur mesure ?','Oui, chaque pièce est conçue et fabriquée selon vos dimensions et le design choisi. Nous vous présentons un dessin avec les mesures avant la fabrication.'],['Quels types de marbre proposez-vous ?','Marbre et pierre naturelle en plusieurs couleurs : blanc italien (Carrare), beige égyptien, teintes foncées, ainsi que des pierres naturelles pour façades.'],['Comment obtenir un devis ?','Envoyez-nous sur WhatsApp au 0541 73 78 88 des photos du lieu et les mesures approximatives : nous vous répondons rapidement avec un devis.']];
-const show = cats.slice(0, 8).map(c => { const it = byCat.get(c)[0], src = imgUrl(it); return src ? `<a class="card" href="/fr/${slugs[c]}"><img src="${esc(src)}" loading="lazy" alt="${esc(frOf(c))}"><div class="b"><b>${esc(frOf(c))}</b></div></a>` : ''; }).join('');
-wr('fr/index.html', frLayout({title: 'Cesar Al Cham | Marbre et pierre naturelle - Algérie', desc: 'Cesar Al Cham, Dely Ibrahim (Alger) : conception, sculpture et pose de marbre et pierre naturelle — cheminées, fontaines, vasques, façades, colonnes. Devis gratuit au 0541 73 78 88.', path: '/fr/', arPath: '/',
+const show = cats.slice(0, 8).map(c => { const it = byCat.get(c)[0], src = imgUrl(it); return src ? `<a class="card" href="/fr/${slugs[c]}"><img src="${esc(src)}" loading="lazy" alt="${esc('Réalisation Cesar Al Cham : ' + frOf(c))}"><div class="b"><b>${esc(frOf(c))}</b></div></a>` : ''; }).join('');
+wr('fr/index.html', frLayout({motion: true, title: 'Cesar Al Cham | Marbre et pierre naturelle - Algérie', desc: 'Cesar Al Cham, Dely Ibrahim (Alger) : conception, sculpture et pose de marbre et pierre naturelle — cheminées, fontaines, vasques, façades, colonnes. Devis gratuit au 0541 73 78 88.', path: '/fr/', arPath: '/',
   schema: [{'@context':'https://schema.org','@type':'HomeAndConstructionBusiness',name:'Cesar Al Cham — Marbre et Pierre',url:SITE + '/fr/',telephone:'+213541737888',image:SITE + '/img/site/og-card.jpg',address:{'@type':'PostalAddress',streetAddress:'36, Route Nationale',addressLocality:'Dely Ibrahim',addressRegion:'Alger',addressCountry:'DZ'},aggregateRating:{'@type':'AggregateRating',ratingValue:'4.3',reviewCount:'6'}},{'@context':'https://schema.org','@type':'FAQPage',mainEntity:FAQ_FR.map(([q,a]) => ({'@type':'Question',name:q,acceptedAnswer:{'@type':'Answer',text:a}}))}],
   body: `<section style="text-align:center;padding:40px 0 10px"><h1>Marbre et pierre naturelle d'exception</h1><p class="intro" style="margin:0 auto">Conception, sculpture et pose de marbre et de pierre naturelle avec savoir-faire — depuis Dely Ibrahim (Alger), partout en Algérie, pour des projets élégants et haut de gamme.</p>
   <div class="cta" style="justify-content:center"><a class="wa" href="${esc(waFr('Bonjour, je souhaite un devis de Cesar Al Cham.'))}" rel="nofollow">Demander un devis sur WhatsApp</a><a class="ph" href="/fr/works">Voir nos réalisations</a></div></section>
   <section class="sec"><h2>Nos réalisations</h2><div class="grid">${show}</div><p style="text-align:center;margin-top:16px"><a class="btn ph" href="/fr/works">Toutes nos réalisations</a></p></section>
   ${reviewsHtml('fr')}
   <section class="sec faq"><h2>Questions fréquentes</h2>${FAQ_FR.map(([q,a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}</section>
-  <section class="sec" id="contact"><h2>Contact</h2><p>📞 <a href="tel:${PHONE}" dir="ltr"><b>0541 73 78 88</b></a> · WhatsApp : <a href="https://wa.me/${WA}" style="color:#1F8F55;font-weight:800">écrivez-nous</a><br>📍 36, Route Nationale, Dely Ibrahim, Alger — <a href="https://www.google.com/maps?cid=9304963512715322872" target="_blank" style="color:var(--gold-deep)">voir sur Google Maps ↗</a></p></section>`}));
+  <section class="sec" id="contact"><h2>Contact</h2><p>📞 <a href="tel:${PHONE}" dir="ltr"><b>0541 73 78 88</b></a> · WhatsApp : <a href="https://wa.me/${WA}" style="color:#16774A;font-weight:800">écrivez-nous</a><br>📍 36, Route Nationale, Dely Ibrahim, Alger — <a href="https://www.google.com/maps?cid=9304963512715322872" target="_blank" style="color:var(--gold-deep);text-decoration:underline">voir sur Google Maps ↗</a></p></section>`}));
 live.add('fr/index.html');
 
 // sitemap مع الصور

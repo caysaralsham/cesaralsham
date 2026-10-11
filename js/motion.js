@@ -35,9 +35,18 @@
     var gsap = window.gsap, ST = window.ScrollTrigger;
     gsap.registerPlugin(ST);
 
-    // 1) لمعة برونزية تمرّ مرة واحدة على "الحجر والرخام"
-    var acc = document.getElementById('heroTitleAccent');
+    // تنسيق اللمعة (مشترك بين الصفحة العربية والفرنسية)
+    var st = document.createElement('style');
+    st.textContent = '.mo-shine{background:linear-gradient(100deg,var(--mo-base) 0%,var(--mo-base) calc(var(--shine,140%) - 18%),#E9C995 var(--shine,140%),var(--mo-base) calc(var(--shine,140%) + 18%),var(--mo-base) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}';
+    document.head.appendChild(st);
+
+    // الصفحة العربية: #home — الصفحة الفرنسية: أول قسم داخل main
+    var hero = document.getElementById('home') || document.querySelector('main > section:first-child');
+
+    // 1) لمعة برونزية تمرّ مرة واحدة على العنوان
+    var acc = document.getElementById('heroTitleAccent') || (hero && hero.querySelector('h1'));
     if (acc){
+      acc.style.setProperty('--mo-base', getComputedStyle(acc).color);
       acc.classList.add('mo-shine');
       gsap.fromTo(acc, {'--shine': '-40%'}, {
         '--shine': '140%', duration: 1.8, ease: 'power2.inOut', delay: .15,
@@ -46,13 +55,22 @@
     }
 
     // 2) محتوى الواجهة يبتعد بهدوء عند النزول (عمق خفيف)
-    var heroBits = document.querySelectorAll('#home > svg, #home > h1, #home > p, #home > .btn');
+    var heroBits = hero ? hero.querySelectorAll(':scope > svg, :scope > h1, :scope > p, :scope > .btn, :scope > .cta') : [];
     if (heroBits.length){
       gsap.to(heroBits, {
         y: -36, opacity: .45, ease: 'none',
-        scrollTrigger: {trigger: '#home', start: 'top top', end: '+=420', scrub: .6}
+        scrollTrigger: {trigger: hero, start: 'top top', end: '+=420', scrub: .6}
       });
     }
+
+    // 3ب) عناوين الأقسام في الصفحة الفرنسية تصعد بهدوء
+    gsap.utils.toArray('main .sec > h2').forEach(function(h){
+      if (inView(h)) return;
+      gsap.fromTo(h, {y: 18, opacity: 0}, {
+        y: 0, opacity: 1, duration: .8, ease: 'power3.out',
+        scrollTrigger: {trigger: h, start: 'top 92%', once: true}
+      });
+    });
 
     // 3) الخط الذهبي تحت عناوين الأقسام يمتد عند ظهوره
     gsap.utils.toArray('.section-head .rule').forEach(function(r){
@@ -63,12 +81,12 @@
       });
     });
 
-    // 4) صور معرض الأعمال تظهر بالتتابع
+    // 4) صور معرض الأعمال تظهر بالتتابع (العربية والفرنسية)
     var batchTriggers = [];
     window.__motionShowcase = function(){
       batchTriggers.forEach(function(t){ t.kill(); });
       batchTriggers = [];
-      var els = gsap.utils.toArray('#homeShowcase .sc-item').filter(function(el){ return !inView(el); });
+      var els = gsap.utils.toArray('#homeShowcase .sc-item, main .grid > .card').filter(function(el){ return !inView(el); });
       if (!els.length){ ST.refresh(); return; }
       gsap.set(els, {opacity: 0, y: 34, scale: .96});
       batchTriggers = ST.batch(els, {
