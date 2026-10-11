@@ -2586,6 +2586,72 @@ function drawSabil(s){
   return{svg:o,stats,lines,tables:[{title:'قائمة القطع للمعمل',head:['القطعة','النوع','القياس (سم)'],rows}],box:[-Math.max(hw,bw)-S*.08,xr+S*.18,yT-S*.1,S*.1],note:''};
 }
 
+/* ---------- مغسلة ---------- */
+function lvBowl(cx,yTop,d,h,type,m){const r=d/2;let o='';
+  if(type==='oval'){o+=P(`M${f(cx-r)} ${f(yTop)}L${f(cx+r)} ${f(yTop)}Q${f(cx+r)} ${f(yTop+h)} ${f(cx+r*.55)} ${f(yTop+h)}L${f(cx-r*.55)} ${f(yTop+h)}Q${f(cx-r)} ${f(yTop+h)} ${f(cx-r)} ${f(yTop)}Z`,m)+L(cx-r,yTop+h*.15,cx+r,yTop+h*.15,'rgba(0,0,0,.2)',LW*.5);return o}
+  if(type==='chisel'){o+=P(`M${f(cx-r)} ${f(yTop)}L${f(cx+r)} ${f(yTop)}C${f(cx+r)} ${f(yTop+h*.7)} ${f(cx+r*.6)} ${f(yTop+h)} ${f(cx+r*.4)} ${f(yTop+h)}L${f(cx-r*.4)} ${f(yTop+h)}C${f(cx-r*.6)} ${f(yTop+h)} ${f(cx-r)} ${f(yTop+h*.7)} ${f(cx-r)} ${f(yTop)}Z`,m);for(let y=yTop+h*.25;y<yTop+h*.95;y+=h*.14)o+=carve(`M${f(cx-r*.95)} ${f(y)}L${f(cx+r*.95)} ${f(y+h*.02)}`,LW*.4,.45);return o}
+  o+=P(`M${f(cx-r)} ${f(yTop)}L${f(cx+r)} ${f(yTop)}C${f(cx+r)} ${f(yTop+h*.75)} ${f(cx+r*.55)} ${f(yTop+h)} ${f(cx+r*.3)} ${f(yTop+h)}L${f(cx-r*.3)} ${f(yTop+h)}C${f(cx-r*.55)} ${f(yTop+h)} ${f(cx-r)} ${f(yTop+h*.75)} ${f(cx-r)} ${f(yTop)}Z`,m)+R(cx-r-1,yTop-2,d+2,Math.max(2.5,h*.12),m,LW*.7);
+  if(type==='carved')for(let k=0;k<5;k++){const x=cx-r*.7+r*1.4*k/4;o+=leaf(x*1,yTop+h*.98,h*.8,d*.06,-90+(x-cx)/r*28,RELIEF,3)}
+  return o}
+function lvTap(x,y,kind){if(kind==='wall')return R(x-2,y-28,4,10,'#A9B0B5',LW*.4)+P(`M${f(x-1.5)} ${f(y-22)}L${f(x+14)} ${f(y-22)}L${f(x+14)} ${f(y-19)}L${f(x-1.5)} ${f(y-19)}Z`,'#A9B0B5',LW*.4);
+  if(kind==='brass')return R(x-2.5,y-6,5,6,BRASS,LW*.4)+P(`M${f(x-1.6)} ${f(y-6)}L${f(x-1.6)} ${f(y-26)}Q${f(x-1.6)} ${f(y-32)} ${f(x+6)} ${f(y-32)}Q${f(x+12)} ${f(y-32)} ${f(x+12)} ${f(y-24)}L${f(x+9.5)} ${f(y-24)}Q${f(x+9.5)} ${f(y-29.5)} ${f(x+6)} ${f(y-29.5)}Q${f(x+1.6)} ${f(y-29.5)} ${f(x+1.6)} ${f(y-26)}L${f(x+1.6)} ${f(y-6)}Z`,BRASS,LW*.4)+C(x-4,y-14,2.2,BRASS,LW*.3)+C(x+4,y-14,2.2,BRASS,LW*.3);
+  return R(x-2.5,y-5,5,5,'#A9B0B5',LW*.4)+P(`M${f(x-1.6)} ${f(y-5)}L${f(x-1.6)} ${f(y-30)}Q${f(x-1.6)} ${f(y-36)} ${f(x+6)} ${f(y-36)}Q${f(x+12)} ${f(y-36)} ${f(x+12)} ${f(y-28)}L${f(x+9.5)} ${f(y-28)}Q${f(x+9.5)} ${f(y-33.5)} ${f(x+6)} ${f(y-33.5)}Q${f(x+1.6)} ${f(y-33.5)} ${f(x+1.6)} ${f(y-30)}L${f(x+1.6)} ${f(y-5)}Z`,'#A9B0B5',LW*.4)}
+function drawLavabo(s){
+  const kind=s.kind,H=+s.H,W=+s.W,D=+s.D,th=+s.th,bd=+s.bd,bh=+s.bh,nb=+s.nb,m=M(s.mat),m2=M(s.mat2);
+  const mir=s.mir,mH=mir==='none'?0:Math.min(+s.mH,140),S=Math.max(W,H+mH+40)*1.2;setScale(S);let o='';
+  let top=-H,widest=W/2;const rows=[],stats=[];
+  if(kind==='ped'){const pw=+s.pw,pst=s.ped,bt=s.btype;widest=Math.max(bd/2,pw/2+10);
+    const bowlTop=-H,trayOn=+s.tray&&pst!=='block',pedTop=-H+bh*(trayOn?1:.85)+(trayOn?4:0);
+    if(pst==='flute'){const tw=pw*1.25,ww=pw*.55,bw=pw*1.05,yw=pedTop+(0-pedTop)*.58;
+      o+=P(`M${f(-tw/2)} ${f(pedTop)}L${f(tw/2)} ${f(pedTop)}L${f(ww/2)} ${f(yw)}L${f(bw/2)} 0L${f(-bw/2)} 0L${f(-ww/2)} ${f(yw)}Z`,m2);
+      for(let i=1;i<10;i++){const t=i/10;o+=L(-tw/2+tw*t,pedTop,-ww/2+ww*t,yw,'rgba(0,0,0,.35)',LW*.5)+L(-ww/2+ww*t,yw,-bw/2+bw*t,0,'rgba(0,0,0,.35)',LW*.5)}
+      o+=R(-ww/2-2,yw-2,ww+4,4,m2,LW*.6)}
+    else if(pst==='block'){const bw=Math.max(pw,bd+10),yr=pedTop+(0-pedTop)*.35;o+=R(-bw/2,bowlTop,bw,-bowlTop,m2);
+      let d=`M${f(-bw/2)} ${f(yr)}`;for(let i=0;i<=8;i++){const y=yr+(0-yr)*i/8;d+=`L${f(-bw/2-((i%2)?2.5:0))} ${f(y)}`}d+=`L${f(bw/2)} 0`;for(let i=8;i>=0;i--){const y=yr+(0-yr)*i/8;d+=`L${f(bw/2+((i%2)?2.5:0))} ${f(y)}`}
+      o+=P(d+'Z','rgba(0,0,0,.18)',LW*.5);for(let k=0;k<14;k++){const x=-bw/2+bw*((k*37)%100)/100,y=yr+(0-yr)*((k*53)%100)/100;o+=carve(`M${f(x)} ${f(y)}l${f(bw*.08)} ${f(-3)}l${f(bw*.05)} ${f(4)}`,LW*.5,.5)}
+      o+=`<ellipse cx="0" cy="${f(bowlTop+1)}" rx="${f(bd/2)}" ry="${f(Math.max(2,bh*.12))}" fill="#2A2422" stroke="${INK}" stroke-width="${f(LW*.6)}"/>`;widest=bw/2}
+    else if(pst==='carved'){o+=R(-pw*.6,-8,pw*1.2,8,m2)+R(-pw/2,pedTop+6,pw,-pedTop-14,m2)+R(-pw*.62,pedTop,pw*1.24,7,m2);
+      const id=nid('lp');o+=`<clipPath id="${id}"><rect x="${f(-pw/2+3)}" y="${f(pedTop+10)}" width="${f(pw-6)}" height="${f(-pedTop-22)}"/></clipPath><g clip-path="url(#${id})">`+acanthus(0,-12,pw*.95,(-pedTop-22)*.55)+leaf(0,pedTop+(-pedTop)*.45,(-pedTop)*.3,pw*.12,-90,RELIEF,3)+carve(spiral(-pw*.25,pedTop+18,pw*.12,1.3,-1),LW*.6)+carve(spiral(pw*.25,pedTop+18,pw*.12,1.3,1),LW*.6)+'</g>'+R(-pw/2+3,pedTop+10,pw-6,-pedTop-22,'none',LW*.5)}
+    else if(pst==='column')o+=column(0,0,-pedTop,pw,'vase',m2);
+    else o+=R(-pw/2,pedTop,pw,-pedTop,m2)+R(-pw*.6,-6,pw*1.2,6,m2);
+    if(pst!=='block'){if(trayOn){const tw2=Math.max(bd+10,pw*1.6);o+=R(-tw2/2,pedTop-4,tw2,4,m2,LW*.7)}o+=lvBowl(0,bowlTop,bd,bh,bt,m)}
+    o+=lvTap(s.tap==='wall'?0:bd*.32,s.tap==='wall'?bowlTop-6:bowlTop,s.tap);
+    rows.push({cells:['الرجل',{flute:'مخروط مخدد',block:'بلوك خشن',carved:'عامود منحوت أكانتس',column:'عامود بلستر',plain:'سادة'}[pst],'عرض '+pw+'، ارتفاع '+Math.round(-pedTop)]},{cells:['الجرن',{round:'مدور',oval:'بيضوي',carved:'أوراق منحوتة',chisel:'منقّر'}[bt],'قطر '+bd+'، ارتفاع '+bh]});
+    stats.push(['النوع','مغسلة على رجل — '+{flute:'مخروط مخدد',block:'بلوك خشن (قطعة وحدة)',carved:'عامود منحوت أكانتس',column:'عامود بلستر',plain:'سادة'}[pst]],['الارتفاع',fmt(H)],['الجرن',{round:'مدور',oval:'بيضوي',carved:'أوراق منحوتة',chisel:'منقّر'}[bt]+'، قطر '+bd+'، ارتفاع '+bh+' سم']);
+    o+=dimH(-bd/2,bd/2,-H-FS*1.4,'الجرن '+fmt(bd),C_TAB)+dimH(-pw/2,pw/2,FS*1.8,'الرجل '+fmt(pw),C_FR);
+    top=-H-(s.tap==='wall'?36:40);
+  }else{
+    const yT=-H,edge=s.edge,mount=s.mount;
+    if(+s.bs>0)o+=R(-W/2,yT-+s.bs,W,+s.bs,m,LW*.7);
+    if(mount==='cab'){const ch=Math.min(55,H-th-15);o+=R(-W/2+3,yT+th,W-6,ch,'#7A5233',LW*.8);const nd=W>110?2:1;for(let i=0;i<nd;i++){const x0=-W/2+3+(W-6)*i/nd,w=(W-6)/nd;o+=R(x0+3,yT+th+3,w-6,ch/2-4.5,'none',LW*.5)+R(x0+3,yT+th+ch/2+1.5,w-6,ch/2-4.5,'none',LW*.5)+L(x0+w/2-8,yT+th+ch/4,x0+w/2+8,yT+th+ch/4,'#C9B08A',LW*1.2)+L(x0+w/2-8,yT+th+ch*.75,x0+w/2+8,yT+th+ch*.75,'#C9B08A',LW*1.2)}}
+    if(mount==='legs')for(const sd of[-1,1]){const lw=Math.max(10,W*.1),x=sd*(W/2-lw/2-4);o+=R(x-lw/2,yT+th,lw,H-th,m2)+R(x-lw/2+2,yT+th+5,lw-4,H-th-12,'none',LW*.4)+rose(x,yT+th+(H-th)*.25,lw*.25)+leaf(x,yT+th+(H-th)*.62,(H-th)*.3,lw*.18,90,RELIEF,3);if(sd<0)o+=R(-W/2+lw,yT+th+(H-th)*.82,W-2*lw,4,m2,LW*.5)}
+    if(mount==='ped'){const pw=Math.max(16,W*.18);o+=R(-pw/2,yT+th,pw,H-th,m2)+R(-pw*.7,-6,pw*1.4,6,m2)}
+    const apr=edge==='carved'?Math.max(th,Math.min(30,+s.ap||20)):th;
+    o+=R(-W/2,yT,W,apr,m,LW*1.1);
+    if(edge==='chisel'){for(let x=-W/2+2;x<W/2-1;x+=2.6)o+=L(x,yT+apr*.18,x+.8,yT+apr*.95,'rgba(60,40,20,.35)',LW*.4)}
+    else if(edge==='flute'){for(let x=-W/2+2;x<W/2-1;x+=3)o+=L(x,yT+1,x,yT+apr-1,'rgba(0,0,0,.25)',LW*.5)}
+    else if(edge==='step')o+=L(-W/2,yT+apr*.45,W/2,yT+apr*.45,INK,LW*.6)+R(-W/2+4,yT+apr,W-8,3,m,LW*.5);
+    else if(edge==='carved'){const cy=yT+apr/2;o+=shell(0,cy+apr*.35,apr*.42,m);for(const sd of[-1,1]){o+=rose(sd*W*.32,cy,apr*.25)+carve(spiral(sd*W*.16,cy,apr*.22,1.4,sd),LW*.55)+leaf(sd*apr*.55,cy+apr*.15,W*.08,apr*.12,sd>0?-8:-172,RELIEF,3)+leaf(sd*W*.22,cy+apr*.2,W*.07,apr*.11,sd>0?10:170,RELIEF,2)}
+      o+=`<path d="M${f(-W/2+2)} ${f(yT+apr)}Q0 ${f(yT+apr+apr*.35)} ${f(W/2-2)} ${f(yT+apr)}" fill="${m}" stroke="${INK}" stroke-width="${f(LW*.7)}"/>`}
+    const sink=s.sink;const xs=nb===1?[0]:Array.from({length:nb},(_,i)=>-W/2+W*(i+.5)/nb);
+    for(const x of xs){if(sink==='vessel'||sink==='vchisel'){o+=lvBowl(x,yT-bh,bd,bh,sink==='vchisel'?'chisel':s.vshape,M(s.mat3));o+=lvTap(s.tap==='wall'?x:x+bd*.5+5,s.tap==='wall'?yT-bh-8:yT,s.tap)}
+      else{o+=`<path d="M${f(x-bd/2)} ${f(yT+1)}Q${f(x)} ${f(yT+bh*.8)} ${f(x+bd/2)} ${f(yT+1)}" fill="none" stroke="${INK}" stroke-width="${f(LW*.6)}" stroke-dasharray="3 2"/>`+lvTap(x,yT,s.tap)}}
+    const SN={vessel:'جرن فوق الرخامة',vchisel:'جرن منقّر فوق الرخامة',ramp:'محفور بالرخامة (منحدر)',under:'تحت الرخامة'},EN={plain:'سادة',chisel:'منقّرة (خشن)',flute:'مخددة',step:'بدرجة',carved:'واجهة منحوتة (صدفة وورود)'},MN={wall:'معلّقة عالحيط',cab:'فوق خزانة خشب',legs:'على رجلين منحوتين',ped:'على رجل بالنص'};
+    stats.push(['النوع','رخامة مغسلة — '+MN[mount]],['الرخامة',W+' × '+D+' سم، سماكة/واجهة '+apr+' سم، حرف '+EN[edge]],['الجرن',nb+' × '+SN[sink]+(sink==='vessel'?' ('+({round:'مدور',oval:'بيضوي',carved:'منحوت'}[s.vshape])+')':'')+'، قطر '+bd+' سم'],['ارتفاع الرخامة',fmt(H)]);
+    rows.push({cells:['الرخامة',W+' × '+D,'واجهة '+apr+'، '+EN[edge]]});if(+s.bs>0)rows.push({cells:['ظهرية',W+' × '+s.bs,'-']});rows.push({cells:['جرن',SN[sink],nb+' × قطر '+bd]});
+    o+=dimH(-W/2,W/2,FS*1.8,'الرخامة '+fmt(W));o+=dimV(yT+apr,yT,W/2+FS*1.2,'الواجهة '+apr,C_FR);
+    top=Math.min(yT-(sink.startsWith('v')?bh:0)-(+s.bs||0),yT-(sink.startsWith('v')?bh:0)-(s.tap==='wall'?30:38));
+  }
+  if(mir!=='none'){const mw=Math.min(+s.mW,W*1.1||120),y1=top-15-mH;
+    if(mir==='round'){const r=Math.min(mw,mH)/2;o+=C(0,y1+mH/2,r,'#D8E6EE',LW*1.2)+C(0,y1+mH/2,r*.94,'none',LW*.5)}
+    else{o+=R(-mw/2,y1,mw,mH,'#D8E6EE',LW*1.2);if(mir==='led')for(const [w,a] of[[LW*8,.25],[LW*3,.6]])o+=`<rect x="${f(-mw/2+4)}" y="${f(y1+4)}" width="${f(mw-8)}" height="${f(mH-8)}" fill="none" stroke="#5FD3F0" stroke-width="${f(w)}" opacity="${a}" rx="4"/>`}
+    for(const t of[.25,.42])o+=L(-mw/2+mw*t,y1+mH*.85,-mw/2+mw*(t+.18),y1+mH*.15,'rgba(255,255,255,.85)',LW*1.6);
+    stats.push(['المراية',{rect:'مستطيلة',round:'مدورة',led:'مستطيلة مع LED'}[mir]+' '+mw+' × '+mH+' سم']);top=y1}
+  o+=dimV(0,-H,widest+S*.06,'الارتفاع '+fmt(H));
+  const lines=[{desc:'مغسلة رخام — '+stats[0][1],qty:1,unit:'قطعة'}];
+  return{svg:o,stats,lines,tables:[{title:'قائمة القطع للمعمل',head:['القطعة','النوع / القياس','ملاحظة'],rows}],box:[-widest-S*.1,widest+S*.18,top-S*.08,S*.1],note:''};
+}
+
 function colPoly(shape,R0){if(shape==='round')return null;const n=shape==='square'?4:8,off=shape==='square'?Math.PI/4:Math.PI/8,rr=shape==='square'?R0*Math.SQRT2:R0/Math.cos(Math.PI/8);
   return Array.from({length:n},(_,i)=>[rr*Math.cos(off+i*2*Math.PI/n),rr*Math.sin(off+i*2*Math.PI/n)])}
 function drawColumn(s){
@@ -2708,6 +2774,34 @@ SCHEMAS.sabil={title:'سبيل وشلال',draw:drawSabil,controls:[
   {id:'mat',label:'رخام اللوح',type:'mat',val:'crema'},
   {id:'mat2',label:'رخام الجرن',type:'mat',val:'crema'},
   {id:'mat3',label:'لون التطعيم والمفتاح',type:'mat',val:'green'}]};
+SCHEMAS.lavabo={title:'مغسلة',draw:drawLavabo,controls:[
+  head('المغسلة'),
+  {id:'kind',label:'النوع',type:'seg',options:[['ped','على رجل (قطعة وحدة)'],['vanity','رخامة مغسلة']],val:'ped',preset:{ped:{H:85,bd:45,bh:18},vanity:{H:85,bd:42,bh:15,W:120}}},
+  {id:'H',label:'ارتفاع المغسلة عن الأرض',type:'range',min:60,max:110,step:1,val:85},
+  {id:'ped',label:'شكل الرجل',type:'seg',options:[['carved','عامود منحوت أكانتس'],['flute','مخروط مخدد'],['block','بلوك خشن (قطعة وحدة)'],['column','عامود بلستر'],['plain','سادة']],val:'carved',show:s=>s.kind==='ped'},
+  {id:'pw',label:'عرض الرجل',type:'range',min:15,max:70,step:1,val:30,show:s=>s.kind==='ped'},
+  {id:'tray',label:'رخامة صغيرة تحت الجرن',type:'seg',options:YN,val:1,show:s=>s.kind==='ped'&&s.ped!=='block'},
+  {id:'btype',label:'شكل الجرن',type:'seg',options:[['round','مدور'],['oval','بيضوي'],['carved','أوراق منحوتة'],['chisel','منقّر']],val:'carved',show:s=>s.kind==='ped'},
+  {id:'mount',label:'تركيب الرخامة',type:'seg',options:[['wall','معلّقة عالحيط'],['cab','فوق خزانة خشب'],['legs','على رجلين منحوتين'],['ped','على رجل بالنص']],val:'wall',show:s=>s.kind==='vanity'},
+  {id:'W',label:'عرض الرخامة',type:'range',min:40,max:300,step:1,val:120,show:s=>s.kind==='vanity'},
+  {id:'D',label:'عمق الرخامة',type:'range',min:30,max:70,step:1,val:50,show:s=>s.kind==='vanity'},
+  {id:'th',label:'سماكة الرخامة (الواجهة)',type:'range',min:2,max:30,step:1,val:8,show:s=>s.kind==='vanity'},
+  {id:'edge',label:'حرف الرخامة من قدّام',type:'seg',options:[['plain','سادة'],['chisel','منقّر خشن'],['flute','مخدد'],['step','بدرجة'],['carved','منحوتة صدفة وورود']],val:'chisel',show:s=>s.kind==='vanity'},
+  {id:'ap',label:'ارتفاع الواجهة المنحوتة',type:'range',min:10,max:40,step:1,val:22,show:s=>s.kind==='vanity'&&s.edge==='carved'},
+  {id:'sink',label:'الجرن',type:'seg',options:[['vessel','فوق الرخامة'],['vchisel','منقّر فوق الرخامة'],['ramp','محفور بالرخامة (منحدر)'],['under','تحت الرخامة']],val:'vessel',show:s=>s.kind==='vanity'},
+  {id:'vshape',label:'شكل الجرن',type:'seg',options:[['round','مدور'],['oval','بيضوي'],['carved','منحوت']],val:'round',show:s=>s.kind==='vanity'&&s.sink==='vessel'},
+  {id:'nb',label:'عدد الجرون',type:'range',min:1,max:3,step:1,val:1,unit:'',show:s=>s.kind==='vanity'},
+  {id:'bs',label:'ظهرية (0 = بدون)',type:'range',min:0,max:30,step:1,val:10,show:s=>s.kind==='vanity'},
+  {id:'bd',label:'قطر الجرن',type:'range',min:25,max:80,step:1,val:45},
+  {id:'bh',label:'ارتفاع الجرن',type:'range',min:8,max:40,step:1,val:18},
+  {id:'tap',label:'الحنفية',type:'seg',options:[['deck','طويلة كروم'],['brass','نحاس كلاسيك'],['wall','من الحيط']],val:'deck'},
+  head('المراية',true),
+  {id:'mir',label:'مراية فوق',type:'seg',options:[['none','بدون'],['rect','مستطيلة'],['round','مدورة'],['led','مع إضاءة LED']],val:'none'},
+  {id:'mW',label:'عرض المراية',type:'range',min:30,max:250,step:1,val:80,show:s=>s.mir!=='none'},
+  {id:'mH',label:'ارتفاع المراية',type:'range',min:30,max:140,step:1,val:70,show:s=>s.mir!=='none'},
+  {id:'mat',label:'رخام الجرن/الرخامة',type:'mat',val:'crema'},
+  {id:'mat2',label:'رخام الرجل',type:'mat',val:'crema'},
+  {id:'mat3',label:'رخام الجرن فوق الرخامة',type:'mat',val:'italian',show:s=>s.kind==='vanity'}]};
 SCHEMAS.calc={title:'حاسبة القياسات',draw:drawCalc,controls:[
   head('القياسات'),
   {id:'rows',type:'html',val:calcDefault(),render:calcPanel},
