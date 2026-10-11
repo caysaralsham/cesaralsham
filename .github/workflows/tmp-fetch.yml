@@ -1,0 +1,18 @@
+name: tmp-fetch-imgs
+on:
+  push:
+    branches: [tmp-fetch-tablo-imgs]
+permissions:
+  contents: write
+jobs:
+  f:
+    if: "!contains(github.event.head_commit.message, '[imgs]')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          sudo apt-get -qq install -y imagemagick >/dev/null || true
+          while IFS=$'\t' read -r n u; do curl -sL "$u" -o "_tmpimgs/$n.jpg"; convert "_tmpimgs/$n.jpg" -resize 900x900\> -quality 82 "_tmpimgs/$n.jpg" || true; done < _tmpimgs/list.tsv
+          ls -la _tmpimgs | head -60
+          git config user.name bot; git config user.email bot@users.noreply.github.com
+          git add _tmpimgs && git commit -qm "[imgs] fetched" && git push
