@@ -2477,7 +2477,7 @@ function drawBalus(s){
     o+=P(d,'#E7E1D6',LW*.6);for(let i=0;i<n;i++)o+=L(i*go,-i*rise,i*go,-(i+1)*rise,INK,LW*.5)}
   // posts positions
   const nSeg=Math.max(1,Math.round(L0/postEvery)),segL=L0/nSeg,posts=[];for(let i=0;i<=nSeg;i++)posts.push(i*segL);
-  const capH=cap==='none'?0:cap==='ball'?pw*.9:cap==='pyr'?pw*.6:pw*.25,postH=Hh+hrH*.3;
+  const capH=cap==='none'?0:cap==='ball'?pw*.9:cap==='pyr'?pw*.6:pw*.25,postH=Math.max(Hh,+s.ph||Math.round(Hh+hrH*.3));
   let balCount=0;
   for(let i=0;i<nSeg;i++){const xa=posts[i]+pw/2,xb=posts[i+1]-pw/2,len=xb-xa;if(len<=2)continue;
     const yb=x=>yAt(x)-(stair?rise*.15:0)-brH,yt=x=>yAt(x)-Hh+hrH;
@@ -2500,15 +2500,16 @@ function drawBalus(s){
   const xr=L0+pw/2+S*.05;
   o+=dimH(0,L0,(stair?rise*1.2:0)+FS*2.2,'الطول '+fmt(L0));
   o+=dimV(yAt(L0),yAt(L0)-Hh,xr,'الارتفاع '+fmt(Hh),C_TAB);
+  if(Math.round(postH)!==Hh)o+=dimV(yAt(L0),yAt(L0)-postH,xr+S*.07,'العامود '+fmt(Math.round(postH)),C_FR);
   if(!geo&&posts.length>1){const xa=posts[0]+pw/2,len=posts[1]-pw/2-xa,n=Math.max(1,Math.floor(len/sp)),gap=len/n,yy=yAt(xa)-Hh-FS*1.2;o+=dimH(xa+gap*.5,xa+gap*1.5,yy-gap*tn,fmt(gap),C_FR)}
   const rl=L0/cs/100,BN={vase:'بلستر بطن واحد',vase2:'بلستر بطنين',slim:'خرطة رفيعة',square:'مربع',twist:'ملفوف'};
   const stats=[['النوع',stair?'درابزين درج (ميل '+Math.round(ang*180/Math.PI)+'°)':'درابزين مستقيم (تراس/بلكون)'],['الطول',fmt(L0)+(stair?'، على الميل '+Math.round(L0/cs)+' سم':'')],['الارتفاع',fmt(Hh)],
-    [geo?'الحشوة':'البلستر',geo?'حشوة رخام مفرّغة هندسي (CNC)':BN[type]+'، عرض '+bw+' سم، كل '+sp+' سم'],['عدد البلسترات',geo?'—':balCount],['العواميد (البوستات)',posts.length+' × عرض '+pw+' سم'+(cap!=='none'?'، راس '+{ball:'كرة',pyr:'هرم',flat:'مسطح'}[cap]:'')],['الدرابزين من فوق',rl.toFixed(2)+' م.ط، ارتفاع '+hrH+' سم'],['القاعدة من تحت',rl.toFixed(2)+' م.ط، ارتفاع '+brH+' سم']];
+    [geo?'الحشوة':'البلستر',geo?'حشوة رخام مفرّغة هندسي (CNC)':BN[type]+'، عرض '+bw+' سم، كل '+sp+' سم'],['عدد البلسترات',geo?'—':balCount],['العواميد (البوستات)',posts.length+' × عرض '+pw+'، ارتفاع '+Math.round(postH)+' سم'+(cap!=='none'?'، راس '+{ball:'كرة',pyr:'هرم',flat:'مسطح'}[cap]:'')],['الدرابزين من فوق',rl.toFixed(2)+' م.ط، ارتفاع '+hrH+' سم'],['القاعدة من تحت',rl.toFixed(2)+' م.ط، ارتفاع '+brH+' سم']];
   const rows=[{cells:['الدرابزين من فوق (المسكة)',rl.toFixed(2)+' م.ط','ارتفاع '+hrH+' سم']},{cells:['القاعدة من تحت',rl.toFixed(2)+' م.ط','ارتفاع '+brH+' سم']},{cells:['عامود (بوست)',posts.length+' قطعة','عرض '+pw+'، ارتفاع '+Math.round(postH)]}];
   if(geo)rows.push({cells:['حشوة مفرّغة',nSeg+' قطعة','طول '+Math.round(segL-pw)+' × ارتفاع '+Math.round(Hh-hrH-brH)]});else rows.push({cells:['بلستر '+BN[type],balCount+' قطعة','ارتفاع '+Math.round(Hh-hrH-brH)+'، عرض '+bw]});
   const lines=[{desc:(stair?'درابزين درج':'درابزين')+' — '+(geo?'حشوة مفرّغة هندسي':BN[type])+'، ارتفاع '+Hh+' سم',qty:+(rl).toFixed(2),unit:'م.ط'}];
   const top=Math.min(yAt(L0),0)-postH-capH-pw;
-  return{svg:o,noGround:!stair?false:true,lines,stats,tables:[{title:'قائمة القطع للمعمل',head:['القطعة','الكمية','القياس'],rows}],box:[-pw-S*.06,xr+S*.12,top-S*.06,(stair?rise*1.2:0)+S*.1],note:''};
+  return{svg:o,noGround:!stair?false:true,lines,stats,tables:[{title:'قائمة القطع للمعمل',head:['القطعة','الكمية','القياس'],rows}],box:[-pw-S*.06,xr+S*.19,top-S*.06,(stair?rise*1.2:0)+S*.1],note:''};
 }
 
 /* ---------- سبيل / شلال حائط ---------- */
@@ -2535,11 +2536,11 @@ function sbWaves(x0,y0,w,h,g){let o='';for(let y=y0+g*.6;y<y0+h;y+=g){let d=`M${
 function drawSabil(s){
   const PW=+s.W,PH=+s.H,BW=+s.bW,BH=+s.bH,ped=+s.ped,fw=+s.fw,top=s.top,basin=s.basin,frame=s.frame,dec=s.dec,out=s.out;
   const m=M(s.mat),m2=M(s.mat2),mc=M(s.mat3);const S=Math.max(PW,BW,PH)*1.2;setScale(S);let o='';
-  const hw=PW/2,yT=-PH,basinTop=-(ped+BH),yb=basinTop+BH*.35;
+  const hw=PW/2,yT=-PH,basinTop=-(ped+BH),mount=s.mount||'on',yb=mount==='behind'?0:basinTop+Math.min(4,BH*.12);
   // back panel
   const outer=sbTop(top,hw,yb,yT);o+=P(outer,m,LW*1.2);
   const ip=frame==='none'?outer:sbTop(top==='wavy'?'rect':top,hw-fw,yb,yT+fw);
-  const cid=nid('sb'),ix0=-hw+fw,iy0=yT+fw,iw=PW-2*fw,ih=yb-iy0;
+  const cid=nid('sb'),ix0=-hw+fw,iy0=yT+fw,iw=PW-2*fw,ih=yb-iy0,ihv=Math.max(10,basinTop-iy0);
   let g='';
   if(dec==='geo')g+=sbGeo(ix0,iy0,iw,ih,Math.max(12,iw/4),mc,M(s.mat));
   else if(dec==='mosaic')g+=sbMosaic(ix0,iy0,iw,ih,Math.max(6,iw/10),mc,M(s.mat));
@@ -2556,14 +2557,14 @@ function drawSabil(s){
     for(const sd of[-1,1])for(let k=1;k<4;k++){const y=ys+(yb-ys)*k/4;o+=L(sd*hw,y,sd*(hw-fw),y,INK,LW*.6)}
     const kw=fw*1.4;o+=P(`M${f(-kw/2)} ${f(yT-fw*.3)}L${f(kw/2)} ${f(yT-fw*.3)}L${f(kw*.32)} ${f(yT+fw*1.2)}L${f(-kw*.32)} ${f(yT+fw*1.2)}Z`,mc)}
   // outlet
-  const oy=iy0+ih*(dec==='rosette'?.5:.42);
+  const oy=iy0+ihv*(dec==='rosette'?.5:.42);
   if(out==='tap'){o+=R(-2.5,oy-4,5,8,BRASS,LW*.5)+P(`M0 ${f(oy)}L0 ${f(oy+3)}Q0 ${f(oy+9)} 4 ${f(oy+10)}L4 ${f(oy+13)}L1 ${f(oy+13)}L1 ${f(oy+11)}Q-3 ${f(oy+10)} -3 ${f(oy+3)}Z`,BRASS,LW*.5)+C(0,oy-6,3,BRASS,LW*.4);
     if(+s.water)o+=`<path d="M2.5 ${f(oy+13)}L2.5 ${f(basinTop+4)}" stroke="${WATER}" stroke-width="${f(LW*2)}" opacity=".7"/>`}
-  if(out==='spout'){const n=Math.max(1,+s.ns||1);for(let i=0;i<n;i++){const x=n===1?0:-iw*.3+iw*.6*i/(n-1),y=oy+(i%2)*ih*.12,w=Math.min(30,iw*.25);o+=R(x-w/2,y,w,2.2,'#9BA3A8',LW*.4);
+  if(out==='spout'){const n=Math.max(1,+s.ns||1);for(let i=0;i<n;i++){const x=n===1?0:-iw*.3+iw*.6*i/(n-1),y=oy+(i%2)*ihv*.12,w=Math.min(30,iw*.25);o+=R(x-w/2,y,w,2.2,'#9BA3A8',LW*.4);
     if(+s.water)o+=`<path d="M${f(x-w/2)} ${f(y+2)}L${f(x-w/2)} ${f(basinTop+3)}L${f(x+w/2)} ${f(basinTop+3)}L${f(x+w/2)} ${f(y+2)}Z" fill="rgba(80,150,200,.25)"/>`}}
-  if(out==='shells'){const n=Math.max(1,+s.ns||2),r0=Math.min(iw*.2,22);let yy=iy0+ih*.18;o+=R(-r0*.25,yy-r0*.9,r0*.5,r0*.7,m2,LW*.5);
-    for(let i=0;i<n;i++){const r=r0*(1+i*.3);yy+=ih*.55/n;o+=P(`M${f(-r)} ${f(yy)}L${f(r)} ${f(yy)}Q${f(r*.7)} ${f(yy+r*.6)} 0 ${f(yy+r*.65)}Q${f(-r*.7)} ${f(yy+r*.6)} ${f(-r)} ${f(yy)}Z`,m2)+shell(0,yy+r*.02,r*.55,m2).replace(/<circle[^>]*>$/,'');
-      if(+s.water)for(const sd of[-1,1])o+=`<path d="M${f(sd*r)} ${f(yy+1)}Q${f(sd*r*1.15)} ${f(yy+ih*.1)} ${f(sd*r*1.1)} ${f(yy+ih*.55/n)}" fill="none" stroke="${WATER}" stroke-width="${f(LW*1.6)}" opacity=".6"/>`}}
+  if(out==='shells'){const n=Math.max(1,+s.ns||2),r0=Math.min(iw*.2,22);let yy=iy0+ihv*.18;o+=R(-r0*.25,yy-r0*.9,r0*.5,r0*.7,m2,LW*.5);
+    for(let i=0;i<n;i++){const r=r0*(1+i*.3);yy+=ihv*.55/n;o+=P(`M${f(-r)} ${f(yy)}L${f(r)} ${f(yy)}Q${f(r*.7)} ${f(yy+r*.6)} 0 ${f(yy+r*.65)}Q${f(-r*.7)} ${f(yy+r*.6)} ${f(-r)} ${f(yy)}Z`,m2)+shell(0,yy+r*.02,r*.55,m2).replace(/<circle[^>]*>$/,'');
+      if(+s.water)for(const sd of[-1,1])o+=`<path d="M${f(sd*r)} ${f(yy+1)}Q${f(sd*r*1.15)} ${f(yy+ihv*.1)} ${f(sd*r*1.1)} ${f(yy+ihv*.55/n)}" fill="none" stroke="${WATER}" stroke-width="${f(LW*1.6)}" opacity=".6"/>`}}
   // basin
   const bw=BW/2,bt=basinTop,bb=-ped;
   if(ped>0)o+=R(-bw*.35,bb,bw*.7,ped,m2)+R(-bw*.45,-6,bw*.9,6,m2);
@@ -2585,16 +2586,16 @@ function drawSabil(s){
   // dims
   const xr=Math.max(hw,bw)+S*.05;
   o+=dimH(-hw,hw,yT-FS*1.6,'اللوح '+fmt(PW));o+=dimH(-bw,bw,FS*2,'الجرن '+fmt(BW),C_TAB);
-  o+=dimV(0,yT,xr+S*.07,'الكلي '+fmt(PH));o+=dimV(bb,bt,xr,'الجرن '+fmt(BH),C_TAB);if(ped)o+=dimV(0,bb,xr,'رجل '+fmt(ped),C_FR);
+  o+=dimV(0,yT,xr+S*.07,'الكلي '+fmt(PH));if(mount!=='behind')o+=dimV(yb,yT,-Math.max(hw,bw)-S*.05,'اللوح '+fmt(Math.round(PH+yb)),C_FR);o+=dimV(bb,bt,xr,'الجرن '+fmt(BH),C_TAB);if(ped)o+=dimV(0,bb,xr,'رجل '+fmt(ped),C_FR);
   if(frame!=='none')o+=dimH(-hw,-hw+fw,yb-(yb-yT)*.3,fmt(fw),C_FR);
   const TN={rect:'مستطيل',arch:'قوس',baroque:'كلاسيك بأذنين',lobed:'مغربي مفصّص',gable:'جملون مدبّب',wavy:'أطراف مموّجة'},DN={plain:'سادة',carved:'نحت كلاسيك (أكانتس)',geo:'تطعيم هندسي',mosaic:'موزاييك نجوم',rosette:'وردة',waves:'موج (رملي)',lattice:'تفريغ CNC'},
     BN={half:'نص دائري',petal:'بتلات',trough:'مستطيل (حوض)',wavy:'حوض بحافة مموّجة',pool:'حوض أرضي عريض'},FN={none:'بدون',mold:'كادر بارز',pil:'عضادات بتيجان',vous:'قوس بحجارة ومفتاح'},ON={none:'بدون',tap:'حنفية نحاس',spout:'شفرة شلال ستانلس',shells:'صحون صدف'};
-  const area=PW*PH/1e4;
-  const stats=[['اللوح',TN[top]+'، '+PW+' × '+PH+' سم ('+area.toFixed(2)+' م²)'],['الزخرفة',DN[dec]],['الكادر',FN[frame]+(frame!=='none'?'، عرض '+fw+' سم':'')],['الماء',ON[out]+((out==='spout'||out==='shells')?' × '+s.ns:'')],
+  const panH=Math.round(PH+yb),area=PW*panH/1e4;
+  const stats=[['اللوح',TN[top]+'، '+PW+' × '+panH+' سم ('+area.toFixed(2)+' م²)'],['التركيب',mount==='behind'?'اللوح وراء الجرن نازل للأرض':'اللوح راكب فوق الجرن'],['الارتفاع الكلي',fmt(PH)],['الزخرفة',DN[dec]],['الكادر',FN[frame]+(frame!=='none'?'، عرض '+fw+' سم':'')],['الماء',ON[out]+((out==='spout'||out==='shells')?' × '+s.ns:'')],
     ['الجرن',BN[basin]+'، عرض '+BW+'، ارتفاع '+BH+(ped?'، على رجل '+ped:'')+' سم'+(bdec!=='none'?'، '+{petals:'تضليع',leaves:'أوراق منحوتة',inlay:'تطعيم هندسي'}[bdec]:'')]];
-  const rows=[{cells:['لوح الظهر',TN[top],PW+' × '+PH]},{cells:['الجرن',BN[basin],BW+' × '+BH]}];if(frame!=='none')rows.push({cells:['الكادر',FN[frame],'عرض '+fw]});if(ped)rows.push({cells:['رجل الجرن','-','ارتفاع '+ped]});
-  const lines=[{desc:'سبيل/شلال حائط — لوح '+TN[top]+' '+PW+'×'+PH+' سم، '+DN[dec]+'، جرن '+BN[basin]+' '+BW+' سم',qty:1,unit:'قطعة'}];
-  return{svg:o,stats,lines,tables:[{title:'قائمة القطع للمعمل',head:['القطعة','النوع','القياس (سم)'],rows}],box:[-Math.max(hw,bw)-S*.08,xr+S*.18,yT-S*.1,S*.1],note:''};
+  const rows=[{cells:['لوح الظهر',TN[top]+(mount==='behind'?' (وراء الجرن للأرض)':' (فوق الجرن)'),PW+' × '+panH]},{cells:['الجرن',BN[basin],BW+' × '+BH]}];if(frame!=='none')rows.push({cells:['الكادر',FN[frame],'عرض '+fw]});if(ped)rows.push({cells:['رجل الجرن','-','ارتفاع '+ped]});
+  const lines=[{desc:(s.kind==='cascade'?'شلال حائط':'سبالة')+' — لوح '+TN[top]+' '+PW+'×'+PH+' سم، '+DN[dec]+'، جرن '+BN[basin]+' '+BW+' سم',qty:1,unit:'قطعة'}];
+  return{svg:o,stats,lines,tables:[{title:'قائمة القطع للمعمل',head:['القطعة','النوع','القياس (سم)'],rows}],box:[-Math.max(hw,bw)-S*.14,xr+S*.18,yT-S*.1,S*.1],note:''};
 }
 
 /* ---------- مغسلة ---------- */
@@ -2835,20 +2836,22 @@ SCHEMAS.balus={title:'درابزين',draw:drawBalus,controls:[
   {id:'sp',label:'المسافة بين البلسترات (من النص للنص)',type:'range',min:6,max:40,step:.5,val:16,show:s=>s.fill==='bal'},
   head('العواميد والمسكة'),
   {id:'pw',label:'عرض العامود (البوست)',type:'range',min:10,max:50,step:1,val:25},
+  {id:'ph',label:'ارتفاع العامود (من الأرض، بدون الراس)',type:'range',min:50,max:250,step:1,val:95},
   {id:'pe',label:'عامود كل',type:'range',min:60,max:500,step:5,val:200},
   {id:'cap',label:'راس العامود',type:'seg',options:[['ball','كرة'],['pyr','هرم'],['flat','مسطح'],['none','بدون']],val:'ball'},
   {id:'hrH',label:'ارتفاع المسكة من فوق',type:'range',min:4,max:25,step:1,val:12},
   {id:'brH',label:'ارتفاع القاعدة من تحت',type:'range',min:4,max:25,step:1,val:10},
   {id:'mat',label:'رخام الدرابزين',type:'mat',val:'crema'},
   {id:'mat2',label:'رخام العواميد',type:'mat',val:'crema'}]};
-SCHEMAS.sabil={title:'سبيل وشلال',draw:drawSabil,controls:[
+SCHEMAS.sabil={title:'سبالة وشلال',draw:drawSabil,controls:[
   head('اللوح'),
-  {id:'kind',label:'النوع',type:'seg',options:[['sabil','سبيل (لوح وجرن)'],['cascade','شلال حائط']],val:'sabil',preset:{
-    sabil:{W:80,H:170,bW:70,bH:35,ped:25,top:'baroque',dec:'carved',out:'tap',basin:'half',frame:'mold'},
-    cascade:{W:300,H:250,bW:320,bH:45,ped:0,top:'rect',dec:'waves',out:'spout',ns:3,basin:'pool',frame:'mold'}}},
+  {id:'kind',label:'النوع',type:'seg',options:[['sabil','سبالة (لوح وجرن)'],['cascade','شلال حائط']],val:'sabil',preset:{
+    sabil:{W:80,H:170,bW:70,bH:35,ped:25,top:'baroque',dec:'carved',out:'tap',basin:'half',frame:'mold',mount:'on'},
+    cascade:{W:300,H:250,bW:320,bH:45,ped:0,top:'rect',dec:'waves',out:'spout',ns:3,basin:'pool',frame:'mold',mount:'behind'}}},
   {id:'top',label:'شكل اللوح من فوق',type:'seg',options:[['baroque','كلاسيك بأذنين'],['arch','قوس'],['lobed','مغربي مفصّص'],['gable','جملون مدبّب'],['rect','مستطيل'],['wavy','أطراف مموّجة']],val:'baroque'},
   {id:'W',label:'عرض اللوح',type:'range',min:30,max:600,step:1,val:80},
   {id:'H',label:'الارتفاع الكلي من الأرض',type:'range',min:60,max:500,step:1,val:170},
+  {id:'mount',label:'تركيب اللوح',type:'seg',options:[['on','فوق الجرن'],['behind','وراء الجرن للأرض']],val:'on'},
   {id:'dec',label:'زخرفة اللوح',type:'seg',options:[['carved','نحت كلاسيك'],['geo','تطعيم هندسي'],['mosaic','موزاييك نجوم'],['rosette','وردة'],['waves','موج رملي'],['lattice','تفريغ CNC'],['plain','سادة']],val:'carved'},
   {id:'frame',label:'الكادر',type:'seg',options:[['mold','كادر بارز'],['pil','عضادات بتيجان'],['vous','قوس بحجارة ومفتاح'],['none','بدون']],val:'mold'},
   {id:'fw',label:'عرض الكادر',type:'range',min:3,max:40,step:1,val:8,show:s=>s.frame!=='none'},
