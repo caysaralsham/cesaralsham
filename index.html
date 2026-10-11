@@ -79,7 +79,8 @@
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap"></noscript>
 <script src="/js/price-req.js" defer></script>
 <style>
   :root{
@@ -90,6 +91,7 @@
   *{box-sizing:border-box;}
   body{margin:0; font-family:'Cairo','Tajawal',sans-serif; background:var(--cream); color:#2E1C10; direction:rtl; line-height:1.6;}
   img{max-width:100%; display:block;}
+  #aboutImg{width:100%; height:auto; background:var(--cream-2);}
   a{text-decoration:none; color:inherit;}
 
   /* ---- header ---- */
@@ -140,7 +142,7 @@
   .feature-card.in-view:hover{transform:translateY(-6px);}
   .feature-card .icon-circle{width:64px; height:64px; border-radius:50%; background:rgba(184,138,42,.08); display:flex; align-items:center; justify-content:center; margin:0 auto 16px;}
   .feature-card .icon-circle svg{width:30px; height:30px;}
-  .feature-card h4{font-size:15px; font-weight:800; color:#3B2414; margin:0 0 8px;}
+  .feature-card h2{font-size:15px; font-weight:800; color:#3B2414; margin:0 0 8px;}
   .feature-card p{font-size:12.5px; color:var(--text-dim); margin:0; line-height:1.7;}
   @media (max-width:820px){
     .features-row{grid-template-columns:repeat(2,1fr);}
@@ -308,27 +310,27 @@
   <div class="features-row">
     <div class="feature-card">
       <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="#9A6A3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
-      <h4>نصل إليك</h4>
+      <h2>نصل إليك</h2>
       <p>خدمة في جميع أنحاء الجزائر</p>
     </div>
     <div class="feature-card">
       <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="#9A6A3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></div>
-      <h4>خدمة عملاء</h4>
+      <h2>خدمة عملاء</h2>
       <p>نحن هنا لخدمتكم دائمًا</p>
     </div>
     <div class="feature-card">
       <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="#9A6A3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg></div>
-      <h4>تركيب احترافي</h4>
+      <h2>تركيب احترافي</h2>
       <p>فريق عمل ذو خبرة عالية</p>
     </div>
     <div class="feature-card">
       <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="#9A6A3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg></div>
-      <h4>تصاميم فريدة</h4>
+      <h2>تصاميم فريدة</h2>
       <p>تصاميم عصرية وكلاسيكية</p>
     </div>
     <div class="feature-card">
       <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="#9A6A3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M11 3 8 9l4 12 4-12-3-6"/><path d="M2 9h20"/></svg></div>
-      <h4>جودة عالية</h4>
+      <h2>جودة عالية</h2>
       <p>أفضل أنواع الحجر والرخام</p>
     </div>
   </div>
@@ -388,7 +390,7 @@
         <div class="stat"><b>100%</b><span>رخام وحجر طبيعي</span></div>
       </div>
     </div>
-    <div><img id="aboutImg" src="" alt="قيصر الشام للحجر والرخام - Marbre et Pierre naturelle Algérie" style="border-radius:var(--radius); box-shadow:var(--shadow);"></div>
+    <div><img id="aboutImg" width="800" height="600" alt="قيصر الشام للحجر والرخام - Marbre et Pierre naturelle Algérie" style="border-radius:var(--radius); box-shadow:var(--shadow);"></div>
   </div>
 </section>
 
@@ -470,7 +472,7 @@
         referrerpolicy="no-referrer-when-downgrade"></iframe>
     </div>
     <div style="text-align:center; margin-top:14px;">
-      <a href="https://www.google.com/maps?cid=9304963512715322872" target="_blank" style="color:var(--gold); font-weight:700;">فتح الموقع بخرائط غوغل ↗</a>
+      <a href="https://www.google.com/maps?cid=9304963512715322872" target="_blank" style="color:#E3BE8E; font-weight:700;">فتح الموقع بخرائط غوغل ↗</a>
     </div>
   </div>
 </section>
