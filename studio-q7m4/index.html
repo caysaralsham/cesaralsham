@@ -1418,8 +1418,8 @@ function drawDoor(s){
 
 /* ---------- basin (jurn) ---------- */
 // ---- كرسي (مشترك بين الحمام والجرن) ----
-function seatSpec(s){const sh=s.sshape||'square',w=+s.sL||30,d=sh==='square'?(+s.sW||30):w,h=+s.sH||30,fw=sh==='hex'?w*2/Math.sqrt(3):w,name={square:'مربع',round:'مدور',hex:'مسدس'}[sh];
-  return{sh,w,d,h,fw,name,txt:name+' '+(sh==='square'?w+' × '+d:(sh==='round'?'قطر ':'عرض ')+w)+'، ارتفاع '+h}}
+function seatSpec(s){const sh=s.sshape||'square',w=+s.sL||30,d=sh==='square'?(+s.sW||30):w,h=+s.sH||30,fw=w,cc=sh==='hex'?w*2/Math.sqrt(3):w,name={square:'مربع',round:'مدور',hex:'مسدس'}[sh];
+  return{sh,w,d,h,fw,cc,name,txt:name+' '+(sh==='square'?w+' × '+d:(sh==='round'?'قطر ':'عرض ')+w)+'، ارتفاع '+h}}
 function seatFront(c,yg,sp,m,lw){const fw=sp.fw,sH=sp.h;
   if(sp.sh==='square'){ // متل كرسي المعرض: بلاطة سميكة بحافة مدورة فوق، وجسم بيوسع لتحت
     const tH=Math.min(5,sH*.4),yT=yg-sH,yS=yT+tH,tw=fw*.73,bw=fw*.9,r=Math.min(tH*.45,fw*.08),k=(bw-tw)*.12;
@@ -1427,18 +1427,18 @@ function seatFront(c,yg,sp,m,lw){const fw=sp.fw,sH=sp.h;
     o+=P(`M${f(c-fw/2)} ${f(yS)}L${f(c-fw/2)} ${f(yT+r)}Q${f(c-fw/2)} ${f(yT)} ${f(c-fw/2+r)} ${f(yT)}L${f(c+fw/2-r)} ${f(yT)}Q${f(c+fw/2)} ${f(yT)} ${f(c+fw/2)} ${f(yT+r)}L${f(c+fw/2)} ${f(yS)}Z`,m,lw);
     o+=L(c-fw/2+r*.3,yT+r,c+fw/2-r*.3,yT+r,'rgba(30,25,20,.25)',lw*.5);return o}
   let o=R(c-fw/2,yg-sH,fw,sH,m,lw)+L(c-fw/2,yg-sH+Math.min(3,sH*.08),c+fw/2,yg-sH+Math.min(3,sH*.08),INK,lw*.5);
-  if(sp.sh==='hex')o+=L(c-fw/4,yg-sH,c-fw/4,yg,INK,lw*.6)+L(c+fw/4,yg-sH,c+fw/4,yg,INK,lw*.6);
+  if(sp.sh==='hex')o+=L(c,yg-sH,c,yg,INK,lw*.6);
   if(sp.sh==='round')o+=L(c-fw*.36,yg-sH+3,c-fw*.36,yg,'rgba(30,25,20,.18)',lw*.6)+L(c+fw*.36,yg-sH+3,c+fw*.36,yg,'rgba(30,25,20,.18)',lw*.6);return o}
 function seatTop(q,sc,sp,m,lw){const n=sp.sh==='round'?48:sp.sh==='hex'?6:0;let d;
-  if(n){const r=sp.sh==='hex'?sp.fw/2:sp.w/2,pp=[];for(let k=0;k<n;k++){const a=2*Math.PI*k/n;pp.push(q(Math.cos(a)*r,sc+Math.sin(a)*r))}d='M'+pp.join('L')+'Z'}
+  if(n){const r=sp.sh==='hex'?sp.cc/2:sp.w/2,pp=[];for(let k=0;k<n;k++){const a=2*Math.PI*k/n+(sp.sh==='hex'?Math.PI/2:0);pp.push(q(Math.cos(a)*r,sc+Math.sin(a)*r))}d='M'+pp.join('L')+'Z'}
   else{d=`M${q(-sp.w/2,sc-sp.d/2)}L${q(sp.w/2,sc-sp.d/2)}L${q(sp.w/2,sc+sp.d/2)}L${q(-sp.w/2,sc+sp.d/2)}Z`;const e=Math.min(sp.w,sp.d)*.07;
     return P(d,m,lw)+P(`M${q(-sp.w/2+e,sc-sp.d/2+e)}L${q(sp.w/2-e,sc-sp.d/2+e)}L${q(sp.w/2-e,sc+sp.d/2-e)}L${q(-sp.w/2+e,sc+sp.d/2-e)}Z`,'none',lw*.5,'opacity=".5"')}
   return P(d,m,lw)}
-function seatInset(sp,m){const fw=sp.fw,sH=sp.h,sD=sp.sh==='square'?sp.d:fw,fs=Math.max(sH,fw,sD)/6,lw=fs*.06,gx=fw/2+fs*2.2+Math.max(sp.w,fw)/2,ty=-sH/2;
+function seatInset(sp,m){const fw=sp.fw,sH=sp.h,sD=sp.sh==='square'?sp.d:sp.sh==='hex'?sp.cc:fw,fs=Math.max(sH,fw,sD)/6,lw=fs*.06,gx=fw/2+fs*2.2+Math.max(sp.w,fw)/2,ty=-sH/2;
   let q=seatFront(0,0,sp,m,lw)+L(-fw/2-fs*.5,0,fw/2+fs*.5,0,INK,lw*1.6);
-  q+=sdimH(-fw/2,fw/2,fs*1.1,sp.sh==='round'?'قطر '+sp.w:sp.sh==='hex'?'راس لراس '+Math.round(fw):'طول '+sp.w,fs)+sdimV(0,-sH,-fw/2-fs*.5,'ارتفاع '+sH,fs);
+  q+=sdimH(-fw/2,fw/2,fs*1.1,sp.sh==='round'?'قطر '+sp.w:sp.sh==='hex'?'عرض '+sp.w:'طول '+sp.w,fs)+sdimV(0,-sH,-fw/2-fs*.5,'ارتفاع '+sH,fs);
   q+=seatTop((a,d)=>f(gx+a)+' '+f(d),ty,sp,m,lw);
-  if(sp.sh!=='round')q+=sdimV(ty+sD/2-(sp.sh==='hex'?(fw-sp.w)/2:0),ty-sD/2+(sp.sh==='hex'?(fw-sp.w)/2:0),gx+Math.max(sp.w,fw)/2+fs*.9,'عرض '+(sp.sh==='hex'?sp.w:sp.d),fs);
+  if(sp.sh!=='round')q+=sdimV(ty+sD/2,ty-sD/2,gx+Math.max(sp.w,fw)/2+fs*.9,sp.sh==='hex'?'راس لراس '+Math.round(sp.cc):'عرض '+sp.d,fs);
   q+=T(0,-sH-fs*.6,'واجهة',fs*.75,'middle','#5D656B')+T(gx,ty-sD/2-fs*.6,'من فوق',fs*.75,'middle','#5D656B');
   return{svg:q,box:[-fw/2-fs*1.8,gx+Math.max(sp.w,fw)/2+fs*1.6,Math.min(-sH,ty-sD/2)-fs*1.5,fs*1.8],label:'الكرسي ('+sp.name+')'}}
 // زخرفة أوراق كبيرة / شريط زليج على جسم جرن (للأشكال الجديدة)
@@ -1660,7 +1660,7 @@ function drawBath(s){
   const S0=Math.max(W+2*Lr,Math.max(Lr,H)+H)*1.12;setScale(S0);FS*=.8;
   const G=FS*3.6,GV=FS*3.9;
   const dWall=String(s.door),dw=+s.dw,dh=Math.min(+s.dh,H-5);
-  const jL=+s.jL,jWd=+s.jW,jH=+s.jH,jY=Math.max(+s.jY,jH*.6),jm=M(s.jmat),seat=+s.seat,sp=seatSpec(s),sD=sp.sh==='square'?sp.d:sp.fw,sG=20,sTxt=sp.txt;
+  const jL=+s.jL,jWd=+s.jW,jH=+s.jH,jY=Math.max(+s.jY,jH*.6),jm=M(s.jmat),seat=+s.seat,sp=seatSpec(s),sD=sp.sh==='square'?sp.d:sp.sh==='hex'?sp.cc:sp.fw,sG=20,sTxt=sp.txt;
   const corOn=i=>s['wc'+i]===undefined?+s.cor:+s['wc'+i],cor=[1,2,3,4].some(corOn),corH=+s.corH,corY=Math.min(+s.corY,H-corH);
   const doorX=i=>{const w=wallW[i],lim=Math.max(0,w/2-dw/2-5);return w/2+Math.max(-lim,Math.min(lim,+s.dX||0))};
   const J=[];{let kk=0;for(let i=1;i<=4;i++){const n=Math.max(0,Math.min(3,+s['wj'+i]||0)),w=wallW[i],e=s['wjm'+i]==='e',g=+s['wjg'+i]||0;for(let m=0;m<n;m++)J.push({k:++kk,i,mid:!e,c:e?Math.max(jL/2,Math.min(w-jL/2,(+s['wjp'+i]||0)+jL/2+m*(jL+g))):w*(m+.5)/n})}}
