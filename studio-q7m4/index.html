@@ -157,7 +157,15 @@ input[type=range]{height:16px}
 .sec.grp>summary{font-size:.8rem;color:var(--ink);font-weight:700}
 .reset{margin-top:8px;padding:4px 10px;font-size:.78rem}
 .stage{position:sticky;top:calc(var(--tabh,40px) + 6px);align-self:start;border-radius:14px}
-@media (min-width:861px){.stage{max-height:calc(100vh - var(--tabh,40px) - 12px);overflow-y:auto;overscroll-behavior:contain}}
+@media (min-width:861px){
+  .stage{max-height:calc(100vh - var(--tabh,40px) - 12px);overflow-y:auto;overscroll-behavior:contain}
+  /* الإعدادات كمان ثابتة وبتتحرك لحالها (شريط التمرير يمين) — الرسمة والإعدادات كل وحدة بتنزل وتطلع لحالها */
+  #panel{position:sticky;top:calc(var(--tabh,40px) + 6px);align-self:start;max-height:calc(100vh - var(--tabh,40px) - 12px);overflow-y:auto;overscroll-behavior:contain;direction:ltr}
+  #panel>*{direction:rtl}
+  #panel::-webkit-scrollbar,.stage::-webkit-scrollbar{width:10px}
+  #panel::-webkit-scrollbar-thumb,.stage::-webkit-scrollbar-thumb{background:#C9B08A;border-radius:8px;border:2px solid var(--panel,#fff)}
+  #panel::-webkit-scrollbar-track,.stage::-webkit-scrollbar-track{background:transparent}
+}
 .stage.nostick{position:static}
 .detbox>summary{cursor:pointer;font-weight:800;font-size:.85rem;color:#8F6A1F;padding:4px 0}
 .sheet{padding:10px}
