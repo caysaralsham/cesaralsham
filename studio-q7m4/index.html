@@ -1860,7 +1860,7 @@ function drawTablo(s){
   const sh=s.shape,L=+s.L,W=sh==='round'?L:+s.W,hw=L/2,hh=W/2,th=+s.th,T=th*10;
   const S=Math.max(L,W)*1.35;setScale(S);
   const TM=M(s.tmat),cor=s.cor!=='none',cw=cor?Math.min(+s.cw,Math.min(hw,hh)*.4):0,cp=cor?+s.cp:0;
-  const des=s.des,hasD=des!=='plain',corn=sh==='rect'&&+s.corn,txt=+s.txt&&String(s.text||'').trim();
+  const des=s.des,hasD=des!=='plain',corn=sh==='rect'&&+s.corn,tLines=[s.text,s.text2,s.text3,s.text4,s.text5].slice(0,Math.max(1,Math.min(5,+s.tl||1))).map(v=>String(v||'').trim()).filter(Boolean),txt=+s.txt&&tLines.length?tLines.join(' / '):'';
   const dm=s.dmode,tm=s.tmode,bord=s.bord==='greek'&&sh!=='rect'?'double':s.bord,bw=+s.bw,bg=+s.bgap;
   const mm=dm==='relief'?+s.dht:dm==='engrave'?+s.ddep:0,Rm=Math.min(hw,hh);
   const kOf=v=>Math.max(LW*1.5,Rm*.01*Math.min(5,1+v/4));
@@ -1910,19 +1910,24 @@ function drawTablo(s){
   o+=paint(dItems,dm,kOf(mm),it=>mats[it.slot||0]);
   // ---- text ----
   let tNote='',tW=0;
-  if(txt){const [fam,wt]=TB_FONTS[s.font]||TB_FONTS.naskh,fs=+s.tsz*1.35,tv=escX(String(s.text).trim());
-    const arc=s.tpos==='arc'&&['round','oval','half','oct'].includes(sh);let y=s.tpos==='top'?-dh+fs*.95:s.tpos==='mid'?fs*.33:dh-fs*.35;
-    if(sh==='half'&&s.tpos==='top')y=dh*.1;if(sh==='arch'&&s.tpos==='top')y=-dh+Math.min(dw,dh)*.55;
+  if(txt){const [fam,wt]=TB_FONTS[s.font]||TB_FONTS.naskh,fs=+s.tsz*1.35,nl=tLines.length,gapL=Math.max(0,+s.tls||0),blockH=nl*fs*.78+(nl-1)*(gapL+fs*.22);
+    const arc=s.tpos==='arc'&&['round','oval','half','oct'].includes(sh);
+    let y0=s.tpos==='top'?-dh+fs*.95:s.tpos==='mid'?-blockH/2+fs*.78:dh-fs*.35-(blockH-fs*.78);
+    if(sh==='half'&&s.tpos==='top')y0=dh*.1;if(sh==='arch'&&s.tpos==='top')y0=-dh+Math.min(dw,dh)*.55;
     const pid=nid('tbp'),ra=Math.max(fs,Math.min(dw,sh==='half'?2*dh:dh)-fs*.95),acy=sh==='half'?dh:0;
     const defs=arc?`<path id="${pid}" d="M${f(-ra)} ${f(acy)}A${f(ra)} ${f(ra)} 0 0 1 ${f(ra)} ${f(acy)}" fill="none"/>`:'';
-    tW=String(s.text).trim().length*fs*(s.font==='latin'?.55:.42);const avail=arc?Math.PI*ra*.9:2*dw*.95;
-    if(tW>avail)tNote='النص أطول من مساحة التابلو، صغّر ارتفاع الحرف أو قصّر النص';
-    const tel=(fill,dx=0,dy=0,stroke='',sw=0)=>`<text ${arc?'':`x="${f(dx)}" y="${f(y+dy)}"`}${arc&&(dx||dy)?` transform="translate(${f(dx)} ${f(dy)})"`:''} text-anchor="middle" font-family="'${fam}',Amiri,serif" font-weight="${wt}" font-size="${f(fs)}" fill="${fill}"${stroke?` stroke="${stroke}" stroke-width="${f(sw)}" paint-order="stroke"`:''} data-tfont="${s.font}">${arc?`<textPath href="#${pid}" startOffset="50%">${tv}</textPath>`:tv}</text>`;
-    const tk=kOf(tm==='relief'?+s.tht:+s.tdep);let t=defs;
-    if(tm==='inlay')t+=tel(M(s.xmat),0,0,INK,LW*.7)+tel(M(s.xmat));
-    else if(tm==='relief')t+=tel('rgba(50,32,15,.45)',tk,tk)+tel(TM,0,0,'rgba(60,40,20,.6)',LW*.6)+tel('none',-tk*.3,-tk*.3,'rgba(255,255,255,.6)',LW*.6);
-    else if(tm==='engrave')t+=tel('rgba(62,40,18,.55)')+tel('none',tk*.3,tk*.3,'rgba(255,255,255,.45)',LW*.6);
-    else t+=tel('rgba(255,255,255,.55)',0,0,'rgba(80,60,40,.55)',LW*.5);
+    const lw0=(s.font==='latin'?.55:.42);tW=Math.max(...tLines.map(v=>v.length))*fs*lw0;const avail=arc?Math.PI*ra*.9:2*dw*.95;
+    if(tW>avail)tNote='النص أطول من مساحة التابلو، صغّر ارتفاع الحرف أو قصّر السطر';
+    const bitW=Math.max(0,+s.tsw||10)/10,thick=Math.max(0,bitW-fs*.07);
+    if(+s.tsz*10<bitW*10*3)tNote=(tNote?tNote+' — ':'')+'الحرف صغير على عرض الريشة، كبّر ارتفاع الحرف';
+    let t=defs;
+    tLines.forEach((line,li)=>{const tv=escX(line),onArc=arc&&li===0,y=arc?(li===0?0:(-blockH/2+fs*.78)+(li)*(fs*.78+gapL+fs*.22)-fs*.2):y0+li*(fs*.78+gapL+fs*.22);
+      const tel=(fill,dx=0,dy=0,stroke='',sw=0)=>`<text ${onArc?'':`x="${f(dx)}" y="${f(y+dy)}"`}${onArc&&(dx||dy)?` transform="translate(${f(dx)} ${f(dy)})"`:''} text-anchor="middle" font-family="'${fam}',Amiri,serif" font-weight="${wt}" font-size="${f(fs)}" fill="${fill}"${stroke?` stroke="${stroke}" stroke-width="${f(sw)}" stroke-linejoin="round" stroke-linecap="round" paint-order="stroke"`:''} data-tfont="${s.font}">${onArc?`<textPath href="#${pid}" startOffset="50%">${tv}</textPath>`:tv}</text>`;
+      const tk=kOf(tm==='relief'?+s.tht:+s.tdep);
+      if(tm==='inlay')t+=tel(M(s.xmat),0,0,M(s.xmat),thick+LW*.7)+tel(M(s.xmat),0,0,INK,LW*.4);
+      else if(tm==='relief')t+=tel('rgba(50,32,15,.45)',tk,tk,'rgba(50,32,15,.45)',thick)+tel(TM,0,0,TM,thick)+tel('none',-tk*.3,-tk*.3,'rgba(255,255,255,.6)',LW*.6);
+      else if(tm==='engrave')t+=tel('rgba(62,40,18,.55)',0,0,'rgba(62,40,18,.55)',thick)+tel('none',tk*.3,tk*.3,'rgba(255,255,255,.45)',LW*.6);
+      else t+=tel('rgba(255,255,255,.55)',0,0,'rgba(255,255,255,.55)',thick)+tel('none',0,0,'rgba(80,60,40,.55)',LW*.5);});
     o+=t}
   o+='</g>'+P(tbShape(sh,hw,hh),'none',LW*1.4);
   // ---- dims ----
@@ -1955,7 +1960,7 @@ function drawTablo(s){
   const how=(mode,v)=>TB_MODE[mode]+(mode==='engrave'?' بعمق '+v+' مم':mode==='relief'?' بارتفاع '+v+' مم':'');
   if(hasD)stats.push(['الرسمة',TB_DES[des]+'، '+how(dm,mm)+(dm==='inlay'?' ('+MATS[s.dmat].name+' و'+MATS[s.d2mat].name+')':'')]);
   if(corn)stats.push(['الزوايا','زوايا مزخرفة'+(hasD?'':'، '+how(dm,mm))]);
-  if(txt)stats.push(['الكتابة','«'+String(s.text).trim()+'» — خط '+(TB_FONTS[s.font]||TB_FONTS.naskh)[2]+'، '+how(tm,tm==='relief'?+s.tht:+s.tdep)+'، ارتفاع الحرف '+s.tsz+' سم'+(tm==='inlay'?' ('+MATS[s.xmat].name+')':'')]);
+  if(txt)stats.push(['الكتابة','«'+txt+'» — خط '+(TB_FONTS[s.font]||TB_FONTS.naskh)[2]+'، '+how(tm,tm==='relief'?+s.tht:+s.tdep)+'، ارتفاع الحرف '+s.tsz+' سم، عرض خط الحرف '+(+s.tsw||10)+' مم'+(tLines.length>1?'، '+tLines.length+' أسطر':'')+(tm==='inlay'?' ('+MATS[s.xmat].name+')':'')]);
   if(cor)stats.push(['الكورنيش','من نفس التابلو، '+{flat:'كادر بارز سادة',step:'متدرج',round:'حافة مدورة'}[s.cor]+'، عرض '+cw+' سم، بارز '+cp+' مم عن الأرضية']);
   if(lower>0&&!cor)stats.push(['مسح الأرضية','تنزيل الأرضية '+lower+' مم مشان يطلع النفر']);
   if(bord!=='none')stats.push(['خط الكادر',{line:'خط',double:'خطين',greek:'مفتاح يوناني'}[bord]+'، عرض '+bw+' سم، بُعده عن الطرف '+bg+' سم ('+MATS[s.bmat].name+')']);
@@ -1967,7 +1972,7 @@ function drawTablo(s){
   if(lower>0)rows.push({cells:[cor?'مسح الأرضية جوّا الكورنيش':'مسح الأرضية حوالين النفر','تنزيل '+lower+' مم','الباقي '+f(base)+' مم']});
   if(bord!=='none')rows.push({cells:['خط الكادر (تطعيم)',{line:'خط',double:'خطين',greek:'مفتاح يوناني'}[bord]+' عرض '+bw+' سم','بُعده '+bg+' سم، '+MATS[s.bmat].name]});
   if(hasD||corn)rows.push({cells:['الرسمة: '+(hasD?TB_DES[des]:'زوايا'),how(dm,mm),dm==='inlay'?MATS[s.dmat].name+' + '+MATS[s.d2mat].name:'من نفس الحجر']});
-  if(txt)rows.push({cells:['الكتابة: '+String(s.text).trim(),how(tm,tm==='relief'?+s.tht:+s.tdep),'خط '+(TB_FONTS[s.font]||TB_FONTS.naskh)[2]+'، حرف '+s.tsz+' سم']});
+  if(txt)rows.push({cells:['الكتابة: '+txt,how(tm,tm==='relief'?+s.tht:+s.tdep),'خط '+(TB_FONTS[s.font]||TB_FONTS.naskh)[2]+'، حرف '+s.tsz+' سم، ريشة '+(+s.tsw||10)+' مم']});
   const note=[warn,tNote].filter(Boolean).join(' — ');
   return{svg:o,lines,insets,noGround:true,tables:[{title:'تفصيل الشغل للمعمل',head:['الشغلة','التفصيل','ملاحظة'],rows}],
     box:[-hw-S*.1,hw+S*.2,-hh-S*.13,hh+S*.1],stats,note};
@@ -2327,12 +2332,19 @@ const SCHEMAS={
     {id:'d2mat',label:'لون الرسمة 2',type:'mat',val:'black',mats:ALL_MATS,show:s=>s.dmode==='inlay'&&(s.des!=='plain'||(s.shape==='rect'&&+s.corn))},
     head('الكتابة'),
     {id:'txt',label:'كتابة على التابلو',type:'seg',options:[[0,'بدون'],[1,'مع كتابة']],val:0},
-    {id:'text',label:'النص',type:'text',val:'بسم الله الرحمن الرحيم',show:s=>+s.txt},
+    {id:'tl',label:'عدد الأسطر',type:'seg',options:[[1,'1'],[2,'2'],[3,'3'],[4,'4'],[5,'5']],val:1,show:s=>+s.txt},
+    {id:'text',label:'السطر 1',type:'text',val:'بسم الله الرحمن الرحيم',show:s=>+s.txt},
+    {id:'text2',label:'السطر 2',type:'text',val:'',show:s=>+s.txt&&+s.tl>=2},
+    {id:'text3',label:'السطر 3',type:'text',val:'',show:s=>+s.txt&&+s.tl>=3},
+    {id:'text4',label:'السطر 4',type:'text',val:'',show:s=>+s.txt&&+s.tl>=4},
+    {id:'text5',label:'السطر 5',type:'text',val:'',show:s=>+s.txt&&+s.tl>=5},
+    {id:'tls',label:'المسافة بين الأسطر',type:'range',min:0,max:40,step:.5,val:2,show:s=>+s.txt&&+s.tl>=2},
     {id:'font',label:'الخط',type:'seg',options:[['naskh','نسخ'],['kufi','كوفي'],['ruqaa','رقعة'],['latin','فرنسي']],val:'naskh',show:s=>+s.txt},
     {id:'tmode',label:'طريقة الكتابة',type:'seg',options:[['engrave','حفر'],['relief','نفر'],['flat','مسح'],['inlay','تطعيم بلون']],val:'engrave',show:s=>+s.txt},
     {id:'tdep',label:'عمق حفر الكتابة',type:'range',min:1,max:15,step:.5,val:3,unit:'مم',show:s=>+s.txt&&s.tmode==='engrave'},
     {id:'tht',label:'ارتفاع نفر الكتابة',type:'range',min:1,max:20,step:.5,val:4,unit:'مم',show:s=>+s.txt&&s.tmode==='relief'},
-    {id:'tsz',label:'ارتفاع الحرف',type:'range',min:2,max:60,step:1,val:8,show:s=>+s.txt},
+    {id:'tsz',label:'ارتفاع الحرف',type:'range',min:2,max:200,step:.5,val:8,show:s=>+s.txt},
+    {id:'tsw',label:'عرض خط الحرف (الريشة)',type:'range',min:2,max:40,step:.5,val:10,unit:'مم',show:s=>+s.txt},
     {id:'tpos',label:'مكان الكتابة',type:'seg',options:[['top','فوق'],['mid','بالنص'],['bot','تحت'],['arc','على دائرة']],val:'bot',show:s=>+s.txt},
     {id:'xmat',label:'لون الكتابة',type:'mat',val:'black',mats:ALL_MATS,show:s=>+s.txt&&s.tmode==='inlay'},
     head('الكورنيش والكادر'),
