@@ -1458,7 +1458,8 @@ function jurnDeco(deco,Wt,foot,yT,yB,H){let o='';const h=yB-yT;
     for(let x=-Wt/2,i=0;x<Wt/2;x+=u,i++){const cx=x+u/2,cy=by+bh/2;o+=R(x,by,u,bh,'none',LW*.3)+P(starPolyD(cx,cy,u*.42,u*.2,8),cols[i%4],LW*.3)+C(cx,cy,u*.12,cols[(i+2)%4],LW*.2)}}
   return o}
 /* ---------- جرن مدور كونيك: عرض من فوق وعرض أصغر من تحت، جوانب مستقيمة مايلة ---------- */
-function drawJurnCone(s){
+function drawJurnCone(s0){
+  const s={...s0,sshape:'cone'};
   const Dt=+s.L,Db=Math.max(10,Math.min(+s.Lb||Dt*.9,Dt)),H=+s.H,rim=Math.max(3,Math.min(+s.rim,Dt/4)),m=M(s.mat),dk=isDarkMat(s.mat);
   const seatOn=+s.seat===1,sp=seatOn?seatSpec(s):null,sWx=seatOn?Math.max(sp.w,sp.fw):0,sGap=seatOn?Math.max(15,Dt*.3):0,sX=Dt/2+sGap+sWx/2,xR=seatOn?sX+sWx/2:Dt/2;
   const Hm=seatOn?Math.max(H,sp.h):H,gap=Math.max(30,Hm*.4),pTop=-Hm-gap-Dt,S=Math.max(xR+Dt/2,Hm+gap+Dt);setScale(S);
@@ -2232,10 +2233,10 @@ const bathCtrls=[
     {id:'jY',label:'ارتفاع الحافة عن الأرض',type:'range',min:20,max:110,step:1,val:60,show:s=>[1,2,3,4].some(k=>+s['wj'+k]>0)},
     {id:'jmat',label:'رخام الجرن',type:'mat',val:'italian',show:s=>[1,2,3,4].some(k=>+s['wj'+k]>0)},
     {id:'seat',label:'كرسي قدّام الجرن',type:'seg',options:[[0,'بدون'],[1,'مع كرسي']],val:0,show:s=>[1,2,3,4].some(k=>+s['wj'+k]>0)},
-    {id:'sshape',label:'شكل الكرسي',type:'seg',options:[['square','مربع'],['round','مدور'],['cone','مدور كونيك'],['hex','مسدس']],val:'square',show:s=>[1,2,3,4].some(k=>+s['wj'+k]>0)&&+s.seat},
+    {id:'sshape',label:'شكل الكرسي',type:'seg',options:[['square','مربع'],['round','مدور'],['hex','مسدس']],val:'square',show:s=>[1,2,3,4].some(k=>+s['wj'+k]>0)&&+s.seat},
     {id:'sL',label:'طول الكرسي',type:'range',min:20,max:80,step:1,val:30,show:s=>[1,2,3,4].some(k=>+s['wj'+k]>0)&&+s.seat&&s.sshape==='square'},
     {id:'sL',label:'قطر الكرسي',type:'range',min:20,max:80,step:1,val:30,show:s=>[1,2,3,4].some(k=>+s['wj'+k]>0)&&+s.seat&&s.sshape==='round'},
-    {id:'sL',label:'عرض الكرسي من فوق',type:'range',min:20,max:80,step:1,val:30,show:s=>[1,2,3,4].some(k=>+s['wj'+k]>0)&&+s.seat&&s.sshape==='cone'},
+    {id:'sL',label:'عرض الكرسي من فوق',type:'range',min:10,max:80,step:1,val:30,show:s=>[1,2,3,4].some(k=>+s['wj'+k]>0)&&+s.seat&&s.sshape==='cone'},
     {id:'sLb',label:'عرض الكرسي من تحت',type:'range',min:8,max:80,step:1,val:25,show:s=>[1,2,3,4].some(k=>+s['wj'+k]>0)&&+s.seat&&s.sshape==='cone'},
     {id:'sL',label:'عرض الكرسي',type:'range',min:20,max:80,step:1,val:30,show:s=>[1,2,3,4].some(k=>+s['wj'+k]>0)&&+s.seat&&s.sshape==='hex'},
     {id:'sW',label:'عرض الكرسي',type:'range',min:20,max:80,step:1,val:30,show:s=>[1,2,3,4].some(k=>+s['wj'+k]>0)&&+s.seat&&s.sshape==='square'},
@@ -2325,13 +2326,13 @@ const SCHEMAS={
     {id:'mat',label:'المادة',type:'mat',val:'italian'},
     {type:'head',label:'الكرسي'},
     {id:'seat',label:'كرسي مع الجرن',type:'seg',options:[[0,'بدون'],[1,'مع كرسي']],val:0},
-    {id:'sshape',label:'شكل الكرسي',type:'seg',options:[['square','مربع'],['round','مدور'],['cone','مدور كونيك'],['hex','مسدس']],val:'square',show:s=>+s.seat},
-    {id:'sL',label:'طول الكرسي',type:'range',min:20,max:80,step:1,val:30,show:s=>+s.seat&&s.sshape==='square'},
-    {id:'sL',label:'قطر الكرسي',type:'range',min:20,max:80,step:1,val:30,show:s=>+s.seat&&s.sshape==='round'},
-    {id:'sL',label:'عرض الكرسي من فوق',type:'range',min:20,max:80,step:1,val:30,show:s=>+s.seat&&s.sshape==='cone'},
-    {id:'sLb',label:'عرض الكرسي من تحت',type:'range',min:8,max:80,step:1,val:25,show:s=>+s.seat&&s.sshape==='cone'},
-    {id:'sL',label:'عرض الكرسي',type:'range',min:20,max:80,step:1,val:30,show:s=>+s.seat&&s.sshape==='hex'},
-    {id:'sW',label:'عرض الكرسي',type:'range',min:20,max:80,step:1,val:30,show:s=>+s.seat&&s.sshape==='square'},
+    {id:'sshape',label:'شكل الكرسي',type:'seg',options:[['square','مربع'],['round','مدور'],['hex','مسدس']],val:'square',show:s=>+s.seat&&s.shape!=='cone'},
+    {id:'sL',label:'طول الكرسي',type:'range',min:20,max:80,step:1,val:30,show:s=>+s.seat&&s.shape!=='cone'&&s.sshape==='square'},
+    {id:'sL',label:'قطر الكرسي',type:'range',min:20,max:80,step:1,val:30,show:s=>+s.seat&&s.shape!=='cone'&&s.sshape==='round'},
+    {id:'sL',label:'عرض الكرسي من فوق',type:'range',min:10,max:80,step:1,val:30,show:s=>+s.seat&&s.shape==='cone'},
+    {id:'sLb',label:'عرض الكرسي من تحت',type:'range',min:8,max:80,step:1,val:25,show:s=>+s.seat&&s.shape==='cone'},
+    {id:'sL',label:'عرض الكرسي',type:'range',min:20,max:80,step:1,val:30,show:s=>+s.seat&&s.shape!=='cone'&&s.sshape==='hex'},
+    {id:'sW',label:'عرض الكرسي',type:'range',min:20,max:80,step:1,val:30,show:s=>+s.seat&&s.shape!=='cone'&&s.sshape==='square'},
     {id:'sH',label:'ارتفاع الكرسي',type:'range',min:20,max:60,step:1,val:30,show:s=>+s.seat},
     {id:'smat',label:'رخام الكرسي',type:'mat',val:'italian',show:s=>+s.seat}]},
   facade:{title:'واجهة',draw:drawFacade,controls:[
