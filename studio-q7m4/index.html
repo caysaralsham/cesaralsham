@@ -1433,7 +1433,51 @@ function seatInset(sp,m){const fw=sp.fw,sH=sp.h,sD=sp.sh==='square'?sp.d:fw,fs=M
   if(sp.sh!=='round')q+=sdimV(ty+sD/2-(sp.sh==='hex'?(fw-sp.w)/2:0),ty-sD/2+(sp.sh==='hex'?(fw-sp.w)/2:0),gx+Math.max(sp.w,fw)/2+fs*.9,'عرض '+(sp.sh==='hex'?sp.w:sp.d),fs);
   q+=T(0,-sH-fs*.6,'واجهة',fs*.75,'middle','#5D656B')+T(gx,ty-sD/2-fs*.6,'من فوق',fs*.75,'middle','#5D656B');
   return{svg:q,box:[-fw/2-fs*1.8,gx+Math.max(sp.w,fw)/2+fs*1.6,Math.min(-sH,ty-sD/2)-fs*1.5,fs*1.8],label:'الكرسي ('+sp.name+')'}}
+/* ---------- جرن زاوية (ربع دائرة): ضلعين عالحيط وقدّام مدوّر، حافة عريضة مسطحة وبطن نازل لتحت ---------- */
+function drawJurnCorner(s){
+  const Rr=+s.L,H=+s.H,rim=Math.max(3,Math.min(+s.rim,Rr/4)),m=M(s.mat),r2=Math.SQRT2,Wf=Rr*r2,lip=Math.max(3,Math.min(rim*1.2,H*.18));
+  const seatOn=+s.seat===1,sp=seatOn?seatSpec(s):null,sWx=seatOn?Math.max(sp.w,sp.fw):0,sGap=seatOn?Math.max(15,Rr*.3):0,sX=Wf/2+sGap+sWx/2,xR=seatOn?sX+sWx/2:Wf/2;
+  const Hm=seatOn?Math.max(H,sp.h):H,gap=Math.max(30,Hm*.45),pc=-Hm-gap-Rr,S=Math.max(xR+Wf/2,Hm+gap+Rr)*1.05;setScale(S);
+  const mN=k=>(MATS[k]||MATS[MAL[k]]||MATS.italian).name;let o='';
+  // ---- واجهة (من قدّام، باتجاه الزاوية) ----
+  const yL=-H+lip,foot=Wf*.42,yK=-H*.42;
+  const body=`M${f(-Wf/2)} ${f(yL)}L${f(Wf/2)} ${f(yL)}L${f(Wf/2)} ${f(yK)}C${f(Wf/2)} ${f(yK*.25)} ${f(foot/2+Wf*.08)} 0 ${f(foot/2)} 0L${f(-foot/2)} 0C${f(-foot/2-Wf*.08)} 0 ${f(-Wf/2)} ${f(yK*.25)} ${f(-Wf/2)} ${f(yK)}Z`;
+  o+=P(body,m);const id=nid('jc');
+  o+=`<clipPath id="${id}"><path d="${body}"/></clipPath><g clip-path="url(#${id})">`+`<path d="M${f(-Wf/2)} ${f(yK)}Q0 ${f(yK+H*.18)} ${f(Wf/2)} ${f(yK)}" fill="none" stroke="rgba(30,25,20,.12)" stroke-width="${f(LW*.6)}"/>`;
+  if(s.deco==='flute')for(let k=1;k<10;k++){const t=k/10,xa=-Wf/2+Wf*t,xb=-foot/2+foot*t;o+=`<path d="M${f(xa)} ${f(yL)}L${f(xa)} ${f(yK)}Q${f(xa)} ${f(yK*.3)} ${f(xb)} 0" fill="none" stroke="${INK}" stroke-width="${f(LW*.55)}" opacity=".6"/>`}
+  if(s.deco==='band'){const by=yL+Math.min(8,H*.2);o+=L(-Wf/2,by,Wf/2,by,INK,LW*.6)+L(-Wf/2,by+2,Wf/2,by+2,INK,LW*.4)}
+  o+='</g>'+R(-Wf/2-1,-H,Wf+2,lip,m,LW*1.1);
+  // ---- مسقط (من فوق): الزاوية فوق والقوس لقدّام ----
+  const A=[-Rr/r2,pc+Rr/r2],B=[Rr/r2,pc+Rr/r2],ri=Rr-rim,ci=pc+rim*r2,tI=-rim+Math.sqrt(Math.max(0,ri*ri-rim*rim)),Ai=[-tI/r2,ci+tI/r2],Bi=[tI/r2,ci+tI/r2];
+  const wl=Rr*.3;o+=L(0,pc,A[0]-wl/r2,A[1]+wl/r2,INK,LW*2.2)+L(0,pc,B[0]+wl/r2,B[1]+wl/r2,INK,LW*2.2);
+  for(let t=.06;t<1.3;t+=.1){for(const sd of[-1,1]){const x=sd*t*Rr/r2,y=pc+t*Rr/r2;o+=L(x,y,x+sd*2.5,y-2.5,INK,LW*.4,'opacity=".45"')}}
+  o+=P(`M0 ${f(pc)}L${f(A[0])} ${f(A[1])}A${f(Rr)} ${f(Rr)} 0 0 0 ${f(B[0])} ${f(B[1])}Z`,m);
+  o+=P(`M0 ${f(ci)}L${f(Ai[0])} ${f(Ai[1])}A${f(ri)} ${f(ri)} 0 0 0 ${f(Bi[0])} ${f(Bi[1])}Z`,'rgba(255,255,255,.16)',LW*.8)+`<path d="M0 ${f(ci)}L${f(Ai[0])} ${f(Ai[1])}A${f(ri)} ${f(ri)} 0 0 0 ${f(Bi[0])} ${f(Bi[1])}Z" fill="rgba(0,0,0,.18)"/>`;
+  o+=C(0,ci+(Rr-rim*r2)*.4,Math.max(1.5,Rr*.03),'#555',LW*.5)+dimV(pc+Rr,pc+Rr-rim,-FS*.2,''+rim,C_FR);
+  // قياس الضلع على الحيط
+  {const off=FS*1.1,nx=-1/r2,ny=-1/r2,x1=nx*off,y1=pc+ny*off,x2=A[0]+nx*off,y2=A[1]+ny*off;o+='<g class="dim">'+L(x1,y1,x2,y2,DIM,LW*1.3)+L(x1-2,y1+2,x1+2,y1-2,DIM,LW*2)+L(x2-2,y2+2,x2+2,y2-2,DIM,LW*2)+
+    `<text transform="translate(${f((x1+x2)/2-FS*.5)} ${f((y1+y2)/2-FS*.2)}) rotate(45)" text-anchor="middle" font-size="${f(FS)}" font-weight="700" fill="${DIM}" stroke="#fff" stroke-width="${f(FS*.22)}" paint-order="stroke" font-family="Cairo,Tahoma,sans-serif">${mtr('الضلع '+fmt(Rr))}</text></g>`}
+  o+=dimV(pc+Rr,pc,Wf/2+FS*1.4,'لقدّام '+fmt(Rr),C_FR);
+  if(seatOn){const sm=M(s.smat),cyS=pc+Rr*.6;o+=seatFront(sX,0,sp,sm,LW)+seatTop((a,d)=>f(sX+a)+' '+f(cyS+d),0,sp,sm,LW);
+    o+=dimH(sX-sp.fw/2,sX+sp.fw/2,S*.1,fmt(sp.sh==='hex'?Math.round(sp.fw):sp.w),C_TAB)+dimV(0,-sp.h,xR+S*.04,fmt(sp.h),C_TAB)}
+  o+=T(xR+S*(seatOn?.1:.05),pc+Rr*.5,'مسقط',FS*.7,'start','#5D656B')+T(xR+S*(seatOn?.1:.05),-H/2,'واجهة',FS*.7,'start','#5D656B');
+  o+=dimH(-Wf/2,Wf/2,S*.1,'من قدّام '+fmt(Math.round(Wf)))+dimV(0,-H,-Wf/2-S*.06,fmt(H));
+  // ---- مقطع من النص (من الزاوية لقدّام) ----
+  const bt=Math.max(3,Math.min(8,H*.15)),D=H-bt,[hd,hu]=hatch(),fs=Math.max(4,S/16);
+  const sec=`M0 ${f(-H)}L${f(Rr)} ${f(-H)}L${f(Rr)} ${f(-H+H*.58)}C${f(Rr)} ${f(-H*.1)} ${f(Rr*.6)} 0 ${f(Rr*.4)} 0L0 0Z`;
+  const cav=`M${f(rim*r2*.7)} ${f(-H)}L${f(Rr-rim)} ${f(-H)}L${f(Rr-rim)} ${f(-H+D*.55)}C${f(Rr-rim)} ${f(-bt-D*.05)} ${f((Rr-rim)*.7)} ${f(-bt)} ${f((Rr-rim)*.45)} ${f(-bt)}L${f(rim*r2*.7)} ${f(-bt)}Z`;
+  const q=hd+P(sec,hu,LW*.8)+P(cav,'#FFFFFF',LW*.8)+L(-6,0,Rr+6,0,INK,LW*1.4)+L(0,-H-4,0,4,INK,LW*1.6)+sdimV(-bt,-H,Rr+fs*.8,'عمق '+Math.round(D),fs);
+  const vol=Math.PI*Math.pow(Rr-rim,2)/4*D*.82/1000;
+  const stats=[['الضلع (على الحيط)',fmt(Rr)],['من قدّام',fmt(Math.round(Wf))],['الارتفاع',fmt(H)],['اللون',mN(s.mat)]];
+  const rows=[{cells:['بلوك الجرن (للقص)',Rr+' × '+Rr+' × '+H+' سم','1']},{cells:['الشكل','زاوية (ربع دائرة)، حافة '+rim+' سم','-']},{cells:['الحفر من جوّا','عمق '+Math.round(D)+' سم','-']},{cells:['السعة','حوالي '+vol.toFixed(0)+' لتر','-']}];
+  if(seatOn){stats.push(['الكرسي',sp.txt+' سم، لون '+mN(s.smat)]);rows.push({cells:['الكرسي ('+sp.name+')',(sp.sh==='square'?sp.w+' × '+sp.d:(sp.sh==='round'?'قطر ':'عرض ')+sp.w)+' × '+sp.h+' سم','1']})}
+  const lines=[{desc:'جرن زاوية (ربع دائرة)، ضلع '+Rr+' سم، ارتفاع '+H+' سم، لون '+mN(s.mat),qty:1,unit:'قطعة'}];
+  if(seatOn)lines.push({desc:'كرسي '+sp.txt+' سم، لون '+mN(s.smat),qty:1,unit:'قطعة'});
+  const insets=[{svg:q,box:[-10,Rr+fs*2.4,-H-fs*1.4,8],label:'مقطع من النص'}];if(seatOn)insets.push(seatInset(sp,M(s.smat)));
+  return{svg:o,insets,stats,lines,tables:[{title:'قائمة القطع للمعمل',head:['القطعة','القياس','العدد'],rows}],box:[-Wf/2-S*.14,xR+S*(seatOn?.25:.2),pc-FS*2.5,S*.15],note:''};
+}
 function drawJurn(s){
+  if(s.shape==='corner')return drawJurnCorner(s);
   const sh=s.shape,Ln=+s.L,Wp=(sh==='oval'||sh==='half'||sh==='globe')?+s.W:Ln,H=+s.H,rim=Math.min(+s.rim,Wp/2-3),m=M(s.mat);
   const hasBase=s.base==='plinth',bH=hasBase?Math.min(+s.baseH,H-10):0,bW=hasBase?Math.min(+s.baseW,Ln):0;
   const seatOn=+s.seat===1,sp=seatOn?seatSpec(s):null,sWx=seatOn?Math.max(sp.w,sp.fw):0,sGap=seatOn?Math.max(15,Ln*.3):0,sX=Ln/2+sGap+sWx/2,xR=seatOn?sX+sWx/2:Ln/2,Hm=seatOn?Math.max(H,sp.h):H;
@@ -2131,20 +2175,20 @@ bathCtrls.push(
 const SCHEMAS={
   fountain:{title:'نافورة',draw:drawFountain,controls:fountainCtrls},
   jurn:{title:'جرن',draw:drawJurn,controls:[
-    {id:'shape',label:'شكل الجرن',type:'seg',options:[['oval','بيضوي (أوفال)'],['round','مدور'],['half','نص دائرة']],val:'oval'},
-    {id:'L',label:'الطول (القطر للمدور)',type:'range',min:30,max:100,step:1,val:50},
-    {id:'W',label:'العرض',type:'range',min:20,max:100,step:1,val:40,show:s=>s.shape!=='round'},
+    {id:'shape',label:'شكل الجرن',type:'seg',options:[['oval','بيضوي (أوفال)'],['round','مدور'],['half','نص دائرة'],['corner','زاوية (ربع دائرة)']],val:'oval'},
+    {id:'L',label:'الطول (القطر للمدور، طول الضلع للزاوية)',type:'range',min:30,max:100,step:1,val:50},
+    {id:'W',label:'العرض',type:'range',min:20,max:100,step:1,val:40,show:s=>s.shape!=='round'&&s.shape!=='corner'},
     {id:'sph',label:'كروي (من فوق ومن تحت)',type:'range',min:0,max:100,step:5,val:0,unit:'%',show:s=>s.shape==='round'},
-    {id:'topw',label:'الحافة من فوق',type:'seg',options:[[0,'عادية'],[1,'مموّجة']],val:0},
-    {id:'rimStyle',label:'الحافة من قدّام',type:'seg',options:[['flat','بدون'],['round','مدورة سميكة'],['wavy','مموّجة']],val:'flat',show:s=>!(s.shape==='round'&&+s.sph>0)},
+    {id:'topw',label:'الحافة من فوق',type:'seg',options:[[0,'عادية'],[1,'مموّجة']],val:0,show:s=>s.shape!=='corner'},
+    {id:'rimStyle',label:'الحافة من قدّام',type:'seg',options:[['flat','بدون'],['round','مدورة سميكة'],['wavy','مموّجة']],val:'flat',show:s=>!(s.shape==='round'&&+s.sph>0)&&s.shape!=='corner'},
     {id:'H',label:'الارتفاع',type:'range',min:20,max:70,step:1,val:30},
     {id:'rim',label:'سماكة الحافة',type:'range',min:3,max:10,step:.5,val:5},
-    {id:'cav',label:'شكل الحفر من جوّا',type:'seg',options:[['rounded','قعر مسطح بزوايا مدورة'],['straight','مستقيم'],['bowl','مقعّر']],val:'rounded',show:s=>!(s.shape==='round'&&+s.sph>0)},
+    {id:'cav',label:'شكل الحفر من جوّا',type:'seg',options:[['rounded','قعر مسطح بزوايا مدورة'],['straight','مستقيم'],['bowl','مقعّر']],val:'rounded',show:s=>s.shape!=='corner'&&!(s.shape==='round'&&+s.sph>0)&&s.shape!=='corner'},
     {id:'deco',label:'الزخرفة',type:'seg',options:[['none','بدون'],['petals','أوراق كبيرة'],['flute','تضليع'],['band','حزام محفور'],['tiles','شريط زليج ملون']],val:'none'},
-    {id:'ears',label:'أذنين (مقابض) عالجنب',type:'seg',options:YN,val:0},
-    {id:'base',label:'القاعدة',type:'seg',options:[['none','بدون'],['plinth','مع قاعدة']],val:'none'},
-    {id:'baseW',label:'عرض القاعدة',type:'range',min:10,max:100,step:1,val:30,show:s=>s.base==='plinth'},
-    {id:'baseH',label:'ارتفاع القاعدة',type:'range',min:2,max:30,step:1,val:6,show:s=>s.base==='plinth'},
+    {id:'ears',label:'أذنين (مقابض) عالجنب',type:'seg',options:YN,val:0,show:s=>s.shape!=='corner'},
+    {id:'base',label:'القاعدة',type:'seg',options:[['none','بدون'],['plinth','مع قاعدة']],val:'none',show:s=>s.shape!=='corner'},
+    {id:'baseW',label:'عرض القاعدة',type:'range',min:10,max:100,step:1,val:30,show:s=>s.base==='plinth'&&s.shape!=='corner'},
+    {id:'baseH',label:'ارتفاع القاعدة',type:'range',min:2,max:30,step:1,val:6,show:s=>s.base==='plinth'&&s.shape!=='corner'},
     {id:'mat',label:'المادة',type:'mat',val:'italian'},
     {type:'head',label:'الكرسي'},
     {id:'seat',label:'كرسي مع الجرن',type:'seg',options:[[0,'بدون'],[1,'مع كرسي']],val:0},
