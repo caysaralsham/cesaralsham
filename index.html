@@ -644,12 +644,26 @@ const db = firebase.firestore();
 
 // عدّاد زيارات بسيط: كل ما حدا يفتح الصفحة، بنزيد عدّاد يوم اليوم بـ Firestore
 (function trackVisit(){
+  // العدّاد بيُرسل بطلب HTTP عادي (REST) بدل اتصال Firestore المفتوح،
+  // حتى ما يضل اتصال معلّق يسبب أخطاء ERR_TIMED_OUT في PageSpeed.
   const today = new Date().toISOString().slice(0,10); // YYYY-MM-DD
-  const docRef = db.collection('cesar_stats').doc(today);
-  const pCount = docRef.set({
-    date: today,
-    count: firebase.firestore.FieldValue.increment(1)
-  }, {merge:true}).catch(()=>{ /* صامت إذا صلاحيات Firestore ما بتسمح بعد */ });
+  const ROOT = 'projects/' + firebaseConfig.projectId + '/databases/(default)/documents';
+  const URL = 'https://firestore.googleapis.com/v1/' + ROOT + ':commit?key=' + firebaseConfig.apiKey;
+  const inc = firebase.firestore.FieldValue.increment;
+  function viaSdk(data){ // احتياط: إذا فشل الطلب العادي نرجع للطريقة القديمة
+    return db.collection('cesar_stats').doc(today).set(data, {merge:true}).catch(()=>{});
+  }
+  function send(fieldPath, sdkData){
+    const body = {writes:[{
+      update: {name: ROOT + '/cesar_stats/' + today, fields: {date: {stringValue: today}}},
+      updateMask: {fieldPaths: ['date']},
+      updateTransforms: [{fieldPath: fieldPath, increment: {integerValue: '1'}}]
+    }]};
+    return fetch(URL, {method:'POST', keepalive:true, headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)})
+      .then(r => { if(!r.ok) return viaSdk(sdkData); })
+      .catch(() => viaSdk(sdkData));
+  }
+  const pCount = send('count', {date: today, count: inc(1)});
 
   // تحديد الدولة من عنوان IP (خدمة مجانية بدون مفتاح API) — بحد أقصى 5 ثواني
   const ctl = ('AbortController' in window) ? new AbortController() : null;
@@ -657,10 +671,9 @@ const db = firebase.firestore();
   const pGeo = fetch('https://ipwho.is/', ctl ? {signal: ctl.signal} : undefined)
     .then(r => r.json())
     .then(geo => {
-      const code = (geo && geo.country_code) ? geo.country_code : 'XX';
-      return docRef.set({
-        countries: { [code]: firebase.firestore.FieldValue.increment(1) }
-      }, {merge:true});
+      let code = (geo && geo.country_code) ? String(geo.country_code).toUpperCase() : 'XX';
+      if(!/^[A-Z]{2}$/.test(code)) code = 'XX';
+      return send('countries.' + code, {date: today, countries: {[code]: inc(1)}});
     })
     .catch(()=>{ /* صامت إذا الخدمة ما ردّت أو تجاوزنا الحد المجاني */ });
   window.__visitDone = Promise.all([pCount, pGeo]);
