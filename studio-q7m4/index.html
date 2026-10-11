@@ -2771,7 +2771,8 @@ if(EMBED){
 .cl-sec h3 small{font-weight:400;color:var(--muted)}
 .cl-drop{border:2px dashed var(--line);border-radius:12px;min-height:170px;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;padding:10px;color:var(--muted);position:relative;overflow:hidden}
 .cl-drop img{max-width:100%;max-height:320px;border-radius:8px;display:block}
-.cl-refs{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:6px;max-height:260px;overflow-y:auto;padding:2px}
+.cl-refs{max-height:260px;overflow-y:auto;padding:2px;direction:ltr}
+.cl-refs>*{direction:rtl}.cl-refgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:6px}.cl-refs .cl-count{display:block;text-align:center;margin-top:6px}
 .cl-refs button{border:3px solid transparent;border-radius:10px;padding:0;background:var(--bg);cursor:pointer;aspect-ratio:1;overflow:hidden;position:relative}
 .cl-refs button img{width:100%;height:100%;object-fit:cover;display:block}
 .cl-refs button[aria-pressed="true"]{border-color:var(--accent,#9A6A3A)}
@@ -2806,9 +2807,9 @@ if(EMBED){
       <h3>٢) أسلوب من شغلك <small>— اختار لحد 4 صور (أو خلّيها أوتوماتيك)</small></h3>
       <div class="cl-row">
         <label>القسم<select id="clCat">
-          <option value="a3mal-facades-de-maisons-en-pierre">واجهات حجر</option>
-          <option value="a3mal-fenetres-en-marbre">شبابيك</option>
-          <option value="a3mal-colonnes-et-balustrades-en-marbre">أعمدة ودرابزين</option>
+          <option value="واجهات منازل حجر">واجهات حجر</option>
+          <option value="نوافذ رخام">شبابيك</option>
+          <option value="أعمدة ودرابزينات رخام">أعمدة ودرابزين</option>
         </select></label>
         <label>&nbsp;<button class="btn sm" id="clAuto" type="button">اختيار أوتوماتيك</button></label>
       </div>
@@ -2891,7 +2892,7 @@ if(EMBED){
   let cur=null, hist=[];    // آخر نتيجة (dataURL خام بلا شعار) + السجل
   let busyNow=false;
 
-  function open(){$c('clWrap').classList.add('on');document.body.style.overflow='hidden';if(!refs.length)loadRefs()}
+  function open(){$c('clWrap').classList.add('on');document.body.style.overflow='hidden';if(!refs.length)loadRefs(true)}
 
   // ---------- صورة البيت ----------
   $c('clDrop').onclick=()=>$c('clFile').click();
@@ -2912,17 +2913,52 @@ if(EMBED){
     catch(e){say('ما قدرت افتح الصورة — جرّب صورة JPG أو PNG',1)}
   }
 
-  // ---------- صور شغلك من صفحات الموقع ----------
-  $c('clCat').onchange=loadRefs;
-  async function loadRefs(){
+  // ---------- صور شغلك من الموقع (مباشرة من قاعدة البيانات — كل صورة جديدة بتنضاف لحالها) ----------
+  const CAT_SLUG={'واجهات منازل حجر':'a3mal-facades-de-maisons-en-pierre','نوافذ رخام':'a3mal-fenetres-en-marbre','أعمدة ودرابزينات رخام':'a3mal-colonnes-et-balustrades-en-marbre','تابلوهات أرضية رخام':'a3mal-tableaux-de-sol-en-marbre','جرون حمامات رخام':'a3mal-bassin-en-bloc-de-marbre','حمامات رخام':'a3mal-salles-de-bains-en-marbre','حوائط رخام منحوتة':'a3mal-murs-en-marbre-sculpte','ديكورات مساجد':'a3mal-decoration-de-mosquees','سبالات مياه رخام':'a3mal-sabils-en-marbre','شلالات مياه':'a3mal-cascades-murales','شمينه رخام':'a3mal-cheminees-en-marbre','طاولات رخام':'a3mal-tables-en-marbre','نوافير رخام':'a3mal-fontaines-en-marbre','Lavabo en marbre naturel':'a3mal-lavabo-en-marbre-naturel'};
+  const ALL_CAT='__all';
+  const OK_SRC=/^https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/basel-7b29b\./;
+  let siteItems=null;       // كل أعمال الموقع من فايربيز
+  function addScript(u){return new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=u;sc.onload=ok;sc.onerror=no;document.head.appendChild(sc)})}
+  async function fetchSiteItems(){
+    if(!window.firebase){await addScript('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');await addScript('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js')}
+    const fb=window.firebase;
+    const app=(fb.apps||[]).find(a=>a.name==='siteWorks')||fb.initializeApp({apiKey:"AIzaSyDi1Pn7guMnyc0CetV8Z9IUC-k0gtav2_8",authDomain:"basel-7b29b.firebaseapp.com",projectId:"basel-7b29b",storageBucket:"basel-7b29b.firebasestorage.app",messagingSenderId:"1025769465563",appId:"1:1025769465563:web:53b5c9949dbb26364d8efe"},'siteWorks');
+    const snap=await app.firestore().collection('cesar_website').get();
+    let all=[];snap.forEach(d=>{if(d.id.startsWith('items_'))all=all.concat(d.data().items||[])});
+    all=all.filter(it=>OK_SRC.test(it.img||''));
+    all.sort((a,b)=>(b.cover?1:0)-(a.cover?1:0)||((a.order??1e9)-(b.order??1e9))||((b.createdAt||0)-(a.createdAt||0)));
+    return all;
+  }
+  function fillCats(){
+    const sel=$c('clCat'),cur=sel.value;const cnt=new Map();
+    siteItems.forEach(it=>{const c=(it.category||'').trim();if(c)cnt.set(c,(cnt.get(c)||0)+1)});
+    const cats=[...cnt.keys()].sort((a,b)=>a.localeCompare(b,'ar'));
+    sel.innerHTML='';
+    cats.forEach(c=>sel.add(new Option(c+' ('+cnt.get(c)+')',c)));
+    sel.add(new Option('كل الأعمال ('+siteItems.length+')',ALL_CAT));
+    sel.value=cats.includes(cur)?cur:(cats.includes('واجهات منازل حجر')?'واجهات منازل حجر':(cats[0]||ALL_CAT));
+  }
+  async function refsFromPage(cat){   // احتياط: لو قاعدة البيانات ما ردّت، منجيب من صفحة القسم
+    const slug=CAT_SLUG[cat];if(!slug)throw 0;
+    const r=await fetch('/'+slug+'.html?v='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;
+    const doc=new DOMParser().parseFromString(await r.text(),'text/html');
+    return [...doc.querySelectorAll('figure.card img')].map(i=>({src:i.getAttribute('src'),alt:i.getAttribute('alt')||''})).filter(x=>OK_SRC.test(x.src||''));
+  }
+  $c('clCat').onchange=()=>loadRefs(false);
+  async function loadRefs(fresh=true){
     const box=$c('clRefs');box.innerHTML='<span class="cl-note">عم يحمّل صور شغلك…</span>';picked.clear();refs=[];
-    try{const r=await fetch('/'+$c('clCat').value+'.html?v='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;
-      const doc=new DOMParser().parseFromString(await r.text(),'text/html');
-      refs=[...doc.querySelectorAll('figure.card img')].map(i=>({src:i.getAttribute('src'),alt:i.getAttribute('alt')||''})).filter(x=>/^https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/basel-7b29b\./.test(x.src||''));
+    if(fresh||!siteItems){try{siteItems=await fetchSiteItems();if(siteItems.length)fillCats();else siteItems=null}catch(e){siteItems=null}}
+    const cat=$c('clCat').value;
+    try{
+      if(siteItems){
+        refs=siteItems.filter(it=>cat===ALL_CAT||(it.category||'').trim()===cat)
+          .map(it=>({src:it.img,alt:[it.aiAltAr||it.title||it.category||'',it.color||''].filter(Boolean).join(' - ')}));
+      }else refs=await refsFromPage(cat);
       if(!refs.length)throw 0;
-      box.innerHTML='';refs.forEach((x,i)=>{const b=document.createElement('button');b.type='button';b.setAttribute('aria-pressed','false');b.title=x.alt.split(' - ')[0];
+      box.innerHTML='';const grid=document.createElement('div');grid.className='cl-refgrid';box.appendChild(grid);refs.forEach((x,i)=>{const b=document.createElement('button');b.type='button';b.setAttribute('aria-pressed','false');b.title=x.alt.split(' - ')[0];
         const im=new Image();im.loading='lazy';im.src=x.src;im.alt=b.title;b.appendChild(im);
-        b.onclick=()=>{if(picked.has(i)){picked.delete(i);b.setAttribute('aria-pressed','false')}else{if(picked.size>=4){tst('أكتر شي 4 صور');return}picked.add(i);b.setAttribute('aria-pressed','true')}};box.appendChild(b)});
+        b.onclick=()=>{if(picked.has(i)){picked.delete(i);b.setAttribute('aria-pressed','false')}else{if(picked.size>=4){tst('أكتر شي 4 صور');return}picked.add(i);b.setAttribute('aria-pressed','true')}};grid.appendChild(b)});
+      const n=document.createElement('span');n.className='cl-note cl-count';n.textContent=refs.length+' صورة';box.appendChild(n);
     }catch(e){box.innerHTML='<span class="cl-note">ما قدرت جيب صور شغلك هلق — بتشتغل الأداة بلاها (بالوصف بس)، أو جرّب بعد شوي.</span>'}
   }
   $c('clAuto').onclick=()=>{const bs=[...$c('clRefs').querySelectorAll('button')];if(!bs.length)return;picked.clear();bs.forEach(b=>b.setAttribute('aria-pressed','false'));
