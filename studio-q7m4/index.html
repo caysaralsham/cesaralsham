@@ -1499,7 +1499,7 @@ function drawJurn(s){
   if(hasBase)o+=dimH(-bW/2,bW/2,S*.19,fmt(bW))+dimV(0,-bH,Ln/2+S*.05,fmt(bH));
   const vol=Ln*Wp*H/1e6;
   const mN=k=>(MATS[k]||MATS[MAL[k]]||MATS.italian).name,SHN={round:'مدور',oval:'بيضوي',half:'نص دائرة',globe:'كروي'};
-  const stats=(sh==='oval'?[['العرض',fmt(Ln)]]:[['الطول',fmt(Ln)],['العرض',fmt(Wp)]]).concat([['الارتفاع',fmt(H)],['اللون',mN(s.mat)]]);
+  const stats=(sh==='oval'?[['العرض',fmt(Ln)]]:(sh==='round'||sh==='globe')?[['القطر',fmt(Ln)]]:[['الطول',fmt(Ln)],['العرض',fmt(Wp)]]).concat([['الارتفاع',fmt(H)],['اللون',mN(s.mat)]]);
   var jurnCut=[{title:'قائمة القطع للمعمل',head:['القطعة','القياس','العدد'],rows:[{cells:['بلوك الجرن (للقص)',Ln+' × '+Wp+' × '+(H-bH)+' سم','1']},{cells:['الشكل',{round:'مدور',oval:'بيضوي',half:'نص دائرة',globe:'كروي'}[sh]+(barrel?' كروي '+Math.round(kS*100)+'%':'')+'، حافة '+rim+' سم','-']}].concat(hasBase?[{cells:['القاعدة',bW+' × '+bH+' سم','1']}]:[])}];
   if(hasBase)stats.push(['القاعدة',bW+' عرض × '+bH+' ارتفاع']);
   if(seatOn){stats.push(['الكرسي',sp.txt+' سم، لون '+mN(s.smat)]);jurnCut[0].rows.push({cells:['الكرسي ('+sp.name+')',(sp.sh==='square'?sp.w+' × '+sp.d:(sp.sh==='round'?'قطر ':'عرض ')+sp.w)+' × '+sp.h+' سم','1']})}
