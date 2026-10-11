@@ -1467,7 +1467,7 @@ function drawJurnCone(s){
   if(s.rimStyle==='round'){const lh=Math.max(4,Math.min(9,H*.14));o+=R(-Dt/2-1,-H,Dt+2,lh,m,LW,`rx="${f(lh/2)}"`)}
   // مسقط
   const cy=pTop+Dt/2;o+=C(0,cy,Dt/2,m,LW)+C(0,cy,Dt/2-rim,dk?'rgba(255,255,255,.12)':'rgba(80,120,140,.18)',LW*.7)+`<circle cx="0" cy="${f(cy)}" r="${f(Db/2)}" fill="none" stroke="${dk?'#E9DCC2':INK}" stroke-width="${f(LW*.6)}" stroke-dasharray="3 3" opacity=".6"/>`+C(0,cy,Math.max(1.5,Dt*.035),'#555',LW*.5);
-  if(seatOn){const sm=M(s.smat);o+=seatFront(sX,0,sp,sm,LW)+seatTop((a,d)=>f(sX+a)+' '+f(cy+d),0,sp,sm,LW)+dimH(sX-sp.fw/2,sX+sp.fw/2,S*.1,fmt(sp.w),C_TAB)+dimV(0,-sp.h,xR+S*.04,fmt(sp.h),C_TAB)+dimH(Dt/2,sX-sp.fw/2,-FS*.6,fmt(Math.round(sGap)),C_DIST)}
+  if(seatOn){const sm=M(s.smat);o+=seatFront(sX,0,sp,sm,LW)+seatTop((a,d)=>f(sX+a)+' '+f(cy+d),0,sp,sm,LW)+dimH(sX-sp.fw/2,sX+sp.fw/2,S*.1,fmt(sp.w),C_TAB)+dimV(0,-sp.h,xR+S*.04,fmt(sp.h),C_TAB)}
   o+=T(xR+S*(seatOn?.1:.05),cy,'مسقط',FS*.7,'start','#5D656B')+T(xR+S*(seatOn?.1:.05),-H/2,'واجهة',FS*.7,'start','#5D656B');
   o+=dimH(-Dt/2,Dt/2,pTop-S*.04,'قطر '+fmt(Dt))+dimH(-Dt/2,Dt/2,-H-FS*1.3,'من فوق '+fmt(Dt))+dimH(-Db/2,Db/2,S*.1,'من تحت '+fmt(Db),C_FR)+dimV(0,-H,-Dt/2-S*.06,fmt(H));
   // مقطع
@@ -1649,7 +1649,7 @@ function drawJurn(s){
     o+=C(0,cy,Math.max(1.5,Math.min(Ln,Wp)*.035),'#555',LW*.5);
   }
   if(seatOn){const sm=M(s.smat);o+=seatFront(sX,0,sp,sm,LW)+seatTop((a,d)=>f(sX+a)+' '+f(cy+d),0,sp,sm,LW);
-    o+=dimH(sX-sp.fw/2,sX+sp.fw/2,S*.1,fmt(sp.sh==='hex'?Math.round(sp.fw):sp.w),C_TAB)+dimV(0,-sp.h,xR+S*.04,fmt(sp.h),C_TAB)+dimH(Ln/2,sX-sp.fw/2,-FS*.6,fmt(Math.round(sGap)),C_DIST)}
+    o+=dimH(sX-sp.fw/2,sX+sp.fw/2,S*.1,fmt(sp.sh==='hex'?Math.round(sp.fw):sp.w),C_TAB)+dimV(0,-sp.h,xR+S*.04,fmt(sp.h),C_TAB)}
   o+=T(xR+S*(seatOn?.1:.05),cy,'مسقط',FS*.7,'start','#5D656B')+T(xR+S*(seatOn?.1:.05),-H/2,'واجهة',FS*.7,'start','#5D656B');
   o+=dimH(-Ln/2,Ln/2,pTop-S*.04,fmt(Ln))+dimV(pTop+Wp,pTop,-Ln/2-S*.06,fmt(Wp));
   o+=dimH(-Ln/2,Ln/2,S*.1,fmt(Ln))+dimV(0,-H,-Ln/2-S*.06,fmt(H));
