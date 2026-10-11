@@ -132,8 +132,8 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .top .aiout:empty{display:none}
 .top .aiout.err{color:#F3A99B}
 .tabbar{position:sticky;top:0}
-.tabs{padding:6px 16px;gap:6px}
-.tabs button{padding:4px 14px;font-size:.85rem}
+.tabs{padding:5px 10px;gap:4px;flex-wrap:wrap;justify-content:center;max-width:none}
+.tabs button{padding:3px 9px;font-size:.8rem}
 main{max-width:1400px;grid-template-columns:330px minmax(0,1fr);gap:14px;padding:12px 16px}
 .panel{padding:4px 10px 10px;border-radius:14px}
 .sec{border-bottom:1px solid var(--line)}
@@ -156,7 +156,8 @@ input[type=range]{height:16px}
 .sw{width:28px;height:28px}
 .sec.grp>summary{font-size:.8rem;color:var(--ink);font-weight:700}
 .reset{margin-top:8px;padding:4px 10px;font-size:.78rem}
-.stage{position:sticky;top:46px;align-self:start;border-radius:14px}
+.stage{position:sticky;top:calc(var(--tabh,40px) + 6px);align-self:start;border-radius:14px}
+@media (min-width:861px){.stage{max-height:calc(100vh - var(--tabh,40px) - 12px);overflow-y:auto;overscroll-behavior:contain}}
 .stage.nostick{position:static}
 .detbox>summary{cursor:pointer;font-weight:800;font-size:.85rem;color:#8F6A1F;padding:4px 0}
 .sheet{padding:10px}
@@ -190,6 +191,7 @@ input[type=range]{height:16px}
   .stage2:empty{display:none}
   #draw{max-height:34vh}
   .tools{flex-basis:100%}
+  .tabs{flex-wrap:nowrap;justify-content:flex-start}
 }
 @media (min-width:861px){.stage2{display:none}}
 .drawscroll{overscroll-behavior:auto}
@@ -2695,7 +2697,9 @@ function drawTable(s){
   const S=Math.max(L0,H)*1.3;setScale(S);let o='';const hl=L0/2,yT=-H;
   // base
   const bw=Math.min(+s.bw,L0*.8);
-  if(base==='tulip'){o+=P(`M${f(-bw*.18)} ${f(yT+t)}L${f(bw*.18)} ${f(yT+t)}C${f(bw*.12)} ${f(-H*.45)} ${f(bw*.12)} ${f(-H*.2)} ${f(bw*.5)} ${f(-6)}L${f(bw*.5)} 0L${f(-bw*.5)} 0L${f(-bw*.5)} ${f(-6)}C${f(-bw*.12)} ${f(-H*.2)} ${f(-bw*.12)} ${f(-H*.45)} ${f(-bw*.18)} ${f(yT+t)}Z`,m2)+R(-bw*.55,-4,bw*1.1,4,m2,LW*.6)}
+  if(base.startsWith('col_')){const st=base.slice(4),nc=(sh==='rect'||sh==='oval')?Math.max(1,+s.nc||1):1,cw=Math.min(bw,nc>1?L0*.3:L0*.6),h=H-t;
+    const xs=nc===1?[0]:[-hl*.55,hl*.55];for(const x of xs){o+=R(x-cw*.62,-Math.max(3,h*.04),cw*1.24,Math.max(3,h*.04),m2,LW*.8)+column(x,-Math.max(3,h*.04),h-Math.max(3,h*.04),cw,st,m2)}}
+  else if(base==='tulip'){o+=P(`M${f(-bw*.18)} ${f(yT+t)}L${f(bw*.18)} ${f(yT+t)}C${f(bw*.12)} ${f(-H*.45)} ${f(bw*.12)} ${f(-H*.2)} ${f(bw*.5)} ${f(-6)}L${f(bw*.5)} 0L${f(-bw*.5)} 0L${f(-bw*.5)} ${f(-6)}C${f(-bw*.12)} ${f(-H*.2)} ${f(-bw*.12)} ${f(-H*.45)} ${f(-bw*.18)} ${f(yT+t)}Z`,m2)+R(-bw*.55,-4,bw*1.1,4,m2,LW*.6)}
   else if(base==='vase'){const h=H-t;o+=P(`M${f(-bw*.3)} ${f(yT+t)}L${f(bw*.3)} ${f(yT+t)}Q${f(bw*.12)} ${f(yT+t+h*.25)} ${f(bw*.14)} ${f(yT+t+h*.42)}Q${f(bw*.55)} ${f(yT+t+h*.7)} ${f(bw*.42)} ${f(-h*.08)}L${f(bw*.45)} 0L${f(-bw*.45)} 0L${f(-bw*.42)} ${f(-h*.08)}Q${f(-bw*.55)} ${f(yT+t+h*.7)} ${f(-bw*.14)} ${f(yT+t+h*.42)}Q${f(-bw*.12)} ${f(yT+t+h*.25)} ${f(-bw*.3)} ${f(yT+t)}Z`,m2)+R(-bw*.2,yT+t+h*.4,bw*.4,h*.04,m2,LW*.6,`rx="${f(h*.02)}"`)}
   else if(base==='cyl'){const cw=bw*.55,ph=Math.min(18,H*.2);o+=R(-bw/2,-ph,bw,ph,m2)+R(-cw/2,yT+t,cw,H-t-ph,m2)+L(-cw*.3,yT+t,-cw*.3,-ph,'rgba(255,255,255,.4)',LW)}
   else if(base==='balls'){const r=Math.min((H-t)/2,bw/3);for(const x of[-bw*.35,bw*.35])o+=C(x,-r,r,m2)+`<path d="M${f(x-r*.5)} ${f(-r*1.5)}Q${f(x-r*.1)} ${f(-r*1.8)} ${f(x+r*.3)} ${f(-r*1.6)}" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="${f(LW*1.5)}"/>`}
@@ -2715,9 +2719,9 @@ function drawTable(s){
   q+=dimH(-hl,hl,W0/2+FS*1.6,(sh==='round'?'قطر ':'طول ')+fmt(L0));if(sh!=='round'&&sh!=='square')q+=dimV(W0/2,-W0/2,hl+FS*1.2,'عرض '+fmt(W0));
   const plan={svg:q,box:[-hl-FS*2,hl+FS*3,-W0/2-FS*1.5,W0/2+FS*3],label:'من فوق'};
   o+=dimH(-hl,hl,yT-FS*1.4,(sh==='round'?'قطر ':'طول ')+fmt(L0))+dimV(0,yT,hl+S*.06,'الارتفاع '+fmt(H))+dimV(yT+t,yT,-hl-S*.04,'سماكة '+t,C_FR);
-  const SN={round:'مدورة',oval:'بيضوية',rect:'مستطيلة',square:'مربعة'},BN={tulip:'رجل توليب',vase:'رجل مزهرية',cyl:'عامود على قاعدة',balls:'كرات',legs4:'رجلين/أربع رجول مدورة',block:'بلوك منحوت ورود'},EN={plain:'سادة',bull:'مدور',rope:'حبل منحوت',step:'بدرجة'},IN={none:'بدون',ring:'حلقات',star:'نجمة',border:'إطار'};
+  const SN={round:'مدورة',oval:'بيضوية',rect:'مستطيلة',square:'مربعة'},BN={col_vase:'عامود بلستر',col_twist:'عامود ملفوف',col_classic:'عامود كلاسيك',col_straight:'عامود مخدد',col_leaf:'عامود أوراق منحوتة',tulip:'رجل توليب',vase:'رجل مزهرية',cyl:'عامود على قاعدة',balls:'كرات',legs4:'رجلين/أربع رجول مدورة',block:'بلوك منحوت ورود'},EN={plain:'سادة',bull:'مدور',rope:'حبل منحوت',step:'بدرجة'},IN={none:'بدون',ring:'حلقات',star:'نجمة',border:'إطار'};
   const area=(sh==='round'?Math.PI*hl*hl:sh==='oval'?Math.PI*hl*W0/2:L0*W0)/1e4;
-  const stats=[['الوجه',SN[sh]+'، '+(sh==='round'?'قطر '+L0:L0+' × '+W0)+' سم، سماكة '+t+' سم ('+area.toFixed(2)+' م²)'],['حرف الوجه',EN[edge]],['التطعيم',IN[inl]],['الرجل',BN[base]],['الارتفاع',fmt(H)]];
+  const stats=[['الوجه',SN[sh]+'، '+(sh==='round'?'قطر '+L0:L0+' × '+W0)+' سم، سماكة '+t+' سم ('+area.toFixed(2)+' م²)'],['حرف الوجه',EN[edge]],['التطعيم',IN[inl]],['الرجل',BN[base]+(base.startsWith('col_')&&(sh==='rect'||sh==='oval')&&+s.nc===2?' × 2':'')],['الارتفاع',fmt(H)]];
   const rows=[{cells:['وجه الطاولة',SN[sh]+' '+(sh==='round'?'قطر '+L0:L0+'×'+W0),'سماكة '+t]},{cells:['الرجل',BN[base],'ارتفاع '+(H-t)]}];
   return{svg:o,insets:[plan],stats,lines:[{desc:'طاولة رخام '+SN[sh]+' '+(sh==='round'?'قطر '+L0:L0+'×'+W0)+' سم، '+BN[base],qty:1,unit:'قطعة'}],tables:[{title:'قائمة القطع للمعمل',head:['القطعة','النوع','القياس'],rows}],box:[-hl-S*.1,hl+S*.18,yT-S*.1,S*.08],note:''};
 }
@@ -2935,7 +2939,8 @@ SCHEMAS.table={title:'طاولة',draw:drawTable,controls:[
   {id:'edge',label:'حرف الوجه',type:'seg',options:[['plain','سادة'],['bull','مدور'],['rope','حبل منحوت'],['step','بدرجة']],val:'plain'},
   {id:'inlay',label:'تطعيم على الوجه',type:'seg',options:[['none','بدون'],['ring','حلقات'],['star','نجمة'],['border','إطار']],val:'none'},
   head('الرجل'),
-  {id:'base',label:'شكل الرجل',type:'seg',options:[['tulip','توليب'],['vase','مزهرية'],['cyl','عامود على قاعدة'],['balls','كرات'],['legs4','رجول مدورة'],['block','بلوك منحوت ورود']],val:'tulip'},
+  {id:'base',label:'شكل الرجل',type:'seg',options:[['col_vase','عامود بلستر'],['col_classic','عامود كلاسيك'],['col_twist','عامود ملفوف'],['col_straight','عامود مخدد'],['col_leaf','عامود أوراق منحوتة'],['tulip','توليب'],['vase','مزهرية'],['cyl','عامود على قاعدة'],['balls','كرات'],['legs4','رجول مدورة'],['block','بلوك منحوت ورود']],val:'col_vase'},
+  {id:'nc',label:'عدد العواميد',type:'seg',options:[[1,'عامود واحد'],[2,'عامودين']],val:1,show:s=>String(s.base).startsWith('col_')&&(s.shape==='rect'||s.shape==='oval')},
   {id:'bw',label:'عرض الرجل',type:'range',min:15,max:200,step:1,val:50},
   {id:'H',label:'ارتفاع الطاولة',type:'range',min:30,max:110,step:1,val:75},
   {id:'mat',label:'رخام الوجه',type:'mat',val:'italian'},
@@ -3549,11 +3554,11 @@ document.getElementById('tbl').addEventListener('click',e=>{const tr=e.target.cl
   try{Object.assign(state[tab],JSON.parse(tr.dataset.pick));rebuildKeep();render();toast('تم اختيار القياس')}catch(err){}});
 
 function fitDraw(){const st=document.getElementById('stage'),sc=document.getElementById('drawScroll'),db=document.getElementById('detBox');if(!st||!sc)return;
-  const mob=window.innerWidth<=860,top=mob?42:46,sum=db.querySelector('summary');
+  const mob=window.innerWidth<=860,tbh=(document.querySelector('.tabbar')||{}).offsetHeight||40,top=mob?42:tbh+6,sum=db.querySelector('summary');
   const other=st.offsetHeight-sc.offsetHeight-(db.open&&st.contains(db)?db.offsetHeight-(sum?sum.offsetHeight:0):0);
   let avail=window.innerHeight-top-other-14;if(mob)avail=Math.min(avail,window.innerHeight*.4);avail=Math.max(260,Math.round(avail));
   document.documentElement.style.setProperty('--fitH',avail+'px')}
-function updateStick(){const st=document.getElementById('stage');if(!st)return;st.classList.remove('nostick');const top=window.innerWidth<=860?42:46;st.classList.toggle('nostick',st.offsetHeight>window.innerHeight-top-6)}
+function updateStick(){const st=document.getElementById('stage');if(!st)return;const tb=document.querySelector('.tabbar');if(tb)document.documentElement.style.setProperty('--tabh',tb.offsetHeight+'px');st.classList.remove('nostick');if(window.innerWidth>860)return;const top=42;st.classList.toggle('nostick',st.offsetHeight>window.innerHeight-top-6)}
 let mobLay=null;
 function placeDetails(){const mob=window.innerWidth<=860;if(mob===mobLay)return;mobLay=mob;
   const ins=document.getElementById('insets'),db=document.getElementById('detBox'),s2=document.getElementById('stage2');
