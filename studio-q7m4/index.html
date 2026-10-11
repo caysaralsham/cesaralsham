@@ -313,9 +313,11 @@ const MATS={
   nero:{name:'أسود',c:'#232326',d:'#141416',v:'#D9D9DC',n:5,o:.45},
   red:{name:'أحمر',c:'#A44E3F',d:'#7E3528',v:'#D9A08F',n:5,o:.35},
   green:{name:'أخضر',c:'#2F5B47',d:'#1E3E30',v:'#9CC2AE',n:6,o:.4},
-  giallo:{name:'أصفر',c:'#D9B871',d:'#B8954E',v:'#F2DDA6',n:4,o:.35}
+  giallo:{name:'أصفر',c:'#D9B871',d:'#B8954E',v:'#F2DDA6',n:4,o:.35},
+  portoro:{name:'أسود بعروق ذهبية',c:'#2A2624',d:'#151312',v:'#C9A25A',n:6,o:.6},
+  travert:{name:'ترافرتين',c:'#E2CFAE',d:'#C7AF88',v:'#B59A70',n:9,o:.22}
 };
-const BASE_MATS=['italian','beigeL','black'],ALL_MATS=['crema','beigeL','italian','emper','black','nero','red','green','giallo'];
+const BASE_MATS=['italian','beigeL','black'],ALL_MATS=['italian','crema','beigeL','travert','giallo','emper','black','portoro','nero','red','green'];
 const MAL={beigeD:'beigeL',brown:'black'};
 const INK='#2B3238', DIM='#9C3A25', WATER='#4F9BC2', BRASS='#B08A3E', IRON='#1E1F21';
 let LW=1, FS=10;
@@ -818,63 +820,114 @@ function drawWindow(s){
 }
 
 /* ---------- fireplace ---------- */
+function fpOpen(cx,w,top,bottom,type){
+  if(type==='basket'){const x1=cx-w/2,x2=cx+w/2,r=Math.min(w*.2,(bottom-top)*.35);
+    return `M${f(x1)} ${f(bottom)}L${f(x1)} ${f(top+r)}Q${f(x1)} ${f(top)} ${f(x1+r*1.4)} ${f(top)}L${f(x2-r*1.4)} ${f(top)}Q${f(x2)} ${f(top)} ${f(x2)} ${f(top+r)}L${f(x2)} ${f(bottom)}Z`}
+  return shapePath(cx,w,top,bottom,type==='arch'?'arch':'rect');
+}
+function fpCrest(cx,by,ch,m){
+  let o=P(`M${f(cx-ch*.45)} ${f(by)}Q${f(cx-ch*.55)} ${f(by-ch*.7)} ${f(cx)} ${f(by-ch*.85)}Q${f(cx+ch*.55)} ${f(by-ch*.7)} ${f(cx+ch*.45)} ${f(by)}Z`,m)+shell(cx,by-ch*.78,ch*.2,m)+`<ellipse cx="${f(cx)}" cy="${f(by-ch*.38)}" rx="${f(ch*.16)}" ry="${f(ch*.2)}" fill="${RELIEF}" stroke="${INK}" stroke-width="${f(LW*.5)}"/>`;
+  for(const sd of[-1,1]){o+=P(`M${f(cx+sd*ch*.4)} ${f(by)}Q${f(cx+sd*ch*.9)} ${f(by-ch*.55)} ${f(cx+sd*ch*1.5)} ${f(by-ch*.18)}Q${f(cx+sd*ch*1.7)} ${f(by-ch*.05)} ${f(cx+sd*ch*1.9)} ${f(by)}Z`,m);
+    o+=carve(spiral(cx+sd*ch*.75,by-ch*.32,ch*.17,1.4,sd),LW*.6)+rose(cx+sd*ch*1.3,by-ch*.18,ch*.12)+leaf(cx+sd*ch*.5,by-2,ch*.6,ch*.12,sd>0?-14:-166,RELIEF,3)}
+  return o;
+}
+function fpKey(kind,cx,cy,r,m){
+  if(kind==='shell')return shell(cx,cy+r*.45,r,m)+leaf(cx-r*.9,cy+r*.4,r*1.1,r*.22,-170,RELIEF,3)+leaf(cx+r*.9,cy+r*.4,r*1.1,r*.22,-10,RELIEF,3)+carve(spiral(cx-r*1.7,cy+r*.15,r*.35,1.3,-1),LW*.5)+carve(spiral(cx+r*1.7,cy+r*.15,r*.35,1.3,1),LW*.5);
+  if(kind==='cart')return `<ellipse cx="${f(cx)}" cy="${f(cy)}" rx="${f(r*.8)}" ry="${f(r*.62)}" fill="${m}" stroke="${INK}" stroke-width="${f(LW*.8)}"/><ellipse cx="${f(cx)}" cy="${f(cy)}" rx="${f(r*.52)}" ry="${f(r*.4)}" fill="${RELIEF}" stroke="${INK}" stroke-width="${f(LW*.5)}"/>`+shell(cx,cy-r*.55,r*.35,m)+carve(spiral(cx-r*1.2,cy,r*.4,1.4,-1),LW*.55)+carve(spiral(cx+r*1.2,cy,r*.4,1.4,1),LW*.55)+leaf(cx-r*.7,cy+r*.5,r*1.2,r*.22,165,RELIEF,3)+leaf(cx+r*.7,cy+r*.5,r*1.2,r*.22,15,RELIEF,3);
+  if(kind==='flowers'){let o=rose(cx,cy,r*.42);for(const sd of[-1,1]){o+=rose(cx+sd*r*.95,cy+r*.12,r*.3)+rose(cx+sd*r*1.75,cy+r*.3,r*.24);o+=leaf(cx+sd*r*.5,cy+r*.3,r*.7,r*.16,sd>0?20:160,RELIEF,2)+leaf(cx+sd*r*1.35,cy+r*.45,r*.6,r*.14,sd>0?30:150,RELIEF,2)+leaf(cx+sd*r*2.1,cy+r*.45,r*.55,r*.13,sd>0?10:170,RELIEF,2)}return o}
+  return '';
+}
+function fpArabesque(x0,y0,w,h,u){let o='';let row=0;
+  for(let y=y0+u*.5;y<y0+h+u*.5;y+=u,row++)for(let x=x0+u*.5+(row%2)*u*.5;x<x0+w+u*.5;x+=u){
+    const sd=(row%2)?1:-1;o+=carve(spiral(x,y,u*.3,1.5,sd),LW*.5)+leaf(x+sd*u*.18,y+u*.22,u*.5,u*.12,sd>0?-30:-150,RELIEF,2)+leaf(x-sd*u*.25,y-u*.2,u*.42,u*.1,sd>0?150:30,RELIEF,2)}
+  return o}
 function drawFireplace(s){
-  const W=+s.W,H=+s.H,st=s.style==='stepped'?'stepped':'classic',D=+s.D||40,kf=+s.kf,kb=Math.max(4,+s.kb||5),hT=4,arch=false;
-  const cor=+s.cor,ch=cor?+s.corH:0,topH=cor?ch:(st==='modern'?0:9),bodyH=H-topH;
-  const tabH=+s.tab?(+s.tabH||0):0,tabW=Math.min(+s.tabW||W,W+40);
-  const ow=Math.min(+s.ow,W-2*kf-20),oh=Math.max(20,Math.min(+s.oh,bodyH-kb-kf-6)),Ht=H+tabH,S=Math.max(W+40,Ht);setScale(S);
-  const m=M(s.mat),m2=M(s.mat2),m3=M(s.mat3);let o='';
-  if(tabH>0){o+=R(-tabW/2,-Ht,tabW,tabH,m)+R(-tabW/2+8,-Ht+8,tabW-16,tabH-16,'none',LW*.6)}
+  const W=+s.W,H=+s.H,st=s.style||'classic',D=+s.D||40,kf=+s.kf,kb=Math.max(4,+s.kb||5),hT=4,ot=s.otop||'rect',arch=ot!=='rect';
+  const cor=+s.cor,ch=cor?+s.corH:0,topH=cor?ch:(st==='modern'?4:9),bodyH=H-topH;
+  const tabOn=+s.tab,tabH=tabOn?(+s.tabH||0):0,tabW=Math.min(+s.tabW||W,W+40),crest=+s.crest,crH=crest?Math.min(W*.22,45):0;
+  const corner=+s.corner,wing=corner?Math.min(D,W*.3):0;
+  const ow=Math.min(+s.ow,W-2*kf-20),oh=Math.max(20,Math.min(+s.oh,bodyH-kb-kf-6)),Ht=H+Math.max(tabH,crH),S=Math.max(W+40+wing*2,Ht);setScale(S);
+  const m=M(s.mat),m3=M(s.mat3);let o='';
+  // overmantel
+  if(tabH>0){const y0=-H-tabH,tt=s.tabType||'rect';
+    if(tt==='arch'){const fw=Math.max(8,tabW*.08);o+=P(shapePath(0,tabW,y0,-H,'arch'),m)+P(shapePath(0,tabW-2*fw,y0+fw,-H,'arch'),'#EEE9E0',LW*.7);const kw=fw*1.6;o+=P(`M${f(-kw/2)} ${f(y0-2)}L${f(kw/2)} ${f(y0-2)}L${f(kw*.35)} ${f(y0+fw*1.5)}L${f(-kw*.35)} ${f(y0+fw*1.5)}Z`,m)}
+    else if(tt==='mirror'){const fw=Math.max(6,tabW*.06);o+=R(-tabW/2,y0,tabW,tabH,m)+R(-tabW/2+fw,y0+fw,tabW-2*fw,tabH-2*fw,'#D8E6EE',LW*.7);for(const t of[.25,.4])o+=L(-tabW/2+fw+(tabW-2*fw)*t,y0+tabH-fw,-tabW/2+fw+(tabW-2*fw)*(t+.25),y0+fw,'rgba(255,255,255,.8)',LW*2)}
+    else o+=R(-tabW/2,y0,tabW,tabH,m)+R(-tabW/2+8,y0+8,tabW-16,tabH-16,'none',LW*.6)}
+  // corner wings (receding sides)
+  if(corner){const xb=(st==='stepped'?W-24:(st==='modern'||st==='linear'||st==='carved')?W-8:W-20)/2-(st==='louis'?14:0);for(const sd of[-1,1]){const x=sd*xb,xw=sd*(W/2+wing),dy=wing*.45;
+    o+=P(`M${f(x)} ${f(-bodyH)}L${f(xw)} ${f(-bodyH+dy)}L${f(xw)} ${f(-dy*.3)}L${f(x)} 0Z`,m)+P(`M${f(x)} ${f(-bodyH)}L${f(xw)} ${f(-bodyH+dy)}L${f(xw)} ${f(-dy*.3)}L${f(x)} 0Z`,'rgba(0,0,0,.14)',LW*.6)}}
   // body
+  const bw=st==='stepped'?W-24:(st==='modern'||st==='linear'||st==='carved')?W-8:W-20;
   if(st==='stepped'){
     o+=R(-W/2+4,-12,W-8,12,m)+R(-(W-24)/2,-bodyH,W-24,bodyH-12,m);
-    for(let k=3;k>=1;k--){const e=kf+k*9;if(ow+2*e>W-30||kb+oh+e+(arch?0:0)>bodyH-4)continue;o+=P(shapePath(0,ow+2*e,-(kb+oh+e),-12,arch?'arch':'rect'),m,LW*.8)}
-  }else if(st==='modern'){
-    o+=R(-W/2,-bodyH,W,bodyH,m);
+    for(let k=3;k>=1;k--){const e=kf+k*9;if(ow+2*e>W-30||kb+oh+e>bodyH-4)continue;o+=P(fpOpen(0,ow+2*e,-(kb+oh+e),-12,ot),m,LW*.8)}
+  }else if(st==='modern'||st==='linear'){
+    o+=R(-bw/2,-bodyH,bw,bodyH,m);
+    if(st==='linear'){const pw=(bw-ow-2*kf)/2-8,ph=Math.min(pw,bodyH-16);if(pw>12)for(const sd of[-1,1]){const cx=sd*(ow/2+kf+4+pw/2),cy=-bodyH/2-2;o+=R(cx-pw/2,cy-ph/2,pw,ph,'none',LW*.6)+baroque(cx,cy,pw*.9,ph*.9)}}
+  }else if(st==='carved'){
+    o+=R(-bw/2,-bodyH,bw,bodyH,m);const id=nid('fa');
+    o+=`<clipPath id="${id}"><rect x="${f(-bw/2+4)}" y="${f(-bodyH+4)}" width="${f(bw-8)}" height="${f(bodyH-16)}"/></clipPath><g clip-path="url(#${id})">${fpArabesque(-bw/2,-bodyH,bw,bodyH,Math.max(14,Math.min(bw,bodyH)/6))}</g>`;
+    o+=R(-bw/2+3,-bodyH+3,bw-6,bodyH-15,'none',LW*.6)+R(-bw/2+6,-12,bw-12,12,m);
+  }else if(st==='louis'){
+    o+=R(-bw/2+10,-bodyH,bw-20,bodyH,m);
+    const lw=Math.max(16,(bw-ow-2*kf)/2),yT=-bodyH;
+    for(const sd of[-1,1]){const xo=sd*bw/2,xi=sd*(bw/2-lw),hL=bodyH;
+      const d=`M${f(xi)} ${f(yT)}L${f(xo+sd*lw*.12)} ${f(yT)}C${f(xo+sd*lw*.35)} ${f(yT+hL*.12)} ${f(xo-sd*lw*.05)} ${f(yT+hL*.3)} ${f(xo-sd*lw*.3)} ${f(yT+hL*.5)}C${f(xo-sd*lw*.45)} ${f(yT+hL*.68)} ${f(xo-sd*lw*.25)} ${f(-hL*.12)} ${f(xo+sd*lw*.08)} ${f(-12)}L${f(xi)} ${f(-12)}Z`;
+      o+=P(d,m);o+=carve(spiral(xo-sd*lw*.12,yT+hL*.12,lw*.22,1.4,-sd),LW*.6)+carve(spiral(xo-sd*lw*.1,-12-lw*.25,lw*.2,1.3,sd),LW*.6);
+      const cx=(xo+xi)/2-sd*lw*.08;for(let k=0;k<3;k++){const y=yT+hL*(.3+k*.17);o+=rose(cx,y,lw*.17)+leaf(cx,y+lw*.12,lw*.42,lw*.1,90+sd*20,RELIEF,2)}}
+    o+=R(-bw/2+6,-12,bw-12,12,m);
   }else{
-    const bw=W-20,leg=Math.max(12,(bw-ow-2*kf)/2*.7);
+    const leg=Math.max(12,(bw-ow-2*kf)/2*.7);
     o+=R(-bw/2,-bodyH,bw,bodyH,m);
     for(const sd of[-1,1]){const x=sd<0?-bw/2:bw/2-leg;o+=R(x+4,-(kb+oh*.85),leg-8,kb+oh*.85-14,'none',LW*.5)}
-    const fy=-(kb+oh+kf)-6,fh=Math.max(0,bodyH+fy-6);if(fh>10)o+=R(-bw*.16,-bodyH+6,bw*.32,fh,'none',LW*.6);
+    const fy=-(kb+oh+kf)-6,fh=Math.max(0,bodyH+fy-6);if(fh>10&&(s.key||'none')==='none')o+=R(-bw*.16,-bodyH+6,bw*.32,fh,'none',LW*.6);
     o+=R(-bw/2+6,-12,bw-12,12,m);
   }
-  // carved floral band under the cornice / shelf
+  // carved floral band under the shelf
   let dH=0;
-  if(+s.deco){const bw=st==='stepped'?W-24:W-20,yT=-H+topH,lim=Math.max(0,bodyH-(kb+oh+kf)-10);dH=Math.min(+s.decoH,lim);
+  if(+s.deco){const yT=-H+topH,lim=Math.max(0,bodyH-(kb+oh+kf)-10);dH=Math.min(+s.decoH,lim);
     if(dH>=8){const x0=-bw/2+4,x1=bw/2-4;o+=R(x0,yT,x1-x0,dH,m,LW*.8)+R(x0+3,yT+3,x1-x0-6,dH-6,RELIEF,LW*.45);
       o+=scrollBand(x0+8,-dH*.9,yT+dH/2,dH*.82)+scrollBand(dH*.9,x1-8,yT+dH/2,dH*.82)+rose(0,yT+dH/2,dH*.34);
       for(const sd of[-1,1])o+=leaf(sd*dH*.4,yT+dH/2,dH*.55,dH*.14,sd>0?-10:-170,RELIEF,3);
-      {let i=0;for(let x=x0+dH*.9;x<x1-dH*.6;x+=dH*1.15,i++){if(Math.abs(x)<dH*1.1)continue;const up=i%2?1:-1;o+=leaf(x,yT+dH/2,dH*.42,dH*.13,up>0?-50:50,'rgba(0,0,0,.10)',3)+leaf(x,yT+dH/2,dH*.32,dH*.1,up>0?-130:130,'rgba(0,0,0,.07)',2)}}
       o+=dimV(yT+dH,yT,-W/2-S*.04,'زخرفة '+Math.round(dH),C_FR)}else dH=0}
   // top: cornice or shelf
-  if(cor){const y0=-H;o+=R(-W/2,y0,W,ch*.42,m)+R(-W/2+ch*.25,y0+ch*.42,W-ch*.5,ch*.3,m)+R(-W/2+ch*.5,y0+ch*.72,W-ch,ch*.28,m)}
-  else if(topH>0)o+=R(-W/2,-H,W,topH,m);
-  // fire opening + frame (4 sides)
-  const oTop=-(kb+oh),fTop=oTop-kf,sp=arch?shapePath(0,ow,oTop,-kb,'arch'):null;
-  o+=P(shapePath(0,ow+2*kf,fTop,0,arch?'arch':'rect'),m3)+P(shapePath(0,ow,oTop,-kb,arch?'arch':'rect'),'#2A2422');
-  if(arch&&+s.crown){
-    const cH=+s.crH>0?+s.crH:2*kf,cwT=Math.max(cH*.75,kf*1.6),cwB=cwT*.65,pos=s.crPos||'mid';
-    let y1=pos==='top'?fTop-cH:pos==='bot'?fTop:fTop+kf/2-cH/2;y1=Math.max(y1,-H);
-    o+=P(`M${f(-cwT/2)} ${f(y1)}L${f(cwT/2)} ${f(y1)}L${f(cwB/2)} ${f(y1+cH)}L${f(-cwB/2)} ${f(y1+cH)}Z`,m3)+P(`M${f(-cwT*.32)} ${f(y1+cH*.15)}L${f(cwT*.32)} ${f(y1+cH*.15)}L${f(cwB*.3)} ${f(y1+cH*.85)}L${f(-cwB*.3)} ${f(y1+cH*.85)}Z`,'none',LW*.4);
-  }
-  if(+s.fire){
-    const b=-kb;o+=R(-ow*.3,b-7,ow*.6,7,'#5A3A26')+R(-ow*.22,b-13,ow*.44,6,'#6B4630');
-    const fh=Math.min(oh*.5,40);
-    for(const [x,h,c] of [[-ow*.12,fh*.8,'#E0782F'],[0,fh,'#F0A03A'],[ow*.12,fh*.7,'#E0782F'],[0,fh*.55,'#F7D36A']])
-      o+=`<path d="M${f(x-ow*.08)} ${f(b-13)}Q${f(x-ow*.09)} ${f(b-13-h*.5)} ${f(x)} ${f(b-13-h)}Q${f(x+ow*.09)} ${f(b-13-h*.5)} ${f(x+ow*.08)} ${f(b-13)}Z" fill="${c}" opacity=".9"/>`;
-  }
-  o+=R(-W/2,0,W,hT,m3);
+  if(cor){const y0=-H;o+=R(-W/2-wing,y0,W+2*wing,ch*.42,m)+R(-W/2+ch*.25,y0+ch*.42,W-ch*.5,ch*.3,m)+R(-W/2+ch*.5,y0+ch*.72,W-ch,ch*.28,m)}
+  else if(topH>0)o+=R(-W/2-wing,-H,W+2*wing,topH,m);
+  if(crest)o+=fpCrest(0,-H,crH,m);
+  // fire opening + frame
+  const oTop=-(kb+oh),fTop=oTop-kf;
+  if(+s.led){for(const [w,a] of[[LW*14,.18],[LW*8,.3],[LW*3,.6]])o+=`<path d="${fpOpen(0,ow+2*kf+LW*4,fTop-LW*2,0,ot)}" fill="none" stroke="#6FE3D3" stroke-width="${f(w)}" opacity="${a}"/>`}
+  o+=P(fpOpen(0,ow+2*kf,fTop,0,ot),m3);
+  const op=fpOpen(0,ow,oTop,-kb,ot),ins=s.ins||'elec',cid=nid('fo');
+  let g='';
+  if(ins==='wood'){g+=R(-ow/2,oTop,ow,oh,'#6A3424');const bh=Math.max(4,oh/9),bwk=bh*2.4;let r=0;for(let y=-kb;y>oTop;y-=bh,r++){g+=L(-ow/2,y,ow/2,y,'#C9A78E',LW*.5);for(let x=-ow/2+(r%2)*bwk/2;x<ow/2;x+=bwk)g+=L(x,y,x,y-bh,'#C9A78E',LW*.5)}
+    g+=P(`M${f(-ow*.32)} ${f(-kb)}L${f(-ow*.2)} ${f(oTop+oh*.55)}L${f(ow*.2)} ${f(oTop+oh*.55)}L${f(ow*.32)} ${f(-kb)}Z`,'rgba(0,0,0,.25)',0)}
+  else if(ins==='elec'){g+=R(-ow/2,oTop,ow,oh,'#141414')+R(-ow/2+LW*3,oTop+LW*3,ow-LW*6,oh-LW*6,'#1E1A19',LW*.6);for(let x=-ow*.42;x<ow*.42;x+=ow*.045)g+=`<ellipse cx="${f(x)}" cy="${f(-kb-3)}" rx="${f(ow*.022)}" ry="2" fill="#E9E6E0"/>`}
+  else g+=R(-ow/2,oTop,ow,oh,'#2A2422');
+  if(+s.fire&&ins!=='dark'){const b=-kb-(ins==='elec'?5:0);if(ins==='wood')g+=R(-ow*.3,b-7,ow*.6,7,'#5A3A26')+R(-ow*.22,b-13,ow*.44,6,'#6B4630');
+    const fh=Math.min(oh*.5,40),n=ins==='elec'?Math.max(3,Math.round(ow/22)):3,bb=ins==='wood'?b-13:b-2;
+    for(let i=0;i<n;i++){const x=n===1?0:-ow*.38+ow*.76*i/(n-1),h=fh*(ins==='elec'?.55:1)*(.7+.3*Math.sin(i*1.7+1));
+      for(const [k,c] of[[1,'#E0782F'],[.6,'#F7D36A']])g+=`<path d="M${f(x-ow*.05*k*(ins==='elec'?1:1.6))} ${f(bb)}Q${f(x-ow*.05)} ${f(bb-h*k*.5)} ${f(x)} ${f(bb-h*k)}Q${f(x+ow*.05)} ${f(bb-h*k*.5)} ${f(x+ow*.05*k*(ins==='elec'?1:1.6))} ${f(bb)}Z" fill="${c}" opacity=".9"/>`}}
+  o+=`<clipPath id="${cid}"><path d="${op}"/></clipPath><g clip-path="url(#${cid})">${g}</g>`+P(op,'none',LW);
+  // centre ornament above the opening
+  const key=s.key||'none';if(key!=='none'){const spaceT=-H+topH+dH,room=fTop-spaceT;if(room>10){const r=Math.min(room*.42,ow*.14);o+=fpKey(key,0,fTop-room*.5,r,m)}}
+  o+=R(-W/2-wing,0,W+2*wing,hT,m3);
   // dims
   o+=dimH(-W/2,W/2,hT+S*.08,fmt(W))+dimH(-ow/2,ow/2,-kb-FS*1.6,'فتحة '+fmt(ow))+dimV(-kb,oTop,-ow/2+FS*1.2,fmt(oh));
   o+=dimH(ow/2,ow/2+kf,oTop+oh*.45,fmt(kf),C_FR)+dimV(0,-kb,ow/2+kf+FS*.9,'تحت النار '+kb,C_FR);
-  o+=dimV(0,-H,W/2+S*.06,'ارتفاع '+fmt(H));
-  if(cor)o+=dimV(-H+ch,-H,-W/2-S*.04,'كورنيش '+ch);
-  if(tabH>0)o+=dimV(-H,-Ht,W/2+S*.06,'تابلو '+fmt(tabH))+dimH(-tabW/2,tabW/2,-Ht-FS*.6,'تابلو '+fmt(tabW))+dimV(0,-Ht,W/2+S*.14,'الكامل '+fmt(Ht));
-  const stats=[['الارتفاع الكامل',fmt(Ht)],['ارتفاع الشمينيه',fmt(H)],['العرض',fmt(W)],['العمق',fmt(D)],['فتحة النار',(arch?'قوس ':'')+ow+' × '+oh+' سم'],['كادر فتحة النار','جوانب وفوق '+kf+' سم، تحت النار '+kb+' سم']];
+  o+=dimV(0,-H,W/2+wing+S*.06,'ارتفاع '+fmt(H));
+  if(corner)o+=dimH(W/2,W/2+wing,hT+S*.03,'زاوية '+fmt(wing),C_FR);
+  if(cor)o+=dimV(-H+ch,-H,-W/2-wing-S*.04,'كورنيش '+ch);
+  const topAll=-H-Math.max(tabH,crH);
+  if(tabH>0)o+=dimV(-H,-H-tabH,W/2+wing+S*.06,'فوق '+fmt(tabH))+dimH(-tabW/2,tabW/2,-H-tabH-FS*.6,fmt(tabW))+dimV(0,topAll,W/2+wing+S*.14,'الكامل '+fmt(-topAll));
+  const SN={classic:'كلاسيك',louis:'لويس (أرجل ملفوفة)',stepped:'إطارات متدرجة',modern:'مودرن سادة',carved:'منحوتة بالكامل',linear:'طولية واطية'};
+  const stats=[['الطراز',SN[st]+(corner?'، شمينيه زاوية':'')],['الارتفاع الكامل',fmt(-topAll)],['ارتفاع الشمينيه',fmt(H)],['العرض',fmt(W)],['العمق',fmt(D)],['فتحة النار',{rect:'',arch:'قوس ',basket:'زوايا مدورة '}[ot]+ow+' × '+oh+' سم'],['كادر فتحة النار','جوانب وفوق '+kf+' سم، تحت النار '+kb+' سم'],['جوّا الفتحة',{elec:'نار كهربا (زجاج أسود)',wood:'نار حطب (طوب حراري)',dark:'فاضية'}[ins]+(+s.led?'، مع إضاءة LED':'')]];
+  if(key!=='none')stats.push(['النحت بالنص',{shell:'صدفة وأوراق',cart:'كارتوش',flowers:'ورد وأوراق'}[key]]);
   if(cor)stats.push(['الكورنيش','ارتفاع '+ch+' سم']);
+  if(crest)stats.push(['تاج فوق الرف','منحوت، ارتفاع '+Math.round(crH)+' سم تقريباً']);
   if(dH)stats.push(['الزخرفة','حزام نحت نباتي نافر بعرض الشمينيه، ارتفاع '+Math.round(dH)+' سم']);
-  if(tabH>0)stats.push(['التابلو فوق الشمينيه',tabW+' × '+tabH+' سم']);
-  return{svg:o,box:[-W/2-S*.11,W/2+S*(tabH>0?.22:.15),-Ht-S*.06,S*.19],stats,
+  if(tabH>0)stats.push(['فوق الشمينيه',{rect:'تابلو',arch:'قوس مع مفتاح',mirror:'إطار مراية'}[s.tabType||'rect']+' '+tabW+' × '+tabH+' سم']);
+  return{svg:o,box:[-W/2-wing-S*.11,W/2+wing+S*(tabH>0?.22:.15),topAll-S*.06,S*.19],stats,
     note:(ow<+s.ow||oh<+s.oh)?'صغّرتُ فتحة النار لتتسع ضمن الشمينيه.':''};
 }
 
@@ -2065,24 +2118,33 @@ const SCHEMAS={
     {id:'wall',label:'مادة الحائط',type:'mat',val:'beigeL'}]},
   fireplace:{title:'شمينيه',draw:drawFireplace,controls:[
     head('الشمينيه'),
-    {id:'style',label:'الطراز',type:'seg',options:[['classic','كلاسيك'],['stepped','إطارات متدرجة']],val:'classic'},
-    {id:'deco',label:'زخرفة نباتي نحت نافر (تحت الكورنيش)',type:'seg',options:[[0,'بدون'],[1,'مع زخرفة']],val:0},
-    {id:'decoH',label:'ارتفاع الزخرفة',type:'range',min:15,max:40,step:1,val:20,show:s=>+s.deco},
-    {id:'W',label:'العرض',type:'range',min:80,max:300,step:1,val:170},
-    {id:'H',label:'ارتفاع الشمينيه',type:'range',min:60,max:200,step:1,val:120},
-    {id:'D',label:'العمق (لقدّام)',type:'range',min:30,max:50,step:1,val:40},
+    {id:'style',label:'الطراز',type:'seg',options:[['classic','كلاسيك'],['louis','لويس (أرجل ملفوفة)'],['stepped','إطارات متدرجة'],['modern','مودرن سادة'],['carved','منحوتة بالكامل'],['linear','طولية واطية']],val:'classic',preset:{
+      classic:{key:'none',otop:'rect'},louis:{key:'shell',otop:'basket',W:160,H:115,ow:75,oh:62},stepped:{key:'none',otop:'rect',deco:0},modern:{key:'none',otop:'rect',deco:0,cor:0},
+      carved:{key:'none',otop:'arch',deco:0},linear:{key:'none',otop:'rect',W:220,H:60,ow:150,oh:32,deco:0,cor:0}}},
+    {id:'W',label:'العرض',type:'range',min:80,max:400,step:1,val:170},
+    {id:'H',label:'ارتفاع الشمينيه',type:'range',min:40,max:200,step:1,val:120},
+    {id:'D',label:'العمق (لقدّام)',type:'range',min:20,max:60,step:1,val:40},
+    {id:'corner',label:'شمينيه زاوية',type:'seg',options:[[0,'على حيط'],[1,'بالزاوية']],val:0},
+    {id:'key',label:'نحت بالنص فوق الفتحة',type:'seg',options:[['none','بدون'],['shell','صدفة وأوراق'],['cart','كارتوش'],['flowers','ورد وأوراق']],val:'none'},
+    {id:'deco',label:'زخرفة نباتي نحت نافر (تحت الرف)',type:'seg',options:[[0,'بدون'],[1,'مع زخرفة']],val:0},
+    {id:'decoH',label:'ارتفاع الزخرفة',type:'range',min:8,max:40,step:1,val:20,show:s=>+s.deco},
     {id:'cor',label:'كورنيش فوق',type:'seg',options:YN,val:0},
     {id:'corH',label:'ارتفاع الكورنيش',type:'range',min:5,max:30,step:1,val:12,show:s=>+s.cor},
+    {id:'crest',label:'تاج منحوت فوق الرف',type:'seg',options:YN,val:0},
     head('فتحة النار'),
-    {id:'ow',label:'عرض الفتحة',type:'range',min:30,max:200,step:1,val:90},
-    {id:'oh',label:'ارتفاع الفتحة من جوّا',type:'range',min:30,max:150,step:1,val:70},
-    {id:'kf',label:'عرض الكادر',type:'range',min:5,max:40,step:1,val:8},
+    {id:'otop',label:'شكل الفتحة',type:'seg',options:[['rect','مستطيل'],['basket','زوايا مدورة'],['arch','قوس']],val:'rect'},
+    {id:'ow',label:'عرض الفتحة',type:'range',min:30,max:300,step:1,val:90},
+    {id:'oh',label:'ارتفاع الفتحة من جوّا',type:'range',min:20,max:150,step:1,val:70},
+    {id:'kf',label:'عرض الكادر',type:'range',min:2,max:40,step:1,val:8},
     {id:'kb',label:'رخام تحت النار (رفع النار)',type:'range',min:4,max:25,step:1,val:5},
-    {id:'fire',label:'إظهار النار',type:'seg',options:YN,val:1},
-    head('تابلو فوق الشمينيه',true),
-    {id:'tab',label:'تابلو فوق الشمينيه',type:'seg',options:[[0,'بدون'],[1,'مع تابلو']],val:0},
-    {id:'tabW',label:'عرض التابلو',type:'range',min:30,max:340,step:1,val:130,show:s=>+s.tab},
-    {id:'tabH',label:'ارتفاع التابلو',type:'range',min:20,max:250,step:1,val:100,show:s=>+s.tab},
+    {id:'ins',label:'جوّا الفتحة',type:'seg',options:[['elec','نار كهربا'],['wood','نار حطب (طوب)'],['dark','فاضية']],val:'elec'},
+    {id:'fire',label:'إظهار النار',type:'seg',options:YN,val:1,show:s=>s.ins!=='dark'},
+    {id:'led',label:'إضاءة LED حوالين الفتحة',type:'seg',options:YN,val:0},
+    head('فوق الشمينيه',true),
+    {id:'tab',label:'فوق الشمينيه',type:'seg',options:[[0,'بدون'],[1,'مع قطعة']],val:0},
+    {id:'tabType',label:'نوعها',type:'seg',options:[['rect','تابلو'],['arch','قوس مع مفتاح'],['mirror','إطار مراية']],val:'rect',show:s=>+s.tab},
+    {id:'tabW',label:'العرض',type:'range',min:30,max:340,step:1,val:130,show:s=>+s.tab},
+    {id:'tabH',label:'الارتفاع',type:'range',min:20,max:250,step:1,val:100,show:s=>+s.tab},
     head('الرخام'),
     {id:'mat',label:'المادة الأساسية',type:'mat',val:'italian'},
     {id:'mat3',label:'رخام الكادر وتحت النار والعتبة',type:'mat',val:'black'}]},
@@ -2428,7 +2490,7 @@ function ctrlHTML(c,st){
   if(c.type==='range'){const mt=isM(c),k=mt?100:1;return `<div class="ctrl"><div class="row"><label for="c-${c.id}">${c.label}</label><span class="numw"><input class="num" type="number" inputmode="decimal" id="n-${c.id}" data-id="${c.id}"${mt?' data-m="1"':''} min="${c.min/k}" max="${c.max/k}" step="${mt?0.01:c.step}" value="${+(v/k).toFixed(2)}"><small>${mt?'م':unitOf(c)}</small></span></div><input type="range" id="c-${c.id}" data-id="${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${v}"></div>`;}
   if(c.type==='text')return `<div class="ctrl full"><div class="row"><label for="t-${c.id}">${c.label}</label></div><input type="text" class="txtin" id="t-${c.id}" data-tid="${c.id}" dir="auto" value="${escX(v==null?'':v)}"></div>`;
   if(c.type==='seg')return `<div class="ctrl${c.half?'':' full'}"><div class="row"><span class="lbl">${c.label}</span></div><div class="seg">${c.options.map(([ov,ol])=>`<button data-id="${c.id}" data-v="${ov}" aria-pressed="${String(ov)===String(v)}">${ol}</button>`).join('')}</div></div>`;
-  return `<div class="ctrl full"><div class="row"><span class="lbl">${c.label}</span><output id="o-${c.id}">${MATS[v]?MATS[v].name:''}</output></div><div class="mats">${Object.entries(MATS).filter(([mk])=>(c.mats||BASE_MATS).includes(mk)).map(([mk,m])=>`<button class="sw" title="${m.name}" aria-label="${m.name}" data-id="${c.id}" data-v="${mk}" style="--c:${m.c};--d:${m.d}" aria-pressed="${mk===v}"></button>`).join('')}</div></div>`;
+  return `<div class="ctrl full"><div class="row"><span class="lbl">${c.label}</span><output id="o-${c.id}">${MATS[v]?MATS[v].name:''}</output></div><div class="mats">${Object.entries(MATS).filter(([mk])=>(c.mats||ALL_MATS).includes(mk)).map(([mk,m])=>`<button class="sw" title="${m.name}" aria-label="${m.name}" data-id="${c.id}" data-v="${mk}" style="--c:${m.c};--d:${m.d}" aria-pressed="${mk===v}"></button>`).join('')}</div></div>`;
 }
 const closedH=new Set();for(const k in SCHEMAS)for(const c of SCHEMAS[k].controls)if(c.type==='head'&&c.collapsed)closedH.add(k+':'+c.label);
 function buildPanel(){
