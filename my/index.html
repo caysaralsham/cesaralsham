@@ -39,4 +39,5 @@ L.addEventListener('submit',async e=>{e.preventDefault();const er=document.getEl
 O.onclick=()=>A.signOut();
 // الفتح بنفس النافذة: إذا في برنامج تاني منزّل على الجهاز (متل المعمل أو الموقع)، كروم كان يلقط الرابط ويفتحه بنافذة جديدة
 M.addEventListener('click',e=>{const a=e.target.closest('a[href]');if(!a||e.ctrlKey||e.metaKey||e.shiftKey||e.button)return;e.preventDefault();location.assign(a.href)});
-</script></body></html>
+</script><script src="/js/my-back.js" defer></script>
+</body></html>

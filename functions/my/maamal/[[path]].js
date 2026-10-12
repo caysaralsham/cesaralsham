@@ -9,5 +9,10 @@ export async function onRequest({request,params}){
   const h=new Headers(r.headers);
   ['x-frame-options','content-security-policy','set-cookie','x-github-request-id','via','x-served-by','x-cache','x-cache-hits','x-timer','x-fastly-request-id','age','expires'].forEach(k=>h.delete(k));
   h.set('Cache-Control','no-cache');h.set('X-Robots-Tag','noindex, nofollow');
-  return new Response(request.method==='HEAD'?null:r.body,{status:r.status,headers:h});
+  if((h.get('content-type')||'').includes('text/html'))h.delete('content-length');
+  const res=new Response(request.method==='HEAD'?null:r.body,{status:r.status,headers:h});
+  // زر «↩ أدواتي» الصغير (بيبين بس إذا فايت من أدواتي)
+  if(request.method==='GET'&&(h.get('content-type')||'').includes('text/html'))
+    return new HTMLRewriter().on('body',{element(el){el.append('<script src="/js/my-back.js" defer></script>',{html:true})}}).transform(res);
+  return res;
 }

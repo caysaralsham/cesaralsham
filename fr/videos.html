@@ -52,5 +52,6 @@ footer{background:#2A190D;color:#C9B08F;text-align:center;padding:24px;font-size
 <div class="lbx" id="lbx"><img alt=""><a class="pb" target="_blank" rel="nofollow noopener" href="#">💬 Demander le prix sur WhatsApp</a></div>
 <script>document.querySelectorAll('a.lb').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const l=document.getElementById('lbx');l.querySelector('img').src=a.href;const p=a.closest('figure').querySelector('.pb');l.querySelector('.pb').href=p?p.href:'#';l.classList.add('on')}));document.getElementById('lbx').addEventListener('click',e=>{if(!e.target.closest('.pb'))e.currentTarget.classList.remove('on')});
 const mb=document.getElementById('more');if(mb)mb.onclick=()=>{const h=[...document.querySelectorAll('.hidden')].slice(0,8);h.forEach(x=>x.classList.remove('hidden'));if(!document.querySelector('.hidden'))mb.remove()};</script>
+<script src="/js/my-back.js" defer></script>
 </body>
 </html>
