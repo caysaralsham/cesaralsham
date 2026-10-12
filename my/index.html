@@ -37,4 +37,6 @@ A.onAuthStateChanged(u=>{L.style.display=u?'none':'block';M.style.display=u?'gri
 L.addEventListener('submit',async e=>{e.preventDefault();const er=document.getElementById('err');er.textContent='';
   try{await A.signInWithEmailAndPassword(document.getElementById('em').value.trim(),document.getElementById('pw').value)}catch(x){er.textContent='البريد الإلكتروني أو كلمة السر غير صحيحة'}});
 O.onclick=()=>A.signOut();
+// الفتح بنفس النافذة: إذا في برنامج تاني منزّل على الجهاز (متل المعمل أو الموقع)، كروم كان يلقط الرابط ويفتحه بنافذة جديدة
+M.addEventListener('click',e=>{const a=e.target.closest('a[href]');if(!a||e.ctrlKey||e.metaKey||e.shiftKey||e.button)return;e.preventDefault();location.assign(a.href)});
 </script></body></html>
