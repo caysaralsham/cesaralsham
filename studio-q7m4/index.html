@@ -1540,8 +1540,10 @@ function drawJurnCornerSlab(s){
   const tpq=tapOf(s)/2,cav=`M${f(Bc[1]-Db/2)} ${f(-H)}L${f(Bc[1]+Db/2)} ${f(-H)}C${f(Bc[1]+Db/2-tpq)} ${f(-H+D*.8)} ${f(Bc[1]+Db*.2)} ${f(-bt)} ${f(Bc[1])} ${f(-bt)}C${f(Bc[1]-Db*.2)} ${f(-bt)} ${f(Bc[1]-Db/2+tpq)} ${f(-H+D*.8)} ${f(Bc[1]-Db/2)} ${f(-H)}Z`;
   const q=hd+P(sec,hu,LW*.8)+P(cav,'#FFFFFF',LW*.8)+L(0,-H-4,0,4,INK,LW*1.6)+sdimV(-bt,-H,front+fs*.8,'عمق '+Math.round(D),fs);
   const mN=k=>(MATS[k]||MATS[MAL[k]]||MATS.italian).name,DN={none:'',flute:'، تضليع',petals:'، أوراق كبيرة',band:'، حزام محفور',tiles:'، شريط زليج'};
-  const stats=[['اللوح (على الحيط)',fmt(Ls)],['قطر الجرن',fmt(Db)],['الارتفاع',fmt(H)],['اللون',mN(s.mat)]];
+  const stats=[['قطر الجرن (وطول اللوح على الحيط)',fmt(Db)],['الارتفاع',fmt(H)],['اللون',mN(s.mat)]];
   const rows=[{cells:['لوح الزاوية مع الجرن (قطعة وحدة)',Ls+' × '+Ls+' × '+H+' سم','1']},{cells:['الجرن','قطر '+Db+'، سماكة اللوح '+ts+'، أذن '+lw+' سم'+(DN[dec]||''),'-']},{cells:['الحفر من جوّا','عمق '+Math.round(D)+' سم','-']}];
+  // السعة: حفر على شكل قبة (طاسة) فتحتها قطر الجرن — كاملة، وفعلية لـ 3 سم تحت الحافة
+  {const r=Db/2,Rs=(r*r+D*D)/(2*D),cap=h=>h>0?Math.PI*h*h*(3*Rs-h)/3:0;rows.push({cells:['السعة',(cap(D)/1000).toFixed(1)+' لتر كاملة، '+(cap(D-3)/1000).toFixed(1)+' لتر فعلية','-']})}
   if(seatOn){stats.push(['الكرسي',sp.txt+' سم، لون '+mN(s.smat)]);rows.push({cells:['الكرسي ('+sp.name+')',(sp.sh==='cone'?'فوق '+sp.w+'، تحت '+sp.bw:sp.sh==='square'?sp.w+' × '+sp.d:(sp.sh==='round'?'قطر ':'عرض ')+sp.w)+' × '+sp.h+' سم','1']})}
   const lines=[{desc:'جرن زاوية بلوح، اللوح '+Ls+' سم، قطر الجرن '+Db+' سم، ارتفاع '+H+' سم'+(DN[dec]||'')+'، لون '+mN(s.mat),qty:1,unit:'قطعة'}];
   if(seatOn)lines.push({desc:'كرسي '+sp.txt+' سم، لون '+mN(s.smat),qty:1,unit:'قطعة'});
@@ -3422,7 +3424,9 @@ async function makePNG(opt={}){
   const PW=land?1754:1240,PG=land?1240:1754,MG=40,HEAD=110,BAND=64,FOOT=34;
   const toImg=el=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(el))});
   const stats=mode==='full'?[...$('stats').children].map(d=>[d.querySelector('dt').textContent,d.querySelector('dd').textContent]):[];
-  const allT=lastR?(lastR.tables||(lastR.table?[lastR.table]:[])):[],tbs=(mode==='full'?allT:mode==='shop'?allT.filter(t=>/قائمة القطع|تفصيل|تلبيس|قياسات التابلو|رخام بطول/.test(t.title)):[]).filter(t=>!/خيارات|مقارنة/.test(t.title));
+  const allT=lastR?(lastR.tables||(lastR.table?[lastR.table]:[])):[],tbs=(mode==='full'?allT:mode==='shop'?allT.filter(t=>/قائمة القطع|تفصيل|تلبيس|قياسات التابلو|رخام بطول/.test(t.title)):[]).filter(t=>!/خيارات|مقارنة/.test(t.title))
+    // كمية الماء (السعة) للمعلم بس: بتبيّن بالنتائج على الشاشة وما بتطلع بالصورة
+    .map(t=>({...t,rows:t.rows.filter(r=>!/^السعة/.test(String(r.cells&&r.cells[0])))})).filter(t=>t.rows.length);
   const Q=(mode==='shop'||mode==='clean'&&!quoteData().rows.length)?{rows:[],note:'',total:0}:quoteData();
   const insImgs=[];if(lastR&&lastR.insets&&mode!=='clean')for(let k=0;k<lastR.insets.length;k++){try{const isv=$('inset'+k),cl=isv.cloneNode(true),b=isv.viewBox.baseVal;cl.setAttribute('width',900);cl.setAttribute('height',Math.round(900*b.height/b.width));insImgs.push({img:await toImg(cl),asp:b.width/b.height,label:lastR.insets[k].label})}catch(e){}}
   const hasDet=stats.length||tbs.length||Q.rows.length||Q.note||insImgs.length;
