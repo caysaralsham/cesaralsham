@@ -202,11 +202,34 @@ for (const c of cats) { wr(slugs[c] + '.html', catPage(c, slugs[c], byCat.get(c)
 for (const s of Object.values(saved)) if (!live.has(s + '.html') && fs.existsSync(path.join(ROOT, s + '.html')))
   wr(s + '.html', `<!DOCTYPE html><html lang="ar"><head><meta charset="UTF-8"><meta name="robots" content="noindex"><link rel="canonical" href="${SITE}/works"><meta http-equiv="refresh" content="0; url=/works"><title>أعمالنا</title></head><body><a href="/works">أعمالنا</a></body></html>\n`);
 
+// أيقونات التواصل في الهيدر والفوتر مكتوبة مسبقاً بنفس شكل الكود (js/home-app.js)
+// حتى ما يتغير ارتفاع الهيدر لحظة التحميل (Cumulative Layout Shift)
+function putSocial(h) {
+  const m = rd('js/home-app.js').match(/const SOCIAL_SVG = (\{[\s\S]*?\n\});/);
+  let SVG = null; try { SVG = m ? (new Function('return ' + m[1]))() : null; } catch (e) { SVG = null; }
+  if (!SVG) return h;
+  const links = [
+    [settings.whatsapp ? `https://wa.me/${String(settings.whatsapp).replace(/[^0-9]/g, '')}` : '', 'whatsapp', 'واتساب'],
+    [settings.facebook, 'facebook', 'فيسبوك'], [settings.instagram, 'instagram', 'انستغرام'],
+    [settings.tiktok, 'tiktok', 'تيك توك'], [settings.youtube, 'youtube', 'يوتيوب']
+  ].filter(l => l[0]);
+  const icons = links.map(([u, k, l]) => `<a href="${esc(u)}" target="_blank" title="${l}">${SVG[k]}</a>`).join('');
+  for (const id of ['headerSocial', 'footerSocial'])
+    h = h.replace(new RegExp('(<div class="social-icons" id="' + id + '"[^>]*>)[\\s\\S]*?(</div>)'), (x, a, b) => a + icons + b);
+  return h;
+}
+
 // works.html: صور ثابتة (Google بيشوفها قبل ما تشتغل الصفحة) وروابط الأقسام
-const card = (it, c) => { const src = imgUrl(it); return src ? `<div class="card"><div class="img-wrap"><img src="${esc(src)}" loading="lazy" alt="${esc(altOf(it, c))}"></div><div class="body"><div class="title">${esc((it.title && splitName(it.title).ar) || splitName(c).ar)}</div><div class="meta">${esc(splitName(c).ar)}</div></div></div>` : ''; };
+// نفس شكل البطاقات والأزرار اللي بيرسمها كود الصفحة بالضبط، حتى ما تنط الصفحة لحظة التحميل (CLS)
+const waAsk = name => 'https://wa.me/' + WA + '?text=' + encodeURIComponent('السلام عليكم، أريد معرفة سعر هذا العمل: ' + name);
+const shortC = c => String(c).replace(/\*\*/g, '').split('|')[0].trim();
+const allCard = (c, i) => { const it = byCat.get(c)[0], src = imgUrl(it); if (!src) return ''; const s = shortC(c);
+  return `<div class="card" data-go="${esc(c)}"><a href="/${slugs[c]}" style="display:contents"><div class="img-wrap"><img src="${esc(src)}" ${i < 2 ? 'fetchpriority="high"' : 'loading="lazy"'} alt="${esc(altOf(it, c))}"></div></a><div class="body"><div class="title">${esc(s)}</div><div class="meta">${byCat.get(c).length} صورة — اضغط لعرضها جميعًا</div><a class="price-btn" data-pi="${i}" href="${esc(waAsk(s))}" target="_blank" rel="noopener">💬 اطلب السعر</a></div></div>`; };
 let w = rd('works.html');
-w = inject(w, 'GALLERY', cats.map(c => card(byCat.get(c)[0], c).replace('<div class="card">', `<div class="card"><a href="/${slugs[c]}" style="display:contents">`).replace(/<\/div><\/div>$/, '</div></a></div>')).join(''));
+w = inject(w, 'GALLERY', cats.map(allCard).join(''));
 w = inject(w, 'CATS', cats.map(c => `<li><a href="/${slugs[c]}">${esc(splitName(c).ar)}</a> <span>(${byCat.get(c).length})</span></li>`).join(''));
+w = w.replace(/(<div class="filters" id="filters">)[\s\S]*?(<\/div>)/, (x, a, b) => a + `<button class="filter-btn active" data-cat="all">الكل<span class="n">(${items.length})</span></button>` + cats.map(c => `<button class="filter-btn " data-cat="${esc(c)}" title="${esc(c)}">${esc(String(c).split('|')[0].trim())}<span class="n">(${byCat.get(c).length})</span></button>`).join('') + b);
+w = putSocial(w);
 wr('works.html', w);
 
 // videos.html: الفيديوهات ثابتة بالصفحة
@@ -217,6 +240,10 @@ let v = rd('videos.html');
 v = inject(v, 'VIDEOS', videos.filter(x => /^https?:\/\//.test(x.url || '')).slice(0, 8).map(x => `<div class="card" style="cursor:default;"><div class="img-wrap" style="aspect-ratio:16/9; background:#000;"><video src="${esc(x.url)}" controls preload="none"${x.poster ? ` poster="${esc(x.poster)}"` : ''} style="width:100%; height:100%; object-fit:contain; background:#000;" title="${esc((x.title && splitName(x.title).ar) || splitName(x.category || '').ar || 'فيديو من أعمالنا')}"></video></div><div class="body"><div class="title">${esc((x.title && splitName(x.title).ar) || splitName(x.category || '').ar || 'فيديو من أعمالنا')}</div><div class="meta">${esc(splitName(x.category || '').ar)}</div></div></div>`).join('') || '<div class="empty-state">جاري تحميل الفيديوهات...</div>');
 const vSchema = videos.filter(x => x.poster && /^https?:\/\//.test(x.url || '')).slice(0, 60).map(x => ({'@type':'VideoObject', name: (x.title && splitName(x.title).ar) || splitName(x.category || '').ar || 'فيديو من أعمال قيصر الشام', description: `${(x.title && splitName(x.title).ar) || splitName(x.category || '').ar || 'فيديو'} — من أعمال قيصر الشام للحجر والرخام، الجزائر`, thumbnailUrl: x.poster, contentUrl: x.url, uploadDate: new Date(x.createdAt || Date.now()).toISOString()}));
 v = inject(v, 'VSCHEMA', vSchema.length ? `<script type="application/ld+json">${JSON.stringify({'@context':'https://schema.org','@graph':vSchema})}</script>` : '');
+{ const vc = [...new Set(videos.map(x => String(x.category || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ar'));
+  const n = c => videos.filter(x => String(x.category || '').trim() === c).length;
+  v = v.replace(/(<div class="filters" id="filters">)[\s\S]*?(<\/div>)/, (x, a, b) => a + (vc.length ? `<button class="filter-btn active" data-cat="all">الكل<span class="n">(${videos.length})</span></button>` + vc.map(c => `<button class="filter-btn " data-cat="${esc(c)}" title="${esc(c)}">${esc(c.split('|')[0].trim())}<span class="n">(${n(c)})</span></button>`).join('') : '') + b); }
+v = putSocial(v);
 wr('videos.html', v);
 
 // index.html: صورتين من كل قسم ثابتين
@@ -235,22 +262,7 @@ const setHeroText = (html, id, txt) => (typeof txt === 'string' && txt.trim())
 h = setHeroText(h, 'heroTitleMain', settings.heroTitleMain);
 h = setHeroText(h, 'heroTitleAccent', settings.heroTitleAccent);
 h = setHeroText(h, 'heroSubtitle', settings.heroSubtitle);
-// أيقونات التواصل في الهيدر والفوتر مكتوبة مسبقاً بنفس شكل الكود (js/home-app.js)
-// حتى ما يتغير ارتفاع الهيدر لحظة التحميل (Cumulative Layout Shift)
-{
-  const m = rd('js/home-app.js').match(/const SOCIAL_SVG = (\{[\s\S]*?\n\});/);
-  let SVG = null; try { SVG = m ? (new Function('return ' + m[1]))() : null; } catch (e) { SVG = null; }
-  if (SVG) {
-    const links = [
-      [settings.whatsapp ? `https://wa.me/${String(settings.whatsapp).replace(/[^0-9]/g, '')}` : '', 'whatsapp', 'واتساب'],
-      [settings.facebook, 'facebook', 'فيسبوك'], [settings.instagram, 'instagram', 'انستغرام'],
-      [settings.tiktok, 'tiktok', 'تيك توك'], [settings.youtube, 'youtube', 'يوتيوب']
-    ].filter(l => l[0]);
-    const icons = links.map(([u, k, l]) => `<a href="${esc(u)}" target="_blank" title="${l}">${SVG[k]}</a>`).join('');
-    for (const id of ['headerSocial', 'footerSocial'])
-      h = h.replace(new RegExp('(<div class="social-icons" id="' + id + '"[^>]*>)[\\s\\S]*?(</div>)'), (x, a, b) => a + icons + b);
-  }
-}
+h = putSocial(h);
 h = inject(h, 'CATLINKS', cats.map(c => `<a href="/${slugs[c]}">${esc(splitName(c).ar)}</a>`).join(''));
 wr('index.html', h);
 
