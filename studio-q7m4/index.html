@@ -231,7 +231,7 @@ input[type=range]{height:16px}
 .clbl{font-size:.8rem;font-weight:700;min-width:96px}
 #cliModal .seg button{font-size:.78rem;padding:4px 10px}
 @media (max-width:600px){.crow{grid-template-columns:1fr}}
-.subh{margin:12px 2px 2px;font-size:.88rem;font-weight:800;color:var(--accent-deep)}
+.subh{margin:12px 2px 2px;font-size:.88rem;font-weight:800;color:var(--accent-deep)}.cfold{cursor:pointer;user-select:none;padding:6px 8px;border-radius:8px;background:var(--bg);border:1px solid var(--line)}.cfold small{font-weight:600;color:var(--muted)}.cfa{display:inline-block;width:1em}.cstrip{display:flex;align-items:center;gap:6px;overflow-x:auto;white-space:nowrap;padding:6px 10px;border-top:1px solid var(--line);scrollbar-width:thin}.cstrip[hidden]{display:none}.cstrip>b{font-size:.82rem;color:var(--accent-deep);flex:none}.cstrip button{flex:none;font:inherit;font-size:.8rem;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;color:#333;cursor:pointer}.cstrip button[aria-pressed=true]{outline:2px solid var(--accent-deep);font-weight:800}.cstrip .sep{flex:none;width:1px;align-self:stretch;background:var(--line);margin:0 4px}.cstrip .act{background:var(--accent-deep);color:#fff;border-color:var(--accent-deep);font-weight:700}
 
 .drawbox{position:relative}
 .drawscroll{overflow:auto;max-height:var(--fitH,72vh);touch-action:pan-x pan-y}
@@ -267,7 +267,7 @@ input[type=range]{height:16px}
     <button class="btn sm" id="fileBtn">حفظ ملف مشروع</button>
   </div>
 </div><p class="aiout" id="aiOut" role="status"></p></header>
-<div class="tabbar"><nav class="tabs" role="tablist" id="tabs"></nav></div>
+<div class="tabbar"><nav class="tabs" role="tablist" id="tabs"></nav><div class="cstrip" id="calcStrip" hidden></div></div>
 <main>
   <section class="panel" id="panel" aria-label="الإعدادات"></section>
   <section class="stage" id="stage">
@@ -2608,7 +2608,7 @@ const ECOL=Object.fromEntries(ECODES.map(x=>[x[0],x[2]])),ENAME=Object.fromEntri
 const CTN={m2:'متر مربع',ml:'متر طول',m3:'متر مكعب',col:'عامود (القطر × 3.14 × الارتفاع)',circ:'دائرة',corner:'زاوية'},CTU={m2:'م²',ml:'م.ط',m3:'م³',col:'م²',circ:'م²',corner:'م²'};
 const CFIELDS={m2:[['l','طول'],['w','عرض'],['h','سماكة'],['n','عدد']],ml:[['l','طول'],['w','عرض'],['h','سماكة'],['n','عدد']],m3:[['l','طول'],['w','عرض'],['h','سماكة'],['n','عدد']],col:[['l','القطر'],['w','الارتفاع'],['n','عدد']],circ:[['l','قطر برّا'],['w','قطر جوّا'],['n','عدد']],corner:[['l','الطول'],['w','العرض'],['h','الضلع 1'],['h2','الضلع 2'],['n','عدد']]};
 const CEDGE=t=>t==='m2'||t==='ml'||t==='m3';
-let calcBrush='a';
+let calcBrush='a';const calcFold=new Set();
 const cNum=v=>{const n=parseFloat(String(v??'').replace(',','.'));return isNaN(n)?0:n};
 const calcRows=st=>{try{return JSON.parse(st.rows||'[]')}catch(e){return[]}};
 const calcEmpty=t=>({t,name:'',l:'',w:'',h:'',n:1,e:{}});
@@ -2619,9 +2619,12 @@ const calcUsed=r=>cNum(r.l)>0&&(r.t==='ml'||r.t==='circ'||cNum(r.w)>0);
 function calcPanel(st){
   const rows=calcRows(st),types=['m2',...['ml','m3','col','circ','corner'].filter(t=>rows.some(r=>r.t===t))];
   const sideLbl={b:'أمام',t:'ورا',r:'يمين',l:'يسار'};
-  let h=`<div class="ctrl full"><div class="row"><span class="lbl">فرشاة الحواف (اختار وبعدين اكبس على الجهة)</span></div><div class="seg" style="flex-wrap:wrap">${ECODES.map(([k,n,c])=>`<button data-cact="brush" data-v="${k}" aria-pressed="${calcBrush===k}" style="border-inline-start:6px solid ${c}">${n}</button>`).join('')}</div></div>`;
+  let h='';
   for(const t of types){
-    h+=`<h4 class="subh">جدول ${CTN[t]}</h4><div class="crows">`;
+    const cnt=rows.filter(r=>r.t===t&&calcUsed(r)).length,fold=calcFold.has(t);
+    h+=`<h4 class="subh cfold" data-cact="fold" data-t="${t}" role="button" tabindex="0" aria-expanded="${!fold}"><span class="cfa">${fold?'◂':'▾'}</span> جدول ${CTN[t]}${cnt?` <small>(${cnt} قطعة)</small>`:''}</h4>`;
+    if(fold)continue;
+    h+=`<div class="crows">`;
     rows.forEach((r,i)=>{if(r.t!==t)return;const no=rows.filter((x,j)=>x.t===t&&j<=i).length;
       h+=`<div class="crow2"><div class="cr1" style="grid-template-columns:18px 1.6fr repeat(${CFIELDS[t].length},1fr)"><b>${no}</b><input data-cr="${i}|name" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="القطعة" class="cn">`+CFIELDS[t].map(([k,ph])=>`<input data-cr="${i}|${k}" value="${r[k]??''}" inputmode="decimal" placeholder="${ph}${k==='n'?'':' سم'}" title="${ph}${k==='n'?'':' (سم)'}">`).join('')+`</div>
         <div class="cr2">${CEDGE(t)?'<span>الحواف:</span>':''}${(CEDGE(t)?['b','t','r','l']:[]).map(sd=>`<button data-cact="edge" data-i="${i}" data-s="${sd}" title="${sideLbl[sd]}: ${ENAME[r.e&&r.e[sd]||'']}" style="border-color:${ECOL[r.e&&r.e[sd]||'']};background:${r.e&&r.e[sd]?ECOL[r.e[sd]]:'#fff'};color:${r.e&&r.e[sd]?'#fff':'#333'}">${sideLbl[sd]}</button>`).join('')}<span class="cres" data-cres="${i}">${calcUsed(r)?fmtQ(calcRes(r))+' '+CTU[t]:''}</span><button data-cact="del" data-i="${i}" class="cdel" title="حذف السطر">✕</button></div></div>`});
@@ -3267,6 +3270,7 @@ let tab='fountain',lastR=null;const openG=new Set();
 const tabsEl=document.getElementById('tabs'),panel=document.getElementById('panel');
 tabsEl.innerHTML=Object.entries(SCHEMAS).map(([k,s])=>`<button role="tab" data-k="${k}">${s.title}</button>`).join('');
 tabsEl.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;tab=b.dataset.k;buildPanel();render();updTitle()});
+{const _bp=buildPanel;buildPanel=function(){_bp.apply(this,arguments);try{syncStrip()}catch(e){}}}
 
 const unitOf=c=>c.unit===undefined?'سم':c.unit;
 const isM=c=>false;
@@ -3301,6 +3305,25 @@ function buildPanel(){
   if(mats.length){const key=tab+':الرخام';h+=`<details class="sec" data-h="${key}"${closedH.has(key)?'':' open'}><summary>الرخام والألوان</summary><div class="secb">${mats.map(c=>ctrlHTML(c,st)).join('')}</div></details>`}
   panel.innerHTML=h+`<button class="reset" id="reset">إرجاع القيم الافتراضية</button>`;
 }
+// ---- شريط تحت الأقسام (لحاسبة القياسات): فرشاة الحواف + «طبّق عالكل» + طوي/فتح الجداول — سطر واحد ----
+const calcStrip=document.getElementById('calcStrip');
+function syncStrip(){
+  if(!calcStrip)return;
+  if(tab!=='calc'||typeof RENDER!=='undefined'&&RENDER){if(!calcStrip.hidden){calcStrip.hidden=true;try{updateStick()}catch(e){}}return}
+  const types=[...new Set(calcRows(state.calc).map(r=>r.t))],allFold=types.length&&types.every(x=>calcFold.has(x));
+  calcStrip.innerHTML=`<b>فرشاة الحواف:</b>${ECODES.map(([k,n,c])=>`<button type="button" data-sb="brush" data-v="${k}" aria-pressed="${calcBrush===k}" style="border-inline-start:6px solid ${c}">${n}</button>`).join('')}<span class="sep"></span><button type="button" class="act" data-sb="all" title="الفرشاة المختارة على كل حواف كل القطع">🖌 طبّق عالكل</button><button type="button" data-sb="fold">${allFold?'▾ افتح الجداول':'◂ طوي الجداول'}</button>`;
+  calcStrip.hidden=false;
+  try{updateStick()}catch(e){}
+}
+calcStrip&&calcStrip.addEventListener('click',e=>{const b=e.target.closest('[data-sb]');if(!b||tab!=='calc')return;const a=b.dataset.sb;
+  if(a==='brush'){calcBrush=b.dataset.v;syncStrip();return}
+  if(a==='fold'){const types=[...new Set(calcRows(state.calc).map(r=>r.t))];const allFold=types.every(x=>calcFold.has(x));types.forEach(x=>allFold?calcFold.delete(x):calcFold.add(x));rebuildKeep();syncStrip();return}
+  if(a==='all'){const rows=calcRows(state.calc),tgt=rows.filter(r=>CEDGE(r.t)&&calcUsed(r));
+    if(!tgt.length){toast('عبّي القياسات أول');return}
+    if(!confirm(`تطبيق «${ENAME[calcBrush]}» على كل حواف ${tgt.length} قطعة؟`))return;
+    tgt.forEach(r=>{r.e=calcBrush?{b:calcBrush,t:calcBrush,r:calcBrush,l:calcBrush}:{}});
+    state.calc.rows=JSON.stringify(rows);rebuildKeep();render();return}
+});
 function rebuildKeep(){const y=window.scrollY;buildPanel();try{window.scrollTo(0,y)}catch(e){}}
 function updGroups(){for(const g of SCHEMAS[tab].controls)if(g.type==='group'){const el=document.getElementById('gs-'+g.gid);if(el)el.textContent=g.title(state[tab])}}
 const ctrlOf=id=>flat(tab).find(x=>x.id===id);
@@ -3324,6 +3347,7 @@ panel.addEventListener('input',e=>{const t=e.target;if(!t.dataset.cr||tab!=='cal
   const rc=panel.querySelector(`[data-cres="${i}"]`);if(rc)rc.textContent=calcUsed(rows[+i])?fmtQ(calcRes(rows[+i]))+' '+CTU[rows[+i].t]:'';render()});
 panel.addEventListener('click',e=>{const b=e.target.closest('[data-cact]');if(!b||tab!=='calc')return;e.preventDefault();e.stopPropagation();const rows=calcRows(state.calc),a=b.dataset.cact;
   if(a==='brush'){calcBrush=b.dataset.v;panel.querySelectorAll('[data-cact="brush"]').forEach(x=>x.setAttribute('aria-pressed',x===b));return}
+  if(a==='fold'){const t=b.dataset.t;if(calcFold.has(t))calcFold.delete(t);else calcFold.add(t);rebuildKeep();syncStrip();return}
   if(a==='edge'){const r=rows[+b.dataset.i];r.e=r.e||{};const sd=b.dataset.s;r.e[sd]=r.e[sd]===calcBrush?'':calcBrush;if(!r.e[sd])delete r.e[sd]}
   if(a==='del')rows.splice(+b.dataset.i,1);
   if(a==='add')rows.push(calcEmpty(b.dataset.t));
