@@ -231,7 +231,7 @@ input[type=range]{height:16px}
 .clbl{font-size:.8rem;font-weight:700;min-width:96px}
 #cliModal .seg button{font-size:.78rem;padding:4px 10px}
 @media (max-width:600px){.crow{grid-template-columns:1fr}}
-.subh{margin:12px 2px 2px;font-size:.88rem;font-weight:800;color:var(--accent-deep)}.cfold{cursor:pointer;user-select:none;padding:6px 8px;border-radius:8px;background:var(--bg);border:1px solid var(--line)}.cfold small{font-weight:600;color:var(--muted)}.cfa{display:inline-block;width:1em}.cstrip{display:flex;align-items:center;gap:6px;overflow-x:auto;white-space:nowrap;padding:6px 10px;border-top:1px solid var(--line);scrollbar-width:thin}.cstrip[hidden]{display:none}.cstrip>b{font-size:.82rem;color:var(--accent-deep);flex:none}.cstrip button{flex:none;font:inherit;font-size:.8rem;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;color:#333;cursor:pointer}.cstrip button[aria-pressed=true]{outline:2px solid var(--accent-deep);font-weight:800}.cstrip .sep{flex:none;width:1px;align-self:stretch;background:var(--line);margin:0 4px}.cstrip .act{background:var(--accent-deep);color:#fff;border-color:var(--accent-deep);font-weight:700}
+#draw .cedge{cursor:pointer;pointer-events:stroke}#draw .cedge:hover{stroke:rgba(31,111,178,.35)}.cedg{display:inline-flex;gap:3px;margin-inline-end:auto}.cedg i{width:12px;height:12px;border-radius:3px;display:inline-block}@media (min-width:861px){main.calcw{grid-template-columns:420px minmax(0,1fr)}}.subh{margin:12px 2px 2px;font-size:.88rem;font-weight:800;color:var(--accent-deep)}.cfold{cursor:pointer;user-select:none;padding:6px 8px;border-radius:8px;background:var(--bg);border:1px solid var(--line)}.cfold small{font-weight:600;color:var(--muted)}.cfa{display:inline-block;width:1em}.cstrip{display:flex;align-items:center;gap:6px;overflow-x:auto;white-space:nowrap;padding:6px 10px;border-top:1px solid var(--line);scrollbar-width:thin}.cstrip[hidden]{display:none}.cstrip>b{font-size:.82rem;color:var(--accent-deep);flex:none}.cstrip button{flex:none;font:inherit;font-size:.8rem;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;color:#333;cursor:pointer}.cstrip button[aria-pressed=true]{outline:2px solid var(--accent-deep);font-weight:800}.cstrip .sep{flex:none;width:1px;align-self:stretch;background:var(--line);margin:0 4px}.cstrip .act{background:var(--accent-deep);color:#fff;border-color:var(--accent-deep);font-weight:700}
 
 .drawbox{position:relative}
 .drawscroll{overflow:auto;max-height:var(--fitH,72vh);touch-action:pan-x pan-y}
@@ -2627,7 +2627,7 @@ function calcPanel(st){
     h+=`<div class="crows">`;
     rows.forEach((r,i)=>{if(r.t!==t)return;const no=rows.filter((x,j)=>x.t===t&&j<=i).length;
       h+=`<div class="crow2"><div class="cr1" style="grid-template-columns:18px 1.6fr repeat(${CFIELDS[t].length},1fr)"><b>${no}</b><input data-cr="${i}|name" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="القطعة" class="cn">`+CFIELDS[t].map(([k,ph])=>`<input data-cr="${i}|${k}" value="${r[k]??''}" inputmode="decimal" placeholder="${ph}${k==='n'?'':' سم'}" title="${ph}${k==='n'?'':' (سم)'}">`).join('')+`</div>
-        <div class="cr2">${CEDGE(t)?'<span>الحواف:</span>':''}${(CEDGE(t)?['b','t','r','l']:[]).map(sd=>`<button data-cact="edge" data-i="${i}" data-s="${sd}" title="${sideLbl[sd]}: ${ENAME[r.e&&r.e[sd]||'']}" style="border-color:${ECOL[r.e&&r.e[sd]||'']};background:${r.e&&r.e[sd]?ECOL[r.e[sd]]:'#fff'};color:${r.e&&r.e[sd]?'#fff':'#333'}">${sideLbl[sd]}</button>`).join('')}<span class="cres" data-cres="${i}">${calcUsed(r)?fmtQ(calcRes(r))+' '+CTU[t]:''}</span><button data-cact="del" data-i="${i}" class="cdel" title="حذف السطر">✕</button></div></div>`});
+        <div class="cr2">${CEDGE(t)&&r.e&&Object.keys(r.e).length?`<span class="cedg">${['b','t','r','l'].filter(sd=>r.e[sd]).map(sd=>`<i style="background:${ECOL[r.e[sd]]}" title="${sideLbl[sd]}: ${ENAME[r.e[sd]]}"></i>`).join('')}</span>`:''}<span class="cres" data-cres="${i}">${calcUsed(r)?fmtQ(calcRes(r))+' '+CTU[t]:''}</span><button data-cact="del" data-i="${i}" class="cdel" title="حذف السطر">✕</button></div></div>`});
     h+=`</div><button class="btn sm" data-cact="add" data-t="${t}" style="margin:6px 0">+ سطر</button>`;
   }
   h+=`<div class="ctrl full" style="display:flex;gap:6px;flex-wrap:wrap">${['ml','m3','col','circ','corner'].filter(t=>!types.includes(t)).map(t=>`<button class="btn sm" data-cact="addtbl" data-t="${t}">+ جدول ${CTN[t].split(' (')[0]}</button>`).join('')}</div>`;
@@ -2667,7 +2667,9 @@ function drawCalc(s){
     if(r.t==='corner'){const a=cNum(r.h)||w*.3,b=cNum(r.h2)||l*.3;o+=P(`M${f(x0)} ${f(y0)}L${f(x0+rw)} ${f(y0)}L${f(x0+rw)} ${f(y0+Math.min(rh,a*sc))}L${f(x0+Math.min(rw,b*sc))} ${f(y0+Math.min(rh,a*sc))}L${f(x0+Math.min(rw,b*sc))} ${f(y0+rh)}L${f(x0)} ${f(y0+rh)}Z`,M(s.mat),LW*.6);
       o+=T(cx,y0-FS*.55,`${l} × ${w}${cNum(r.h)?' — أضلاع '+cNum(r.h)+' / '+cNum(r.h2):''}`,FS*.85,'middle','#1F6FB2')+T(cx,y0+rh+FS*1.1,`${r.name||'زاوية'}${(cNum(r.n)||1)>1?' — العدد '+(cNum(r.n)||1):''}`,FS*.85,'middle','#3B2414')+T(cx,y0+rh+FS*2.1,`${fmtQ(calcRes(r))} م²`,FS*.8,'middle','#7A5C40');return}
     o+=R(x0,y0,rw,rh,M(s.mat),LW*.6);
-    const E=(sd,xa,ya,xb,yb)=>{const c=r.e&&r.e[sd]||'';o+=L(xa,ya,xb,yb,ECOL[c],c?LW*9:LW*1.2,'stroke-linecap="round"')};
+    const E=(sd,xa,ya,xb,yb)=>{const c=r.e&&r.e[sd]||'';o+=L(xa,ya,xb,yb,ECOL[c],c?LW*9:LW*1.2,'stroke-linecap="round"');
+      // خط شفاف عريض فوق الحافة: كبسة عليه بتحط الفرشاة على هالحافة مباشرة من الرسمة
+      if(!(typeof RENDER!=='undefined'&&RENDER))o+=L(xa,ya,xb,yb,'rgba(0,0,0,0)',Math.max(LW*16,rh*.18),`class="cedge" data-cedge="${r.i}|${sd}"`)};
     E('t',x0,y0,x0+rw,y0);E('b',x0,y0+rh,x0+rw,y0+rh);E('r',x0+rw,y0,x0+rw,y0+rh);E('l',x0,y0,x0,y0+rh);
     // اسم كل حافة معلّمة جوّا الرسمة بلونها، حتى يبيّن الفرق بين اروندي فوق / فوق وتحت / شطفة
     const SN={t:'ورا',b:'أمام',r:'يمين',l:'يسار'},ef=FS*.72;
@@ -3309,9 +3311,10 @@ function buildPanel(){
 const calcStrip=document.getElementById('calcStrip');
 function syncStrip(){
   if(!calcStrip)return;
+  {const mn=document.querySelector('main');if(mn)mn.classList.toggle('calcw',tab==='calc')}
   if(tab!=='calc'||typeof RENDER!=='undefined'&&RENDER){if(!calcStrip.hidden){calcStrip.hidden=true;try{updateStick()}catch(e){}}return}
   const types=[...new Set(calcRows(state.calc).map(r=>r.t))],allFold=types.length&&types.every(x=>calcFold.has(x));
-  calcStrip.innerHTML=`<b>فرشاة الحواف:</b>${ECODES.map(([k,n,c])=>`<button type="button" data-sb="brush" data-v="${k}" aria-pressed="${calcBrush===k}" style="border-inline-start:6px solid ${c}">${n}</button>`).join('')}<span class="sep"></span><button type="button" class="act" data-sb="all" title="الفرشاة المختارة على كل حواف كل القطع">🖌 طبّق عالكل</button><button type="button" data-sb="fold">${allFold?'▾ افتح الجداول':'◂ طوي الجداول'}</button>`;
+  calcStrip.innerHTML=`<b>فرشاة الحواف:</b><span style="flex:none;font-size:.75rem;color:var(--muted)">(اختار واكبس على حافة القطعة بالرسمة)</span>${ECODES.map(([k,n,c])=>`<button type="button" data-sb="brush" data-v="${k}" aria-pressed="${calcBrush===k}" style="border-inline-start:6px solid ${c}">${n}</button>`).join('')}<span class="sep"></span><button type="button" class="act" data-sb="all" title="الفرشاة المختارة على كل حواف كل القطع">🖌 طبّق عالكل</button><button type="button" data-sb="fold">${allFold?'▾ افتح الجداول':'◂ طوي الجداول'}</button>`;
   calcStrip.hidden=false;
   try{updateStick()}catch(e){}
 }
@@ -3324,6 +3327,10 @@ calcStrip&&calcStrip.addEventListener('click',e=>{const b=e.target.closest('[dat
     tgt.forEach(r=>{r.e=calcBrush?{b:calcBrush,t:calcBrush,r:calcBrush,l:calcBrush}:{}});
     state.calc.rows=JSON.stringify(rows);rebuildKeep();render();return}
 });
+document.getElementById('draw').addEventListener('click',e=>{const h=e.target.closest&&e.target.closest('[data-cedge]');if(!h||tab!=='calc')return;
+  const [i,sd]=h.getAttribute('data-cedge').split('|'),rows=calcRows(state.calc),r=rows[+i];if(!r||!CEDGE(r.t))return;
+  r.e=r.e||{};r.e[sd]=r.e[sd]===calcBrush?'':calcBrush;if(!r.e[sd])delete r.e[sd];
+  state.calc.rows=JSON.stringify(rows);rebuildKeep();render()});
 function rebuildKeep(){const y=window.scrollY;buildPanel();try{window.scrollTo(0,y)}catch(e){}}
 function updGroups(){for(const g of SCHEMAS[tab].controls)if(g.type==='group'){const el=document.getElementById('gs-'+g.gid);if(el)el.textContent=g.title(state[tab])}}
 const ctrlOf=id=>flat(tab).find(x=>x.id===id);
