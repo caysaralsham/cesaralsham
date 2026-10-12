@@ -1496,7 +1496,8 @@ function drawJurnCone(s0){
 }
 /* ---------- جرن زاوية بلوح (حمام): لوح زاوية بأذنين على الحيطين وجرن مدوّر مضلّع تحتو ---------- */
 function drawJurnCornerSlab(s){
-  const Ls=+s.L,Db=Math.min(+s.pD||40,Ls*1.3),ts=+s.pT||5,lw=Math.min(+s.pLw||12,Ls*.4),H=+s.H,r2=Math.SQRT2,m=M(s.mat),dk=isDarkMat(s.mat);
+  // طول اللوح على الحيط = قطر الجرن (خانة وحدة)
+  const Ls=+s.pD||40,Db=Ls,ts=+s.pT||5,lw=Math.min(+s.pLw||12,Ls*.4),H=+s.H,r2=Math.SQRT2,m=M(s.mat),dk=isDarkMat(s.mat);
   const rimO=Math.max(3,Math.min(+s.rim||5,Db*.2)),Rb=Db/2+rimO;
   const seatOn=+s.seat===1,sp=seatOn?seatSpec(s):null,sWx=seatOn?Math.max(sp.w,sp.fw):0;
   // المسقط: الزاوية (0,0)، الحيط الشمال باتجاه u1 واليمين u2، الجرن على المحور
@@ -2312,10 +2313,9 @@ const SCHEMAS={
     {id:'L',label:'القطر',type:'range',min:30,max:100,step:1,val:50,show:s=>s.shape==='round'},
     {id:'L',label:'العرض من فوق',type:'range',min:30,max:100,step:1,val:50,show:s=>s.shape==='cone'},
     {id:'L',label:'طول الضلع (على الحيط)',type:'range',min:30,max:100,step:1,val:50,show:s=>s.shape==='corner'},
-    {id:'L',label:'طول اللوح (على الحيط)',type:'range',min:30,max:100,step:1,val:50,show:s=>s.shape==='cornerSlab'},
     {id:'Lb',label:'العرض من تحت',type:'range',min:10,max:100,step:1,val:45,show:s=>s.shape==='cone'},
     {id:'W',label:'العرض',type:'range',min:20,max:100,step:1,val:40,show:s=>s.shape==='half'||s.shape==='oval'},
-    {id:'pD',label:'قطر الجرن',type:'range',min:25,max:80,step:1,val:40,show:s=>s.shape==='cornerSlab'},
+    {id:'pD',label:'قطر الجرن (وطول اللوح على الحيط)',type:'range',min:25,max:80,step:1,val:40,show:s=>s.shape==='cornerSlab'},
     {id:'H',label:'الارتفاع',type:'range',min:20,max:70,step:1,val:30},
     {id:'dep',label:'عمق الحفر',type:'range',min:8,max:40,step:1,val:22},
     {id:'sph',label:'كروي (من فوق ومن تحت)',type:'range',min:0,max:100,step:5,val:0,unit:'%',show:s=>s.shape==='round'},
