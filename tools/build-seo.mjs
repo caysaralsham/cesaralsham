@@ -122,7 +122,7 @@ function catPage(cat, slug, list, cats, slugs, settings){
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"><link rel="icon" type="image/png" sizes="48x48" href="/img/site/fav-48.png"><link rel="icon" type="image/png" sizes="96x96" href="/img/site/fav-96.png"><link rel="icon" type="image/png" sizes="192x192" href="/img/site/fav-192.png">
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap"></noscript>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap"></noscript>
 <script type="application/ld+json">${JSON.stringify(schema)}</script>
 <style>
 :root{--ink:#3B2414;--gold:#9A6A3A;--gold-deep:#6E4524;--line:#E6D6BC;--dim:#666;--bg2:#F5ECDD}
@@ -235,6 +235,22 @@ const setHeroText = (html, id, txt) => (typeof txt === 'string' && txt.trim())
 h = setHeroText(h, 'heroTitleMain', settings.heroTitleMain);
 h = setHeroText(h, 'heroTitleAccent', settings.heroTitleAccent);
 h = setHeroText(h, 'heroSubtitle', settings.heroSubtitle);
+// أيقونات التواصل في الهيدر والفوتر مكتوبة مسبقاً بنفس شكل الكود (js/home-app.js)
+// حتى ما يتغير ارتفاع الهيدر لحظة التحميل (Cumulative Layout Shift)
+{
+  const m = rd('js/home-app.js').match(/const SOCIAL_SVG = (\{[\s\S]*?\n\});/);
+  let SVG = null; try { SVG = m ? (new Function('return ' + m[1]))() : null; } catch (e) { SVG = null; }
+  if (SVG) {
+    const links = [
+      [settings.whatsapp ? `https://wa.me/${String(settings.whatsapp).replace(/[^0-9]/g, '')}` : '', 'whatsapp', 'واتساب'],
+      [settings.facebook, 'facebook', 'فيسبوك'], [settings.instagram, 'instagram', 'انستغرام'],
+      [settings.tiktok, 'tiktok', 'تيك توك'], [settings.youtube, 'youtube', 'يوتيوب']
+    ].filter(l => l[0]);
+    const icons = links.map(([u, k, l]) => `<a href="${esc(u)}" target="_blank" title="${l}">${SVG[k]}</a>`).join('');
+    for (const id of ['headerSocial', 'footerSocial'])
+      h = h.replace(new RegExp('(<div class="social-icons" id="' + id + '"[^>]*>)[\\s\\S]*?(</div>)'), (x, a, b) => a + icons + b);
+  }
+}
 h = inject(h, 'CATLINKS', cats.map(c => `<a href="/${slugs[c]}">${esc(splitName(c).ar)}</a>`).join(''));
 wr('index.html', h);
 
@@ -258,7 +274,7 @@ function frLayout({title, desc, path: pth, arPath, og, body, schema, motion}){
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"><link rel="icon" type="image/png" sizes="192x192" href="/img/site/fav-192.png"><link rel="apple-touch-icon" sizes="180x180" href="/img/site/fav-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap"></noscript>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap"></noscript>
 ${schema ? `<script type="application/ld+json">${JSON.stringify(schema).replace(/</g,'\\u003c')}</script>` : ''}
 <style>
 :root{--ink:#3B2414;--gold:#9A6A3A;--gold-deep:#6E4524;--line:#E6D6BC;--dim:#7A5C40;--bg2:#F5ECDD}
