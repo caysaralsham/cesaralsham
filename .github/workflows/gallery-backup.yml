@@ -1,0 +1,44 @@
+name: نسخة احتياطية لصور المعرض
+
+on:
+  schedule:
+    - cron: '41 1 * * 5'   # كل جمعة الساعة 2:41 الصبح بتوقيت الجزائر
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gallery-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: site
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: فتح فرع النسخة (gallery-backup)
+        env:
+          REPO: https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}
+        run: |
+          if git ls-remote --exit-code --heads "$REPO" gallery-backup >/dev/null; then
+            git clone --depth 1 --branch gallery-backup "$REPO" bk
+          else
+            mkdir bk && cd bk && git init -b gallery-backup && git remote add origin "$REPO"
+          fi
+      - name: تنزيل الصور الجديدة
+        run: node site/tools/backup-gallery.mjs bk
+      - name: حفظ النسخة
+        working-directory: bk
+        run: |
+          git config user.name "backup-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then echo "ما في جديد"; exit 0; fi
+          git commit -q -m "نسخة صور المعرض $(date -u +%F) [CF-Pages-Skip]"
+          git push -q origin gallery-backup
