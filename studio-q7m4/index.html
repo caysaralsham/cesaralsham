@@ -4081,10 +4081,34 @@ if(EMBED){
   const OK_SRC=/^https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/basel-7b29b\./;
   let siteItems=null;       // كل أعمال الموقع من فايربيز
   function addScript(u){return new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=u;sc.onload=ok;sc.onerror=no;document.head.appendChild(sc)})}
-  async function fetchSiteItems(){
-    if(!window.firebase){await addScript('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');await addScript('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js')}
+  // ---- فايربيز (قراءة صور الموقع + تسجيل الدخول لأداة الذكاء الاصطناعي) ----
+  async function fbApp(){
+    if(!window.firebase||!window.firebase.firestore){if(!window.firebase)await addScript('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');await addScript('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js')}
     const fb=window.firebase;
-    const app=(fb.apps||[]).find(a=>a.name==='siteWorks')||fb.initializeApp({apiKey:"AIzaSyDi1Pn7guMnyc0CetV8Z9IUC-k0gtav2_8",authDomain:"basel-7b29b.firebaseapp.com",projectId:"basel-7b29b",storageBucket:"basel-7b29b.firebasestorage.app",messagingSenderId:"1025769465563",appId:"1:1025769465563:web:53b5c9949dbb26364d8efe"},'siteWorks');
+    return (fb.apps||[]).find(a=>a.name==='siteWorks')||fb.initializeApp({apiKey:"AIzaSyDi1Pn7guMnyc0CetV8Z9IUC-k0gtav2_8",authDomain:"basel-7b29b.firebaseapp.com",projectId:"basel-7b29b",storageBucket:"basel-7b29b.firebasestorage.app",messagingSenderId:"1025769465563",appId:"1:1025769465563:web:53b5c9949dbb26364d8efe"},'siteWorks');
+  }
+  // التغليف بالذكاء الاصطناعي بيصرف من رصيد Gemini — لهيك لازم تكون مسجّل دخول بحسابك (نفس حساب المحاسبة)
+  async function aiToken(fresh){
+    const app=await fbApp();
+    if(!window.firebase.auth)await addScript('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js');
+    const auth=app.auth();
+    let u=auth.currentUser||await new Promise(ok=>{const off=auth.onAuthStateChanged(x=>{off();ok(x)})});
+    if(!u)u=await loginBox(auth);
+    return u.getIdToken(!!fresh);
+  }
+  function loginBox(auth){
+    return new Promise((ok,no)=>{
+      const w=document.createElement('div');w.className='modal';w.style.display='flex';w.style.zIndex=90;
+      w.innerHTML='<form class="box" role="dialog" aria-modal="true" aria-labelledby="aiLoginT" style="max-width:340px;width:100%"><h2 id="aiLoginT" style="margin:0 0 6px">تسجيل الدخول</h2><p style="font-size:.8rem;color:var(--muted);margin:0 0 10px">التغليف بالذكاء الاصطناعي لحسابك بس. ادخل بنفس إيميل وكلمة سر برنامج المحاسبة (مرة وحدة على هالجهاز).</p><input type="email" name="e" autocomplete="username" placeholder="البريد الإلكتروني" required style="width:100%;margin-bottom:8px"><input type="password" name="p" autocomplete="current-password" placeholder="كلمة السر" required style="width:100%"><p class="err" style="color:#c0392b;font-size:.8rem;min-height:1em;margin:6px 0"></p><div style="display:flex;gap:8px"><button class="btn primary" type="submit">دخول</button><button class="btn" type="button" data-x>إلغاء</button></div></form>';
+      document.body.appendChild(w);const f=w.querySelector('form'),er=w.querySelector('.err');f.e.focus();
+      w.querySelector('[data-x]').onclick=()=>{w.remove();no(new Error('لازم تسجّل دخول حتى تستعمل التغليف بالذكاء الاصطناعي'))};
+      f.onsubmit=async ev=>{ev.preventDefault();er.textContent='';f.querySelector('[type=submit]').disabled=true;
+        try{const c=await auth.signInWithEmailAndPassword(f.e.value.trim(),f.p.value);w.remove();ok(c.user)}
+        catch(e){er.textContent=/network/i.test(e.code||'')?'النت مقطوع — جرّب كمان مرة':'الإيميل أو كلمة السر غلط';f.querySelector('[type=submit]').disabled=false}};
+    });
+  }
+  async function fetchSiteItems(){
+    const app=await fbApp();
     const snap=await app.firestore().collection('cesar_website').get();
     let all=[];snap.forEach(d=>{if(d.id.startsWith('items_'))all=all.concat(d.data().items||[])});
     all=all.filter(it=>OK_SRC.test(it.img||''));
@@ -4162,8 +4186,11 @@ if(EMBED){
         const body={contents:[{role:'user',parts}],generationConfig:{responseModalities:['TEXT','IMAGE'],temperature:0.4}};
         if(withCfg&&ratio)body.generationConfig.imageConfig={aspectRatio:ratio};
         let r,d;
-        try{r=await fetch('/api/ai-clad?m='+m,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});d=await r.json().catch(()=>({}))}
+        const tok=await aiToken();
+        try{const go=k=>fetch('/api/ai-clad?m='+m,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+k},body:JSON.stringify(body)});
+          r=await go(tok);if(r.status===401)r=await go(await aiToken(true));d=await r.json().catch(()=>({}))}
         catch(e){throw new Error('النت مقطوع أو ضعيف — جرّب كمان مرة')}
+        if(r.status===401)throw new Error('ما قدرت أتأكد من حسابك — سجّل دخول من جديد');
         const msg=(d.error&&(d.error.message||d.error))||'';
         if(r.status===402)throw new Error('رصيد Gemini خلص — اشحن من AI Studio (Billing) وجرّب');
         if(r.status===429)throw new Error('وصلت لحد الصرف أو الطلبات — استنّى دقيقة وجرّب، أو شوف حد الصرف بـ AI Studio');

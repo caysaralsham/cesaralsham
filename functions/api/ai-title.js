@@ -5,6 +5,37 @@ const ALLOW = /^https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/basel-7b29b\.
 const MODELS = ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-2.5-flash'];
 const json = (o, st = 200, cache = 0) => new Response(JSON.stringify(o), { status: st, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': cache ? `public, max-age=${cache}` : 'no-store' } });
 
+// ---- التحقق إن الطلب من حسابك (Firebase ID token) — بدون هاد ما حدا بيقدر يصرف من رصيد Gemini ----
+const FB_PROJECT = 'basel-7b29b';
+let _jwks = null, _jwksAt = 0;
+const _b64u = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)), c => c.charCodeAt(0));
+async function _keys(force) {
+  if (!force && _jwks && Date.now() - _jwksAt < 3600e3) return _jwks;
+  const r = await fetch('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com');
+  if (!r.ok) throw new Error('jwks');
+  _jwks = (await r.json()).keys || []; _jwksAt = Date.now(); return _jwks;
+}
+async function verifyUser(request, env) {
+  const m = /^Bearer\s+(.+)$/i.exec(request.headers.get('authorization') || '');
+  if (!m) return null;
+  try {
+    const [h, p, s] = m[1].trim().split('.');
+    const td = new TextDecoder(), hd = JSON.parse(td.decode(_b64u(h))), pl = JSON.parse(td.decode(_b64u(p)));
+    if (hd.alg !== 'RS256' || !hd.kid) return null;
+    let k = (await _keys()).find(x => x.kid === hd.kid);
+    if (!k) k = (await _keys(true)).find(x => x.kid === hd.kid);
+    if (!k) return null;
+    const key = await crypto.subtle.importKey('jwk', { kty: k.kty, n: k.n, e: k.e, alg: 'RS256', ext: true }, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['verify']);
+    const ok = await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, _b64u(s), new TextEncoder().encode(h + '.' + p));
+    const now = Date.now() / 1000;
+    if (!ok || pl.aud !== FB_PROJECT || pl.iss !== 'https://securetoken.google.com/' + FB_PROJECT) return null;
+    if (!(pl.exp > now) || !(pl.iat < now + 300) || !pl.sub) return null;
+    const owners = String(env.OWNER_UIDS || '').split(',').map(x => x.trim()).filter(Boolean);
+    if (owners.length && !owners.includes(pl.sub)) return null;
+    return pl.sub;
+  } catch (e) { return null; }
+}
+
 function b64(buf) { const u = new Uint8Array(buf); let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); }
 
 const SCHEMA = {
@@ -34,7 +65,8 @@ function prompt(cat) {
 
 export async function onRequest({ request, env, waitUntil }) {
   const key = env.GEMINI_API_KEY;
-  if (request.method === 'GET') { // فحص سريع: المفتاح موجود؟ والموديلات شغالة؟ (بلا صور)
+  if (request.method === 'GET' || request.method === 'POST') { if (!(await verifyUser(request, env))) return json({ ok: false, error: 'login' }, 401); }
+  if (request.method === 'GET') { // فحص سريع (لصاحب الحساب بس): المفتاح موجود؟ والموديلات شغالة؟ (بلا صور)
     if (!key) return json({ ok: false, error: 'no-key' });
     const res = {};
     for (const m of MODELS) {

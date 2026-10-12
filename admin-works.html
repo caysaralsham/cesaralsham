@@ -1399,13 +1399,15 @@ const TT=(()=>{
 // ---------- عناوين بالذكاء الاصطناعي ----------
 (function(){
   const $=id=>document.getElementById(id);let stop=false;
-  const ERR={'no-key':'لازم ينحط مفتاح Gemini بـ Cloudflare (GEMINI_API_KEY)','rate':'غوغل طلب نستنّى شوي (حد الطلبات)','not-allowed':'صورة مش من معرضنا'};
+  const ERR={'no-key':'لازم ينحط مفتاح Gemini بـ Cloudflare (GEMINI_API_KEY)','rate':'غوغل طلب نستنّى شوي (حد الطلبات)','not-allowed':'صورة مش من معرضنا','login':'انتهت الجلسة — سجّل خروج ودخول من جديد'};
   async function ask(it){
     for(let t=0;t<4;t++){
-      const r=await fetch('/api/ai-title',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({img:it.img,cat:it.category||''})});
+      const u=firebase.auth().currentUser;if(!u){const e=new Error('سجّل دخول أول');e.code='login';throw e}
+      const r=await fetch('/api/ai-title',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+(await u.getIdToken(t>0))},body:JSON.stringify({img:it.img,cat:it.category||''})});
       const d=await r.json().catch(()=>({ok:false,error:'http-'+r.status}));
       if(d.ok)return d;
       if(d.error==='rate'){await new Promise(z=>setTimeout(z,15000*(t+1)));continue}
+      if(d.error==='login'&&t===0)continue; // التوكن قديم: بنجدده ومنعيد مرة
       const e=new Error(ERR[d.error]||(d.error+(d.detail?' — '+d.detail:'')));e.code=d.error;throw e;
     }
     const e=new Error(ERR.rate);e.code='rate';throw e;
