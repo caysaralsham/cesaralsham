@@ -216,6 +216,7 @@ input[type=range]{height:16px}
 .proj div{display:flex;gap:6px}
 .cs{display:inline-block;width:12px;height:12px;border-radius:3px;margin-inline-end:6px;vertical-align:middle;opacity:.8}
 
+.crh{padding:0 6px;margin-top:4px}.crh span{font-size:.74rem;font-weight:800;color:var(--accent-deep);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .crow2{border:1px solid var(--line);border-radius:10px;padding:6px;margin:6px 0;background:var(--bg)}.cr1{display:grid;grid-template-columns:18px 1.6fr repeat(4,1fr);gap:4px;align-items:center}.cr1 input{min-width:0;font:inherit;font-size:.82rem;padding:5px 4px;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--ink);text-align:center}.cr2{display:flex;gap:4px;align-items:center;margin-top:5px;font-size:.75rem;flex-wrap:wrap}.cr2 button[data-cact=edge]{min-width:38px;height:24px;border-radius:6px;border:2px solid;font:inherit;font-size:.7rem;padding:0 4px;cursor:pointer}.cres{margin-inline-start:auto;font-weight:800;color:var(--accent-deep)}.cdel{border:0;background:none;color:#A6453D;font-size:15px;cursor:pointer}
 .ctab{border-collapse:collapse;font-size:.8rem;width:100%}.ctab th{font-size:.72rem;color:var(--muted);font-weight:700}.ctab th,.ctab td{padding:3px 2px;border-bottom:1px solid var(--line);text-align:center}.ctab input{font:inherit;padding:4px 5px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);text-align:center}
 #tbl tr.pick{cursor:pointer}
@@ -2624,9 +2625,9 @@ function calcPanel(st){
     const cnt=rows.filter(r=>r.t===t&&calcUsed(r)).length,fold=calcFold.has(t);
     h+=`<h4 class="subh cfold" data-cact="fold" data-t="${t}" role="button" tabindex="0" aria-expanded="${!fold}"><span class="cfa">${fold?'◂':'▾'}</span> جدول ${CTN[t]}${cnt?` <small>(${cnt} قطعة)</small>`:''}</h4>`;
     if(fold)continue;
-    h+=`<div class="crows">`;
+    h+=`<div class="crows"><div class="cr1 crh" style="grid-template-columns:18px 1fr repeat(${CFIELDS[t].length},1fr)"><b></b><span>القطعة</span>`+CFIELDS[t].map(([k,ph])=>`<span>${ph}</span>`).join('')+`</div>`;
     rows.forEach((r,i)=>{if(r.t!==t)return;const no=rows.filter((x,j)=>x.t===t&&j<=i).length;
-      h+=`<div class="crow2"><div class="cr1" style="grid-template-columns:18px 1.6fr repeat(${CFIELDS[t].length},1fr)"><b>${no}</b><input data-cr="${i}|name" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="القطعة" class="cn">`+CFIELDS[t].map(([k,ph])=>`<input data-cr="${i}|${k}" value="${r[k]??''}" inputmode="decimal" placeholder="${ph}${k==='n'?'':' سم'}" title="${ph}${k==='n'?'':' (سم)'}">`).join('')+`</div>
+      h+=`<div class="crow2"><div class="cr1" style="grid-template-columns:18px 1fr repeat(${CFIELDS[t].length},1fr)"><b>${no}</b><input data-cr="${i}|name" value="${(r.name||'').replace(/"/g,'&quot;')}" placeholder="القطعة" class="cn">`+CFIELDS[t].map(([k,ph])=>`<input data-cr="${i}|${k}" value="${r[k]??''}" inputmode="decimal" placeholder="${ph}" title="${ph}${k==='n'?'':' (سم)'}">`).join('')+`</div>
         <div class="cr2">${CEDGE(t)&&r.e&&Object.keys(r.e).length?`<span class="cedg">${['b','t','r','l'].filter(sd=>r.e[sd]).map(sd=>`<i style="background:${ECOL[r.e[sd]]}" title="${sideLbl[sd]}: ${ENAME[r.e[sd]]}"></i>`).join('')}</span>`:''}<span class="cres" data-cres="${i}">${calcUsed(r)?fmtQ(calcRes(r))+' '+CTU[t]:''}</span><button data-cact="del" data-i="${i}" class="cdel" title="حذف السطر">✕</button></div></div>`});
     h+=`</div><button class="btn sm" data-cact="add" data-t="${t}" style="margin:6px 0">+ سطر</button>`;
   }
