@@ -422,6 +422,7 @@ const FS_DOC = 'main';
 // نسخة احتياطية أسبوعية تلقائية (إعدادات + كل الصور) — بتنزّل ملف JSON
 // لمجلد التنزيلات (Downloads) أول مرة تفتحي فيها لوحة الإدارة كل أسبوع.
 const WEEKLY_BACKUP_KEY = 'qaysar_last_weekly_backup';
+const localDate = (d=new Date()) => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); // تاريخ الجزائر وليس غرينتش
 let isRunningWeeklyBackup = false;
 setInterval(()=>{try{runWeeklyBackupIfNeeded()}catch(e){}},10*60*1000);
 async function runWeeklyBackupIfNeeded(){
@@ -430,7 +431,7 @@ async function runWeeklyBackupIfNeeded(){
     // نسخة يومية بعد الساعة 5 العصر (17:00)
     const now = Date.now(), d = new Date();
     if(d.getHours() < 17) return;
-    const todayKey = d.toISOString().slice(0,10);
+    const todayKey = localDate(d);
     if(localStorage.getItem(WEEKLY_BACKUP_KEY+'_day') === todayKey) return;
     if(!items || items.length === 0) return; // لسا الصور ما حمّلت، منجرب بالمرة الجاية
 
@@ -453,7 +454,7 @@ async function runWeeklyBackupIfNeeded(){
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `qaysar-alsham-backup-يومي-${new Date().toISOString().slice(0,10)}.json`;
+    a.download = `qaysar-alsham-backup-يومي-${localDate()}.json`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -501,7 +502,7 @@ async function renderVisitStats(){
   </div>`;
   wrap.innerHTML = card('زيارات اليوم', '...') + card('زيارات هذا الشهر', '...');
   try{
-    const todayStr = new Date().toISOString().slice(0,10);
+    const todayStr = localDate();
     const monthPrefix = todayStr.slice(0,7);
     const todayDoc = await db.collection('cesar_stats').doc(todayStr).get();
     const todayCount = todayDoc.exists ? (todayDoc.data().count || 0) : 0;

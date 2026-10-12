@@ -1,3 +1,4 @@
+const localDate = (d=new Date()) => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); // تاريخ الجزائر وليس غرينتش
 // كود الصفحة الرئيسية (Firebase، المعرض، لوحة الإعدادات...)
 // يُحمَّل بعد اكتمال ظهور الصفحة عبر المحمِّل الموجود في آخر index.html
 const firebaseConfig = {
@@ -27,7 +28,7 @@ const db = firebase.firestore();
 (function trackVisit(){
   // العدّاد بيُرسل بطلب HTTP عادي (REST) بدل اتصال Firestore المفتوح،
   // حتى ما يضل اتصال معلّق يسبب أخطاء ERR_TIMED_OUT في PageSpeed.
-  const today = new Date().toISOString().slice(0,10); // YYYY-MM-DD
+  const today = localDate(); // YYYY-MM-DD بتوقيت الجهاز
   const ROOT = 'projects/' + firebaseConfig.projectId + '/databases/(default)/documents';
   const URL = 'https://firestore.googleapis.com/v1/' + ROOT + ':commit?key=' + firebaseConfig.apiKey;
   const inc = firebase.firestore.FieldValue.increment;
@@ -776,7 +777,7 @@ async function renderVisitStats(){
   if(!wrap) return;
   try{
     const today = new Date();
-    const todayStr = today.toISOString().slice(0,10);
+    const todayStr = localDate(today);
     const monthPrefix = todayStr.slice(0,7); // YYYY-MM
 
     const todayDoc = await db.collection('cesar_stats').doc(todayStr).get();
@@ -863,7 +864,7 @@ document.getElementById('btnExportBackup').addEventListener('click', ()=>{
   const blob = new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  const stamp = new Date().toISOString().slice(0,10);
+  const stamp = localDate();
   a.href = url;
   a.download = `qaysar-alsham-backup-${stamp}.json`;
   document.body.appendChild(a);
