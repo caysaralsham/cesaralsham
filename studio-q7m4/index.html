@@ -262,6 +262,7 @@ input[type=range]{height:16px}
 .mcalc .mtotals{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.mcalc .mcard{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;text-align:center;min-width:110px;flex:1}.mcalc .mcard div{font-size:11px;color:var(--muted);margin-bottom:3px}.mcalc .mcard b{font-size:15px;color:var(--accent-deep)}
 .mcalc .madd{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
 #draw .piece-edge{cursor:pointer}
+.cstrip.mb{overflow:hidden;gap:4px;padding:5px 8px;justify-content:center}.cstrip.mb>b{font-size:.78rem}.cstrip.mb button{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;display:inline-flex;align-items:center;gap:4px;padding:3px 8px;font-size:clamp(.6rem,1.9vw,.8rem)}.cstrip.mb button i{flex:none;width:14px;height:4px;border-radius:2px}@media (max-width:600px){.cstrip.mb>b{display:none}.cstrip.mb{padding:4px 4px;gap:3px}.cstrip.mb button{padding:3px 5px;gap:3px}.cstrip.mb button i{width:8px}}
 </style>
 <style id="sb-right">/* شريط التمرير على اليمين (كمبيوتر بس — عالجوال بيمنع التحريك يمين/يسار) */@media (min-width:900px) and (hover:hover){html{direction:ltr}body{direction:rtl}}</style>
 </head>
@@ -2672,6 +2673,7 @@ function calcData(st){
 const calcSave=d=>{state.calc.rows=JSON.stringify(d)};
 const calcSpec=s=>({th:+s.eth||2,ar:+s.arR||.5,ch:+s.ch||.5,ang:+s.chA||45});
 let calcBrush='a';
+function isRenderMode(){try{return !!RENDER}catch(e){return /[?&]render\b/.test(location.search)}}
 // ---- رسمات القطع (نفس دوال ميراكوس) — القياسات بالسنتي ----
 function fmtCm(v){const n=Number(v)||0;return String(Number(n.toFixed(1)))}
 const EDGE_RED='#D32F2F',EDGE_GREEN='#2E9E4F',EDGE_INK='#333';
@@ -2851,7 +2853,7 @@ function calcTotalsHtml(tables){
 }
 function calcPanel(st){
   const d=calcData(st),spec=calcSpec(st);
-  let h=`<div class="mcalc"><div class="edge-brush"><span>علامة الحافة:</span>${EDGE_ORDER.map(c=>`<button type="button" class="${calcBrush===c?'active':''}" data-mbrush="${c}"><i style="background:${edgeColor(c)}"></i> ${c==='a'?'اروندي':c==='s'?'شطفة':EDGE_NAMES[c]}</button>`).join('')}<span style="font-size:12px;">— اختار، بعدين اكبس على الأضلاع بالرسمة</span></div>
+  let h=`<div class="mcalc">
   <div class="edge-spec"><span>مقاسات الحواف:</span><label>سماكة الحجر <input data-es="eth" inputmode="decimal" dir="ltr" value="${spec.th}"> سم</label><label>اروندي (نص القطر) <input data-es="arR" inputmode="decimal" dir="ltr" value="${spec.ar}"> سم</label><label>شطفة <input data-es="ch" inputmode="decimal" dir="ltr" value="${spec.ch}"> سم</label><label>ميلان الشطفة <input data-es="chA" inputmode="decimal" dir="ltr" value="${spec.ang}"> °</label></div>
   <div class="mtables">`;
   d.tables.forEach((tbl,ti)=>{
@@ -2865,7 +2867,6 @@ function calcPanel(st){
         <input type="text" inputmode="decimal" dir="ltr" style="text-align:right;" data-t="${ti}" data-r="${ri}" data-f="count" value="${escH(r.count===''||r.count==null?1:r.count)}" title="العدد">
         <span class="meas-result" data-result-t="${ti}" data-result-r="${ri}">${measResLabel(tbl.type,r)}</span>
         <button type="button" class="mdel" data-delrow="${ti}-${ri}" title="حذف">✕</button>
-        <div class="piece-draw" data-draw-t="${ti}" data-draw-r="${ri}">${calcRowDrawHtml(tbl.type,r,spec)}</div>
       </div>`}).join('');
     h+=`<div class="meas-table-box${note?' with-note':''}${sp.cols.length===4?' with-4':''}">
       <div class="meas-table-head meas-toggle" data-toggle-t="${ti}">
@@ -2897,7 +2898,7 @@ function profileSvg(code,hh,sp){ // مقطع الحافة للرسمة الكب�
   const det=code==='ah'?'نص دائرة R '+fx(h/2)+' سم':[(upR||dnR)?'اروندي R '+fx(arCm)+' سم':'',(upS||dnS)?'شطفة '+fx(+sp.ch||.5)+' سم · '+fx(angDeg)+'°':''].filter(Boolean).join(' — ');
   const fs=h*.38,col=ECOL[code],nm=ENAME[code],tfs=Math.min(fs,(w+h*1.6)/Math.max(6,nm.length)*1.7),dfs=Math.min(fs*.8,(w+h*1.6)/Math.max(6,det.length)*1.8);
   return {box:[-h*.4,w+h*2,-h*2.6,h*1.1],svg:`<path d="${d}" fill="#EFE6D6" stroke="${col}" stroke-width="${h*.06}"/>`+
-    `<line x1="${w+h*.35}" y1="${top}" x2="${w+h*.35}" y2="${bot}" stroke="#555" stroke-width="${h*.03}"/><text x="${w+h*.5}" y="${-h/2+fs*.35}" font-size="${fs}" font-weight="700" fill="#333" font-family="Cairo,Tahoma">${fx(hh)}</text><text x="${w+h*.5+fs*(fx(hh).length*.62+.3)}" y="${-h/2+fs*.35}" font-size="${fs*.8}" fill="#333" font-family="Cairo,Tahoma">سم</text>`+
+    `<line x1="${w+h*.35}" y1="${top}" x2="${w+h*.35}" y2="${bot}" stroke="#555" stroke-width="${h*.03}"/><text x="${w+h*.5}" y="${-h/2+fs*.35}" font-size="${fs*.8}" fill="#333" font-family="Cairo,Tahoma">سم</text><text x="${w+h*.5+fs*1.6}" y="${-h/2+fs*.35}" font-size="${fs}" font-weight="700" fill="#333" font-family="Cairo,Tahoma">${fx(hh)}</text>`+
     `<text x="${(w+h*1.6)/2}" y="${-h-h*.35}" font-size="${dfs}" fill="${col}" text-anchor="middle" direction="rtl" font-family="Cairo,Tahoma">${det}</text>`+
     `<text x="${(w+h*1.6)/2}" y="${-h*1.95}" font-size="${tfs}" font-weight="700" fill="${col}" text-anchor="middle" direction="rtl" font-family="Cairo,Tahoma">${nm}</text>`};
 }
@@ -2909,7 +2910,7 @@ function edgeLenM(type,r,k){const l=cNum(r.l),w=cNum(r.w),h=cNum(r.h),h2=cNum(r.
   return(k==='t'||k==='b')?l:w}
 // الرسمة الكبيرة: كل القطع المعبّاية، كل وحدة بنفس رسمة ميراكوس، والحواف بتنكبس كمان من هون
 function drawCalc(s){
-  const d=calcData(s),spec=calcSpec(s),live=!(typeof RENDER!=='undefined'&&RENDER);
+  const d=calcData(s),spec=calcSpec(s),live=!isRenderMode();
   const items=[];d.tables.forEach((tbl,ti)=>tbl.rows.forEach((r,ri)=>{const p=measPiece(tbl.type,r);if(shapeHasDims(p))items.push({tbl,ti,r,ri,p})}));
   const cols=items.length>1?2:1,cw=400;let o='',y=0;const W=cols*cw;setScale(W);
   if(!items.length){o+=`<text x="${W/2}" y="-60" text-anchor="middle" font-size="18" fill="#7A5C40" font-family="Cairo,Tahoma,sans-serif">عبّي جدول القياسات (بالمتر، متل ميراكوس)</text>`;y=120}
@@ -3554,10 +3555,16 @@ function buildPanel(){
 }
 // ---- حاسبة القياسات: الأحداث (نفس تصرّف ميراكوس) ----
 const calcStrip=document.getElementById('calcStrip');
+const BRUSH_SHORT={a:'اروندي',a2:'اروندي فوق وتحت',ah:'نص دائرة',s:'شطفة',s2:'شطفة فوق وتحت',as:'اروندي + شطفة'};
 function syncStrip(){
   {const mn=document.querySelector('main');if(mn)mn.classList.toggle('calcw',tab==='calc')}
-  if(calcStrip&&!calcStrip.hidden){calcStrip.hidden=true;try{updateStick()}catch(e){}}
+  if(!calcStrip)return;
+  if(tab!=='calc'||isRenderMode()){if(!calcStrip.hidden){calcStrip.hidden=true;try{updateStick()}catch(e){}}return}
+  calcStrip.classList.add('mb');
+  calcStrip.innerHTML=`<b>الحافة:</b>${EDGE_ORDER.map(c=>`<button type="button" data-sb="${c}" aria-pressed="${calcBrush===c}" title="${EDGE_NAMES[c]}"><i style="background:${edgeColor(c)}"></i>${BRUSH_SHORT[c]}</button>`).join('')}`;
+  const was=calcStrip.hidden;calcStrip.hidden=false;if(was){try{updateStick()}catch(e){}}
 }
+calcStrip&&calcStrip.addEventListener('click',e=>{const b=e.target.closest('[data-sb]');if(!b||tab!=='calc')return;calcBrush=b.dataset.sb;calcStrip.querySelectorAll('[data-sb]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
 function rebuildKeep(){const y=window.scrollY,ps=panel.scrollTop;buildPanel();try{window.scrollTo(0,y);panel.scrollTop=ps}catch(e){}}
 // كبسة على ضلع القطعة بالرسمة الكبيرة
 document.getElementById('draw').addEventListener('click',e=>{if(tab!=='calc')return;const h=e.target.closest&&e.target.closest('.piece-edge');if(!h)return;
