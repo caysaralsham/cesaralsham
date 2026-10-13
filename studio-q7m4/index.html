@@ -474,7 +474,7 @@ function column(cx,yb,h,w,style,m){
 /* ---------- fountain ---------- */
 function drawFountain(s){
   const n=Math.max(1,Math.min(6,+s.tiers)),pool=+s.pool,PW=+s.poolW,PH=+s.poolH,m=M(s.mat),m2=M(s.mat2);
-  const baseH=15,B=[];let y=pool?0:-baseH,fixed=false;
+  const hasBase=!pool&&s.fbase!=='0'&&s.fbase!==0,baseH=hasBase?15:0,B=[];let y=-baseH,fixed=false;
   for(let i=0;i<n;i++){
     const k=i+1,prev=B[i-1],t=Math.max(8,+s['t'+k]);
     const b={k,d:+s['d'+k],t,sl:Math.max(0,Math.min(+s['b'+k],t-3)),h:+s['h'+k],cw:+s['c'+k]||Math.max(8,+s['d'+k]*.2),cs:s['cs'+k]||'vase',bs:s['bs'+k]||'cup'};
@@ -487,7 +487,7 @@ function drawFountain(s){
   }
   const last=B[n-1],fr=Math.max(5,Math.min(18,last.d*.1)),finBot=last.rimTop;
   const finH=s.finial==='ball'?fr*2.8:s.finial==='pine'?fr*3.8:s.finial==='sphere'?fr*4.6:0,finTop=finBot-finH,H=-finTop;
-  const baseW=Math.max(B[0].cw*2.6,40),Wmax=Math.max(pool?PW:baseW,...B.map(b=>b.d));
+  const baseW=Math.max(B[0].cw*2.6,40),Wmax=Math.max(pool?PW:(hasBase?baseW:0),...B.map(b=>b.d));
   const S=Math.max(Wmax,H);setScale(S);
   const finial=()=>{let o='';
     if(s.finial==='ball')o+=R(-fr*.3,finBot-fr*.8,fr*.6,fr*.8+last.t*.5,m)+C(0,finTop+fr,fr,m);
@@ -518,7 +518,7 @@ function drawFountain(s){
     return o};
   // ----- elevation -----
   let o='';
-  if(!pool)o+=R(-baseW/2,-8,baseW,8,m)+R(-baseW*.4,-baseH,baseW*.8,7,m);
+  if(hasBase)o+=R(-baseW/2,-8,baseW,8,m)+R(-baseW*.4,-baseH,baseW*.8,7,m);
   for(const b of B)if(!b.none)o+=column(0,b.colBot,b.colBot-b.colTop,b.cw,b.cs,m);
   o+=finial();
   for(const b of B){o+=bowl(b,false);o+='<g class="dim">'+T(-b.d/2-FS*.3,b.rimTop+b.t*.6,`قطر ${b.d}`,FS*.62,'end')+'</g>'}
@@ -563,7 +563,7 @@ function drawFountain(s){
   const xc=Wmax/2+S*.06,small=FS*.62;
   const seg=(y1,y2,lab)=>{if(Math.abs(y1-y2)<.5)return '';const t=FS*.22,mid=(y1+y2)/2;
     return '<g class="dim">'+L(xc,y1,xc,y2,DIM,LW*.8)+L(xc-t*2,y1,xc+t*2,y1,DIM,LW*.8)+L(xc-t*2,y2,xc+t*2,y2,DIM,LW*.8)+T(xc+FS*.35,mid+small*.35,lab,small,'start')+'</g>'};
-  if(!pool)o+=seg(0,-baseH,baseH+'');
+  if(hasBase)o+=seg(0,-baseH,baseH+'');
   for(const b of B){if(!b.none)o+=seg(b.base,b.colTop,b.h+'');o+=seg(b.colTop,b.rimTop,b.t+'')}
   if(finH)o+=seg(finBot,finTop,Math.round(finH)+'');
   o+=dimV(0,-H,Wmax/2+S*.2,fmt(H));
@@ -576,7 +576,7 @@ function drawFountain(s){
     q+=`<pattern id="${hid}" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)"><rect width="8" height="8" fill="#D9D2C3"/><line x1="0" y1="0" x2="0" y2="8" stroke="#8A8275" stroke-width="1.6"/></pattern>`;
     q+=R(-PW/2,0,PW,12,`url(#${hid})`)+R(-PW/2,-PH,wallT,PH,`url(#${hid})`)+R(PW/2-wallT,-PH,wallT,PH,`url(#${hid})`);
     q+=`<rect x="${f(-PW/2+wallT)}" y="${f(-PH+8)}" width="${f(PW-2*wallT)}" height="${f(PH-8)}" fill="rgba(80,150,200,.3)"/>`+L(-PW/2+wallT,-PH+8,PW/2-wallT,-PH+8,WATER,LW*1.2);
-  }else q+=R(-baseW/2,-8,baseW,8,m)+R(-baseW*.4,-baseH,baseW*.8,7,m);
+  }else if(hasBase)q+=R(-baseW/2,-8,baseW,8,m)+R(-baseW*.4,-baseH,baseW*.8,7,m);
   for(const b of B)if(!b.none)q+=column(0,b.colBot,b.colBot-b.colTop,b.cw,b.cs,m);
   q+=finial();
   for(const b of B)q+=bowl(b,true);
@@ -586,19 +586,19 @@ function drawFountain(s){
   // plan (top view)
   const shp=s.poolShape||'round',PL=shp==='rect'?+s.poolL:PW;let pv='';
   const pshape=(w,h,fill,sw=LW)=>shp==='oct'?P(starPolyD(0,0,w/2/Math.cos(Math.PI/8),w/2/Math.cos(Math.PI/8),4).replace(/^/,''),fill,sw,`transform="rotate(22.5)"`):shp==='round'?`<ellipse cx="0" cy="0" rx="${f(w/2)}" ry="${f(h/2)}" fill="${fill}" stroke="${INK}" stroke-width="${f(sw)}"/>`:R(-w/2,-h/2,w,h,fill,sw);
-  if(pool){pv+=pshape(PW,PL,m2)+pshape(PW-2*PT,PL-2*PT,'rgba(80,150,200,.35)',LW*.7)}else pv+=C(0,0,baseW/2,m);
+  if(pool){pv+=pshape(PW,PL,m2)+pshape(PW-2*PT,PL-2*PT,'rgba(80,150,200,.35)',LW*.7)}else if(hasBase)pv+=C(0,0,baseW/2,m);
   for(const b of [...B].sort((a,c)=>c.d-a.d)){pv+=C(0,0,b.d/2,m)+C(0,0,Math.max(1,b.d/2-Math.max(3,Math.min(b.d*.06,10))),'rgba(80,150,200,.4)',LW*.5)}
   pv+=C(0,0,Math.max(2,last.cw*.35),m);
-  const pw0=pool?PW:Math.max(baseW,...B.map(b=>b.d)),pl0=pool?PL:pw0;
+  const pw0=pool?PW:Math.max(hasBase?baseW:0,...B.map(b=>b.d)),pl0=pool?PL:pw0;
   pv+=dimH(-pw0/2,pw0/2,pl0/2+FS*1.6,fmt(pw0));if(pool&&shp==='rect')pv+=dimV(pl0/2,-pl0/2,-pw0/2-FS*.8,fmt(PL));
   const plan={svg:pv,box:[-pw0/2-FS*2.2,pw0/2+10,-pl0/2-10,pl0/2+FS*2.6],label:'مسقط من فوق'};
   const stats=[['الارتفاع الكلي',fmt(H)]];
   const ORD=['الأول','الثاني','الثالث','الرابع','الخامس','السادس'];
   const shpN={round:'مدور',oct:'مثمن',square:'مربع',rect:'مستطيل'}[s.poolShape||'round']+(s.poolStyle==='inlay'?'، جدار مطعّم هندسي ملون':'');
   if(pool)stats.push(['الحوض',shpN+'، '+(s.poolShape==='rect'?PW+' × '+PL:PW)+' من برّا، '+(PW-2*PT)+(s.poolShape==='rect'?' × '+(PL-2*PT):'')+' من جوّا، ارتفاع '+PH+'، سماكة الجدار '+PT+' سم']);
-  else stats.push(['بدون حوض','قاعدة تحت النافورة عرض '+Math.round(baseW)+'، ارتفاع '+baseH+' سم']);
+  else stats.push(['بدون حوض',hasBase?'قاعدة تحت النافورة عرض '+Math.round(baseW)+'، ارتفاع '+baseH+' سم':'بدون قاعدة']);
   stats.push(['الصحون',B.map(b=>'الصحن '+ORD[b.k-1]+': قطر '+b.d+'، سماكة '+b.t).join(' | ')+' سم']);
-  if(B.some(b=>!b.none))stats.push(['الأعمدة',B.filter(b=>!b.none).map(b=>'العمود '+ORD[b.k-1]+': عرض '+b.cw+'، ارتفاع '+b.h+(b.k===1?(pool?' (من أرض الحوض، أعلى من الحوض بـ '+(b.h-PH)+')':' (فوق القاعدة)'):'')).join(' | ')+' سم']);
+  if(B.some(b=>!b.none))stats.push(['الأعمدة',B.filter(b=>!b.none).map(b=>'العمود '+ORD[b.k-1]+': عرض '+b.cw+'، ارتفاع '+b.h+(b.k===1?(pool?' (من أرض الحوض، أعلى من الحوض بـ '+(b.h-PH)+')':hasBase?' (فوق القاعدة)':' (من الأرض)'):'')).join(' | ')+' سم']);
   if(finH)stats.push(['التاج',({ball:'كرة',pine:'كوز',sphere:'كرة كبيرة دوّارة'}[s.finial])+'، عرض '+Math.round(fr*2)+'، ارتفاع '+Math.round(finH)+' سم']);
   const cut=[];
   if(pool&&shp==='oct')cut.push({cells:['ضلع الحوض (مثمن)','طول '+Math.round(PW*.4142),'ارتفاع '+PH,'سماكة '+PT,'8']});
@@ -2211,6 +2211,7 @@ const fountainCtrls=[
   {id:'mat3',label:'لون التطعيم 1',type:'mat',val:'black',show:s=>+s.pool&&s.poolStyle==='inlay'},
   {id:'mat4',label:'لون التطعيم 2',type:'mat',val:'black',show:s=>+s.pool&&s.poolStyle==='inlay'},
   {id:'mat2',label:'رخام الحوض',type:'mat',val:'beigeL',show:s=>+s.pool},
+  {id:'fbase',label:'القاعدة تحت النافورة',type:'seg',options:[[1,'مع قاعدة'],[0,'بدون قاعدة']],val:1,show:s=>!+s.pool},
   head('النافورة'),
   {id:'tiers',label:'عدد الصحون',type:'counter',min:1,max:6,val:1,addLabel:'إضافة صحن',remLabel:'حذف آخر صحن'},
   {id:'auto',label:'ارتفاع الأعمدة',type:'seg',options:[[1,'تلقائي حسب الارتفاع الكلي'],[0,'يدوي']],val:1,show:s=>+s.tiers>=2},
