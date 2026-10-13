@@ -472,6 +472,32 @@ function column(cx,yb,h,w,style,m){
 }
 
 /* ---------- fountain ---------- */
+/* ---------- تاج النافورة: موديلات واقعية (ضو وظل) ---------- */
+const FIN_SH=`<radialGradient id="finShR" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#3a2a1a" stop-opacity=".38"/></radialGradient>
+<linearGradient id="finShL" x1="0" x2="1"><stop offset="0" stop-color="#3a2a1a" stop-opacity=".30"/><stop offset=".35" stop-color="#fff" stop-opacity=".35"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#3a2a1a" stop-opacity=".35"/></linearGradient>`;
+const finShade=(d,id)=>`<path d="${d}" fill="url(#${id})" stroke="none"/>`;
+const finEll=(cx,cy,rx,ry)=>`M${f(cx-rx)} ${f(cy)}A${f(rx)} ${f(ry)} 0 1 0 ${f(cx+rx)} ${f(cy)}A${f(rx)} ${f(ry)} 0 1 0 ${f(cx-rx)} ${f(cy)}Z`;
+const finSh=(d,fill,id)=>P(d,fill,LW)+finShade(d,id);
+const finCollar=(fr,yb,m,w=.45,h=.35)=>{const d=`M${f(-fr*w)} ${f(yb)}L${f(-fr*w*.8)} ${f(yb-fr*h)}L${f(fr*w*.8)} ${f(yb-fr*h)}L${f(fr*w)} ${f(yb)}Z`;return finSh(d,m,'finShL')};
+const FIN_DEFS={
+ sphere:{n:'كرة كبيرة دوّارة',h:3.4,draw:(fr,yb,m)=>{const r=fr*1.45,cy=yb-fr*.55-r;const cup=`M${f(-r*.8)} ${f(yb-fr*.55)}L${f(r*.8)} ${f(yb-fr*.55)}Q${f(r*.45)} ${f(yb)} ${f(r*.2)} ${f(yb)}L${f(-r*.2)} ${f(yb)}Q${f(-r*.45)} ${f(yb)} ${f(-r*.8)} ${f(yb-fr*.55)}Z`;
+   return finSh(cup,m,'finShL')+finSh(finEll(0,cy,r,r),m,'finShR')+`<path d="M${f(-r*.6)} ${f(cy-r*.2)}Q${f(-r*.3)} ${f(cy-r*.65)} ${f(r*.15)} ${f(cy-r*.62)}" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="${f(LW*2)}" stroke-linecap="round"/>`}},
+ pom:{n:'رمّانة',h:2.9,draw:(fr,yb,m)=>{const r=fr*1.05,cy=yb-fr*.35-r;let o=finCollar(fr,yb,m,.4,.35)+finSh(finEll(0,cy,r*1.02,r),m,'finShR');const t=cy-r*.92;
+   o+=finSh(`M${f(-fr*.32)} ${f(t+fr*.12)}L${f(-fr*.36)} ${f(t-fr*.42)}L${f(-fr*.16)} ${f(t-fr*.18)}L0 ${f(t-fr*.5)}L${f(fr*.16)} ${f(t-fr*.18)}L${f(fr*.36)} ${f(t-fr*.42)}L${f(fr*.32)} ${f(t+fr*.12)}Z`,m,'finShL');return o}},
+ lotus:{n:'برعم لوتس',h:3,draw:(fr,yb,m)=>{const w=fr*.95,b=yb-fr*.3,t=b-fr*2.6;let o=finCollar(fr,yb,m,.42,.3);
+   const bud=`M0 ${f(t)}C${f(w*.55)} ${f(t+fr*.6)} ${f(w*1.15)} ${f(b-fr*1.2)} ${f(w*.75)} ${f(b-fr*.15)}Q${f(w*.4)} ${f(b)} 0 ${f(b)}Q${f(-w*.4)} ${f(b)} ${f(-w*.75)} ${f(b-fr*.15)}C${f(-w*1.15)} ${f(b-fr*1.2)} ${f(-w*.55)} ${f(t+fr*.6)} 0 ${f(t)}Z`;
+   o+=finSh(bud,m,'finShR');for(const sd of[-1,1])o+=`<path d="M${f(sd*w*.1)} ${f(b)}C${f(sd*w*.7)} ${f(b-fr*.6)} ${f(sd*w*.6)} ${f(t+fr*1.1)} ${f(sd*w*.05)} ${f(t+fr*.25)}" fill="none" stroke="${INK}" stroke-width="${f(LW*.6)}" opacity=".7"/>`;
+   o+=`<path d="M${f(-w*.55)} ${f(b-fr*.05)}Q0 ${f(b-fr*1.1)} ${f(w*.55)} ${f(b-fr*.05)}" fill="none" stroke="${INK}" stroke-width="${f(LW*.6)}" opacity=".6"/>`;return o}},
+ bell:{n:'جرس ماء (قبّة واطية)',h:1.7,draw:(fr,yb,m)=>{const w=fr*1.7,b=yb-fr*.35,t=b-fr*1.05;let o=finCollar(fr,yb,m,.35,.35);
+   const d=`M${f(-w)} ${f(b)}Q${f(-w)} ${f(t)} 0 ${f(t)}Q${f(w)} ${f(t)} ${f(w)} ${f(b)}Q0 ${f(b+fr*.18)} ${f(-w)} ${f(b)}Z`;o+=finSh(d,m,'finShR')+C(0,t-fr*.18,fr*.2,m,LW);return o}},
+ urn:{n:'جرّة صغيرة',h:2.8,draw:(fr,yb,m)=>{const b=yb,w=fr*.95;const d=`M${f(-fr*.4)} ${f(b)}L${f(-fr*.3)} ${f(b-fr*.3)}C${f(-w*1.3)} ${f(b-fr*.6)} ${f(-w*1.1)} ${f(b-fr*1.9)} ${f(-fr*.42)} ${f(b-fr*2.2)}L${f(-fr*.5)} ${f(b-fr*2.6)}L${f(fr*.5)} ${f(b-fr*2.6)}L${f(fr*.42)} ${f(b-fr*2.2)}C${f(w*1.1)} ${f(b-fr*1.9)} ${f(w*1.3)} ${f(b-fr*.6)} ${f(fr*.3)} ${f(b-fr*.3)}L${f(fr*.4)} ${f(b)}Z`;
+   return finSh(d,m,'finShL')+L(-fr*.75,b-fr*1.05,fr*.75,b-fr*1.05,INK,LW*.5)+`<ellipse cx="0" cy="${f(b-fr*2.6)}" rx="${f(fr*.5)}" ry="${f(fr*.12)}" fill="rgba(80,150,200,.6)" stroke="${INK}" stroke-width="${f(LW*.6)}"/>`}},
+ tulip:{n:'زهرة مفتوحة',h:2.2,draw:(fr,yb,m)=>{const b=yb-fr*.4,t=b-fr*1.7,w=fr*1.35;let o=finCollar(fr,yb,m,.32,.4);
+   const d=`M${f(-fr*.3)} ${f(b)}C${f(-w*.9)} ${f(b-fr*.4)} ${f(-w*1.05)} ${f(t+fr*.5)} ${f(-w)} ${f(t)}Q${f(-w*.55)} ${f(t+fr*.45)} ${f(-w*.35)} ${f(t+fr*.1)}Q${f(-w*.15)} ${f(t+fr*.5)} 0 ${f(t-fr*.05)}Q${f(w*.15)} ${f(t+fr*.5)} ${f(w*.35)} ${f(t+fr*.1)}Q${f(w*.55)} ${f(t+fr*.45)} ${f(w)} ${f(t)}C${f(w*1.05)} ${f(t+fr*.5)} ${f(w*.9)} ${f(b-fr*.4)} ${f(fr*.3)} ${f(b)}Z`;
+   o+=finSh(d,m,'finShL');for(const x of[-.35,.35])o+=`<path d="M${f(x*w*.3)} ${f(b)}Q${f(x*w*1.1)} ${f(b-fr*.8)} ${f(x*w)} ${f(t+fr*.15)}" fill="none" stroke="${INK}" stroke-width="${f(LW*.55)}" opacity=".6"/>`;return o}},
+ smallball:{n:'كرة صغيرة على رقبة',h:2.4,draw:(fr,yb,m)=>{const r=fr*.85,cy=yb-fr*.7-r;let o=finCollar(fr,yb,m,.5,.25)+finSh(`M${f(-fr*.28)} ${f(yb-fr*.25)}L${f(-fr*.22)} ${f(yb-fr*.75)}L${f(fr*.22)} ${f(yb-fr*.75)}L${f(fr*.28)} ${f(yb-fr*.25)}Z`,m,'finShL')+finSh(finEll(0,cy,r,r),m,'finShR');return o}}
+};
+const finKey=v=>v==='none'?'none':v==='ball'?'smallball':v==='pine'?'sphere':(FIN_DEFS[v]?v:'sphere');
 function drawFountain(s){
   const n=Math.max(1,Math.min(6,+s.tiers)),pool=+s.pool,PW=+s.poolW,PH=+s.poolH,m=M(s.mat),m2=M(s.mat2);
   const hasBase=!pool&&s.fbase!=='0'&&s.fbase!==0,baseH=hasBase?15:0,B=[];let y=-baseH,fixed=false;
@@ -486,15 +512,10 @@ function drawFountain(s){
     B.push(b);
   }
   const last=B[n-1],fr=Math.max(5,Math.min(18,last.d*.1)),finBot=last.rimTop;
-  const finH=s.finial==='ball'?fr*2.8:s.finial==='pine'?fr*3.8:s.finial==='sphere'?fr*4.6:0,finTop=finBot-finH,H=-finTop;
+  const fk=finKey(s.finial),finH=fk==='none'?0:fr*FIN_DEFS[fk].h,finTop=finBot-finH,H=-finTop;
   const baseW=Math.max(B[0].cw*2.6,40),Wmax=Math.max(pool?PW:(hasBase?baseW:0),...B.map(b=>b.d));
   const S=Math.max(Wmax,H);setScale(S);
-  const finial=()=>{let o='';
-    if(s.finial==='ball')o+=R(-fr*.3,finBot-fr*.8,fr*.6,fr*.8+last.t*.5,m)+C(0,finTop+fr,fr,m);
-    if(s.finial==='sphere'){const r=fr*1.9;o+=P(`M${f(-r*.9)} ${f(finBot-fr*.9)}L${f(r*.9)} ${f(finBot-fr*.9)}Q${f(r*.5)} ${f(finBot)} ${f(r*.25)} ${f(finBot+last.t*.3)}L${f(-r*.25)} ${f(finBot+last.t*.3)}Q${f(-r*.5)} ${f(finBot)} ${f(-r*.9)} ${f(finBot-fr*.9)}Z`,m)+C(0,finTop+r,r,m)+`<path d="M${f(-r*.55)} ${f(finTop+r*.55)}Q${f(-r*.2)} ${f(finTop+r*.2)} ${f(r*.15)} ${f(finTop+r*.25)}" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="${f(LW*2)}"/>`}
-    if(s.finial==='pine'){o+=R(-fr*.35,finBot-fr*.8,fr*.7,fr*.8+last.t*.5,m)+`<ellipse cx="0" cy="${f(finTop+fr*1.5)}" rx="${f(fr*.75)}" ry="${f(fr*1.5)}" fill="${m}" stroke="${INK}" stroke-width="${f(LW)}"/>`;
-      for(let k=1;k<4;k++){const yy=finTop+k*fr*.75;o+=`<path d="M${f(-fr*.6)} ${f(yy)}Q0 ${f(yy+fr*.35)} ${f(fr*.6)} ${f(yy)}" fill="none" stroke="${INK}" stroke-width="${f(LW*.5)}"/>`}}
-    return o};
+  const finial=()=>fk==='none'?'':`<defs>${FIN_SH}</defs>`+FIN_DEFS[fk].draw(fr,finBot+Math.min(2,last.t*.15),m);
   const bowl=(b,section)=>{
     const top=b.rimTop,d2=b.d/2,fw=b.cw*.45,st=b.bs,lob=st==='lobed'||st==='petal',rimH=b.t-b.sl,rb=top+rimH,bot=b.bottom;let o='';
     if(st==='drum'){o+=R(-d2,top,b.d,b.t,m)+L(-d2,top+Math.min(6,b.t*.3),d2,top+Math.min(6,b.t*.3),INK,LW*.5);
@@ -599,7 +620,7 @@ function drawFountain(s){
   else stats.push(['بدون حوض',hasBase?'قاعدة تحت النافورة عرض '+Math.round(baseW)+'، ارتفاع '+baseH+' سم':'بدون قاعدة']);
   stats.push(['الصحون',B.map(b=>'الصحن '+ORD[b.k-1]+': قطر '+b.d+'، سماكة '+b.t).join(' | ')+' سم']);
   if(B.some(b=>!b.none))stats.push(['الأعمدة',B.filter(b=>!b.none).map(b=>'العمود '+ORD[b.k-1]+': عرض '+b.cw+'، ارتفاع '+b.h+(b.k===1?(pool?' (من أرض الحوض، أعلى من الحوض بـ '+(b.h-PH)+')':hasBase?' (فوق القاعدة)':' (من الأرض)'):'')).join(' | ')+' سم']);
-  if(finH)stats.push(['التاج',({ball:'كرة',pine:'كوز',sphere:'كرة كبيرة دوّارة'}[s.finial])+'، عرض '+Math.round(fr*2)+'، ارتفاع '+Math.round(finH)+' سم']);
+  if(finH)stats.push(['التاج',FIN_DEFS[fk].n+'، عرض '+Math.round(fr*2)+'، ارتفاع '+Math.round(finH)+' سم']);
   const cut=[];
   if(pool&&shp==='oct')cut.push({cells:['ضلع الحوض (مثمن)','طول '+Math.round(PW*.4142),'ارتفاع '+PH,'سماكة '+PT,'8']});
   if(pool&&shp!=='oct'){if(shp==='round')cut.push({cells:['جدار الحوض (مدور)','محيط '+Math.round(Math.PI*(PW-PT))+' سم','ارتفاع '+PH,'سماكة '+PT,'1']});else{cut.push({cells:['جدار الحوض (واجهة)','طول '+PW,'ارتفاع '+PH,'سماكة '+PT,'2']});cut.push({cells:['جدار الحوض (جنب)','طول '+(PL-2*PT),'ارتفاع '+PH,'سماكة '+PT,'2']})}}
@@ -2216,7 +2237,7 @@ const fountainCtrls=[
   {id:'tiers',label:'عدد الصحون',type:'counter',min:1,max:6,val:1,addLabel:'إضافة صحن',remLabel:'حذف آخر صحن'},
   {id:'auto',label:'ارتفاع الأعمدة',type:'seg',options:[[1,'تلقائي حسب الارتفاع الكلي'],[0,'يدوي']],val:1,show:s=>+s.tiers>=2},
   {id:'Htot',label:'الارتفاع الكلي',type:'range',min:40,max:800,step:1,val:200,show:s=>+s.auto&&+s.tiers>=2},
-  {id:'finial',label:'التاج',type:'seg',options:[['ball','كرة'],['pine','كوز'],['sphere','كرة كبيرة دوّارة'],['none','بدون']],val:'pine'},
+  {id:'finial',label:'التاج',type:'seg',options:[['sphere','كرة كبيرة دوّارة'],['pom','رمّانة'],['lotus','برعم لوتس'],['bell','جرس ماء'],['urn','جرّة صغيرة'],['tulip','زهرة مفتوحة'],['smallball','كرة صغيرة'],['none','بدون']],val:'sphere'},
   {id:'water',label:'الماء',type:'seg',options:YN,val:1},
   {id:'mat',label:'رخام النافورة',type:'mat',val:'italian'}];
 fountainCtrls.push({type:'sub',label:'الأعمدة'});
@@ -3657,10 +3678,10 @@ panel.addEventListener('click',e=>{
 
 function applyAuto(st){
   if(!+st.auto)return;
-  const n=+st.tiers,dn=+st['d'+n],fr=Math.max(5,Math.min(18,dn*.1)),finH=st.finial==='ball'?fr*2.8:st.finial==='pine'?fr*3.8:0;
+  const n=+st.tiers,dn=+st['d'+n],fr=Math.max(5,Math.min(18,dn*.1)),fk=finKey(st.finial),finH=fk==='none'?0:fr*FIN_DEFS[fk].h;
   let sumT=0;for(let k=1;k<=n;k++)sumT+=Math.max(8,+st['t'+k]);
   if(n===1)return;
-  const h1=+st.pool?Math.max(+st.h1,+st.poolH+10):+st.h1,rem=+st.Htot-finH-sumT-h1-(+st.pool?0:15),each=Math.max(15,Math.round(rem/(n-1)));
+  const h1=+st.pool?Math.max(+st.h1,+st.poolH+10):+st.h1,rem=+st.Htot-finH-sumT-h1-(+st.pool||String(st.fbase)==='0'?0:15),each=Math.max(15,Math.round(rem/(n-1)));
   for(let k=2;k<=n;k++){st['h'+k]=each;st['c'+k]=Math.max(6,Math.round(+st.c1*.7))}
 }
 function centerTablo(){
