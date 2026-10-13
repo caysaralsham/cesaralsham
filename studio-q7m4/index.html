@@ -264,6 +264,7 @@ input[type=range]{height:16px}
 #draw .piece-edge{cursor:pointer}
 .cstrip.mb{overflow:hidden;gap:4px;padding:5px 8px;justify-content:center}.cstrip.mb>b{font-size:.78rem}.cstrip.mb button{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;display:inline-flex;align-items:center;gap:4px;padding:3px 8px;font-size:clamp(.6rem,1.9vw,.8rem)}.cstrip.mb button i{flex:none;width:14px;height:4px;border-radius:2px}@media (max-width:600px){.cstrip.mb>b{display:none}.cstrip.mb{padding:4px 4px;gap:3px}.cstrip.mb button{padding:3px 5px;gap:3px}.cstrip.mb button i{width:8px}}
 #insets.calcins{grid-template-columns:repeat(auto-fit,minmax(min(96px,30%),1fr));gap:5px;margin-top:5px}#insets.calcins .inset{padding:2px 3px 3px;border-radius:6px}#insets.calcins .inset span{font-size:.6rem;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#insets.calcins .inset svg{max-height:78px}@media (max-width:600px){#insets.calcins .inset svg{max-height:62px}#insets.calcins .inset span{font-size:.56rem}}
+.mcalc .es-more{margin:-4px 0 10px}.mcalc .es-more>summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(--accent-deep);padding:3px 0;user-select:none}.mcalc .es-more .edge-spec{margin:6px 0 0}
 </style>
 <style id="sb-right">/* شريط التمرير على اليمين (كمبيوتر بس — عالجوال بيمنع التحريك يمين/يسار) */@media (min-width:900px) and (hover:hover){html{direction:ltr}body{direction:rtl}}</style>
 </head>
@@ -2673,7 +2674,7 @@ function calcData(st){
 }
 const calcSave=d=>{state.calc.rows=JSON.stringify(d)};
 const calcSpec=s=>({th:+s.eth||2,ar:+s.arR||.5,ch:+s.ch||.5,ang:+s.chA||45});
-let calcBrush='a';
+let calcBrush='a',calcEsOpen=false;
 function isRenderMode(){try{return !!RENDER}catch(e){return /[?&]render\b/.test(location.search)}}
 // ---- رسمات القطع (نفس دوال ميراكوس) — القياسات بالسنتي ----
 function fmtCm(v){const n=Number(v)||0;return String(Number(n.toFixed(1)))}
@@ -2855,7 +2856,8 @@ function calcTotalsHtml(tables){
 function calcPanel(st){
   const d=calcData(st),spec=calcSpec(st);
   let h=`<div class="mcalc">
-  <div class="edge-spec"><span>مقاسات الحواف:</span><label>سماكة الحجر <input data-es="eth" inputmode="decimal" dir="ltr" value="${spec.th}"> سم</label><label>اروندي (نص القطر) <input data-es="arR" inputmode="decimal" dir="ltr" value="${spec.ar}"> سم</label><label>شطفة <input data-es="ch" inputmode="decimal" dir="ltr" value="${spec.ch}"> سم</label><label>ميلان الشطفة <input data-es="chA" inputmode="decimal" dir="ltr" value="${spec.ang}"> °</label></div>
+  <div class="edge-spec"><span>مقاسات الحواف:</span><label>سماكة الحجر <input data-es="eth" inputmode="decimal" dir="ltr" value="${spec.th}"> سم</label></div>
+  <details class="es-more"${calcEsOpen?' open':''}><summary>مقاسات الاروندي والشطفة</summary><div class="edge-spec"><label>اروندي (نص القطر) <input data-es="arR" inputmode="decimal" dir="ltr" value="${spec.ar}"> سم</label><label>شطفة <input data-es="ch" inputmode="decimal" dir="ltr" value="${spec.ch}"> سم</label><label>ميلان الشطفة <input data-es="chA" inputmode="decimal" dir="ltr" value="${spec.ang}"> °</label></div></details>
   <div class="mtables">`;
   d.tables.forEach((tbl,ti)=>{
     const sp=MEAS_SPECS[tbl.type],note=measHasNote(tbl.type),pad=n=>'<span></span>'.repeat(n);
@@ -3565,6 +3567,7 @@ function syncStrip(){
   calcStrip.innerHTML=`<b>الحافة:</b>${EDGE_ORDER.map(c=>`<button type="button" data-sb="${c}" aria-pressed="${calcBrush===c}" title="${EDGE_NAMES[c]}"><i style="background:${edgeColor(c)}"></i>${BRUSH_SHORT[c]}</button>`).join('')}`;
   const was=calcStrip.hidden;calcStrip.hidden=false;if(was){try{updateStick()}catch(e){}}
 }
+panel.addEventListener('toggle',e=>{if(e.target.classList&&e.target.classList.contains('es-more'))calcEsOpen=e.target.open},true);
 calcStrip&&calcStrip.addEventListener('click',e=>{const b=e.target.closest('[data-sb]');if(!b||tab!=='calc')return;calcBrush=b.dataset.sb;calcStrip.querySelectorAll('[data-sb]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
 function rebuildKeep(){const y=window.scrollY,ps=panel.scrollTop;buildPanel();try{window.scrollTo(0,y);panel.scrollTop=ps}catch(e){}}
 // كبسة على ضلع القطعة بالرسمة الكبيرة
