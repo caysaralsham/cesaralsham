@@ -524,14 +524,23 @@ function drawFountain(s){
       return o}
     if(b.sl>0){
       if(st==='flat')o+=P(`M${f(-d2)} ${f(rb)}L${f(-fw-(d2-fw)*.25)} ${f(bot)}L${f(fw+(d2-fw)*.25)} ${f(bot)}L${f(d2)} ${f(rb)}Z`,m);
-      else o+=P(`M${f(-d2*.98)} ${f(rb)}C${f(-d2)} ${f(rb+(bot-rb)*.75)} ${f(-fw-b.d*.12)} ${f(bot)} ${f(-fw)} ${f(bot)}L${f(fw)} ${f(bot)}C${f(fw+b.d*.12)} ${f(bot)} ${f(d2)} ${f(rb+(bot-rb)*.75)} ${f(d2*.98)} ${f(rb)}Z`,m);
+      else{const bd=`M${f(-d2*.98)} ${f(rb)}C${f(-d2)} ${f(rb+(bot-rb)*.75)} ${f(-fw-b.d*.12)} ${f(bot)} ${f(-fw)} ${f(bot)}L${f(fw)} ${f(bot)}C${f(fw+b.d*.12)} ${f(bot)} ${f(d2)} ${f(rb+(bot-rb)*.75)} ${f(d2*.98)} ${f(rb)}Z`;o+=P(bd,m);
+        // أوراق كبيرة متل الجرن: ألسنة طويلة راسها مدوّر، مقصوصة على شكل جسم الصحن
+        if(st==='leaves'&&!section){const cid=nid('lv'),n=9,bh=bot-rb,pt=rb+bh*.06;let g='';
+          for(let i=0;i<n;i++){const th=(-78+156*i/(n-1))*Math.PI/180,x=d2*.99*Math.sin(th),pw=Math.min(b.d/n*1.05*Math.cos(th)+b.d*.02,bh*1.1),r=pw/2,xb=x*.55,wb=pw*.45;
+            // لسان طويل: عريض فوق وراسه مدوّر، وبيضيق لتحت باتجاه الرجل
+            g+=P(`M${f(xb-wb/2)} ${f(bot+2)}L${f(x-r)} ${f(pt+r)}A${f(r)} ${f(r)} 0 0 1 ${f(x+r)} ${f(pt+r)}L${f(xb+wb/2)} ${f(bot+2)}Z`,RELIEF,LW*.6)+carve(`M${f(xb)} ${f(bot)}L${f(x)} ${f(pt+r*.9)}`,LW*.4,.45)}
+          o+=`<clipPath id="${cid}"><path d="${bd}"/></clipPath><g clip-path="url(#${cid})">${g}</g>`+P(bd,'none')}}
       if(st==='petal'&&!section){const nl=Math.max(5,Math.round(b.d/22));for(let i=1;i<nl;i++){const xa=-d2+b.d*i/nl,xb=-fw+2*fw*i/nl;o+=carve(`M${f(xa)} ${f(rb)}Q${f(xa*.85)} ${f(rb+(bot-rb)*.7)} ${f(xb)} ${f(bot)}`,LW*.55,.6)}}
     }
     if(lob&&!section){
-      const nl=Math.max(5,Math.round(b.d/22)),lw=b.d/nl;
-      let d=`M${f(-d2)} ${f(top)}L${f(d2)} ${f(top)}L${f(d2)} ${f(top+rimH*.45)}`;
-      for(let i=0;i<nl;i++)d+=`Q${f(d2-(i+.5)*lw)} ${f(top+rimH*1.55)} ${f(d2-(i+1)*lw)} ${f(top+rimH*.45)}`;
-      o+=P(d+'Z',m);
+      // حافة مزخرفة: أقواس على الحافة من فوق (متل الصحن الحقيقي) + خط محفور جوّاها
+      const nl=Math.max(5,Math.round(b.d/16)),lw=b.d/nl,amp=Math.min(rimH*.38,lw*.32);
+      let d=`M${f(-d2)} ${f(rb)}L${f(-d2)} ${f(top+amp)}`,c='';
+      for(let i=0;i<nl;i++){const xa=-d2+i*lw,xb=xa+lw;d+=`Q${f(xa+lw/2)} ${f(top-amp)} ${f(xb)} ${f(top+amp)}`;
+        c+=carve(`M${f(xa+lw*.12)} ${f(top+amp*1.9)}Q${f(xa+lw/2)} ${f(top+amp*.2)} ${f(xb-lw*.12)} ${f(top+amp*1.9)}`,LW*.45,.55);
+        if(i)c+=L(xa,top+amp,xa,top+amp+rimH*.3,INK,LW*.5)}
+      o+=P(d+`L${f(d2)} ${f(rb)}Z`,m)+c+L(-d2,rb-rimH*.18,d2,rb-rimH*.18,INK,LW*.45);
     }else o+=R(-d2,top,b.d,rimH,m)+(section?'':L(-d2,top+rimH*.35,d2,top+rimH*.35,INK,LW*.5));
     if(st==='carved'&&!section){const bh=rimH*.6;if(bh>3)o+=scrollBand(-d2+bh*.4,d2-bh*.4,top+rimH*.62,bh);if(b.sl>2){const nl=Math.max(4,Math.round(b.d/26));for(let i=0;i<nl;i++){const x=-d2*.8+d2*1.6*(i+.5)/nl;o+=leaf(x*.95,rb+1,Math.min(b.sl*1.1,(bot-rb)*1.1),b.d/nl*.22,90+x/d2*25,RELIEF,2)}}}
     if(section){const wall=Math.max(3,Math.min(b.d*.06,10)),dep=Math.max(2,b.t*.6);
@@ -2219,7 +2228,7 @@ const YN=[[1,'نعم'],[0,'لا']];
 const head=(label,collapsed)=>({type:'head',label,collapsed});
 const BD={d:[90,60,40,30,24,20],t:[22,16,12,10,9,8],b:[12,9,7,6,5,4],h:[55,40,35,30,25,20],c:[25,13,10,8,7,6]};
 const COLS=[['vase','بلستر'],['twist','ملفوف'],['classic','كلاسيك'],['straight','مخدد'],['leaf','أوراق منحوتة']];
-const BOWLS=[['cup','كاس'],['flat','مسطح'],['lobed','حافة مزخرفة'],['petal','بتلات'],['carved','حزام منحوت'],['drum','أسطوانة']];
+const BOWLS=[['cup','كاس'],['flat','مسطح'],['leaves','أوراق كبيرة'],['lobed','حافة مزخرفة'],['petal','بتلات'],['carved','حزام منحوت'],['drum','أسطوانة']];
 const fountainCtrls=[
   head('الحوض'),
   {id:'pool',label:'الحوض الخارجي',type:'seg',options:[[1,'مع حوض'],[0,'بدون حوض']],val:1},
