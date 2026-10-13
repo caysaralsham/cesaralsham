@@ -478,7 +478,8 @@ function drawFountain(s){
   for(let i=0;i<n;i++){
     const k=i+1,prev=B[i-1],t=Math.max(8,+s['t'+k]);
     const b={k,d:+s['d'+k],t,sl:Math.max(0,Math.min(+s['b'+k],t-3)),h:+s['h'+k],cw:+s['c'+k]||Math.max(8,+s['d'+k]*.2),cs:s['cs'+k]||'vase',bs:s['bs'+k]||'cup'};
-    if(!prev&&pool&&b.h<PH+10){b.h=PH+10;fixed=true}
+    b.none=b.cs==='none';if(b.none)b.h=0;
+    if(!prev&&pool&&!b.none&&b.h<PH+10){b.h=PH+10;fixed=true}
     b.base=prev?prev.rimTop:y;
     b.colBot=prev?prev.rimTop+Math.min(prev.t*.6,prev.t-2):y;
     b.colTop=b.base-b.h;b.bottom=b.colTop;b.rimTop=b.colTop-b.t;
@@ -518,7 +519,7 @@ function drawFountain(s){
   // ----- elevation -----
   let o='';
   if(!pool)o+=R(-baseW/2,-8,baseW,8,m)+R(-baseW*.4,-baseH,baseW*.8,7,m);
-  for(const b of B)o+=column(0,b.colBot,b.colBot-b.colTop,b.cw,b.cs,m);
+  for(const b of B)if(!b.none)o+=column(0,b.colBot,b.colBot-b.colTop,b.cw,b.cs,m);
   o+=finial();
   for(const b of B){o+=bowl(b,false);o+='<g class="dim">'+T(-b.d/2-FS*.3,b.rimTop+b.t*.6,`قطر ${b.d}`,FS*.62,'end')+'</g>'}
   if(+s.water){
@@ -563,7 +564,7 @@ function drawFountain(s){
   const seg=(y1,y2,lab)=>{if(Math.abs(y1-y2)<.5)return '';const t=FS*.22,mid=(y1+y2)/2;
     return '<g class="dim">'+L(xc,y1,xc,y2,DIM,LW*.8)+L(xc-t*2,y1,xc+t*2,y1,DIM,LW*.8)+L(xc-t*2,y2,xc+t*2,y2,DIM,LW*.8)+T(xc+FS*.35,mid+small*.35,lab,small,'start')+'</g>'};
   if(!pool)o+=seg(0,-baseH,baseH+'');
-  for(const b of B){o+=seg(b.base,b.colTop,b.h+'');o+=seg(b.colTop,b.rimTop,b.t+'')}
+  for(const b of B){if(!b.none)o+=seg(b.base,b.colTop,b.h+'');o+=seg(b.colTop,b.rimTop,b.t+'')}
   if(finH)o+=seg(finBot,finTop,Math.round(finH)+'');
   o+=dimV(0,-H,Wmax/2+S*.2,fmt(H));
   const PT=+s.poolT||10;
@@ -576,11 +577,11 @@ function drawFountain(s){
     q+=R(-PW/2,0,PW,12,`url(#${hid})`)+R(-PW/2,-PH,wallT,PH,`url(#${hid})`)+R(PW/2-wallT,-PH,wallT,PH,`url(#${hid})`);
     q+=`<rect x="${f(-PW/2+wallT)}" y="${f(-PH+8)}" width="${f(PW-2*wallT)}" height="${f(PH-8)}" fill="rgba(80,150,200,.3)"/>`+L(-PW/2+wallT,-PH+8,PW/2-wallT,-PH+8,WATER,LW*1.2);
   }else q+=R(-baseW/2,-8,baseW,8,m)+R(-baseW*.4,-baseH,baseW*.8,7,m);
-  for(const b of B)q+=column(0,b.colBot,b.colBot-b.colTop,b.cw,b.cs,m);
+  for(const b of B)if(!b.none)q+=column(0,b.colBot,b.colBot-b.colTop,b.cw,b.cs,m);
   q+=finial();
   for(const b of B)q+=bowl(b,true);
   q+=L(-Wmax/2-20,0,Wmax/2+20,0,INK,LW*1.6);
-  if(pool)q+=T(0,30+FS*.6,'العمود الأول جوا الحوض',FS*1.1,'middle');
+  if(pool&&!B[0].none)q+=T(0,30+FS*.6,'العمود الأول جوا الحوض',FS*1.1,'middle');
   const inset={svg:q,box:[-Wmax/2-25,Wmax/2+25,finTop-20,pool?30+FS*1.2:25],label:'مقطع'};
   // plan (top view)
   const shp=s.poolShape||'round',PL=shp==='rect'?+s.poolL:PW;let pv='';
@@ -597,16 +598,16 @@ function drawFountain(s){
   if(pool)stats.push(['الحوض',shpN+'، '+(s.poolShape==='rect'?PW+' × '+PL:PW)+' من برّا، '+(PW-2*PT)+(s.poolShape==='rect'?' × '+(PL-2*PT):'')+' من جوّا، ارتفاع '+PH+'، سماكة الجدار '+PT+' سم']);
   else stats.push(['بدون حوض','قاعدة تحت النافورة عرض '+Math.round(baseW)+'، ارتفاع '+baseH+' سم']);
   stats.push(['الصحون',B.map(b=>'الصحن '+ORD[b.k-1]+': قطر '+b.d+'، سماكة '+b.t).join(' | ')+' سم']);
-  stats.push(['الأعمدة',B.map(b=>'العمود '+ORD[b.k-1]+': عرض '+b.cw+'، ارتفاع '+b.h+(b.k===1?(pool?' (من أرض الحوض، أعلى من الحوض بـ '+(b.h-PH)+')':' (فوق القاعدة)'):'')).join(' | ')+' سم']);
+  if(B.some(b=>!b.none))stats.push(['الأعمدة',B.filter(b=>!b.none).map(b=>'العمود '+ORD[b.k-1]+': عرض '+b.cw+'، ارتفاع '+b.h+(b.k===1?(pool?' (من أرض الحوض، أعلى من الحوض بـ '+(b.h-PH)+')':' (فوق القاعدة)'):'')).join(' | ')+' سم']);
   if(finH)stats.push(['التاج',({ball:'كرة',pine:'كوز',sphere:'كرة كبيرة دوّارة'}[s.finial])+'، عرض '+Math.round(fr*2)+'، ارتفاع '+Math.round(finH)+' سم']);
   const cut=[];
   if(pool&&shp==='oct')cut.push({cells:['ضلع الحوض (مثمن)','طول '+Math.round(PW*.4142),'ارتفاع '+PH,'سماكة '+PT,'8']});
   if(pool&&shp!=='oct'){if(shp==='round')cut.push({cells:['جدار الحوض (مدور)','محيط '+Math.round(Math.PI*(PW-PT))+' سم','ارتفاع '+PH,'سماكة '+PT,'1']});else{cut.push({cells:['جدار الحوض (واجهة)','طول '+PW,'ارتفاع '+PH,'سماكة '+PT,'2']});cut.push({cells:['جدار الحوض (جنب)','طول '+(PL-2*PT),'ارتفاع '+PH,'سماكة '+PT,'2']})}}
-  for(const b of B){cut.push({cells:['العمود '+b.k,'عرض '+b.cw,'ارتفاع '+b.h,'-','1']});cut.push({cells:['الصحن '+b.k,'قطر '+b.d,'سماكة '+b.t,'ميلان '+b.sl,'1']})}
+  for(const b of B){if(!b.none)cut.push({cells:['العمود '+b.k,'عرض '+b.cw,'ارتفاع '+b.h,'-','1']});cut.push({cells:['الصحن '+b.k,'قطر '+b.d,'سماكة '+b.t,'ميلان '+b.sl,'1']})}
   if(finH)cut.push({cells:['التاج','عرض '+Math.round(fr*2),'ارتفاع '+Math.round(finH),'-','1']});
   const tables=[{title:'قائمة القطع للمعمل',head:['القطعة','القياس 1','القياس 2','القياس 3','العدد'],rows:cut}];
   return{svg:o,insets:[inset,plan],tables,box:[-Wmax/2-S*.12,Wmax/2+S*.24,finTop-(+s.water?S*.1:0)-S*.05,S*.2],stats,
-    note:(pool&&B[0].d>PW-16?'الصحن الأول أعرض من الحوض. ':'')+(fixed?'العمود الأول لازم يطلع من الحوض، فطوّلته. ':'')+'الأرقام على اليمين: ارتفاع كل عمود وكل صحن بالسنتيمتر.'};
+    note:(pool&&B[0].d>PW-16?'الصحن الأول أعرض من الحوض. ':'')+(fixed?'العمود الأول لازم يطلع من الحوض، فطوّلته. ':'')+(pool&&B[0].none?'الصحن الأول بدون عامود قاعد على أرض الحوض. ':'')+'الأرقام على اليمين: ارتفاع كل عمود وكل صحن بالسنتيمتر.'};
 }
 
 /* ---------- facade ---------- */
@@ -2219,10 +2220,10 @@ const fountainCtrls=[
   {id:'mat',label:'رخام النافورة',type:'mat',val:'italian'}];
 fountainCtrls.push({type:'sub',label:'الأعمدة'});
 for(let k=1;k<=6;k++){
-  fountainCtrls.push({type:'group',gid:'col'+k,show:s=>+s.tiers>=k,title:s=>'العمود '+k+': ارتفاع '+s['h'+k]+'، عرض '+s['c'+k],items:[
-    {id:'cs'+k,label:'شكل العمود',type:'seg',options:COLS,val:'vase'},
-    {id:'h'+k,label:k===1?'الارتفاع (من أرض الحوض)':'الارتفاع',type:'range',min:10,max:300,step:1,val:BD.h[k-1]},
-    {id:'c'+k,label:'العرض',type:'range',min:6,max:100,step:1,val:BD.c[k-1]}]});
+  fountainCtrls.push({type:'group',gid:'col'+k,show:s=>+s.tiers>=k,title:s=>s['cs'+k]==='none'?'العمود '+k+': بدون عامود':'العمود '+k+': ارتفاع '+s['h'+k]+'، عرض '+s['c'+k],items:[
+    {id:'cs'+k,label:'شكل العمود',type:'seg',options:[...COLS,['none','بدون عامود']],val:'vase'},
+    {id:'h'+k,label:k===1?'الارتفاع (من أرض الحوض)':'الارتفاع',type:'range',min:10,max:300,step:1,val:BD.h[k-1],show:s=>s['cs'+k]!=='none'},
+    {id:'c'+k,label:'العرض',type:'range',min:6,max:100,step:1,val:BD.c[k-1],show:s=>s['cs'+k]!=='none'}]});
 }
 fountainCtrls.push({type:'sub',label:'الصحون'});
 for(let k=1;k<=6;k++){
