@@ -23,8 +23,6 @@ for (const [name, url] of Object.entries(TOOLS)) {
     test.describe('على الكمبيوتر', () => {
       test.use({ viewport: { width: 1366, height: 800 } });
       test('شريط التمرير على اليمين', async ({ page }) => {
-        // خلل معروف: صفحة الإعدادات العامة ليس فيها قاعدة الشريط على اليمين
-        if (url === '/links/admin-settings.html') test.fail(true, 'خلل معروف: الشريط على اليسار');
         await openOffline(page, url);
         expect(await scrollbarOnRight(page)).toBe(true);
       });

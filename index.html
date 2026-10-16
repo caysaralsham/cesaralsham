@@ -260,6 +260,11 @@
   #quoteForm input,#quoteForm select,#quoteForm textarea{font:inherit;font-weight:500;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#F5ECDD}
   #quoteForm .btn{justify-content:center;border:0;cursor:pointer;background:#1F8F55}
   @media(max-width:600px){#quoteForm .q-row{grid-template-columns:1fr}}
+  /* الجوال: أيقونات التواصل بسطر، والهاتف وزر القائمة بسطر تحته، حتى لا يخرج شيء عن الشاشة */
+  @media (max-width:520px){
+    .header-left{flex-wrap:wrap; row-gap:10px;}
+    .header-left .social-icons{flex:1 1 100%; justify-content:center;}
+  }
 </style>
 </head>
 <body>

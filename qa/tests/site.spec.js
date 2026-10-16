@@ -34,13 +34,13 @@ test.describe('على الجوال', () => {
   test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 
   const MOBILE = ['/', '/works.html', '/videos.html', '/fr/', '/links/', '/a3mal-fontaines-en-marbre.html'];
-  // خلل معروف في الصفحات العربية: رأس الصفحة أعرض من الشاشة بـ16 بكسل (عند زر القائمة ☰)
-  // فتتحرك الصفحة يميناً ويساراً على الجوال. عند إصلاحه سينبّهنا الاختبار لنزيل العلامة.
-  const KNOWN = new Set(['/', '/works.html', '/videos.html']);
-
+  for (const w of [360, 414]) test(`لا يوجد تمرير أفقي بعرض ${w}: /`, async ({ page }) => {
+    await page.setViewportSize({ width: w, height: 800 });
+    await openOffline(page, '/');
+    expect(await horizontalOverflow(page)).toEqual([]);
+  });
   for (const url of MOBILE) {
     test(`لا يوجد تمرير أفقي: ${url}`, async ({ page }) => {
-      if (KNOWN.has(url)) test.fail(true, 'خلل معروف: زر القائمة خارج الشاشة');
       await openOffline(page, url);
       expect(await horizontalOverflow(page)).toEqual([]);
     });
