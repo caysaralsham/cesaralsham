@@ -86,8 +86,10 @@ test.describe('الأرقام لاتينية دائماً (0-9)', () => {
   test('المرسم: هاتف الزبون بالأرقام العربية يتحول إلى 0-9', async ({ page }) => {
     await openOffline(page, '/studio-q7m4/');
     await page.click('#saveBtn');
-    await page.locator('#cPhone').focus();
+    await expect(page.locator('#cName')).toBeFocused(); // النافذة تضع المؤشر على الاسم أولاً
+    await page.locator('#cPhone').click();
+    await expect(page.locator('#cPhone')).toBeFocused();
     await page.keyboard.type('٠٥٥٠١٢٣٤٥٦');
-    expect(await page.locator('#cPhone').inputValue()).toBe('0550123456');
+    await expect(page.locator('#cPhone')).toHaveValue('0550123456');
   });
 });
