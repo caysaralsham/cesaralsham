@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
-Disallow: /admin-works.html
-Disallow: /my/
+
+# الأدوات الخاصة غير محجوبة هنا عمداً: غوغل لازم يقدر يفتحها حتى يقرأ علامة noindex ويستبعدها نهائياً.
+# لو حجبناها هنا، ممكن تظهر بنتائج البحث كرابط بدون وصف ("مفهرسة رغم حظرها").
 
 Sitemap: https://cesar-alcham.com/sitemap.xml
