@@ -25,4 +25,5 @@ npx playwright test
 ## صلاحيات Firestore
 - `firestore/firestore.rules`: نسخة من القواعد المنشورة حالياً، للمرجع والاختبار فقط. **نشرها لا يتم من هنا.**
 - `firestore/firestore.proposed.rules`: نسخة مقترحة تسد ثغرات عدّاد الزيارات.
-- `npm run test:rules` يشغّل الاختبارات على محاكي Firebase بمشروع وهمي (يحتاج Java 21).
+- `firestore/storage.rules`: نسخة من قواعد Storage المنشورة، للمرجع والاختبار فقط.
+- `npm run test:rules` يشغّل اختبارات Firestore وStorage على محاكي Firebase بمشروع وهمي (يحتاج Java 21).
