@@ -12,7 +12,7 @@ module.exports = defineConfig({
     locale: 'ar',
     // محلياً يمكن تحديد متصفح آخر عبر CHROMIUM_PATH، وفي GitHub Actions يُستخدم متصفح Playwright
     launchOptions: process.env.CHROMIUM_PATH
-      ? { executablePath: process.env.CHROMIUM_PATH, args: ['--no-sandbox', '--no-zygote', '--disable-dev-shm-usage'] }
+      ? { executablePath: process.env.CHROMIUM_PATH, args: ['--no-sandbox', '--no-zygote', '--disable-dev-shm-usage', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] }
       : {},
   },
   // يخدم ملفات المستودع كما هي، بدون أي بناء أو تعديل
