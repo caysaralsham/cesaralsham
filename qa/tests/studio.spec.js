@@ -97,7 +97,7 @@ test('العرض الثلاثي يفتح لكل أنواع الرسم، وصور
   for (const k of types) {
     const r = await page.evaluate(async k => {
       tab = k; buildPanel(); render();
-      const m = await import('./view3d.js?v=1');
+      const m = await import('./view3d.js?v=2');
       try {
         const o = await m.open3D();
         const img = await m.snapshot(800, 600);
@@ -113,4 +113,17 @@ test('العرض الثلاثي يفتح لكل أنواع الرسم، وصور
 
 test('زر «ثلاثي الأبعاد» موجود بجانب «حفظ صورة»', async ({ page }) => {
   await expect(page.locator('#v3dBtn')).toBeVisible();
+});
+
+test('العرض الثلاثي يأخذ الواجهة فقط ويتجاهل المسقط المرسوم فوقها', async ({ page }) => {
+  const kept = await page.evaluate(async () => {
+    const T = await import('./vendor/three-bundle.min.js?v=186');
+    const m = await import('./view3d.js?v=2');
+    const box = (x0, y0, x1, y1) => { const s = new T.Shape(); s.moveTo(x0, y0); s.lineTo(x1, y0); s.lineTo(x1, y1); s.lineTo(x0, y1); s.lineTo(x0, y0); return s; };
+    const front = box(-25, -30, 25, 0);     // واجهة الجرن واقفة على الأرض
+    const plan = box(-25, -120, 25, -80);   // المسقط مرسوم فوقها ومنفصل عنها
+    const keep = m.mainViewOnly([front, plan], 120, 8);
+    return [keep.has(front), keep.has(plan)];
+  });
+  expect(kept).toEqual([true, false]);
 });

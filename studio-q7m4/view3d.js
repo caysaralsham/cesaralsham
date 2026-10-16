@@ -202,9 +202,16 @@ async function buildModel() {
     },
   };
 
+  // بعض الرسمات فيها أكثر من منظر (مسقط من فوق + واجهة). المجسّم يُبنى من الواجهة فقط:
+  // نجمع الأشكال المتلاصقة بمجموعات، ونبقي المجموعات الواقفة على الأرض.
+  // الحمام مرسوم كمخطط مفروش (الأرض والحيطان حواليها)، فنبقيه كاملاً
+  const curTab = typeof tab !== 'undefined' ? tab : '';
+  const keep = curTab === 'bath' ? new Set(shapes) : mainViewOnly(shapes, S, segs);
+
   const group = new THREE.Group();
   let i = 0;
   for (const s of shapes) {
+    if (!keep.has(s)) { i++; continue; }
     if (s.round) {
       // كرة/بيضاوي: نصف القطر بالعمق = أصغر نصف قطر، وموضوعة فوق طبقتها
       const depth = base + step * i, rz = Math.min(s.rx, s.ry);
@@ -241,6 +248,33 @@ async function buildModel() {
     i++;
   }
   return { group, vb, S };
+}
+
+
+function bboxOf(s, segs) {
+  if (s.round) return [s.cx - s.rx, s.cy - s.ry, s.cx + s.rx, s.cy + s.ry];
+  const pts = s.extractPoints(segs).shape;
+  let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity;
+  for (const q of pts) { a = Math.min(a, q.x); b = Math.min(b, q.y); c = Math.max(c, q.x); d = Math.max(d, q.y); }
+  return [a, b, c, d];
+}
+
+// يرجّع الأشكال التي تنتمي للمنظر الأمامي الواقف على الأرض (أو كل الأشكال إذا ما في أرض)
+export function mainViewOnly(shapes, S, segs) {
+  const n = shapes.length, tol = S * 0.03;
+  const bb = shapes.map(s => bboxOf(s, segs));
+  const par = shapes.map((_, k) => k);
+  const find = k => (par[k] === k ? k : (par[k] = find(par[k])));
+  for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) {
+    const A = bb[a], B = bb[b];
+    if (A[0] - tol <= B[2] && B[0] - tol <= A[2] && A[1] - tol <= B[3] && B[1] - tol <= A[3]) par[find(a)] = find(b);
+  }
+  const groups = new Map();
+  shapes.forEach((s, k) => { const r = find(k); if (!groups.has(r)) groups.set(r, []); groups.get(r).push(k); });
+  const onGround = ks => ks.some(k => Math.abs(bb[k][3]) <= tol);
+  const grounded = [...groups.values()].filter(onGround);
+  const chosen = grounded.length ? grounded : [...groups.values()];
+  return new Set(chosen.flat().map(k => shapes[k]));
 }
 
 function lightsAndGround(vb, S, grounded) {

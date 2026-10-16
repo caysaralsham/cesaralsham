@@ -80,6 +80,9 @@ test.describe('الأرقام لاتينية دائماً (0-9)', () => {
       expect(await page.locator('script#latin-digits').count()).toBe(1);
       const hasIndic = await page.evaluate(() => /[٠-٩]/.test(document.body.innerText));
       expect(hasIndic, 'لا أرقام عربية ظاهرة في الصفحة').toBe(false);
+      // خانات الأرقام: لغتها إنكليزية حتى ما يعرضها المتصفح العربي بـ ٠١٢
+      const notLatn = await page.$$eval('input[type=number],input[type=date]', els => els.filter(e => e.getAttribute('lang') !== 'en').length);
+      expect(notLatn).toBe(0);
     });
   }
 
