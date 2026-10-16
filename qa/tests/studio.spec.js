@@ -127,3 +127,57 @@ test('العرض الثلاثي يأخذ الواجهة فقط ويتجاهل ا
   });
   expect(kept).toEqual([true, false]);
 });
+
+test.describe('مكتبة الموديلات', () => {
+  test('المكتبة تفتح وفيها كل أعمال الموقع مقسّمة، والصور روابطها الأصلية', async ({ page }) => {
+    await page.click('#libBtn');
+    await expect(page.locator('#lib .card').first()).toBeVisible();
+    const r = await page.evaluate(async () => {
+      const d = await (await fetch('./models.json')).json();
+      return { total: d.total, cards: document.querySelectorAll('#lib .card').length, secSum: d.sections.reduce((a, s) => a + s.count, 0),
+        imgs: d.models.every(m => /^(https:\/\/firebasestorage\.googleapis\.com\/|data:image\/)/.test(m.img)), ids: new Set(d.models.map(m => m.id)).size };
+    });
+    expect(r.total).toBeGreaterThan(100);
+    expect(r.cards).toBe(r.total);
+    expect(r.secSum).toBe(r.total);
+    expect(r.ids).toBe(r.total);
+    expect(r.imgs).toBe(true);
+    // البطاقات لازم تبين بحجمها حتى لو الصورة لسه ما تحمّلت (كانت تنضغط لخط رفيع)
+    const h = await page.locator('#lib .card').first().evaluate(e => e.getBoundingClientRect().height);
+    expect(h).toBeGreaterThan(150);
+  });
+
+  test('موديل الدرابزين يطلع مجسّم ثلاثي حقيقي، والقياسات بتغيّره، والإدراج بيعبّي تبويب الدرابزين', async ({ page }) => {
+    await page.click('#libBtn');
+    await page.click('#lib .card[data-id=mslmvej7anbksj]');
+    await expect(page.locator('#libV3 canvas')).toBeVisible();
+    const notLatn = await page.$$eval('#libPrm input[type=number]', els => els.filter(e => e.getAttribute('lang') !== 'en').length);
+    expect(notLatn).toBe(0);
+    const count = () => page.evaluate(async () => {
+      const m = await import('./library.js?v=2');
+      const g = m.TEMPLATES.balustrade.build({ L: 150, H: 90, n: +document.querySelector('#libPrm input[data-k=n]').value, bw: 16, railH: 11, railW: 22, baseH: 7 }, 'italian');
+      let meshes = 0, tris = 0; g.traverse(o => { if (o.isMesh) { meshes++; tris += o.geometry.index ? o.geometry.index.count / 3 : o.geometry.attributes.position.count / 3; } });
+      return { meshes, tris };
+    });
+    const a = await count();
+    expect(a.meshes).toBe(5 * 3 + 2);
+    expect(a.tris).toBeGreaterThan(5000);
+    await page.fill('#libPrm input[data-k=n]', '8');
+    expect((await count()).meshes).toBe(8 * 3 + 2);
+    await page.click('#libPrm button[data-m=black]');
+    await page.click('#libInsert');
+    await expect(page.locator('#lib')).toBeHidden();
+    const st = await page.evaluate(() => ({ tab, s: state.balus, svg: document.querySelectorAll('svg').length }));
+    expect(st.tab).toBe('balus');
+    expect(st.s).toMatchObject({ L: 150, H: 90, bw: 16, hrH: 11, brH: 7, mat: 'black', fill: 'bal' });
+    const r = await page.evaluate(() => drawBalus(state.balus).stats.flat().join(' '));
+    expect(r).toMatch(/\b8\b/);
+  });
+
+  test('الموديل بلا قالب يعرض صورته فقط مع توضيح، بدون مجسّم مزيّف', async ({ page }) => {
+    await page.click('#libBtn');
+    const id = await page.evaluate(async () => (await (await fetch('./models.json')).json()).models.find(m => !m.template).id);
+    await page.click(`#lib .card[data-id="${id}"]`);
+    await expect(page.locator('#libMsg')).toContainText('ما إله قالب');
+  });
+});
