@@ -7,8 +7,13 @@ const OWNER = 'dzrssSkOkqSFAcLpO1JkUROQU0D2';
 const MB = 1024 * 1024;
 const bytes = n => new Uint8Array(n);
 
-describe('قواعد Storage الحالية', () => {
+const VERSIONS = { 'قواعد Storage الحالية': 'storage.rules', 'قواعد Storage المقترحة': 'storage.proposed.rules' };
+// ثغرة معروفة في القواعد الحالية فقط: استبدال نسخة احتياطية موجودة
+const KNOWN_GAP = 'replace-backup';
+
+for (const [label, file] of Object.entries(VERSIONS)) describe(label, () => {
   let env;
+  const gap = (id, name, fn) => test(name, { todo: file === 'storage.rules' && id === KNOWN_GAP ? 'ثغرة معروفة في القواعد الحالية' : false }, fn);
   const owner = () => env.authenticatedContext(OWNER).storage();
   const stranger = () => env.authenticatedContext('someone-else').storage();
   const visitor = () => env.unauthenticatedContext().storage();
@@ -18,8 +23,8 @@ describe('قواعد Storage الحالية', () => {
 
   before(async () => {
     env = await initializeTestEnvironment({
-      projectId: 'demo-qa-storage',
-      storage: { rules: readFileSync(new URL('storage.rules', import.meta.url), 'utf8') },
+      projectId: 'demo-qa-' + file.replace(/\W/g, ''),
+      storage: { rules: readFileSync(new URL(file, import.meta.url), 'utf8') },
     });
   });
   after(() => env.cleanup());
@@ -56,7 +61,7 @@ describe('قواعد Storage الحالية', () => {
     test('مستخدم آخر لا يقرأ', () => assertFails(stranger().ref('backups/b1.json').getMetadata()));
     test('المالك يقرأ', () => assertSucceeds(owner().ref('backups/b1.json').getMetadata()));
     test('المالك يضيف نسخة جديدة', () => assertSucceeds(put(owner(), 'backups/b2.json', 1000, 'application/json')));
-    test('لا أحد يستبدل نسخة موجودة (حتى المالك)', () => assertFails(put(owner(), 'backups/b1.json', 10, 'application/json')));
+    gap('replace-backup', 'لا أحد يستبدل نسخة موجودة (حتى المالك)', () => assertFails(put(owner(), 'backups/b1.json', 10, 'application/json')));
     test('لا أحد يحذف نسخة (حتى المالك)', () => assertFails(owner().ref('backups/b1.json').delete()));
     test('الزائر لا يرفع', () => assertFails(put(visitor(), 'backups/x.json', 10, 'application/json')));
   });
