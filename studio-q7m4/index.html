@@ -3856,7 +3856,7 @@ $('saveBtn').onclick=()=>askCustomer('save');
 let v3=null;const v3load=()=>v3||(v3=import('./view3d.js?v=2'));
 $('v3dBtn').onclick=()=>busy($('v3dBtn'),async()=>{const m=await v3load();await m.open3D()});
 // مكتبة الموديلات: ملف منفصل بيتحمّل بس لما تكبس الزر (لإلغائها: احذف الزر وهالسطرين)
-let lib=null;const libload=()=>lib||(lib=import('./library.js?v=1'));
+let lib=null;const libload=()=>lib||(lib=import('./library.js?v=2'));
 $('libBtn').onclick=()=>busy($('libBtn'),async()=>{const m=await libload();await m.openLibrary()});
 $('shareBtn').onclick=()=>askCustomer('share');
 $('cCancel').onclick=()=>$('cliModal').classList.remove('on');

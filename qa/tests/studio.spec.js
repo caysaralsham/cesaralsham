@@ -142,6 +142,9 @@ test.describe('مكتبة الموديلات', () => {
     expect(r.secSum).toBe(r.total);
     expect(r.ids).toBe(r.total);
     expect(r.imgs).toBe(true);
+    // البطاقات لازم تبين بحجمها حتى لو الصورة لسه ما تحمّلت (كانت تنضغط لخط رفيع)
+    const h = await page.locator('#lib .card').first().evaluate(e => e.getBoundingClientRect().height);
+    expect(h).toBeGreaterThan(150);
   });
 
   test('موديل الدرابزين يطلع مجسّم ثلاثي حقيقي، والقياسات بتغيّره، والإدراج بيعبّي تبويب الدرابزين', async ({ page }) => {
@@ -151,7 +154,7 @@ test.describe('مكتبة الموديلات', () => {
     const notLatn = await page.$$eval('#libPrm input[type=number]', els => els.filter(e => e.getAttribute('lang') !== 'en').length);
     expect(notLatn).toBe(0);
     const count = () => page.evaluate(async () => {
-      const m = await import('./library.js?v=1');
+      const m = await import('./library.js?v=2');
       const g = m.TEMPLATES.balustrade.build({ L: 150, H: 90, n: +document.querySelector('#libPrm input[data-k=n]').value, bw: 16, railH: 11, railW: 22, baseH: 7 }, 'italian');
       let meshes = 0, tris = 0; g.traverse(o => { if (o.isMesh) { meshes++; tris += o.geometry.index ? o.geometry.index.count / 3 : o.geometry.attributes.position.count / 3; } });
       return { meshes, tris };

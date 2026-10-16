@@ -133,11 +133,11 @@ function css() {
   #lib .lbar{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:10px 12px;background:#3B2414;color:#F5ECDD;flex-wrap:wrap}
   #lib .lbar b{font-size:16px} #lib button{font:inherit;font-weight:800;border:0;border-radius:10px;padding:8px 12px;cursor:pointer;background:#F5ECDD;color:#3B2414}
   #lib button.gold{background:#B88A2A;color:#fff} #lib button.on{background:#B88A2A;color:#fff}
-  #lib .secs{display:flex;gap:6px;overflow-x:auto;padding:10px 12px;border-bottom:1px solid #E3D3B5;flex:none}
+  #lib .secs{display:flex;gap:6px;flex-wrap:wrap;overflow-x:auto;padding:10px 12px;border-bottom:1px solid #E3D3B5;flex:none}
   #lib .secs button{white-space:nowrap;background:#fff;border:1px solid #E3D3B5;font-weight:700}
   #lib .secs button.on{background:#3B2414;color:#fff}
   #lib input[type=search]{font:inherit;border:1px solid #E3D3B5;border-radius:10px;padding:8px 10px;min-width:180px}
-  #lib .grid{flex:1;overflow:auto;padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;align-content:start;direction:ltr}
+  #lib .grid{flex:1;overflow:auto;padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;align-content:start;grid-auto-rows:max-content;direction:ltr}
   #lib .grid>*{direction:rtl}
   #lib .card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.12);cursor:pointer;display:flex;flex-direction:column;text-align:right;padding:0;border:2px solid transparent}
   #lib .card:hover{border-color:#B88A2A}
