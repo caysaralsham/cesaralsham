@@ -378,7 +378,8 @@ function buildPatterns(){
 }
 const PATTERNS=buildPatterns();
 
-const mtr=l=>String(l).replace(/(\d+(?:\.\d+)?)\s*سم/g,(m,n)=>+n>=100?(+n/100).toFixed(2)+' م':m);
+// كل القياسات على الرسمة بالسنتيمتر (كانت تتحول لمتر فوق 100 سم)
+const mtr=l=>String(l);
 function dimH(x1,x2,y,label,col=DIM){label=mtr(label);
   const t=FS*.3;
   return '<g class="dim">'+L(x1,y,x2,y,col,LW*1.3)+L(x1,y-t*2,x1,y+t*2,col,LW*1.3)+L(x2,y-t*2,x2,y+t*2,col,LW*1.3)+
