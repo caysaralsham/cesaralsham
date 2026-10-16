@@ -42,6 +42,28 @@ jobs:
           path: qa/playwright-report
           retention-days: 14
 
+  firestore-rules:
+    name: اختبار صلاحيات Firestore (على المحاكي)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: qa
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: qa/package-lock.json
+      - run: npm ci
+      - name: تشغيل اختبارات القواعد (مشروع وهمي، بدون أي اتصال بالبيانات الحقيقية)
+        run: npm run test:rules
+
   semgrep:
     name: فحص أمان الكود (Semgrep)
     runs-on: ubuntu-latest

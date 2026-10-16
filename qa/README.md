@@ -21,3 +21,8 @@ npx playwright test
 الاختبارات المعلّمة بـ `test.fail` تصف خللاً موجوداً ينتظر الموافقة على إصلاحه. عند إصلاحه سينبّه الاختبار لإزالة العلامة.
 
 التشغيل التلقائي على GitHub موجود في `.github/workflows/qa.yml`.
+
+## صلاحيات Firestore
+- `firestore/firestore.rules`: نسخة من القواعد المنشورة حالياً، للمرجع والاختبار فقط. **نشرها لا يتم من هنا.**
+- `firestore/firestore.proposed.rules`: نسخة مقترحة تسد ثغرات عدّاد الزيارات.
+- `npm run test:rules` يشغّل الاختبارات على محاكي Firebase بمشروع وهمي (يحتاج Java 21).
