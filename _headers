@@ -5,3 +5,19 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Content-Security-Policy: frame-ancestors 'self' https://caysaralsham.github.io
+
+# الأدوات الخاصة: مخفية عن محركات البحث حتى لو وصلها رابط من مكان ما
+/my/*
+  X-Robots-Tag: noindex, nofollow
+/studio-q7m4/*
+  X-Robots-Tag: noindex, nofollow
+/admin-works*
+  X-Robots-Tag: noindex, nofollow
+/links/admin-settings*
+  X-Robots-Tag: noindex, nofollow
+/logo-tool*
+  X-Robots-Tag: noindex, nofollow
+/qs-home*
+  X-Robots-Tag: noindex, nofollow
+/home*
+  X-Robots-Tag: noindex, nofollow
