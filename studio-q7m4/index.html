@@ -279,7 +279,7 @@ input[type=range]{height:16px}
       <button class="btn sm" id="aiSet" hidden aria-label="إعدادات الذكاء الاصطناعي">إعدادات</button>
     </div>
     <button class="btn sm primary" id="mirBtn">↗ تحويل للمعرض أو المعمل</button>
-    <button class="btn sm" id="v3dBtn" title="عرض ثلاثي الأبعاد">🧊 ثلاثي الأبعاد</button><button class="btn sm gold" id="saveBtn">حفظ صورة</button>
+    <button class="btn sm" id="libBtn" title="مكتبة الموديلات من أعمال الموقع">🏛️ مكتبة الموديلات</button><button class="btn sm" id="v3dBtn" title="عرض ثلاثي الأبعاد">🧊 ثلاثي الأبعاد</button><button class="btn sm gold" id="saveBtn">حفظ صورة</button>
     <button class="btn sm wa" id="shareBtn" style="display:none">واتساب</button>
     <button class="btn sm" id="tplBtn">📚 تصاميمي</button>
     <button class="btn sm" id="projBtn">مشاريعي</button>
@@ -3855,6 +3855,9 @@ $('saveBtn').onclick=()=>askCustomer('save');
 // العرض الثلاثي: مكتبته بتتحمّل بس لما تكبس الزر
 let v3=null;const v3load=()=>v3||(v3=import('./view3d.js?v=2'));
 $('v3dBtn').onclick=()=>busy($('v3dBtn'),async()=>{const m=await v3load();await m.open3D()});
+// مكتبة الموديلات: ملف منفصل بيتحمّل بس لما تكبس الزر (لإلغائها: احذف الزر وهالسطرين)
+let lib=null;const libload=()=>lib||(lib=import('./library.js?v=1'));
+$('libBtn').onclick=()=>busy($('libBtn'),async()=>{const m=await libload();await m.openLibrary()});
 $('shareBtn').onclick=()=>askCustomer('share');
 $('cCancel').onclick=()=>$('cliModal').classList.remove('on');
 let pngMode='full';$('cMode').onclick=e=>{const b=e.target.closest('button');if(!b)return;pngMode=b.dataset.m;$('cMode').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))};
