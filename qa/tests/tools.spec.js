@@ -1,0 +1,76 @@
+// اختبارات الأدوات الخاصة: لوحة التحكم، الإعدادات، أدواتي، أداة اللوغو، المرسم، واجهتا ميراكوس
+const { test, expect } = require('@playwright/test');
+const { openOffline, scrollbarOnRight, horizontalOverflow } = require('./helpers');
+
+const TOOLS = {
+  'لوحة تحكم الأعمال': '/admin-works.html',
+  'الإعدادات العامة': '/links/admin-settings.html',
+  'أدواتي': '/my/',
+  'أداة اللوغو': '/my/logo/',
+  'مرسم ديكور': '/studio-q7m4/',
+};
+
+for (const [name, url] of Object.entries(TOOLS)) {
+  test.describe(name, () => {
+    test('تفتح بدون أخطاء وغير مفهرسة في غوغل', async ({ page }) => {
+      const { res, errors } = await openOffline(page, url);
+      expect(res.status()).toBe(200);
+      expect(errors, 'أخطاء JavaScript غير متوقعة').toEqual([]);
+      const robots = await page.$eval('meta[name="robots"]', e => e.content).catch(() => '');
+      expect(robots, 'الأدوات الخاصة يجب ألا تظهر في نتائج البحث').toMatch(/noindex/i);
+    });
+
+    test.describe('على الكمبيوتر', () => {
+      test.use({ viewport: { width: 1366, height: 800 } });
+      test('شريط التمرير على اليمين', async ({ page }) => {
+        // خلل معروف: صفحة الإعدادات العامة ليس فيها قاعدة الشريط على اليمين
+        if (url === '/links/admin-settings.html') test.fail(true, 'خلل معروف: الشريط على اليسار');
+        await openOffline(page, url);
+        expect(await scrollbarOnRight(page)).toBe(true);
+      });
+    });
+
+    test.describe('على الجوال', () => {
+      test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+      test('لا يوجد تمرير أفقي', async ({ page }) => {
+        await openOffline(page, url);
+        expect(await horizontalOverflow(page)).toEqual([]);
+      });
+    });
+  });
+}
+
+test('أدواتي: كل الروابط تشير لصفحات موجودة', async ({ page, request }) => {
+  await openOffline(page, '/my/');
+  const links = await page.$$eval('a[href^="/"]', as => [...new Set(as.map(a => a.getAttribute('href')))]);
+  expect(links.length).toBeGreaterThan(4);
+  for (const href of links) {
+    const r = await request.get(href);
+    expect(r.status(), `الرابط ${href}`).toBe(200);
+  }
+});
+
+test('واجهتا المعرض والمعمل تفتحان برنامجي ميراكوس الصحيحين', async ({ page }) => {
+  await openOffline(page, '/my/maarad/');
+  expect(await page.getAttribute('iframe', 'src')).toBe('https://caysaralsham.github.io/miracos-accounting/');
+  await openOffline(page, '/my/maamal/');
+  expect(await page.getAttribute('iframe', 'src')).toBe('https://caysaralsham.github.io/miracos-factory/');
+});
+
+test.describe('مرسم ديكور', () => {
+  test('حفظ الصورة يرفض بدون اسم الزبون', async ({ page }) => {
+    await openOffline(page, '/studio-q7m4/');
+    await page.click('#saveBtn');
+    await expect(page.locator('#cGo')).toBeVisible();
+    await page.fill('#cName', '');
+    await page.click('#cGo');
+    await expect(page.locator('#cErr')).toContainText('اسم الزبون');
+  });
+
+  test('الطباعة PDF بحجم A4 تعمل', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'PDF متاح في Chromium فقط');
+    await openOffline(page, '/studio-q7m4/');
+    const pdf = await page.pdf({ format: 'A4', printBackground: true });
+    expect(pdf.length).toBeGreaterThan(5_000);
+  });
+});

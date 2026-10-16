@@ -1,0 +1,13 @@
+{
+  "name": "cesaralsham-qa",
+  "private": true,
+  "description": "اختبارات موقع قيصر الشام وأدواته — لا تتصل بأي بيانات حقيقية",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.11.0",
+    "@playwright/test": "1.64.1",
+    "http-server": "^14.1.1"
+  }
+}
