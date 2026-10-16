@@ -66,10 +66,11 @@ jobs:
         run: |
           set -o pipefail
           npm run test:rules 2>&1 | tee rules.log
-      - name: عرض الاختبارات الفاشلة كتنبيهات
-        if: failure()
+      - name: ملخص النتائج كتنبيهات (الفاشل والثغرات المعروفة)
+        if: always()
         shell: bash
-        run: grep -E "✖|Error|expected" rules.log | head -30 | while IFS= read -r l; do echo "::error title=Firestore rules::$l"; done
+        run: |
+          grep -E "✖|ثغرة معروفة|^ℹ (tests|pass|fail|todo)" rules.log | head -40 | while IFS= read -r l; do echo "::notice title=Firestore rules::$l"; done
 
   semgrep:
     name: فحص أمان الكود (Semgrep)
