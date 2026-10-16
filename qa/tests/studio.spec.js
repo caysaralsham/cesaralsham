@@ -87,3 +87,30 @@ test('المساحات في النتائج = الطول × العرض', async ({
   expect(bad.n).toBeGreaterThan(20);
   expect(bad.out).toEqual([]);
 });
+
+test('العرض الثلاثي يفتح لكل أنواع الرسم، وصورة المجسّم تتولّد', async ({ page }) => {
+  test.setTimeout(240_000);
+  const hasGL = await page.evaluate(() => !!document.createElement('canvas').getContext('webgl2'));
+  test.skip(!hasGL, 'المتصفح هنا بدون WebGL');
+  const types = await page.evaluate(() => Object.keys(SCHEMAS));
+  const problems = [];
+  for (const k of types) {
+    const r = await page.evaluate(async k => {
+      tab = k; buildPanel(); render();
+      const m = await import('./view3d.js?v=1');
+      try {
+        const o = await m.open3D();
+        const img = await m.snapshot(800, 600);
+        m.close3D();
+        return { shapes: o.shapes, img: img ? img.width : 0 };
+      } catch (e) { m.close3D(); return { err: e.message }; }
+    }, k);
+    if (k === 'calc' && r.shapes === 0) continue; // الحاسبة فاضية افتراضياً
+    if (r.err || !(r.shapes > 0) || !(r.img > 0)) problems.push(`${k}: ${JSON.stringify(r)}`);
+  }
+  expect(problems).toEqual([]);
+});
+
+test('زر «ثلاثي الأبعاد» موجود بجانب «حفظ صورة»', async ({ page }) => {
+  await expect(page.locator('#v3dBtn')).toBeVisible();
+});
