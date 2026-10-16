@@ -217,7 +217,7 @@
     <div class="panel" id="aiPanel">
       <h2>🤖 عناوين أدق بالذكاء الاصطناعي (Gemini)</h2>
       <p style="font-size:13px;color:#6b5a48;margin:0 0 10px">الذكاء الاصطناعي بيشوف كل صورة: لون الحجر الحقيقي، نوعه، وشو مميز فيها (زخرفة، أعمدة، قوس...) — وبيكتب عنوان خاص فيها بالعربي والفرنسي + وصف للصورة لغوغل. كل صورة بتنحلّل مرة وحدة وبيتحفظ أول بأول. اللون اللي كاتبه إنت بإيدك ما بيتغيّر. الصور الجديدة اللي بترفعها (إذا تركت العنوان فاضي) بتتحلّل لحالها.</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="aiTest">١) جرّب على 3 صور</button><button class="btn" id="aiRun" style="background:#1F8F55">٢) حلّل كل الصور</button><button class="btn btn-ghost" id="aiStop" style="display:none">وقّف</button></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="aiTest">1) جرّب على 3 صور</button><button class="btn" id="aiRun" style="background:#1F8F55">2) حلّل كل الصور</button><button class="btn btn-ghost" id="aiStop" style="display:none">وقّف</button></div>
       <div id="aiStatus" style="font-size:13px;margin-top:10px;font-weight:700"></div>
       <div id="aiSample" style="font-size:12.5px;margin-top:8px;line-height:1.9"></div>
     </div>
@@ -233,7 +233,7 @@
     <div class="panel" id="wmFixPanel">
       <h2>🔄 تحديث اللوغو على الصور القديمة</h2>
       <p style="font-size:13px;color:#6b5a48;margin:0 0 10px">بيلاقي الصور اللي عليها الشريط القديم («الجزائر · قيصر الشام · الرقم»)، بيقص الشريط من تحت، وبيحط اللوغو الجديد: اللوغو، تحته «الجزائر - دالي ابراهيم»، وتحته الرقم — يمين تحت. الصورة القديمة بتضل محفوظة احتياط.</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="wmScan">١) افحص الصور وورّيني مثال</button><button class="btn" id="wmGo" style="display:none;background:#1F8F55">٢) كمّل على كل الصور</button><button class="btn" id="wmStop" style="display:none;background:#A6453D">وقّف</button><button class="btn" id="wmNext" style="display:none">مثال تاني ←</button></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="wmScan">1) افحص الصور وورّيني مثال</button><button class="btn" id="wmGo" style="display:none;background:#1F8F55">2) كمّل على كل الصور</button><button class="btn" id="wmStop" style="display:none;background:#A6453D">وقّف</button><button class="btn" id="wmNext" style="display:none">مثال تاني ←</button></div>
       <div id="wmStatus" style="font-size:13px;margin-top:10px;font-weight:700"></div>
       <div id="wmPreview" style="display:none;gap:12px;margin-top:10px;flex-wrap:wrap"><figure style="margin:0;flex:1;min-width:220px"><figcaption style="font-size:12px">قبل</figcaption><img id="wmBefore" style="width:100%;border:1px solid #e6d6bc;border-radius:8px"></figure><figure style="margin:0;flex:1;min-width:220px"><figcaption style="font-size:12px">بعد</figcaption><img id="wmAfter" style="width:100%;border:1px solid #e6d6bc;border-radius:8px"></figure></div>
     </div>
@@ -1770,7 +1770,7 @@ async function getMusicFileForSlot(i){
 
 async function processVideoForUpload(videoFile, opts, onProgress){
   // opts: { musicFile: File|null, needsReencode: bool }
-  const mark = (step)=>{ try{ localStorage.setItem('videoProcessCheckpoint', step + ' | ' + new Date().toLocaleTimeString('ar')); }catch(e){} };
+  const mark = (step)=>{ try{ localStorage.setItem('videoProcessCheckpoint', step + ' | ' + new Date().toLocaleTimeString('fr-FR')); }catch(e){} };
   mark('بداية المعالجة');
   const ffmpeg = await getFFmpegInstance();
   const { fetchFile } = FFmpegUtil;
@@ -1924,5 +1924,36 @@ document.getElementById('btnUploadVideo').addEventListener('click', async ()=>{
 });
 </script>
 <script src="/js/my-back.js" defer></script>
+<script id="latin-digits">/* أرقام لاتينية دائماً (0-9): أي رقم عربي ٠-٩ أو فارسي ۰-۹ يُكتب أو يُلصق في أي خانة يتحول فوراً */
+(function(){
+  var AR=/[٠-٩۰-۹]/, AR_G=/[٠-٩۰-۹]/g;
+  function fix(s, numeric){
+    s=String(s).replace(AR_G,function(c){var k=c.charCodeAt(0);return String(k>=0x06F0?k-0x06F0:k-0x0660);});
+    return numeric ? s.replace(/٫/g,'.').replace(/٬/g,'') : s;
+  }
+  function numericField(el){ return el.type==='number' || /^(decimal|numeric|tel)$/.test(el.inputMode||'') || el.type==='tel'; }
+  function editable(el){ return el && (el.tagName==='TEXTAREA' || (el.tagName==='INPUT' && !/^(file|checkbox|radio|button|submit|color|range)$/.test(el.type))); }
+  function insert(el, text){
+    if(document.execCommand && document.execCommand('insertText', false, text)) return;
+    try{ var a=el.selectionStart,b=el.selectionEnd; el.setRangeText(text,a,b,'end'); el.dispatchEvent(new Event('input',{bubbles:true})); }catch(_){ el.value+=text; el.dispatchEvent(new Event('input',{bubbles:true})); }
+  }
+  document.addEventListener('beforeinput', function(e){
+    var el=e.target; if(!editable(el) || !e.data || !(AR.test(e.data) || (numericField(el) && /[٫٬]/.test(e.data)))) return;
+    if(e.isComposing) return;
+    e.preventDefault(); insert(el, fix(e.data, numericField(el)));
+  }, true);
+  document.addEventListener('paste', function(e){
+    var el=e.target; if(!editable(el) || !e.clipboardData) return;
+    var t=e.clipboardData.getData('text'); if(!AR.test(t)) return;
+    e.preventDefault(); insert(el, fix(t, numericField(el)));
+  }, true);
+  // احتياط (لوحات مفاتيح تكتب بطريقة التركيب): تصحيح القيمة بعد الكتابة مع الحفاظ على مكان المؤشر
+  document.addEventListener('input', function(e){
+    var el=e.target; if(!editable(el) || el.type==='number' || !AR.test(el.value)) return;
+    var a=el.selectionStart,b=el.selectionEnd; el.value=fix(el.value, numericField(el)); try{el.setSelectionRange(a,b);}catch(_){}
+  }, true);
+  window.latinDigits = fix;
+})();
+</script>
 </body>
 </html>

@@ -72,3 +72,22 @@ test.describe('مرسم ديكور', () => {
     expect(pdf.length).toBeGreaterThan(5_000);
   });
 });
+
+test.describe('الأرقام لاتينية دائماً (0-9)', () => {
+  for (const url of [...Object.values(TOOLS), '/']) {
+    test(`حماية الأرقام مفعّلة: ${url}`, async ({ page }) => {
+      await openOffline(page, url);
+      expect(await page.locator('script#latin-digits').count()).toBe(1);
+      const hasIndic = await page.evaluate(() => /[٠-٩]/.test(document.body.innerText));
+      expect(hasIndic, 'لا أرقام عربية ظاهرة في الصفحة').toBe(false);
+    });
+  }
+
+  test('المرسم: هاتف الزبون بالأرقام العربية يتحول إلى 0-9', async ({ page }) => {
+    await openOffline(page, '/studio-q7m4/');
+    await page.click('#saveBtn');
+    await page.locator('#cPhone').focus();
+    await page.keyboard.type('٠٥٥٠١٢٣٤٥٦');
+    expect(await page.locator('#cPhone').inputValue()).toBe('0550123456');
+  });
+});

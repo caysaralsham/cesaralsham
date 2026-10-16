@@ -4292,12 +4292,12 @@ if(EMBED){
   <div class="cl-head"><h2 id="clT">🏠 تغليف واجهة بالذكاء الاصطناعي</h2><button class="btn sm" id="clClose">إغلاق</button></div>
   <div class="cl-grid">
     <div class="cl-sec">
-      <h3>١) صورة بيت الزبون</h3>
+      <h3>1) صورة بيت الزبون</h3>
       <div class="cl-drop" id="clDrop" tabindex="0"><span id="clDropTxt">اضغط هون واختار صورة الواجهة<br><small>(أو اسحبها لهون) — صورة من قدّام وواضحة بتعطي أحسن نتيجة</small></span></div>
       <input type="file" id="clFile" accept="image/*" hidden>
     </div>
     <div class="cl-sec">
-      <h3>٢) أسلوب من شغلك <small>— اختار لحد 4 صور (أو خلّيها أوتوماتيك)</small></h3>
+      <h3>2) أسلوب من شغلك <small>— اختار لحد 4 صور (أو خلّيها أوتوماتيك)</small></h3>
       <div class="cl-row">
         <label>القسم<select id="clCat">
           <option value="واجهات منازل حجر">واجهات حجر</option>
@@ -4310,7 +4310,7 @@ if(EMBED){
     </div>
   </div>
   <div class="cl-sec" style="margin-top:16px">
-    <h3>٣) شو بدك</h3>
+    <h3>3) شو بدك</h3>
     <div class="cl-row">
       <label>نوع الحجر<select id="clStone">
         <option value="same">متل صور شغلي</option>
@@ -4615,5 +4615,36 @@ if(EMBED){
 </script>
 
 <script src="/js/my-back.js" defer></script>
+<script id="latin-digits">/* أرقام لاتينية دائماً (0-9): أي رقم عربي ٠-٩ أو فارسي ۰-۹ يُكتب أو يُلصق في أي خانة يتحول فوراً */
+(function(){
+  var AR=/[٠-٩۰-۹]/, AR_G=/[٠-٩۰-۹]/g;
+  function fix(s, numeric){
+    s=String(s).replace(AR_G,function(c){var k=c.charCodeAt(0);return String(k>=0x06F0?k-0x06F0:k-0x0660);});
+    return numeric ? s.replace(/٫/g,'.').replace(/٬/g,'') : s;
+  }
+  function numericField(el){ return el.type==='number' || /^(decimal|numeric|tel)$/.test(el.inputMode||'') || el.type==='tel'; }
+  function editable(el){ return el && (el.tagName==='TEXTAREA' || (el.tagName==='INPUT' && !/^(file|checkbox|radio|button|submit|color|range)$/.test(el.type))); }
+  function insert(el, text){
+    if(document.execCommand && document.execCommand('insertText', false, text)) return;
+    try{ var a=el.selectionStart,b=el.selectionEnd; el.setRangeText(text,a,b,'end'); el.dispatchEvent(new Event('input',{bubbles:true})); }catch(_){ el.value+=text; el.dispatchEvent(new Event('input',{bubbles:true})); }
+  }
+  document.addEventListener('beforeinput', function(e){
+    var el=e.target; if(!editable(el) || !e.data || !(AR.test(e.data) || (numericField(el) && /[٫٬]/.test(e.data)))) return;
+    if(e.isComposing) return;
+    e.preventDefault(); insert(el, fix(e.data, numericField(el)));
+  }, true);
+  document.addEventListener('paste', function(e){
+    var el=e.target; if(!editable(el) || !e.clipboardData) return;
+    var t=e.clipboardData.getData('text'); if(!AR.test(t)) return;
+    e.preventDefault(); insert(el, fix(t, numericField(el)));
+  }, true);
+  // احتياط (لوحات مفاتيح تكتب بطريقة التركيب): تصحيح القيمة بعد الكتابة مع الحفاظ على مكان المؤشر
+  document.addEventListener('input', function(e){
+    var el=e.target; if(!editable(el) || el.type==='number' || !AR.test(el.value)) return;
+    var a=el.selectionStart,b=el.selectionEnd; el.value=fix(el.value, numericField(el)); try{el.setSelectionRange(a,b);}catch(_){}
+  }, true);
+  window.latinDigits = fix;
+})();
+</script>
 </body>
 </html>
