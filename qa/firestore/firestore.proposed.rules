@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner() {
+      return request.auth != null
+        && request.auth.uid in ["dzrssSkOkqSFAcLpO1JkUROQU0D2", "b9mGtbtfmqRWtW3WDcqL7iBKrig1"];
+    }
+
+    match /cesar_website/{docId} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    match /miracos_accounting/{docId} {
+      allow read, write: if isOwner();
+    }
+
+    match /cesar_accounting_sales/{docId} {
+      allow read, write: if isOwner();
+    }
+
+    match /cesar_accounting_expenses/{docId} {
+      allow read, write: if isOwner();
+    }
+
+    // عدّاد الزيارات: مسموح للزوار بإضافة 1 فقط، وبدون مسح أو تخريب بيانات الدول
+    function validStats(day) {
+      let d = request.resource.data;
+      let c = d.get('countries', {});
+      return d.keys().hasOnly(['date', 'count', 'countries'])
+        && d.get('date', day) == day
+        && d.get('count', 0) is int
+        && c is map
+        && c.size() <= 250;
+    }
+
+    match /cesar_stats/{day} {
+      allow read: if isOwner();
+      allow create: if day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && validStats(day)
+        && request.resource.data.get('count', 0) <= 1
+        && request.resource.data.get('countries', {}).size() <= 1
+        && request.resource.data.get('countries', {}).values().hasOnly([1]);
+      allow update: if validStats(day)
+        && request.resource.data.get('count', 0) >= resource.data.get('count', 0)
+        && request.resource.data.get('count', 0) <= resource.data.get('count', 0) + 1
+        && request.resource.data.get('countries', {}).keys().hasAll(resource.data.get('countries', {}).keys())
+        && request.resource.data.get('countries', {}).diff(resource.data.get('countries', {})).affectedKeys().size() <= 1;
+      allow delete: if false;
+    }
+
+  }
+}

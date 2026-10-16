@@ -1,0 +1,28 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isOwner() {
+      return request.auth != null && request.auth.uid in
+        ['dzrssSkOkqSFAcLpO1JkUROQU0D2', 'b9mGtbtfmqRWtW3WDcqL7iBKrig1'];
+    }
+    match /gallery/{allImages=**} {
+      allow read: if true;
+      allow create, update: if isOwner()
+        && request.resource.size < 200 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*|video/.*|audio/.*');
+      allow delete: if isOwner();
+    }
+    match /site/{allImages=**} {
+      allow read: if true;
+      allow create, update: if isOwner()
+        && request.resource.size < 15 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+      allow delete: if isOwner();
+    }
+    match /backups/{allFiles=**} {
+      allow read: if isOwner();
+      // النسخ الاحتياطية تُضاف فقط: لا استبدال لنسخة موجودة ولا حذف، حتى لو سُرق حساب المالك
+      allow create: if isOwner() && resource == null && request.resource.size < 20 * 1024 * 1024;
+    }
+  }
+}
