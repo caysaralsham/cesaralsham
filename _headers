@@ -21,3 +21,7 @@
   X-Robots-Tag: noindex, nofollow
 /home*
   X-Robots-Tag: noindex, nofollow
+
+# مكتبات أداة اللوغو: نسخة ثابتة برقم بالرابط، بتنحفظ بالجهاز سنة كاملة
+/my/logo/lib/*
+  Cache-Control: public, max-age=31536000, immutable
