@@ -286,6 +286,10 @@
 
     <div class="panel">
       <h2>كل الفيديوهات (<span id="videosCount">0</span>)</h2>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+        <button type="button" class="btn" id="btnAutoPosters" style="display:none">🎬 غلاف تلقائي للفيديوهات بلا غلاف</button>
+        <span id="autoPostersStatus" style="font-size:13px;color:var(--ink)"></span>
+      </div>
       <div id="videosTableWrap"></div>
     </div>
   </section>
@@ -1118,6 +1122,8 @@ async function deleteItem(id){
 // ---------- videos table ----------
 function renderVideosTable(){
   document.getElementById('videosCount').textContent = videos.length;
+  { const n = videos.filter(v => !v.poster && v.url).length, b = document.getElementById('btnAutoPosters');
+    if(b && !autoPostersBusy){ b.style.display = n ? '' : 'none'; b.textContent = `🎬 غلاف تلقائي للفيديوهات بلا غلاف (${n})`; } }
   const wrap = document.getElementById('videosTableWrap');
   if(!videos.length){ wrap.innerHTML = '<div class="empty-state">لا توجد فيديوهات بعد.</div>'; return; }
   wrap.innerHTML = groupHTML(videos,'vid');
@@ -1185,6 +1191,48 @@ function posterFromFile(file){
     v.onerror=()=>done(null); setTimeout(()=>done(null),15000);
   });
 }
+// غلاف من فيديو مرفوع من قبل: الفيديو بيمرق من /img-proxy (نفس الموقع) حتى نقدر ناخد منه صورة
+function posterFromUrl(url){
+  return new Promise((res)=>{
+    const v=document.createElement('video'); v.muted=true; v.playsInline=true; v.preload='auto';
+    let fin=false; const done=b=>{ if(fin) return; fin=true; try{ v.removeAttribute('src'); v.load(); }catch(e){} res(b); };
+    v.onloadedmetadata=()=>{ v.currentTime=Math.min(1.5, (v.duration||2)/3); };
+    v.onseeked=()=>{ try{ const w=Math.min(960,v.videoWidth||960), h=Math.round(w*(v.videoHeight||540)/(v.videoWidth||960)); const c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(v,0,0,w,h); c.toBlob(b=>done(b),'image/jpeg',.82); }catch(e){ done(null); } };
+    v.onerror=()=>done(null); setTimeout(()=>done(null),45000);
+    v.src='/img-proxy?u='+encodeURIComponent(url);
+  });
+}
+var autoPostersBusy = false; // var: ممكن تنقرا قبل هالسطر
+async function autoPosters(){
+  const list = videos.filter(v => !v.poster && v.url);
+  if(!list.length || autoPostersBusy) return;
+  autoPostersBusy = true;
+  const btn = document.getElementById('btnAutoPosters'), st = document.getElementById('autoPostersStatus');
+  btn.disabled = true;
+  let ok = 0, fail = 0;
+  for(let i = 0; i < list.length; i++){
+    const v = list[i];
+    st.textContent = `عم يعمل غلاف ${i+1} من ${list.length}…`;
+    try{
+      const pb = await posterFromUrl(v.url);
+      if(!pb) throw new Error('ما قدرنا ناخد صورة من الفيديو');
+      const pr = storage.ref('gallery/posters/' + v.id + '.jpg');
+      await pr.put(pb, {contentType:'image/jpeg'});
+      const updated = { ...v, poster: await pr.getDownloadURL() };
+      if(await updateVideoInCloud(updated)){
+        videos = videos.map(x => x.id === v.id ? updated : x);
+        const cid = videoChunkOf[v.id]; if(cid && videoChunkCache[cid]) videoChunkCache[cid] = videoChunkCache[cid].map(x => x.id === v.id ? updated : x);
+        ok++;
+      } else fail++;
+    }catch(e){ console.error('غلاف', v.id, e); fail++; }
+  }
+  autoPostersBusy = false; btn.disabled = false;
+  renderVideosTable();
+  st.textContent = fail ? `انعمل ${ok} غلاف، و${fail} فيديو ما زبط (جرّب «تعديل» واختار صورة).` : `انعمل ${ok} غلاف ✔`;
+  toast(`انعمل ${ok} غلاف`);
+}
+document.getElementById('btnAutoPosters').addEventListener('click', autoPosters);
+
 function posterFromImage(file){
   return new Promise((res)=>{ const im=new Image(); im.onload=()=>{ const w=Math.min(960,im.width), h=Math.round(w*im.height/im.width); const c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(im,0,0,w,h); c.toBlob(b=>res(b),'image/jpeg',.82); }; im.onerror=()=>res(null); im.src=URL.createObjectURL(file); });
 }
