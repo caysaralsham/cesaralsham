@@ -108,3 +108,20 @@ test('أداة اللوغو: قص إنستغرام بدقة الصورة الأ�
   expect(r.land).toEqual({ x: 0, y: 953, w: 2000, h: 1047 });
   expect(r.none).toEqual({ x: 0, y: 0, w: 4032, h: 3024 });
 });
+
+test('أداة اللوغو خفيفة: المكتبات الثقيلة بتتحمّل بس وقت الحاجة', async ({ page, request }) => {
+  const html = await (await request.get('/my/logo/')).text();
+  expect(html.length).toBeLessThan(200_000);
+  expect(html).not.toContain('كشف وحذف الصور المكررة');
+  await openOffline(page, '/my/logo/');
+  expect(await page.evaluate(() => typeof window.JSZip)).toBe('undefined');
+  const ok = await page.evaluate(async () => { const Z = await loadLib('JSZip'); const z = new Z(); z.file('a.txt', 'x'); return (await z.generateAsync({ type: 'blob' })).size > 0; });
+  expect(ok).toBe(true);
+  expect(await page.evaluate(async () => typeof (await loadLib('heic2any')))).toBe('function');
+});
+
+test('أدواتي: القائمة بتبين فوراً إذا كنت داخل من قبل', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('my_in', '1'));
+  await openOffline(page, '/my/');
+  await expect(page.locator('main')).toBeVisible();
+});

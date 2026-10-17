@@ -1,7 +1,9 @@
 <!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><title>قيصر الشام</title><meta name="theme-color" content="#3B2414">
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="/my/icon-192.png"><link rel="apple-touch-icon" href="/my/icon-180.png"><meta name="apple-mobile-web-app-title" content="أدواتي"><meta name="apple-mobile-web-app-capable" content="yes">
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preconnect" href="https://www.gstatic.com"><link rel="preconnect" href="https://caysaralsham.github.io">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link rel="prefetch" href="/my/logo/">
 <style>
 :root{--ink:#3B2414;--br:#9A6A3A;--deep:#6E4524;--bg:#F5ECDD;--line:#E6D6BC}
 *{box-sizing:border-box}body{margin:0;font-family:Cairo,Tahoma,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
@@ -15,8 +17,8 @@ a:hover{border-color:var(--br)}a i{font-style:normal;font-size:26px}a small{font
 #login button,#out{width:100%;margin-top:14px;font:inherit;font-weight:800;padding:11px;border:0;border-radius:12px;background:var(--br);color:#fff;cursor:pointer}
 #err{color:#A6453D;font-size:13px;min-height:1em;margin-top:8px}main{display:none}#out{display:none;max-width:200px;margin:0 auto 24px;background:transparent;color:var(--deep);border:1.5px solid var(--line)}
 </style>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><style id="sb-right">/* شريط التمرير على اليمين (كمبيوتر بس — عالجوال بيمنع التحريك يمين/يسار) */@media (min-width:900px) and (hover:hover){html{direction:ltr}body{direction:rtl}}</style>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><style id="sb-right">/* شريط التمرير على اليمين (كمبيوتر بس — عالجوال بيمنع التحريك يمين/يسار) */@media (min-width:900px) and (hover:hover){html{direction:ltr}body{direction:rtl}}</style>
 </head><body>
 <header><b>قيصر الشام</b><span>أدواتي — كل البرامج بمكان واحد</span></header>
 <form id="login"><b style="font-size:17px">تسجيل الدخول</b><label>البريد الإلكتروني</label><input id="em" type="email" autocomplete="username" required><label>كلمة السر</label><input id="pw" type="password" autocomplete="current-password" required><button>دخول</button><div id="err"></div></form>
@@ -30,15 +32,21 @@ a:hover{border-color:var(--br)}a i{font-style:normal;font-size:26px}a small{font
 <a href="/"><i>🌐</i>الموقع<small>cesar-alcham.com</small></a>
 </main><button id="out">تسجيل خروج</button>
 <script>
+// السرعة: إذا كنت داخل من قبل، القائمة بتبين فوراً بدون ما تستنى Firebase يحمّل (التأكد بيصير بالخلفية)
+const L=document.getElementById('login'),M=document.querySelector('main'),O=document.getElementById('out');
+let was=false;try{was=localStorage.getItem('my_in')==='1'}catch(e){}
+if(was){M.style.display='grid';O.style.display='block'}
+// الفتح بنفس النافذة: إذا في برنامج تاني منزّل على الجهاز (متل المعمل أو الموقع)، كروم كان يلقط الرابط ويفتحه بنافذة جديدة
+M.addEventListener('click',e=>{const a=e.target.closest('a[href]');if(!a||e.ctrlKey||e.metaKey||e.shiftKey||e.button)return;e.preventDefault();location.assign(a.href)});
+window.addEventListener('DOMContentLoaded',()=>{
 firebase.initializeApp({apiKey:"AIzaSyDi1Pn7guMnyc0CetV8Z9IUC-k0gtav2_8",authDomain:"basel-7b29b.firebaseapp.com",projectId:"basel-7b29b",storageBucket:"basel-7b29b.firebasestorage.app",messagingSenderId:"1025769465563",appId:"1:1025769465563:web:53b5c9949dbb26364d8efe"});
-const A=firebase.auth(),L=document.getElementById('login'),M=document.querySelector('main'),O=document.getElementById('out');
+const A=firebase.auth();
 A.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
-A.onAuthStateChanged(u=>{L.style.display=u?'none':'block';M.style.display=u?'grid':'none';O.style.display=u?'block':'none'});
+A.onAuthStateChanged(u=>{L.style.display=u?'none':'block';M.style.display=u?'grid':'none';O.style.display=u?'block':'none';try{u?localStorage.setItem('my_in','1'):localStorage.removeItem('my_in')}catch(e){}});
 L.addEventListener('submit',async e=>{e.preventDefault();const er=document.getElementById('err');er.textContent='';
   try{await A.signInWithEmailAndPassword(document.getElementById('em').value.trim(),document.getElementById('pw').value)}catch(x){er.textContent='البريد الإلكتروني أو كلمة السر غير صحيحة'}});
 O.onclick=()=>A.signOut();
-// الفتح بنفس النافذة: إذا في برنامج تاني منزّل على الجهاز (متل المعمل أو الموقع)، كروم كان يلقط الرابط ويفتحه بنافذة جديدة
-M.addEventListener('click',e=>{const a=e.target.closest('a[href]');if(!a||e.ctrlKey||e.metaKey||e.shiftKey||e.button)return;e.preventDefault();location.assign(a.href)});
+});
 </script><script src="/js/my-back.js" defer></script>
 <script id="latin-digits">/* أرقام لاتينية دائماً (0-9): أي رقم عربي ٠-٩ أو فارسي ۰-۹ يُكتب أو يُلصق في أي خانة يتحول فوراً */
 (function(){
