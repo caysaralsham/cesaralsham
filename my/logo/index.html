@@ -521,6 +521,7 @@ async function processAll() {
   thumbsEl.innerHTML = '';
   processedResults.forEach(r => { if (r.url) URL.revokeObjectURL(r.url); });
   processedResults = [];
+  if (typeof resetShareQueue === 'function') resetShareQueue();
   resultsPanel.style.display = 'block';
 
   let logoImg;
@@ -614,9 +615,45 @@ async function processAll() {
   downloadAllBtn.disabled = okResults.length === 0;
 }
 
+
+// ---------- الحفظ على آيفون/آيباد ----------
+// سفاري على الآيفون ما بيحفظ الصور بروابط التنزيل (وبيمنع أكثر من تنزيل وحدة بالكبسة)، وبوضع التطبيق (أدواتي) ما بينزّل أبداً.
+// الحل: قائمة المشاركة تبع الآيفون («حفظ الصور» بتحطها بالصور مباشرة)، بدفعات كل 20 صورة.
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const SHARE_BATCH = 20;
+function asFile(r) { return new File([r.blob], r.name, { type: r.blob.type || 'image/jpeg' }); }
+function canShareFiles(files) { try { return !!(navigator.share && navigator.canShare && navigator.canShare({ files })); } catch (e) { return false; } }
+let shareQueue = null, sharePos = 0;
+function resetShareQueue() { shareQueue = null; sharePos = 0; downloadAllBtn.textContent = 'حفظ الكل (بنفس الأسماء الأصلية)'; }
+async function iosSaveAll(okResults) {
+  if (!shareQueue) { shareQueue = okResults; sharePos = 0; }
+  const batch = shareQueue.slice(sharePos, sharePos + SHARE_BATCH);
+  const files = batch.map(asFile);
+  try {
+    await navigator.share({ files });
+    sharePos += batch.length;
+  } catch (err) {
+    if (err && err.name === 'AbortError') { statusEl.textContent = 'تم الإلغاء. اكبس الزر مرة ثانية وبعدين «حفظ الصور».'; return; }
+    throw err;
+  }
+  const total = shareQueue.length;
+  if (sharePos < total) {
+    const to = Math.min(sharePos + SHARE_BATCH, total);
+    downloadAllBtn.textContent = `حفظ الدفعة التالية (${sharePos + 1}-${to} من ${total})`;
+    statusEl.textContent = `انحفظ ${sharePos} من ${total}. اكبس «حفظ الدفعة التالية» لتكمل.`;
+  } else {
+    statusEl.textContent = `انحفظت ${total} صورة بالصور على الآيفون.`;
+    resetShareQueue();
+  }
+}
+
 async function downloadAllIndividually() {
   const okResults = processedResults.filter(r => r.status === 'ok' || r.status === 'original_no_logo');
   if (!okResults.length) return;
+  if (IS_IOS && canShareFiles([asFile(okResults[0])])) {
+    try { await iosSaveAll(okResults); return; }
+    catch (err) { console.error('فشل الحفظ بالمشاركة', err); statusEl.textContent = 'ما زبط الحفظ بقائمة المشاركة، جرّب زر ZIP أو اكبس على كل صورة لحالها.'; return; }
+  }
   downloadAllBtn.disabled = true;
   statusEl.textContent = 'جارٍ حفظ الصور واحدة تلو الأخرى...';
   for (let i = 0; i < okResults.length; i++) {
@@ -679,6 +716,14 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   statusEl.textContent = 'رجعت الإعدادات متل الموقع: لوغو الموقع، 12%، تحت يمين، هامش 1.25%، شفافية 90%.';
 });
 downloadAllBtn.addEventListener('click', downloadAllIndividually);
+thumbsEl.addEventListener('click', async e => {
+  const a = e.target.closest('a[download]');
+  if (!a || !IS_IOS) return;
+  const r = processedResults.find(x => x.url === a.getAttribute('href'));
+  if (!r || !canShareFiles([asFile(r)])) return;
+  e.preventDefault();
+  try { await navigator.share({ files: [asFile(r)] }); } catch (err) { if (!err || err.name !== 'AbortError') console.error(err); }
+});
 downloadZipBtn.addEventListener('click', downloadZip);
 
 // ================== كشف الصور المكررة ==================
