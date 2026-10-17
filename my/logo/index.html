@@ -157,6 +157,30 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   <div class="panel">
     <div class="row">
       <div class="field">
+        <label>قص الصور لإنستغرام</label>
+        <select id="igCrop">
+          <option value="">بدون قص (الصورة كما هي)</option>
+          <option value="0.8">عمودي 4:5 (الأنسب للمنشورات)</option>
+          <option value="1">مربع 1:1</option>
+          <option value="1.91">أفقي 1.91:1</option>
+          <option value="0.5625">ستوري وريلز 9:16</option>
+        </select>
+        <div class="hint">القص بدقة الصورة الأصلية بدون تصغير، وبيتحفظ PNG بدون أي فقدان بالجودة. اللوغو بينحط بعد القص.</div>
+      </div>
+      <div class="field">
+        <label>أي جزء نخلّي من الصورة؟</label>
+        <select id="igAnchor">
+          <option value="center">الوسط</option>
+          <option value="a">فوق (أو يمين للصور العريضة)</option>
+          <option value="b">تحت (أو يسار للصور العريضة)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="row">
+      <div class="field">
         <label>موقع اللوغو والنص</label>
         <select id="position">
           <option value="bottom-right">أسفل اليمين</option>
@@ -250,6 +274,8 @@ const imagesInput = document.getElementById('imagesInput');
 const phoneText = document.getElementById('phoneText');
 const addressText = document.getElementById('addressText');
 const positionSel = document.getElementById('position');
+const igCropSel = document.getElementById('igCrop');
+const igAnchorSel = document.getElementById('igAnchor');
 const sizeRange = document.getElementById('size');
 const opacityRange = document.getElementById('opacity');
 const marginRange = document.getElementById('margin');
@@ -283,6 +309,8 @@ function loadSavedSettings() {
   sizeRange.value = (saved && saved.size) ? saved.size : SITE.size;
   opacityRange.value = (saved && saved.opacity) ? saved.opacity : SITE.opacity;
   marginRange.value = (saved && saved.margin != null) ? saved.margin : SITE.margin;
+  igCropSel.value = (saved && typeof saved.igCrop === 'string') ? saved.igCrop : '';
+  igAnchorSel.value = (saved && saved.igAnchor) ? saved.igAnchor : 'center';
   sizeVal.textContent = sizeRange.value;
   opacityVal.textContent = opacityRange.value;
   marginVal.textContent = marginRange.value;
@@ -301,6 +329,8 @@ function saveSettings() {
     size: sizeRange.value,
     opacity: opacityRange.value,
     margin: marginRange.value,
+    igCrop: igCropSel.value,
+    igAnchor: igAnchorSel.value,
     customLogo: (currentLogoDataUrl !== DEFAULT_LOGO_DATA_URI) ? currentLogoDataUrl : null
   };
   try {
@@ -507,6 +537,20 @@ function drawLogoWithInfo(ctx, canvasW, canvasH, logoImg, sizePercent, position,
   }
 }
 
+// قص لإنستغرام بدقة الصورة الأصلية: نقص الزيادة من جهة وحدة بس (العرض أو الطول) بدون أي تصغير
+// ratio = العرض ÷ الطول (4:5 = 0.8)، anchor: center | a (فوق/يمين) | b (تحت/يسار)
+function cropRect(W, H, ratio, anchor) {
+  if (!ratio || Math.abs(W / H - ratio) < 0.005) return { x: 0, y: 0, w: W, h: H };
+  if (W / H > ratio) { // أعرض من المطلوب: نقص من الجنب
+    const w = Math.round(H * ratio);
+    const x = anchor === 'a' ? W - w : anchor === 'b' ? 0 : Math.round((W - w) / 2);
+    return { x, y: 0, w, h: H };
+  }
+  const h = Math.round(W / ratio); // أطول من المطلوب: نقص من فوق وتحت
+  const y = anchor === 'a' ? 0 : anchor === 'b' ? H - h : Math.round((H - h) / 2);
+  return { x: 0, y, w: W, h };
+}
+
 async function processAll() {
   if (!sourceFiles.length) {
     statusEl.textContent = 'الرجاء اختيار صورة واحدة على الأقل (أو مجلد الألبوم).';
@@ -539,6 +583,8 @@ async function processAll() {
   const position = positionSel.value;
   const phone = phoneText.value;
   const address = addressText.value;
+  const igRatio = parseFloat(igCropSel.value) || 0;
+  const igAnchor = igAnchorSel.value;
 
   let successCount = 0;
   let failCount = 0;
@@ -553,10 +599,11 @@ async function processAll() {
       const workingFile = await toDecodableFile(file);
       const img = await loadImage(workingFile);
       const canvas = document.createElement('canvas');
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
+      const crop = cropRect(img.naturalWidth, img.naturalHeight, igRatio, igAnchor);
+      canvas.width = crop.w;
+      canvas.height = crop.h;
       const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
+      ctx.drawImage(img, crop.x, crop.y, crop.w, crop.h, 0, 0, crop.w, crop.h);
 
       drawLogoWithInfo(ctx, canvas.width, canvas.height, logoImg, sizePercent, position, Math.round(canvas.width * margin / 100), opacity, phone, address);
 

@@ -96,3 +96,15 @@ test.describe('الأرقام لاتينية دائماً (0-9)', () => {
     await expect(page.locator('#cPhone')).toHaveValue('0550123456');
   });
 });
+
+test('أداة اللوغو: قص إنستغرام بدقة الصورة الأصلية', async ({ page }) => {
+  await openOffline(page, '/my/logo/');
+  const r = await page.evaluate(() => ({
+    p45: cropRect(4032, 3024, 0.8, 'center'), sq: cropRect(3024, 4032, 1, 'a'),
+    land: cropRect(2000, 2000, 1.91, 'b'), none: cropRect(4032, 3024, 0, 'center'),
+  }));
+  expect(r.p45).toEqual({ x: 806, y: 0, w: 2419, h: 3024 });
+  expect(r.sq).toEqual({ x: 0, y: 0, w: 3024, h: 3024 });
+  expect(r.land).toEqual({ x: 0, y: 953, w: 2000, h: 1047 });
+  expect(r.none).toEqual({ x: 0, y: 0, w: 4032, h: 3024 });
+});
