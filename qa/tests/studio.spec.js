@@ -111,8 +111,8 @@ test('العرض الثلاثي يفتح لكل أنواع الرسم، وصور
   expect(problems).toEqual([]);
 });
 
-test('زر «ثلاثي الأبعاد» موجود بجانب «حفظ صورة»', async ({ page }) => {
-  await expect(page.locator('#v3dBtn')).toBeVisible();
+test('زر «ثلاثي الأبعاد» مخفي (موقوف بطلب صاحب المرسم)', async ({ page }) => {
+  await expect(page.locator('#v3dBtn')).toBeHidden();
 });
 
 test('العرض الثلاثي يأخذ الواجهة فقط ويتجاهل المسقط المرسوم فوقها', async ({ page }) => {
