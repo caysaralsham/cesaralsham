@@ -138,3 +138,37 @@ test('الرقم المكتوب باليد ما بيرجع لحد الشريط (
     expect(await page.evaluate(() => state.column.H)).toBe(+v);
   }
 });
+
+test('التصاميم الجاهزة: كل قسم إلو تصاميم، وكل تصميم قيمه صحيحة وبيترسم بدون خطأ', async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const out = [], missing = [];
+    for (const k of Object.keys(SCHEMAS)) if (k !== 'calc' && !TPL_BUILTIN.some(t => t.tab === k)) missing.push(k);
+    for (const tp of TPL_BUILTIN) {
+      const cs = SCHEMAS[tp.tab].controls.flatMap(c => (c.type === 'group' ? c.items : [c]));
+      for (const [id, v] of Object.entries(tp.st)) {
+        const c = cs.find(x => x.id === id);
+        if (!c) { out.push(`${tp.name}: خانة غير موجودة ${id}`); continue; }
+        if (c.type === 'seg' && !c.options.some(o => String(o[0]) === String(v))) out.push(`${tp.name}: ${id}=${v} مو من الخيارات`);
+        if ((c.type === 'range' || c.type === 'counter') && (v < c.min || v > c.max)) out.push(`${tp.name}: ${id}=${v} برّا الحدود`);
+      }
+      const st = presetState(tp);
+      if (tp.tab === 'fountain') applyAuto(st);
+      let d; try { d = SCHEMAS[tp.tab].draw(st); } catch (e) { out.push(`${tp.name}: ${e.message}`); continue; }
+      if (!d || !d.svg || /NaN|undefined|Infinity/.test(d.svg)) out.push(`${tp.name}: رسمة غير صالحة`);
+    }
+    return { out, missing, n: TPL_BUILTIN.length };
+  });
+  expect(r.missing).toEqual([]);
+  expect(r.n).toBeGreaterThan(50);
+  expect(r.out).toEqual([]);
+});
+
+test('التصاميم الجاهزة: زر بأعلى القسم بيطبّق التصميم، و«رجوع» بيرجّع اللي كان', async ({ page }) => {
+  await page.evaluate(() => { tab = 'bath'; state.bath = defaults('bath'); state.bath.W = 333; buildPanel(); render(); });
+  await page.locator('.pchip', { hasText: 'حمام تركي بقبة' }).click();
+  expect(await page.evaluate(() => [state.bath.ceilT, state.bath.W])).toEqual(['dome', 230]);
+  await expect(page.locator('.pchip', { hasText: 'حمام تركي بقبة' })).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('[data-preset-undo]').click();
+  expect(await page.evaluate(() => [state.bath.ceilT, state.bath.W])).toEqual(['flat', 333]);
+  await expect(page.locator('[data-preset-undo]')).toHaveCount(0);
+});
