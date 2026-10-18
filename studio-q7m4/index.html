@@ -156,6 +156,10 @@ input[type=range]{height:16px}
 .sw{width:28px;height:28px}
 .sec.grp>summary{font-size:.8rem;color:var(--ink);font-weight:700}
 .reset{margin-top:8px;padding:4px 10px;font-size:.78rem}
+.pchips{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:8px}
+.pchip{font:inherit;font-size:.8rem;border:1px solid var(--line);background:var(--card,#fff);color:var(--ink);border-radius:999px;padding:5px 11px;cursor:pointer}
+.pchip[aria-pressed=true]{background:var(--accent-deep);color:#fff;border-color:var(--accent-deep)}
+.pchip.undo{border-style:dashed;color:var(--muted)}
 .stage{position:sticky;top:calc(var(--tabh,40px) + 6px);align-self:start;border-radius:14px}
 @media (min-width:861px){
   .stage{max-height:calc(100vh - var(--tabh,40px) - 12px);overflow-y:auto;overscroll-behavior:contain}
@@ -3587,6 +3591,8 @@ function buildPanel(){
   }
   close();
   if(mats.length){const key=tab+':الرخام';h+=`<details class="sec" data-h="${key}"${closedH.has(key)?'':' open'}><summary>الرخام والألوان</summary><div class="secb">${mats.map(c=>ctrlHTML(c,st)).join('')}</div></details>`}
+  let pr=[];try{pr=TPL_BUILTIN.filter(t=>t.tab===tab)}catch(e){}
+  if(pr.length){const key=tab+':جاهز';h=`<details class="sec presets" data-h="${key}"${closedH.has(key)?'':' open'}><summary>✨ تصاميم جاهزة تبدأ منها</summary><div class="secb pchips">${pr.map(t=>`<button type="button" class="pchip" data-preset="${t.id}" aria-pressed="${(presetCur&&presetCur[tab])===t.id}">${t.name}</button>`).join('')}${typeof presetUndo!=='undefined'&&presetUndo&&presetUndo.k===tab?'<button type="button" class="pchip undo" data-preset-undo>↩ رجوع</button>':''}</div></details>`+h}
   panel.innerHTML=h+`<button class="reset" id="reset">إرجاع القيم الافتراضية</button>`;
 }
 // ---- حاسبة القياسات: الأحداث (نفس تصرّف ميراكوس) ----
@@ -3672,7 +3678,9 @@ panel.addEventListener('change',e=>{
 });
 panel.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;
-  if(b.id==='reset'){state[tab]=defaults(tab);openG.clear();buildPanel();render();return}
+  if(b.dataset.preset){const tp=TPL_BUILTIN.find(t=>t.id===b.dataset.preset);if(tp)applyPreset(tp);return}
+  if(b.hasAttribute('data-preset-undo')){const u=presetUndo;if(!u)return;presetUndo=null;state[u.k]=u.st;presetCur[u.k]=u.cur;openG.clear();buildPanel();render();try{autosave()}catch(e){}toast('رجعت للتصميم السابق');return}
+  if(b.id==='reset'){state[tab]=defaults(tab);if(presetCur)presetCur[tab]=null;openG.clear();buildPanel();render();return}
   if(b.dataset.act==='center'){centerTablo();rebuildKeep();render();toast('رجع التابلو للوسط');return}
   const id=b.dataset.id;if(!id)return;
   const c=ctrlOf(id);
@@ -3968,16 +3976,97 @@ const MIR_APPS={showroom:{n:'المعرض',u:'https://caysaralsham.github.io/mir
 $('mirBtn').onclick=()=>askCustomer('miracos');
 /* ---------- 📚 مكتبة التصاميم ---------- */
 const TPL_KEY='mirsam_templates';
-const TPL_BUILTIN=[
-  {id:'b1',name:'نافورة 3 صحون',tab:'fountain',st:{tiers:3}},
-  {id:'b2',name:'نافورة صحن واحد بحوض مربع',tab:'fountain',st:{tiers:1,poolShape:'square'}},
-  {id:'b3',name:'جرن بيضوي',tab:'jurn',st:{shape:'oval'}},
-  {id:'b4',name:'جرن مدور كروي من فوق',tab:'jurn',st:{shape:'round',sph:60}},
-  {id:'b5',name:'شمينيه كلاسيك',tab:'fireplace',st:{style:'classic'}},
-  {id:'b6',name:'كورنيش باب بقوس',tab:'frame',st:{kind:'door',top:'arch',ar:30}},
-  {id:'b7',name:'تابلو حائط',tab:'wall',st:{}},
-  {id:'b8',name:'حمام',tab:'bath',st:{}}
-].filter(t=>SCHEMAS[t.tab]);
+// تصاميم جاهزة لكل قسم: تبدأ منها وبعدين تعدّل القياسات والتفاصيل كما بدك
+const PRESETS={
+  bath:[['حمام كلاسيك',{ceilT:'vault',ccor:1,kb:1,niW:'2',niN:2,niShape:'lobed',ftab:1,seat:1,jshape:'oval'}],
+        ['حمام عصري',{ceilT:'flat',ceil:'paint',kb:0,niW:'1',niN:1,niShape:'rect',jshape:'half',fmat:'italian',wm1:'italian',wm2:'italian',wm3:'italian',wm4:'italian'}],
+        ['حمام تركي بقبة',{ceilT:'dome',ceilR:120,ceil:'marble',gob:'oct',niW:'all',niShape:'pointed',kb:1,ccor:1}]],
+  fireplace:[['شمينيه كلاسيك',{style:'classic'}],
+        ['لويس منحوتة',{style:'louis',legT:'scroll',key:'shell',deco:1,cor:1}],
+        ['صالون مع مراية فوقها',{style:'carved',key:'flowers',crest:1,tab:1,tabType:'mirror'}],
+        ['عصرية خطية',{style:'linear',W:220,H:60,otop:'rect',ow:160,oh:40,ins:'elec',led:1}],
+        ['شمينيه زاوية',{corner:1,style:'stepped'}]],
+  fountain:[['نافورة 3 صحون',{tiers:3}],
+        ['كلاسيك 3 صحون بحوض كبير',{tiers:3,Htot:260,poolW:300,poolL:300,poolStyle:'mold',finial:'pom',bs1:'lobed'}],
+        ['حديقة بحوض مثمّن',{tiers:2,poolShape:'oct',poolW:400,poolL:400,poolStyle:'panels',finial:'lotus',bs1:'petal',bs2:'leaves',Htot:220}],
+        ['صحن واحد بحوض مربع',{tiers:1,poolShape:'square'}],
+        ['حوض مستطيل',{tiers:2,poolShape:'rect',poolW:250,poolL:450,poolStyle:'inlay'}],
+        ['صغيرة بلا حوض',{pool:0,tiers:1,Htot:120,finial:'tulip',bs1:'carved'}]],
+  jurn:[['جرن بيضوي',{shape:'oval'}],
+        ['جرن مدور كروي',{shape:'round',sph:60}],
+        ['نص دائرة محفور',{shape:'half',deco:'flute',rimStyle:'round',base:'plinth'}],
+        ['جرن زاوية بورد',{shape:'corner',deco:'petals',ears:1}],
+        ['جرن مع قعدة',{shape:'oval',deco:'band',seat:1,sshape:'round'}]],
+  facade:[['فيلا كلاسيك',{style:'classic',floors:2,roof:'tile',win:'arch',entry:'portico',quoins:1,balc:1}],
+        ['واجهة عصرية',{style:'modern',roof:'flat',win:'wide',entry:'simple',quoins:0,pattern:'grid',rail:'glass',panels:1,cornice:0}],
+        ['واجهة عربية',{style:'arabic',roof:'cren',win:'pointed',pattern:'ablaq',entry:'pilaster',rail:'iron'}],
+        ['مع سور وبوابة',{fence:1,ftype:'rail',gtype:'arch',pCap:'lamp'}]],
+  door:[['باب قوس كلاسيك',{top:'arch',jamb:'fluted',cap:'carved',frieze:'shell',crown:'cped',key:1}],
+        ['مدخل بأعمدة',{cols:1,dw:200,dh:300,crown:'ped',frieze:'leaves',steps:2}],
+        ['مدخل بسيط',{jamb:'plain',cap:'plain',base:'plain',frieze:'none',crown:'cornice',leaf:'wood'}]],
+  window:[['قوس مع مفتاح',{top:'arch',key:'carved',fstyle:'mold',crown:'none',sill:'corb'}],
+        ['كلاسيك بتاج مثلث',{crown:'tri',pil:'fluted',sill:'corb3',fstyle:'ears'}],
+        ['مدبّب عربي',{top:'pointed',grill:1,fstyle:'vine',pil:'col',crown:'crest'}],
+        ['نافذة بسيطة',{fstyle:'plain',pil:'none',crown:'flat',key:'none',sill:'plain'}]],
+  floor:[['تابلو وسط بنجمة',{tablo:1,tshape:'oval',tdes:'star16',tW:200,tL:200}],
+        ['صالون كبير بإطار',{RW:800,RL:1000,tile:'60x120',tablo:1,tdes:'floral',tW:300,tL:400,fw:20}],
+        ['شطرنج',{pat:'chess',tablo:0}],
+        ['مائل مع إطار',{pat:'diag',fw:15,tablo:0}]],
+  wall:[['تابلو حائط',{}],
+        ['قوس بزخرفة ورد',{tshape:'arch',tdes:'roses',tW:160,tH:220}],
+        ['باروك عريض',{tdes:'baroque',tW:300,tH:160}],
+        ['حائط كامل ألواح',{clad:1,wpat:'offset',full:1}]],
+  tablo:[['بوصلة أرضية',{des:'compass'}],
+        ['نجمة ثمانية بإطار',{des:'star8',bord:'greek',cor:'step'}],
+        ['سجادة',{shape:'rect',L:200,W:140,des:'carpet',bord:'double'}],
+        ['لوتس مدوّر',{shape:'round',des:'lotus'}],
+        ['بسملة حائط',{kind:'wall',shape:'rect',L:150,W:60,des:'plain',txt:1}]],
+  frame:[['كورنيش باب بقوس',{kind:'door',top:'arch',ar:30}],
+        ['كورنيش شباك',{kind:'window',ow:120,oh:150,bot:1}],
+        ['كورنيش مع جرن',{kind:'jurn',jn:1}],
+        ['كورنيش تابلو مدبّب',{kind:'tablo',top:'pointed',crown:1,crH:20}]],
+  balus:[['بلكون مزهرية',{bal:'vase2'}],
+        ['درج بأعمدة',{run:'stair',bal:'vase'}],
+        ['ملتوي',{bal:'twist',L:400,cap:'pyr'}],
+        ['هندسي عصري',{fill:'geo',cap:'flat'}]],
+  sabil:[['سبالة باروك',{}],
+        ['سبالة عربية',{top:'arch',dec:'mosaic',frame:'vous',out:'spout',basin:'petal'}],
+        ['شلال',{kind:'cascade',W:200,H:250,basin:'pool',bW:300}],
+        ['سبالة بسيطة',{top:'rect',dec:'plain',frame:'none',basin:'trough'}]],
+  lavabo:[['مغسلة عمود منحوت',{}],
+        ['عمود محفور بحوض بيضوي',{kind:'ped',ped:'flute',btype:'oval'}],
+        ['كاونتر بحوضين ومراية',{kind:'vanity',W:160,nb:2,sink:'inset',mount:'cab',mir:'led'}],
+        ['كاونتر معلّق',{kind:'vanity',mount:'wall',sink:'vessel',vshape:'oval',mir:'round'}]],
+  table:[['سفرة مستطيلة',{shape:'rect',L:200,W:100,base:'col_classic',nc:2}],
+        ['طاولة قهوة مدوّرة',{shape:'round',L:90,H:45,base:'tulip',inlay:'star'}],
+        ['بيضوية بإطار',{shape:'oval',L:160,W:90,inlay:'border',edge:'bull'}]],
+  mosque:[['محراب',{mih:1,n:1,aw:150,geo:1,band:1}],
+        ['رواق 5 أقواس',{n:5,atype:'horse',col:'classic'}],
+        ['أقواس مفصّصة',{atype:'lobed',vine:1,band:1}]],
+  column:[['كورنثي كلاسيك',{cType:'corinth',bType:'attic',deco:'flute'}],
+        ['مربع بلوحات',{shape:'square',deco:'panel',cType:'plain',bType:'plain'}],
+        ['ملتوي أيوني',{deco:'twist',cType:'ionic'}],
+        ['مدخل فيلا عالي',{H:450,D:50,cType:'doric',ring:1}]]
+};
+const TPL_BUILTIN=Object.entries(PRESETS).filter(([k])=>SCHEMAS[k]).flatMap(([k,a])=>a.map(([name,st],i)=>({id:'p-'+k+'-'+i,name,tab:k,st})));
+// القيم تتطابق مع خيارات الخانة (رقم أو نص) وتبقى ضمن حدودها
+function presetState(tp){
+  const st=defaults(tp.tab),cs=SCHEMAS[tp.tab].controls.flatMap(c=>c.type==='group'?c.items:[c]);
+  for(const [k,v] of Object.entries(tp.st||{})){
+    const c=cs.find(x=>x.id===k);
+    if(c&&c.type==='seg'){const o=c.options.find(o=>String(o[0])===String(v));if(o)st[k]=o[0];continue}
+    if(c&&(c.type==='range'||c.type==='counter')&&typeof v==='number'){st[k]=Math.min(Math.max(v,c.min),c.max*10);continue}
+    st[k]=v;
+  }
+  return st;
+}
+var presetUndo=null,presetCur={};
+function applyPreset(tp){
+  presetUndo={tab,st:JSON.parse(JSON.stringify(state[tp.tab])),k:tp.tab,cur:presetCur[tp.tab]};
+  tab=tp.tab;state[tab]=presetState(tp);presetCur[tab]=tp.id;openG.clear();
+  buildPanel();render();try{updTitle()}catch(e){}try{autosave()}catch(e){}
+  toast('✨ '+tp.name+' — عدّل عليه كما بدك');
+}
 const tplLoad=()=>{try{return JSON.parse(localStorage.getItem(TPL_KEY)||'[]')}catch(e){return[]}};
 const tplSave=a=>{try{localStorage.setItem(TPL_KEY,JSON.stringify(a))}catch(e){toast('ما في مساحة للحفظ')}};
 $('tplBtn').onclick=()=>{
@@ -3997,7 +4086,7 @@ $('tplBtn').onclick=()=>{
       tplSave([{id:'t'+Date.now(),name:n,tab,st},...tplLoad()]);toast('⭐ انحفظ التصميم');draw();return}
     const d=t.closest('[data-del]');if(d){if(confirm('حذف هالتصميم؟')){tplSave(tplLoad().filter(x=>x.id!==d.dataset.del));draw()}return}
     const o=t.closest('[data-open]');if(o){const tp=[...tplLoad(),...TPL_BUILTIN].find(x=>x.id===o.dataset.open);if(!tp)return;
-      tab=tp.tab;state[tab]={...defaults(tab),...tp.st};ov.remove();buildPanel();render();updTitle();toast('انفتح تصميم: '+tp.name)}});
+      ov.remove();applyPreset(tp)}});
 };
 const mirGet=(k,d)=>{try{return localStorage.getItem(k)||d}catch(e){return d}},mirSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 function mirChoose(){
@@ -4011,7 +4100,7 @@ function mirChoose(){
     <div style="display:grid;gap:8px;margin-top:6px">
       <button class="btn primary" data-k="rcp">🧾 وصل دفع</button>
       <button class="btn primary" data-k="inv">📄 عرض سعر</button>
-      <button class="btn primary" data-k="devis">📑 Devis</button>
+      <button class="btn primary" data-k="devis">📑 Facture proforma</button>
       <button class="btn" data-k="">إلغاء</button></div>
     <small>بيفتح البرنامج وفيه الرسمة والبنود، وإنت بتكمّل الأسعار والبيانات وبتحفظ.</small></div>`;
   document.body.appendChild(ov);
