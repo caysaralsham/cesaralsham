@@ -3566,7 +3566,7 @@ function ctrlHTML(c,st){
   const v=st[c.id];
   if(c.type==='counter')return `<div class="ctrl full"><div class="row"><span class="lbl">${c.label}</span><output>${v}</output></div><div class="seg"><button data-act="inc" data-id="${c.id}"${+v>=c.max?' disabled':''}>+ ${c.addLabel}</button><button data-act="dec" data-id="${c.id}"${+v<=c.min?' disabled':''}>− ${c.remLabel}</button></div></div>`;
   if(c.type==='action')return `<div class="ctrl full"><button class="btn sm" data-act="${c.act}">${c.label}</button></div>`;
-  if(c.type==='range'){const mt=isM(c),k=mt?100:1;return `<div class="ctrl"><div class="row"><label for="c-${c.id}">${c.label}</label><span class="numw"><input class="num" type="number" inputmode="decimal" id="n-${c.id}" data-id="${c.id}"${mt?' data-m="1"':''} min="${c.min/k}" max="${c.max/k}" step="${mt?0.01:c.step}" value="${+(v/k).toFixed(2)}"><small>${mt?'م':unitOf(c)}</small></span></div><input type="range" id="c-${c.id}" data-id="${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${v}"></div>`;}
+  if(c.type==='range'){const mt=isM(c),k=mt?100:1;return `<div class="ctrl"><div class="row"><label for="c-${c.id}">${c.label}</label><span class="numw"><input class="num" type="number" inputmode="decimal" id="n-${c.id}" data-id="${c.id}"${mt?' data-m="1"':''} step="${mt?0.01:c.step}" value="${+(v/k).toFixed(2)}"><small>${mt?'م':unitOf(c)}</small></span></div><input type="range" id="c-${c.id}" data-id="${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${v}"></div>`;}
   if(c.type==='text')return `<div class="ctrl full"><div class="row"><label for="t-${c.id}">${c.label}</label></div><input type="text" class="txtin" id="t-${c.id}" data-tid="${c.id}" dir="auto" value="${escX(v==null?'':v)}"></div>`;
   if(c.type==='seg')return `<div class="ctrl${c.half?'':' full'}"><div class="row"><span class="lbl">${c.label}</span></div><div class="seg">${c.options.map(([ov,ol])=>`<button data-id="${c.id}" data-v="${ov}" aria-pressed="${String(ov)===String(v)}">${ol}</button>`).join('')}</div></div>`;
   return `<div class="ctrl full"><div class="row"><span class="lbl">${c.label}</span><output id="o-${c.id}">${MATS[v]?MATS[v].name:''}</output></div><div class="mats">${Object.entries(MATS).filter(([mk])=>(c.mats||ALL_MATS).includes(mk)).map(([mk,m])=>`<button class="sw" title="${m.name}" aria-label="${m.name}" data-id="${c.id}" data-v="${mk}" style="--c:${m.c};--d:${m.d}" aria-pressed="${mk===v}"></button>`).join('')}</div></div>`;
@@ -3651,7 +3651,7 @@ panel.addEventListener('input',e=>{
   const t=e.target;if(t.type!=='range'&&t.type!=='number')return;
   const c=ctrlOf(t.dataset.id);let v=parseFloat(t.value);if(isNaN(v))return;
   if(t.dataset.m)v=Math.round(v*100);
-  if(t.type==='number'&&(v<c.min||v>c.max))return;
+  if(t.type==='number'&&(v<typedLo(c)||v>typedHi(c)))return;
   state[tab][c.id]=v;
   if(t.type==='range'){const n=document.getElementById('n-'+c.id);if(n)n.value=n.dataset.m?+(v/100).toFixed(2):v}else{const r=document.getElementById('c-'+c.id);if(r)r.value=v}
   if(tab==='fountain'&&c.id==='h1')state.fountain.h1man=1;
@@ -3660,13 +3660,15 @@ panel.addEventListener('input',e=>{
   if(tab==='fountain'&&(/^[hc][2-6]$/.test(c.id)||false)&&+state.fountain.auto){state.fountain.auto='0';panel.querySelectorAll('button[data-id="auto"]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v==='0'))}
   updGroups();render();
 });
+// الرقم المكتوب باليد بينحفظ متل ما هو (ما بيرجع لحد الشريط): بس منرفض السالب والمستحيل
+const typedLo=c=>c.min>0?Math.min(c.min,c.step||1):c.min, typedHi=c=>c.max*10;
 const visSig=()=>flat(tab).filter(c=>!c.show||c.show(state[tab])).map(c=>c.id).join(',');
 let lastSig='';panel.addEventListener('pointerdown',()=>{lastSig=visSig()},true);panel.addEventListener('focusin',()=>{lastSig=visSig()},true);
 panel.addEventListener('change',e=>{if(e.target.type==='range'&&lastSig&&visSig()!==lastSig){lastSig=visSig();rebuildKeep()}});
 panel.addEventListener('change',e=>{
   const t=e.target;if(t.type!=='number')return;
   const c=ctrlOf(t.dataset.id);let v=parseFloat(t.value);if(isNaN(v))v=state[tab][c.id];else if(t.dataset.m)v=Math.round(v*100);
-  v=Math.min(c.max,Math.max(c.min,v));state[tab][c.id]=v;setNum(c.id,v);updGroups();render();if(lastSig&&visSig()!==lastSig){lastSig=visSig();rebuildKeep()}
+  v=Math.min(typedHi(c),Math.max(typedLo(c),v));state[tab][c.id]=v;setNum(c.id,v);updGroups();render();if(lastSig&&visSig()!==lastSig){lastSig=visSig();rebuildKeep()}
 });
 panel.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;
