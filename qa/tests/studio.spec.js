@@ -127,3 +127,14 @@ test('العرض الثلاثي يأخذ الواجهة فقط ويتجاهل ا
   });
   expect(kept).toEqual([true, false]);
 });
+
+test('الرقم المكتوب باليد ما بيرجع لحد الشريط (مثلاً عامود 1250 سم)', async ({ page }) => {
+  await page.evaluate(() => { tab = 'column'; buildPanel(); render(); });
+  for (const v of ['1250', '30']) {
+    await page.locator('#n-H').click({ clickCount: 3 });
+    await page.keyboard.type(v);
+    await page.keyboard.press('Tab');
+    await expect(page.locator('#n-H')).toHaveValue(v);
+    expect(await page.evaluate(() => state.column.H)).toBe(+v);
+  }
+});
