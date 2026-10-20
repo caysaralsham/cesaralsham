@@ -810,7 +810,7 @@ async function renderVisitStats(){
     if(countriesWrap){
       const sorted = Object.entries(countryTotals).sort((a,b)=> b[1]-a[1]).slice(0,6);
       countriesWrap.textContent = sorted.length
-        ? 'أكثر الدول زيارة هالشهر: ' + sorted.map(([code,n])=> `${code} (${n})`).join(' · ')
+        ? 'أكثر الدول زيارة هالشهر: ' + sorted.map(([code,n])=> `${(()=>{try{const t=new Intl.DisplayNames(['ar'],{type:'region'}).of(String(code).toUpperCase());return t&&t!==String(code).toUpperCase()?t:code}catch(e){return code}})()} (${n})`).join(' · ')
         : '';
     }
   }catch(e){
