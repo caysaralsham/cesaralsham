@@ -12,7 +12,7 @@ header{background:var(--ink);color:var(--bg);padding:10px 16px;position:sticky;t
 .top b{font-size:20px;color:var(--gold)}.top span{font-size:12px;opacity:.85;display:block}
 .top .grow{flex:1}
 nav{display:flex;gap:6px;max-width:900px;margin:8px auto 0}
-nav button{flex:1;font:inherit;font-weight:800;font-size:13px;padding:7px 2px;border:1px solid #6E4524;border-radius:10px;background:transparent;color:var(--bg);cursor:pointer}
+nav button{flex:1;font:inherit;font-weight:800;font-size:12.5px;padding:7px 1px;border:1px solid #6E4524;border-radius:10px;background:transparent;color:var(--bg);cursor:pointer}
 nav button.on{background:var(--br);border-color:var(--br);color:#fff}
 main{max-width:900px;margin:0 auto;padding:12px 16px 90px}
 .search{width:100%;font:inherit;font-size:16px;padding:11px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink)}
@@ -63,12 +63,19 @@ main{max-width:900px;margin:0 auto;padding:12px 16px 90px}
 .ffu{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700}.ffu span{flex:1}.ffu span:before{content:"بالفصحى: ";font-weight:600;color:var(--deep);font-size:12px}
 .fex{border-top:1px dashed var(--line);margin-top:4px;padding-top:4px;font-size:13px;color:var(--deep)}.fexf{display:flex;align-items:center;gap:6px;color:var(--ink)}.fexf span{flex:1}
 #fqz .hint{font-size:13px;color:var(--deep);margin-bottom:6px}
+.nbig{direction:ltr;font-size:40px;font-weight:800;text-align:center;color:var(--ink);letter-spacing:1px}
+.nrow{display:flex;align-items:center;gap:10px;border-top:1px dashed var(--line);padding:8px 0}
+.nfr{flex:1;direction:ltr;text-align:left;font-family:Georgia,serif;font-size:19px;font-weight:700}.nar{flex:1;font-size:18px;font-weight:700;color:var(--deep)}
+#nGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:6px}
+.nb{font:inherit;font-weight:800;font-size:14px;padding:8px 2px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);cursor:pointer;direction:ltr}
+.nb:active{background:var(--br);color:#fff}
+#nIn,#nTi{direction:ltr;text-align:center;font-size:22px;font-weight:800}#nIn::placeholder,#nTi::placeholder{font-size:15px;font-weight:600}
 #gate{display:none;text-align:center;padding:40px 16px}
 </style>
 <style id="sb-right">/* شريط التمرير على اليمين (كمبيوتر بس) */@media (min-width:900px) and (hover:hover){html{direction:ltr}body{direction:rtl}}</style>
 </head><body>
 <header><div class="top"><a href="/my/" title="أدواتي">→</a><div class="grow"><b>قاموس الحجر</b><span>فرنسي · دارجة جزائرية · فصحى — بالصوت</span></div></div>
-<nav><button data-v="dict" class="on">فرنسي</button><button data-v="fus">فصحى</button><button data-v="cards">بطاقات</button><button data-v="quiz">اختبار</button><button data-v="add">إضافة</button></nav></header>
+<nav><button data-v="dict" class="on">فرنسي</button><button data-v="fus">فصحى</button><button data-v="num">أرقام</button><button data-v="cards">بطاقات</button><button data-v="quiz">اختبار</button><button data-v="add">إضافة</button></nav></header>
 <div id="gate">جاري التحقق من الدخول…</div>
 <main id="app">
 <div class="warn" id="vw"></div>
@@ -96,6 +103,20 @@ main{max-width:900px;margin:0 auto;padding:12px 16px 90px}
 <div id="fListBox"><input class="search" id="fq" type="search" placeholder="ابحث بالدارجة أو بالفصحى…" autocomplete="off"><div class="count" id="fcnt"></div><div class="list" id="flist"></div></div>
 <div id="fQuizBox" hidden><div class="q" id="fqz"></div><div class="score"><span style="color:var(--ok)">صح: <b id="fOk">0</b></span><span style="color:var(--bad)">غلط: <b id="fNo">0</b></span></div></div>
 </section>
+<section id="v-num" hidden>
+<div class="panel"><h3>اكتب أي رقم</h3>
+<input class="search" id="nIn" inputmode="decimal" placeholder="مثلاً 1250 أو 2,50" autocomplete="off">
+<div id="nOut" style="margin-top:8px"></div>
+<div class="row"><button class="bt o" id="nRnd">🎲 رقم عشوائي</button></div></div>
+<div class="panel"><h3>اسمع واكتب الرقم</h3>
+<div class="seg" id="nLv"><button class="chip on" data-l="100">0 – 100</button><button class="chip" data-l="1000">حتى 1000</button><button class="chip" data-l="1">أرقام كبيرة</button></div>
+<div class="row" style="margin-top:0"><button class="bt" id="nPlay">🔊 اسمع</button></div>
+<input class="search" id="nTi" inputmode="numeric" placeholder="اكتب الرقم اللي سمعتو" style="margin-top:10px" autocomplete="off">
+<div class="row"><button class="bt g" id="nCheck">تحقّق</button></div>
+<div id="nRes" style="text-align:center;font-weight:800;margin-top:8px;min-height:1.4em"></div>
+<div class="score"><span style="color:var(--ok)">صح: <b id="nOk">0</b></span><span style="color:var(--bad)">غلط: <b id="nNo">0</b></span></div></div>
+<div class="panel"><h3>اضغط على الرقم تسمعو</h3><div id="nGrid"></div></div>
+</section>
 <section id="v-add" hidden>
 <div class="panel"><h3>أضف كلمة من عندك</h3>
 <label>بالفرنسي</label><input id="aFr" class="l" placeholder="ex: la carrière">
@@ -114,7 +135,7 @@ main{max-width:900px;margin:0 auto;padding:12px 16px 90px}
 </main>
 <script>
 /* القسم | الفرنسي | الدارجة الجزائرية | العربي | مثال */
-const CATS={mat:"الحجر والمواد",fac:"الواجهات",fin:"التشطيب والحواف",cnc:"النحت و CNC",out:"الأدوات والآلات",mes:"القياسات",num:"الأرقام",prd:"المنتجات",pose:"التركيب والورشة",cli:"الزبون والبيع",phr:"عبارات جاهزة"};
+const CATS={mat:"الحجر والمواد",fac:"الواجهات",fin:"التشطيب والحواف",cnc:"النحت و CNC",out:"الأدوات والآلات",mes:"القياسات",prd:"المنتجات",pose:"التركيب والورشة",cli:"الزبون والبيع",phr:"عبارات جاهزة"};
 const RAW=`
 mat|le marbre|الماربر|الرخام|C'est du marbre naturel.
 mat|le granit|الغرانيت|الغرانيت|Le granit est plus dur que le marbre.
@@ -387,58 +408,6 @@ cli|disponible|ديسبونيبل|متوفر|
 cli|cher|شار|غالي|
 cli|pas cher|با شار|رخيص|
 cli|la qualité|الكاليتي|الجودة|
-num|zéro|زيرو|صفر (0)|
-num|un|آن|واحد (1)|
-num|deux|دو|اثنان (2)|
-num|trois|تروا|ثلاثة (3)|
-num|quatre|كاتر|أربعة (4)|
-num|cinq|سانك|خمسة (5)|
-num|six|سيس|ستة (6)|
-num|sept|سات|سبعة (7)|
-num|huit|ويت|ثمانية (8)|
-num|neuf|نوف|تسعة (9)|
-num|dix|ديس|عشرة (10)|
-num|onze|أونز|أحد عشر (11)|
-num|douze|دوز|اثنا عشر (12)|
-num|treize|تريز|ثلاثة عشر (13)|
-num|quatorze|كاتورز|أربعة عشر (14)|
-num|quinze|كانز|خمسة عشر (15)|
-num|seize|سيز|ستة عشر (16)|
-num|dix-sept|ديسات|سبعة عشر (17)|
-num|dix-huit|ديزويت|ثمانية عشر (18)|
-num|dix-neuf|ديزنوف|تسعة عشر (19)|
-num|vingt|فان|عشرون (20)|
-num|vingt et un|فانتي آن|واحد وعشرون (21)|
-num|vingt-deux|فانت دو|اثنان وعشرون (22)|
-num|vingt-cinq|فانت سانك|خمسة وعشرون (25)|
-num|trente|ترونت|ثلاثون (30)|
-num|quarante|كارونت|أربعون (40)|
-num|cinquante|سانكونت|خمسون (50)|
-num|soixante|سواسونت|ستون (60)|
-num|soixante-dix|سواسونت ديس|سبعون (70)|
-num|soixante-quinze|سواسونت كانز|خمسة وسبعون (75)|
-num|quatre-vingts|كاتر فان|ثمانون (80)|
-num|quatre-vingt-dix|كاتر فان ديس|تسعون (90)|
-num|cent|سون|مئة (100)|
-num|cent cinquante|سون سانكونت|مئة وخمسون (150)|
-num|deux cents|دو سون|مئتان (200)|
-num|cinq cents|سانك سون|خمسمئة (500)|
-num|mille|ميل|ألف (1000)|
-num|deux mille|دو ميل|ألفان (2000)|
-num|cinq mille|سانك ميل|خمسة آلاف (5000)|
-num|dix mille|ديس ميل|عشرة آلاف (10000)|
-num|cent mille|سون ميل|مئة ألف (100000)|
-num|un million|آن ميليون|مليون (1000000)|
-num|premier|بروميي|الأول|
-num|deuxième|دوزيام|الثاني|
-num|troisième|تروازيام|الثالث|
-num|la virgule|الفيرغول|الفاصلة (في الأرقام)|1,20 m : un mètre vingt.
-num|deux mètres cinquante|دو ميتر سانكونت|متران ونصف (2.50 م)|
-num|un mètre vingt|آن ميتر فان|متر وعشرون سنتيمتراً (1.20 م)|
-num|trente centimètres|ترونت سونتي|ثلاثون سنتيمتراً (30 سم)|
-num|deux centimètres d'épaisseur|دو سونتي ديبيسور|سُمك 2 سنتيمتر|
-num|mille dinars|ميل دينار|ألف دينار (1000 دج)|
-num|le numéro de téléphone|النيميرو|رقم الهاتف|
 phr|C'est combien le mètre carré ?|قداش الميترو كاري؟|كم سعر المتر المربع؟|
 phr|Le prix comprend la pose ?|البري فيه البوز ولا لا؟|هل السعر يشمل التركيب؟|
 phr|Avec la pose et la livraison.|مع البوز والليفريزون|مع التركيب والتوصيل|
@@ -485,7 +454,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-say]");if(
 
 /* ===== التبويبات ===== */
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x===b));
- ["dict","fus","cards","quiz","add"].forEach(v=>$("#v-"+v).hidden=v!==b.dataset.v);if(b.dataset.v==="cards")nextCard();if(b.dataset.v==="quiz")nextQ();if(b.dataset.v==="add")renderMine();scrollTo(0,0)});
+ ["dict","fus","num","cards","quiz","add"].forEach(v=>$("#v-"+v).hidden=v!==b.dataset.v);if(b.dataset.v==="cards")nextCard();if(b.dataset.v==="quiz")nextQ();if(b.dataset.v==="add")renderMine();scrollTo(0,0)});
 
 function chips(el,cur,cb,extra){const list=[["all","الكل"],...(extra?[["fav","⭐ المفضلة"]]:[]),...Object.entries(CATS)];
  el.innerHTML=list.map(([k,n])=>`<button class="chip${k===cur?" on":""}" data-k="${k}">${n}</button>`).join("");
@@ -546,51 +515,62 @@ $("#vFr").onchange=e=>{LS.set("lug_vFr",e.target.value);say("Bonjour, le marbre"
 $("#vAr").onchange=e=>{LS.set("lug_vAr",e.target.value);say("الرخام","ar")};
 renderDict();
 
+/* ===== الأرقام: فرنسي + عربي ===== */
+const FU=["zéro","un","deux","trois","quatre","cinq","six","sept","huit","neuf","dix","onze","douze","treize","quatorze","quinze","seize","dix-sept","dix-huit","dix-neuf"];
+const FT=["","","vingt","trente","quarante","cinquante","soixante"];
+function fr99(n){if(n<20)return FU[n];const t=Math.floor(n/10),u=n%10;
+ if(t===7||t===9){const b=t===7?"soixante":"quatre-vingt";return t===7&&u===1?"soixante et onze":b+"-"+FU[10+u]}
+ if(t===8)return u===0?"quatre-vingts":"quatre-vingt-"+FU[u];
+ return FT[t]+(u===0?"":u===1?" et un":"-"+FU[u])}
+function fr999(n){const h=Math.floor(n/100),r=n%100;let s="";
+ if(h)s=(h===1?"cent":FU[h]+" cent"+(r===0?"s":""));if(r)s+=(s?" ":"")+fr99(r);return s||"zéro"}
+function frN(n){if(n===0)return"zéro";const parts=[];const G=[[1e9,"milliard"],[1e6,"million"]];
+ for(const[v,w]of G){const q=Math.floor(n/v);if(q){parts.push((q===1?"un":frN(q))+" "+w+(q>1?"s":""));n%=v}}
+ const k=Math.floor(n/1000);if(k){parts.push(k===1?"mille":fr999(k).replace(/(vingt|cent)s$/,"$1")+" mille");n%=1000}
+ if(n)parts.push(fr999(n));return parts.join(" ")}
+const AU=["صفر","واحد","اثنان","ثلاثة","أربعة","خمسة","ستة","سبعة","ثمانية","تسعة","عشرة","أحد عشر","اثنا عشر"];
+const AT=["","","عشرون","ثلاثون","أربعون","خمسون","ستون","سبعون","ثمانون","تسعون"];
+const AH=["","مئة","مئتان","ثلاثمئة","أربعمئة","خمسمئة","ستمئة","سبعمئة","ثمانمئة","تسعمئة"];
+function ar99(n){if(n<=12)return AU[n];if(n<20)return AU[n-10]+" عشر";const t=Math.floor(n/10),u=n%10;return u?AU[u]+" و"+AT[t]:AT[t]}
+function ar999(n){const h=Math.floor(n/100),r=n%100;const p=[];if(h)p.push(AH[h]);if(r)p.push(ar99(r));return p.join(" و")}
+function arG(q,one,two,pl,acc){if(q===1)return one;if(q===2)return two;const r=q%100;const t=ar999(q);
+ if(r>=3&&r<=10)return t+" "+pl;if(r>=11)return t+" "+acc;return t.replace(/مئتان$/,"مئتا")+" "+one}
+function arN(n){if(n===0)return"صفر";const p=[];
+ const b=Math.floor(n/1e9);if(b){p.push(arG(b,"مليار","ملياران","مليارات","ملياراً"));n%=1e9}
+ const m=Math.floor(n/1e6);if(m){p.push(arG(m,"مليون","مليونان","ملايين","مليوناً"));n%=1e6}
+ const k=Math.floor(n/1000);if(k){p.push(arG(k,"ألف","ألفان","آلاف","ألفاً"));n%=1000}
+ if(n)p.push(ar999(n));return p.join(" و")}
+function parseNum(v){v=String(v).trim().replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[\s']/g,"").replace(",",".");
+ if(!/^\d{1,12}(\.\d{1,3})?$/.test(v))return null;const [i,f]=v.split(".");return{i:+i,f:f||""}}
+function words(p){const fr=frN(p.i)+(p.f?" virgule "+(/^0/.test(p.f)?[...p.f].map(d=>FU[+d]).join(" "):frN(+p.f)):"");
+ const ar=arN(p.i)+(p.f?" فاصلة "+(/^0/.test(p.f)?[...p.f].map(d=>AU[+d]).join(" "):arN(+p.f)):"");return{fr,ar}}
+const fmt=p=>p.i.toLocaleString("en-US").replace(/,/g," ")+(p.f?","+p.f:"");
+function showNum(v,speak){const p=parseNum(v);const box=$("#nOut");if(!p){box.innerHTML=v.trim()?'<div class="hint">اكتب رقم صحيح (حتى 12 خانة)</div>':"";return}
+ const w=words(p);box.innerHTML=`<div class="nbig">${fmt(p)}</div>
+ <div class="nrow"><button class="snd" id="nSf">🔊 FR</button><div class="nfr">${esc(w.fr)}</div></div>
+ <div class="nrow"><button class="snd a" id="nSa">🔊 ع</button><div class="nar">${esc(w.ar)}</div></div>`;
+ $("#nSf").onclick=()=>say(w.fr,"fr");$("#nSa").onclick=()=>say(w.ar,"ar");if(speak)say(w.fr,"fr")}
+$("#nIn").oninput=e=>showNum(e.target.value,false);
+$("#nRnd").onclick=()=>{const r=[()=>Math.floor(Math.random()*101),()=>Math.floor(Math.random()*1000),()=>Math.floor(Math.random()*100)*100,()=>Math.floor(Math.random()*1e6)];const n=r[Math.floor(Math.random()*r.length)]();$("#nIn").value=n;showNum(String(n),true)};
+const GRID=[...Array(101).keys(),150,200,250,300,400,500,600,700,800,900,1000,1500,2000,5000,10000,20000,50000,100000,500000,1000000,10000000,1000000000];
+$("#nGrid").innerHTML=GRID.map(n=>`<button class="nb" data-n="${n}">${n.toLocaleString("en-US").replace(/,/g," ")}</button>`).join("");
+$("#nGrid").onclick=e=>{const b=e.target.closest(".nb");if(!b)return;$("#nIn").value=b.dataset.n;showNum(b.dataset.n,true);scrollTo({top:0,behavior:"smooth"})};
+/* اختبار: اسمع واكتب */
+let nAns=null,nOk=0,nNo=0,nLvl=100;
+document.querySelectorAll("#nLv .chip").forEach(b=>b.onclick=()=>{document.querySelectorAll("#nLv .chip").forEach(x=>x.classList.toggle("on",x===b));nLvl=+b.dataset.l;nNew()});
+function nNew(){nAns=nLvl===100?Math.floor(Math.random()*101):nLvl===1000?Math.floor(Math.random()*1000):Math.floor(Math.random()*1000)*(Math.random()<.5?100:1000)+(Math.random()<.3?Math.floor(Math.random()*100):0);
+ $("#nTi").value="";$("#nRes").textContent="";say(frN(nAns),"fr")}
+$("#nPlay").onclick=()=>{if(nAns===null)nNew();else say(frN(nAns),"fr")};
+$("#nCheck").onclick=()=>{if(nAns===null)return;const p=parseNum($("#nTi").value);const r=$("#nRes");
+ if(p&&p.i===nAns&&!p.f){nOk++;r.style.color="var(--ok)";r.textContent="صح ✓ "+nAns}else{nNo++;r.style.color="var(--bad)";r.textContent="الجواب: "+nAns.toLocaleString("en-US").replace(/,/g," ")+" — "+frN(nAns)}
+ $("#nOk").textContent=nOk;$("#nNo").textContent=nNo;setTimeout(nNew,2200)};
+$("#nTi").onkeydown=e=>{if(e.key==="Enter")$("#nCheck").click()};
+
+
 /* ===== دارجة ← فصحى ===== */
-const FCATS={adad:"الأعداد",yom:"كلمات يومية",asl:"أسئلة",fil:"أفعال",mak:"المكان والوقت",sif:"صفات",flo:"الأرقام والدراهم",khd:"الخدمة والورشة",zbn:"مع الزبون",ibr:"عبارات"};
+const FCATS={yom:"كلمات يومية",asl:"أسئلة",fil:"أفعال",mak:"المكان والوقت",sif:"صفات",flo:"الأرقام والدراهم",khd:"الخدمة والورشة",zbn:"مع الزبون",ibr:"عبارات"};
 /* القسم | الدارجة | الفصحى | مثال بالدارجة | المثال بالفصحى */
 const FRAW=`
-adad|واحد (1)|واحد (1)||
-adad|جوج (2)|اثنان (2)||
-adad|تلاتة (3)|ثلاثة (3)||
-adad|ربعة (4)|أربعة (4)||
-adad|خمسة (5)|خمسة (5)||
-adad|ستة (6)|ستة (6)||
-adad|سبعة (7)|سبعة (7)||
-adad|تمنية (8)|ثمانية (8)||
-adad|تسعة (9)|تسعة (9)||
-adad|عشرة (10)|عشرة (10)||
-adad|حداش (11)|أحد عشر (11)||
-adad|طناش (12)|اثنا عشر (12)||
-adad|طلطاش (13)|ثلاثة عشر (13)||
-adad|ربعطاش (14)|أربعة عشر (14)||
-adad|خمسطاش (15)|خمسة عشر (15)||
-adad|سطاش (16)|ستة عشر (16)||
-adad|سبعطاش (17)|سبعة عشر (17)||
-adad|تمنطاش (18)|ثمانية عشر (18)||
-adad|تسعطاش (19)|تسعة عشر (19)||
-adad|عشرين (20)|عشرون (20)||
-adad|واحد وعشرين (21)|واحد وعشرون (21)||
-adad|تلاتين (30)|ثلاثون (30)||
-adad|ربعين (40)|أربعون (40)||
-adad|خمسين (50)|خمسون (50)||
-adad|ستين (60)|ستون (60)||
-adad|سبعين (70)|سبعون (70)||
-adad|تمانين (80)|ثمانون (80)||
-adad|تسعين (90)|تسعون (90)||
-adad|مية (100)|مئة (100)||
-adad|ميتين (200)|مئتان (200)||
-adad|تلت مية (300)|ثلاثمئة (300)||
-adad|خمس مية (500)|خمسمئة (500)||
-adad|ألف (1000)|ألف (1000)||
-adad|ألفين (2000)|ألفان (2000)||
-adad|مليون (1000000)|مليون (1000000)||
-adad|جوج بلاكات|لوحان (2)||
-adad|تلاتة ميترو|ثلاثة أمتار (3 م)||
-adad|متر ونص|متر ونصف (1.5 م)||
-adad|الأول|الأول||
-adad|التاني|الثاني||
-adad|التالت|الثالث||
 yom|واش|ماذا|واش تحب؟|ماذا تريد؟
 yom|بزاف|كثيراً|خدمنا بزاف اليوم|عملنا كثيراً اليوم
 yom|شوية|قليلاً|استنّى شوية|انتظر قليلاً
