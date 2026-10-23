@@ -12,7 +12,7 @@ header{background:var(--ink);color:var(--bg);padding:10px 16px;position:sticky;t
 .top b{font-size:20px;color:var(--gold)}.top span{font-size:12px;opacity:.85;display:block}
 .top .grow{flex:1}
 nav{display:flex;gap:6px;max-width:900px;margin:8px auto 0}
-nav button{flex:1;font:inherit;font-weight:800;font-size:14px;padding:7px 4px;border:1px solid #6E4524;border-radius:10px;background:transparent;color:var(--bg);cursor:pointer}
+nav button{flex:1;font:inherit;font-weight:800;font-size:13px;padding:7px 2px;border:1px solid #6E4524;border-radius:10px;background:transparent;color:var(--bg);cursor:pointer}
 nav button.on{background:var(--br);border-color:var(--br);color:#fff}
 main{max-width:900px;margin:0 auto;padding:12px 16px 90px}
 .search{width:100%;font:inherit;font-size:16px;padding:11px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink)}
@@ -59,12 +59,16 @@ main{max-width:900px;margin:0 auto;padding:12px 16px 90px}
 .warn{background:#F3E1C4;border:1px solid var(--br);border-radius:10px;padding:8px 10px;font-size:13px;margin-bottom:10px;display:none}
 .my{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding:6px 0;font-size:14px}
 .my button{background:none;border:0;color:var(--bad);font:inherit;cursor:pointer}
+.fu{grid-template-columns:1fr}.fdz{display:flex;align-items:center;gap:8px;font-size:21px;font-weight:800;color:var(--br)}.fdz span{flex:1}
+.ffu{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700}.ffu span{flex:1}.ffu span:before{content:"بالفصحى: ";font-weight:600;color:var(--deep);font-size:12px}
+.fex{border-top:1px dashed var(--line);margin-top:4px;padding-top:4px;font-size:13px;color:var(--deep)}.fexf{display:flex;align-items:center;gap:6px;color:var(--ink)}.fexf span{flex:1}
+#fqz .hint{font-size:13px;color:var(--deep);margin-bottom:6px}
 #gate{display:none;text-align:center;padding:40px 16px}
 </style>
 <style id="sb-right">/* شريط التمرير على اليمين (كمبيوتر بس) */@media (min-width:900px) and (hover:hover){html{direction:ltr}body{direction:rtl}}</style>
 </head><body>
-<header><div class="top"><a href="/my/" title="أدواتي">→</a><div class="grow"><b>قاموس الحجر</b><span>فرنسي · دارجة جزائرية · عربي — بالصوت</span></div></div>
-<nav><button data-v="dict" class="on">القاموس</button><button data-v="cards">بطاقات</button><button data-v="quiz">اختبار</button><button data-v="add">إضافة</button></nav></header>
+<header><div class="top"><a href="/my/" title="أدواتي">→</a><div class="grow"><b>قاموس الحجر</b><span>فرنسي · دارجة جزائرية · فصحى — بالصوت</span></div></div>
+<nav><button data-v="dict" class="on">فرنسي</button><button data-v="fus">فصحى</button><button data-v="cards">بطاقات</button><button data-v="quiz">اختبار</button><button data-v="add">إضافة</button></nav></header>
 <div id="gate">جاري التحقق من الدخول…</div>
 <main id="app">
 <div class="warn" id="vw"></div>
@@ -85,6 +89,12 @@ main{max-width:900px;margin:0 auto;padding:12px 16px 90px}
 <div class="chips" id="qcats"></div>
 <div class="q" id="qz"></div>
 <div class="score"><span style="color:var(--ok)">صح: <b id="sOk">0</b></span><span style="color:var(--bad)">غلط: <b id="sNo">0</b></span></div>
+</section>
+<section id="v-fus" hidden>
+<div class="seg" id="fseg"><button class="chip on" data-m="list">القائمة</button><button class="chip" data-m="q">اختبار: دارجة ← فصحى</button><button class="chip" data-m="qr">فصحى ← دارجة</button></div>
+<div class="chips" id="fcats"></div>
+<div id="fListBox"><input class="search" id="fq" type="search" placeholder="ابحث بالدارجة أو بالفصحى…" autocomplete="off"><div class="count" id="fcnt"></div><div class="list" id="flist"></div></div>
+<div id="fQuizBox" hidden><div class="q" id="fqz"></div><div class="score"><span style="color:var(--ok)">صح: <b id="fOk">0</b></span><span style="color:var(--bad)">غلط: <b id="fNo">0</b></span></div></div>
 </section>
 <section id="v-add" hidden>
 <div class="panel"><h3>أضف كلمة من عندك</h3>
@@ -423,7 +433,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-say]");if(
 
 /* ===== التبويبات ===== */
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x===b));
- ["dict","cards","quiz","add"].forEach(v=>$("#v-"+v).hidden=v!==b.dataset.v);if(b.dataset.v==="cards")nextCard();if(b.dataset.v==="quiz")nextQ();if(b.dataset.v==="add")renderMine();scrollTo(0,0)});
+ ["dict","fus","cards","quiz","add"].forEach(v=>$("#v-"+v).hidden=v!==b.dataset.v);if(b.dataset.v==="cards")nextCard();if(b.dataset.v==="quiz")nextQ();if(b.dataset.v==="add")renderMine();scrollTo(0,0)});
 
 function chips(el,cur,cb,extra){const list=[["all","الكل"],...(extra?[["fav","⭐ المفضلة"]]:[]),...Object.entries(CATS)];
  el.innerHTML=list.map(([k,n])=>`<button class="chip${k===cur?" on":""}" data-k="${k}">${n}</button>`).join("");
@@ -483,6 +493,241 @@ $("#rate").oninput=e=>{RATE=+e.target.value;$("#rv").textContent=RATE.toFixed(2)
 $("#vFr").onchange=e=>{LS.set("lug_vFr",e.target.value);say("Bonjour, le marbre","fr")};
 $("#vAr").onchange=e=>{LS.set("lug_vAr",e.target.value);say("الرخام","ar")};
 renderDict();
+
+/* ===== دارجة ← فصحى ===== */
+const FCATS={yom:"كلمات يومية",asl:"أسئلة",fil:"أفعال",mak:"المكان والوقت",sif:"صفات",flo:"الأرقام والدراهم",khd:"الخدمة والورشة",zbn:"مع الزبون",ibr:"عبارات"};
+/* القسم | الدارجة | الفصحى | مثال بالدارجة | المثال بالفصحى */
+const FRAW=`
+yom|واش|ماذا|واش تحب؟|ماذا تريد؟
+yom|بزاف|كثيراً|خدمنا بزاف اليوم|عملنا كثيراً اليوم
+yom|شوية|قليلاً|استنّى شوية|انتظر قليلاً
+yom|برك|فقط|جوج برك|اثنان فقط
+yom|كاين|يوجد|كاين الماربر بيج|يوجد الرخام البيج
+yom|ماكاش|لا يوجد|ماكاش السلعة درك|لا توجد البضاعة الآن
+yom|والو|لا شيء|ما قالي والو|لم يقل لي شيئاً
+yom|حاجة|شيء|حاجة صغيرة|شيء صغير
+yom|ڨاع|كلّ / جميعاً|جيبهم ڨاع|أحضرهم جميعاً
+yom|تاع|الخاص بـ (ملك)|البلاكة تاع الفيلا|اللوحة الخاصة بالفيلا
+yom|بصّح|لكن|مليح بصّح غالي|جيد لكنه غالٍ
+yom|ولا|أو|بيج ولا أبيض؟|بيج أم أبيض؟
+yom|حتى|أيضاً|وأنا حتى|وأنا أيضاً
+yom|بلاك|ربما|بلاك يجي غدوة|ربما يأتي غداً
+yom|مازال|ليس بعد / ما زال|مازال ما كملش|لم ينتهِ بعد
+yom|خلاص|انتهى / يكفي|خلاص كملنا|انتهينا
+yom|يزّي|يكفي / كفى|يزّي هكا|يكفي هكذا
+yom|هكا|هكذا|ديرها هكا|اعملها هكذا
+yom|هادي|هذه|هادي مليحة|هذه جيدة
+yom|هادا|هذا|هادا الموديل|هذا النموذج
+yom|هاداك|ذلك|هاداك الحجر|ذلك الحجر
+yom|راه|إنه (هو)|راه يخدم|إنه يعمل
+yom|راني|إنني (أنا)|راني جاي|أنا قادم
+yom|رانا|إننا (نحن)|رانا في الشانطي|نحن في موقع العمل
+yom|الدراهم|المال (النقود)|ماعنديش الدراهم|ليس عندي مال
+yom|الصرف|الفكّة|عندك الصرف؟|هل عندك فكّة؟
+yom|الدار|البيت|راني في الدار|أنا في البيت
+yom|الطوموبيل|السيارة|الطوموبيل برّا|السيارة في الخارج
+yom|السلعة|البضاعة|السلعة وصلت|وصلت البضاعة
+yom|البلاصة|المكان|ماكاش البلاصة|لا يوجد مكان
+yom|القش|الأغراض|لمّ القش|اجمع الأغراض
+yom|الماكلة|الطعام|جاب الماكلة|أحضر الطعام
+yom|الما|الماء|حلّ الما|افتح الماء
+yom|الضو|الكهرباء / الضوء|طاح الضو|انقطعت الكهرباء
+yom|الغبرة|الغبار|بزاف الغبرة|غبار كثير
+asl|واش راك؟|كيف حالك؟||
+asl|كيفاش؟|كيف؟|كيفاش نديرها؟|كيف أعملها؟
+asl|وين؟|أين؟|وين راك؟|أين أنت؟
+asl|علاش؟|لماذا؟|علاش ما جاش؟|لماذا لم يأتِ؟
+asl|وقتاش؟|متى؟|وقتاش تكمل؟|متى تنتهي؟
+asl|قداش؟|كم؟ / بكم؟|قداش هادي؟|بكم هذه؟
+asl|شحال؟|كم؟|شحال من بلاكة؟|كم لوحاً؟
+asl|شكون؟|من؟|شكون جا؟|من جاء؟
+asl|منين؟|من أين؟|منين جبتو؟|من أين أحضرته؟
+asl|واشنو؟ / واش هادا؟|ما هذا؟||
+asl|واش من؟|أيّ؟|واش من لون؟|أيّ لون؟
+asl|كاش ما؟|هل يوجد شيء؟|كاش ما تحب؟|هل تريد شيئاً؟
+asl|فهمت ولا لا؟|هل فهمت أم لا؟||
+fil|دير|افعل / اعمل|دير الجوان|اعمل الفاصل
+fil|جيب|أحضِر|جيبلي الميترو|أحضر لي المتر
+fil|دّي|خُذ / احمل|دّيها للكاميو|احملها إلى الشاحنة
+fil|عطيني|أعطني|عطيني الديسك|أعطني القرص
+fil|روح|اذهب|روح للمعمل|اذهب إلى الورشة
+fil|أرواح|تعالَ|أرواح هنا|تعالَ إلى هنا
+fil|نوض|قُم|نوض نخدمو|قم لنعمل
+fil|اقعد|اجلس / ابقَ|اقعد هنا|ابقَ هنا
+fil|شوف|انظر|شوف هادي|انظر إلى هذه
+fil|قول|قُل|قولّو يجي|قل له أن يأتي
+fil|هدر|تكلّم|هدرت معاه|تكلّمت معه
+fil|نحب|أريد|نحب نشوف الموديلات|أريد أن أرى النماذج
+fil|بغيت|أريد|بغيت الأبيض|أريد الأبيض
+fil|نقدر|أستطيع|نقدر نجي غدوة|أستطيع أن آتي غداً
+fil|ما قدرتش|لم أستطع||
+fil|خلّص|ادفع|خلّص الريست|ادفع الباقي
+fil|حوّس|ابحث|حوّس على المفتاح|ابحث عن المفتاح
+fil|لقيت|وجدت|لقيت البلاكة|وجدت اللوح
+fil|عيّط|اتّصل / نادِ|عيّطلي غدوة|اتصل بي غداً
+fil|بعث|أرسل|ابعثلي التصاور|أرسل لي الصور
+fil|استنّى|انتظر|استنّاني|انتظرني
+fil|زرب روحك|أسرِع||
+fil|رد بالك|انتبه / احذر|رد بالك تكسرها|احذر أن تكسرها
+fil|خمّم|فكّر|خمّم وقولي|فكّر وأخبرني
+fil|تفكّرت|تذكّرت||
+fil|كمّل|أكمِل|كمّل الخدمة|أكمل العمل
+fil|حبس|توقّف / أوقِف|حبس الماشينة|أوقف الآلة
+fil|حلّ|افتح|حلّ الباب|افتح الباب
+fil|سكّر|أغلق|سكّر الما|أغلق الماء
+fil|هزّ|ارفع / احمل|عاوني نهزّوها|ساعدني نرفعها
+fil|حطّ|ضع|حطّها لتحت|ضعها في الأسفل
+fil|قيس|قِس|قيس الحيط|قِس الجدار
+fil|نقّي|نظّف|نقّي البلاصة|نظّف المكان
+fil|خدم|عمل / اشتغل|نخدمو غدوة|نعمل غداً
+fil|صلّح|أصلِح|صلّح الماشينة|أصلح الآلة
+fil|بدّل|غيّر / استبدل|بدّل الريشة|غيّر الريشة
+fil|عاون|ساعد|عاوني شوية|ساعدني قليلاً
+fil|شرى|اشترى|شريت السيمة|اشتريت الإسمنت
+fil|سلّف|أقرَض / استلف|سلّفني الديسك|أعرني القرص
+fil|نسيت|نسيت|نسيت الميترو|نسيت المتر
+fil|فاق|انتبه / استيقظ||
+mak|درك / ضرك|الآن|درك نجي|الآن آتي
+mak|غدوة|غداً|غدوة الصباح|غداً صباحاً
+mak|البارح|أمس|جا البارح|جاء أمس
+mak|من بعد|فيما بعد / لاحقاً|نعيطلك من بعد|سأتصل بك لاحقاً
+mak|بكري|قديماً / مبكراً|جيت بكري|أتيت مبكراً
+mak|العشية|المساء|نجي العشية|آتي في المساء
+mak|النهار|اليوم (النهار)|نهار كامل|يوم كامل
+mak|السمانة|الأسبوع|السمانة الجاية|الأسبوع القادم
+mak|العام|السنة|العام اللي فات|السنة الماضية
+mak|الحد|الأحد|نبداو نهار الحد|نبدأ يوم الأحد
+mak|الثلاثا|الثلاثاء||
+mak|الربعا|الأربعاء||
+mak|هنا|هنا||
+mak|لهيه|هناك|حطّو لهيه|ضعه هناك
+mak|قدّام|أمام|قدّام الباب|أمام الباب
+mak|مور / ورا|خلف|مور الدار|خلف البيت
+mak|لداخل|في الداخل||
+mak|برّا|في الخارج||
+mak|لفوق|إلى الأعلى||
+mak|لتحت|إلى الأسفل||
+mak|قريب|قريب / تقريباً|قريب نكملو|أوشكنا على الانتهاء
+mak|بعيد|بعيد||
+mak|في بالي|أظنّ / في ذهني||
+sif|مليح|جيّد|الخدمة مليحة|العمل جيّد
+sif|ماشي مليح|ليس جيّداً||
+sif|شباب|جميل|الماربر شباب|الرخام جميل
+sif|زين|جميل||
+sif|غالي|غالٍ|غالي بزاف|غالٍ جداً
+sif|رخيص|رخيص||
+sif|ساهل|سهل||
+sif|صعيب|صعب||
+sif|مكسّر|مكسور|البلاكة مكسّرة|اللوح مكسور
+sif|مهرّس|محطّم||
+sif|معوّج|مائل / معوجّ|الحيط معوّج|الجدار مائل
+sif|نيشان|مستقيم / مباشرة|روح نيشان|اذهب مباشرة
+sif|طايح|منخفض / ساقط|هاد الطرف طايح|هذا الطرف منخفض
+sif|عيّان|متعب|راني عيّان|أنا متعب
+sif|مزروب|مستعجل|راني مزروب|أنا مستعجل
+sif|فارغ|فارغ / غير مشغول||
+sif|مشغول|مشغول||
+sif|ثقيل|ثقيل|البلوك ثقيل بزاف|الكتلة ثقيلة جداً
+sif|خفيف|خفيف||
+sif|بالشوية|ببطء / بحذر|بالشوية عليها|بحذر عليها
+sif|فيسع|بسرعة|ديرها فيسع|اعملها بسرعة
+flo|جوج|اثنان|جوج بلاكات|لوحان
+flo|نص|نصف|نص ميترو|نصف متر
+flo|ربع|ربع||
+flo|ألف (بالسنتيم)|عشرة دنانير||
+flo|مية ألف|ألف دينار||
+flo|مليون (سنتيم)|عشرة آلاف دينار|جا بعشرة ملاين|كلّف مئة ألف دينار
+flo|الدورو|خمسة سنتيمات (وحدة عدّ قديمة)||
+flo|الكريدي|الدَّين|عندو الكريدي|عليه دَين
+flo|نقّص شوية|اخفض السعر قليلاً||
+flo|خلّصني|ادفع لي||
+flo|سلفة|قرض||
+khd|الخدمة|العمل|الخدمة كملت|انتهى العمل
+khd|الصنعة|الحِرفة|يعرف الصنعة|يُتقن الحِرفة
+khd|المعلّم|الحِرفي الخبير (المعلّم)||
+khd|الخدّام|العامل||
+khd|الصانع|العامل المتدرّب||
+khd|المعمل|الورشة (المصنع)||
+khd|الحجرة|الحجر||
+khd|الرملة|الرمل||
+khd|الحيط|الجدار||
+khd|السطح|السطح||
+khd|الدروج|الدرج||
+khd|الشبّاك|النافذة||
+khd|الحوش|الفناء / البيت||
+khd|الجنينة|الحديقة||
+khd|الطرف|القطعة|جيب طرف آخر|أحضر قطعة أخرى
+khd|يقطّر|يسرّب الماء|الما يقطّر|الماء يتسرّب
+khd|شدّ|امسك|شدّ معايا|امسك معي
+khd|لصّق|ألصِق||
+khd|قطّع|قطّع / اقطع|قطّعها على جوج|اقطعها نصفين
+khd|ثقب|اثقب||
+khd|سوّي|سوِّ / اجعله مستوياً|سوّي الأرض|سوِّ الأرضية
+khd|الخيط|خيط البناء||
+khd|الكونطرا|العقد||
+khd|الشانطي|موقع العمل|رانا في الشانطي|نحن في موقع العمل
+zbn|مرحبا بيك|أهلاً بك||
+zbn|تفضّل|تفضّل||
+zbn|واش تحب تشوف؟|ماذا تريد أن ترى؟||
+zbn|عندنا موديلات بزاف|لدينا نماذج كثيرة||
+zbn|ابعثلي القياسات|أرسل لي القياسات||
+zbn|نجي ناخذ القياسات|سآتي لأخذ القياسات||
+zbn|السوما فيها البوز|السعر يشمل التركيب||
+zbn|لازم تسبيق|يجب دفع عربون||
+zbn|التسبيق|العربون||
+zbn|السوما|السعر||
+zbn|الخدمة تاعنا بالماشينة|عملنا بالآلة (CNC)||
+zbn|نقدرو نديرولك كيما تحب|يمكننا أن نصنع لك كما تريد||
+zbn|نعيطلك كي تكمل|سأتصل بك عندما ينتهي||
+zbn|الخدمة تكمل في جوج سمانات|ينتهي العمل في أسبوعين||
+zbn|نبعثلك في الواتساب|سأرسل لك عبر واتساب||
+ibr|لاباس|بخير||
+ibr|لاباس عليك؟|هل أنت بخير؟||
+ibr|يعطيك الصحة|شكراً لك (بارك الله فيك)||
+ibr|صحّا|شكراً||
+ibr|صحيت|أحسنت||
+ibr|بلا مزية|عفواً / لا شكر على واجب||
+ibr|سمحلي|اعذرني / سامحني||
+ibr|ما عليش|لا بأس||
+ibr|بالصح|حقاً / فعلاً||
+ibr|والله ما نعرف|والله لا أعرف||
+ibr|مانيش فاهم|لست أفهم||
+ibr|عاود|أعِد / كرّر|عاود قولها|كرّرها
+ibr|بسلامة|مع السلامة||
+ibr|نتلاقاو|نلتقي لاحقاً||
+ibr|ربي يعاونك|أعانك الله||
+ibr|ساها|بالتوفيق / إلى اللقاء||
+ibr|واش راك تقول؟|ماذا تقول؟||
+ibr|ماشي مشكل|لا مشكلة||
+ibr|كيما تحب|كما تريد||
+ibr|نشوفو|سنرى||
+`;
+const FW=FRAW.trim().split("\n").map((l,i)=>{const p=l.split("|");return{id:"f"+i,c:p[0],dz:p[1],fu:p[2],ed:p[3]||"",ef:p[4]||""}});
+let fCat="all",fMode="list",fOk=0,fNo=0;
+const finCat=(w,c)=>c==="all"||(c==="fav"?FAV.has(w.id):w.c===c);
+function fChips(){const el=$("#fcats");const list=[["all","الكل"],["fav","⭐ المفضلة"],...Object.entries(FCATS)];
+ el.innerHTML=list.map(([k,n])=>`<button class="chip${k===fCat?" on":""}" data-k="${k}">${n}</button>`).join("");
+ el.onclick=e=>{const b=e.target.closest(".chip");if(!b)return;fCat=b.dataset.k;el.querySelectorAll(".chip").forEach(x=>x.classList.toggle("on",x===b));fMode==="list"?renderF():nextFQ()}}
+function fCard(w){return `<div class="w fu"><div class="fdz"><button class="star${FAV.has(w.id)?" on":""}" data-fav="${w.id}">★</button><span>${esc(w.dz)}</span><button class="snd a" data-fs="dz" data-id="${w.id}">🔊</button></div>
+<div class="ffu"><span>${esc(w.fu)}</span><button class="snd" data-fs="fu" data-id="${w.id}">🔊 فصحى</button></div>
+${w.ed?`<div class="fex"><div>« ${esc(w.ed)} »</div><div class="fexf"><span>${esc(w.ef)}</span><button class="snd s" data-fs="ef" data-id="${w.id}">🔊</button></div></div>`:""}</div>`}
+function renderF(){const q=norm($("#fq").value.trim());const r=FW.filter(w=>finCat(w,fCat)&&(!q||norm(w.dz+" "+w.fu+" "+w.ed+" "+w.ef).includes(q)));
+ $("#fcnt").textContent=r.length+" كلمة";$("#flist").innerHTML=r.length?r.map(fCard).join(""):'<div class="empty">ما كاين حتى كلمة.</div>'}
+$("#fq").oninput=renderF;
+$("#flist").onclick=e=>{const b=e.target.closest("[data-fav]");if(!b)return;const id=b.dataset.fav;FAV.has(id)?FAV.delete(id):FAV.add(id);LS.set("lug_fav",[...FAV]);b.classList.toggle("on",FAV.has(id));if(fCat==="fav")renderF()};
+document.addEventListener("click",e=>{const b=e.target.closest("[data-fs]");if(!b)return;e.stopPropagation();const w=FW.find(x=>x.id===b.dataset.id);if(!w)return;
+ const t={dz:w.dz,fu:w.fu,ef:w.ef}[b.dataset.fs].split(" / ")[0].replace(/\(.*?\)/g,"");say(t,"ar")});
+document.querySelectorAll("#fseg .chip").forEach(b=>b.onclick=()=>{document.querySelectorAll("#fseg .chip").forEach(x=>x.classList.toggle("on",x===b));fMode=b.dataset.m;
+ $("#fListBox").hidden=fMode!=="list";$("#fQuizBox").hidden=fMode==="list";fMode==="list"?renderF():nextFQ()});
+function nextFQ(){const p=FW.filter(w=>finCat(w,fCat));if(p.length<4){$("#fqz").innerHTML='<div class="hint">لازم 4 كلمات على الأقل</div>';return}
+ const w=p[Math.floor(Math.random()*p.length)];const opts=shuf([w,...shuf(p.filter(x=>x.id!==w.id&&x.fu!==w.fu)).slice(0,3)]);const rev=fMode==="qr";
+ $("#fqz").innerHTML=`<div class="hint">${rev?"واش يقولوها بالدارجة؟":"واش معناها بالفصحى؟"}</div><div style="font-size:26px;font-weight:800;color:${rev?"var(--ink)":"var(--br)"}">${esc(rev?w.fu:w.dz)}</div>`
+  +`<div class="opts">${opts.map(o=>`<button class="opt" data-a="${o.id}">${esc(rev?o.dz:o.fu)}</button>`).join("")}</div>`;
+ say((rev?w.fu:w.dz).split(" / ")[0].replace(/\(.*?\)/g,""),"ar");
+ $("#fqz").querySelector(".opts").onclick=e=>{const b=e.target.closest(".opt");if(!b||b.disabled)return;$("#fqz").querySelectorAll(".opt").forEach(x=>{x.disabled=true;if(x.dataset.a===w.id)x.classList.add("ok")});
+  if(b.dataset.a===w.id)fOk++;else{fNo++;b.classList.add("no")}$("#fOk").textContent=fOk;$("#fNo").textContent=fNo;say(w.fu.split(" / ")[0].replace(/\(.*?\)/g,""),"ar");setTimeout(nextFQ,1600)}}
+fChips();renderF();
+
 </script>
 <script>
 /* الدخول: نفس حساب أدواتي (يشتغل بس على موقعك) */
