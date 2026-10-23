@@ -1,0 +1,498 @@
+<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>قاموس الحجر</title><meta name="theme-color" content="#3B2414">
+<link rel="manifest" href="/my/manifest.webmanifest"><link rel="icon" href="/my/icon-192.png"><link rel="apple-touch-icon" href="/my/icon-180.png"><meta name="apple-mobile-web-app-title" content="قاموس الحجر"><meta name="apple-mobile-web-app-capable" content="yes">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#3B2414;--br:#9A6A3A;--deep:#6E4524;--bg:#F5ECDD;--card:#FBF6EE;--line:#E6D6BC;--gold:#D9B98C;--ok:#3E7A4A;--bad:#A6453D}
+*{box-sizing:border-box}html,body{margin:0}
+body{font-family:Cairo,Tahoma,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;font-variant-numeric:lining-nums}
+header{background:var(--ink);color:var(--bg);padding:10px 16px;position:sticky;top:0;z-index:5}
+.top{display:flex;align-items:center;gap:10px;max-width:900px;margin:0 auto}
+.top a{color:var(--gold);text-decoration:none;font-size:22px;line-height:1}
+.top b{font-size:20px;color:var(--gold)}.top span{font-size:12px;opacity:.85;display:block}
+.top .grow{flex:1}
+nav{display:flex;gap:6px;max-width:900px;margin:8px auto 0}
+nav button{flex:1;font:inherit;font-weight:800;font-size:14px;padding:7px 4px;border:1px solid #6E4524;border-radius:10px;background:transparent;color:var(--bg);cursor:pointer}
+nav button.on{background:var(--br);border-color:var(--br);color:#fff}
+main{max-width:900px;margin:0 auto;padding:12px 16px 90px}
+.search{width:100%;font:inherit;font-size:16px;padding:11px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink)}
+.search:focus{outline:none;border-color:var(--br)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0 4px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;font:inherit;font-weight:700;font-size:13px;padding:6px 12px;border:1.5px solid var(--line);border-radius:20px;background:var(--card);color:var(--deep);cursor:pointer;white-space:nowrap}
+.chip.on{background:var(--ink);border-color:var(--ink);color:var(--gold)}
+.count{font-size:12px;color:var(--deep);margin:6px 2px}
+.list{display:grid;gap:8px}@media(min-width:700px){.list{grid-template-columns:1fr 1fr}}
+.w{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;display:grid;grid-template-columns:1fr auto;gap:2px 8px}
+.fr{direction:ltr;text-align:left;font-family:Georgia,'Times New Roman',serif;font-size:19px;font-weight:700;color:var(--ink);grid-column:1/-1;display:flex;align-items:center;gap:8px}
+.fr span{flex:1}
+.dz{font-size:15px;font-weight:800;color:var(--br)}.dz:before{content:"بالدارجة: ";font-weight:600;color:var(--deep);font-size:12px}
+.ar{font-size:14px;color:var(--ink)}.ar:before{content:"بالعربي: ";font-weight:600;color:var(--deep);font-size:12px}
+.ex{grid-column:1/-1;direction:ltr;text-align:left;font-size:13px;color:var(--deep);font-style:italic;border-top:1px dashed var(--line);margin-top:4px;padding-top:4px;display:flex;align-items:center;gap:6px}
+.ex span{flex:1}
+.btns{display:flex;flex-direction:column;gap:4px;grid-row:2/4;grid-column:2;justify-content:center}
+.snd{font:inherit;font-size:13px;font-weight:800;border:0;border-radius:9px;padding:5px 9px;cursor:pointer;background:var(--ink);color:var(--gold);white-space:nowrap}
+.snd.a{background:var(--line);color:var(--ink)}.snd.s{padding:3px 7px;font-size:12px}
+.star{background:none;border:0;font-size:20px;cursor:pointer;padding:0 2px;color:var(--line)}.star.on{color:#C9962E}
+.empty{text-align:center;color:var(--deep);padding:30px 10px}
+/* بطاقات */
+.fc{background:var(--card);border:1.5px solid var(--line);border-radius:18px;min-height:260px;padding:22px 16px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:10px;cursor:pointer;user-select:none}
+.fc .big{direction:ltr;font-family:Georgia,serif;font-size:30px;font-weight:700}
+.fc .hint{font-size:13px;color:var(--deep)}
+.row{display:flex;gap:8px;margin-top:12px}.row button{flex:1}
+.bt{font:inherit;font-weight:800;font-size:15px;padding:11px;border:0;border-radius:12px;cursor:pointer;background:var(--br);color:#fff}
+.bt.g{background:var(--ok)}.bt.r{background:var(--bad)}.bt.o{background:transparent;color:var(--deep);border:1.5px solid var(--line)}
+.prog{font-size:13px;color:var(--deep);text-align:center;margin:8px 0}
+/* اختبار */
+.q{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:18px 14px;text-align:center}
+.opts{display:grid;gap:8px;margin-top:14px}
+.opt{font:inherit;font-weight:800;font-size:16px;padding:12px;border:1.5px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);cursor:pointer}
+.opt.ok{background:var(--ok);color:#fff;border-color:var(--ok)}.opt.no{background:var(--bad);color:#fff;border-color:var(--bad)}
+.seg{display:flex;gap:6px;margin-bottom:10px}.seg .chip{flex:1;text-align:center}
+.score{display:flex;justify-content:space-around;font-weight:800;margin-top:10px}
+/* إضافة وإعدادات */
+.panel{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.panel h3{margin:0 0 8px;font-size:16px}
+.panel label{display:block;font-size:13px;font-weight:700;margin:8px 0 3px}
+.panel input,.panel select{width:100%;font:inherit;font-size:15px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.panel input.l{direction:ltr;text-align:left}
+.note{font-size:12px;color:var(--deep);margin-top:6px}
+.warn{background:#F3E1C4;border:1px solid var(--br);border-radius:10px;padding:8px 10px;font-size:13px;margin-bottom:10px;display:none}
+.my{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding:6px 0;font-size:14px}
+.my button{background:none;border:0;color:var(--bad);font:inherit;cursor:pointer}
+#gate{display:none;text-align:center;padding:40px 16px}
+</style>
+<style id="sb-right">/* شريط التمرير على اليمين (كمبيوتر بس) */@media (min-width:900px) and (hover:hover){html{direction:ltr}body{direction:rtl}}</style>
+</head><body>
+<header><div class="top"><a href="/my/" title="أدواتي">→</a><div class="grow"><b>قاموس الحجر</b><span>فرنسي · دارجة جزائرية · عربي — بالصوت</span></div></div>
+<nav><button data-v="dict" class="on">القاموس</button><button data-v="cards">بطاقات</button><button data-v="quiz">اختبار</button><button data-v="add">إضافة</button></nav></header>
+<div id="gate">جاري التحقق من الدخول…</div>
+<main id="app">
+<div class="warn" id="vw"></div>
+<section id="v-dict">
+<input class="search" id="q" type="search" placeholder="ابحث بالفرنسي أو بالدارجة أو بالعربي…" autocomplete="off">
+<div class="chips" id="cats"></div>
+<div class="count" id="cnt"></div>
+<div class="list" id="list"></div>
+</section>
+<section id="v-cards" hidden>
+<div class="chips" id="ccats"></div>
+<div class="fc" id="fc"></div>
+<div class="row"><button class="bt r" id="fcNo">ما حفظتها</button><button class="bt g" id="fcYes">حفظتها ✓</button></div>
+<div class="prog" id="fcP"></div>
+</section>
+<section id="v-quiz" hidden>
+<div class="seg"><button class="chip on" data-m="fr">اسمع الفرنسي ← المعنى</button><button class="chip" data-m="ar">المعنى ← الفرنسي</button></div>
+<div class="chips" id="qcats"></div>
+<div class="q" id="qz"></div>
+<div class="score"><span style="color:var(--ok)">صح: <b id="sOk">0</b></span><span style="color:var(--bad)">غلط: <b id="sNo">0</b></span></div>
+</section>
+<section id="v-add" hidden>
+<div class="panel"><h3>أضف كلمة من عندك</h3>
+<label>بالفرنسي</label><input id="aFr" class="l" placeholder="ex: la carrière">
+<label>بالدارجة (كيفاش يقولوها عندنا)</label><input id="aDz" placeholder="مثلاً: لاكاريار">
+<label>بالعربي</label><input id="aAr" placeholder="مثلاً: المحجر">
+<label>جملة مثال بالفرنسي (اختياري)</label><input id="aEx" class="l">
+<label>القسم</label><select id="aCat"></select>
+<div class="row"><button class="bt o" id="aTry">🔊 جرّب الصوت</button><button class="bt" id="aSave">حفظ</button></div>
+<div id="mine"></div></div>
+<div class="panel"><h3>الصوت</h3>
+<label>سرعة النطق: <b id="rv">0.85</b></label><input type="range" id="rate" min="0.5" max="1.2" step="0.05" value="0.85" style="padding:0">
+<label>الصوت الفرنسي</label><select id="vFr"></select>
+<label>الصوت العربي</label><select id="vAr"></select>
+<div class="note">الصوت من الجهاز نفسه (مجاني وبدون إنترنت غالباً). إذا ما في صوت فرنسي: آيفون ← الإعدادات ← تسهيلات الاستخدام ← المحتوى المنطوق ← الأصوات ← الفرنسية. أندرويد ← إعدادات تحويل النص إلى كلام ← تنزيل اللغة الفرنسية.</div></div>
+</section>
+</main>
+<script>
+/* القسم | الفرنسي | الدارجة الجزائرية | العربي | مثال */
+const CATS={mat:"الحجر والمواد",fac:"الواجهات",fin:"التشطيب والحواف",cnc:"النحت و CNC",out:"الأدوات والآلات",mes:"القياسات",prd:"المنتجات",pose:"التركيب والورشة",cli:"الزبون والبيع",phr:"عبارات جاهزة"};
+const RAW=`
+mat|le marbre|الماربر|الرخام|C'est du marbre naturel.
+mat|le granit|الغرانيت|الغرانيت|Le granit est plus dur que le marbre.
+mat|la pierre|البيار|الحجر|
+mat|la pierre de taille|البيار دو تاي|الحجر المنحوت للبناء|
+mat|la pierre naturelle|البيار ناتوريل|الحجر الطبيعي|
+mat|la pierre reconstituée|البيار ريكونستيتويي|الحجر الصناعي (المعاد تشكيله)|
+mat|le travertin|الترافيرتان|الترافرتين (حجر جيري مسامي)|
+mat|l'onyx|لونيكس|الجزع (الأونكس)|
+mat|le calcaire|الكالكير|الحجر الجيري|
+mat|le grès|الغري|الحجر الرملي|
+mat|l'ardoise|لارضواز|الأردواز (حجر صفائحي)|
+mat|le quartz|الكوارتز|الكوارتز|
+mat|la céramique|السيراميك|السيراميك|
+mat|la dalle|الدال|بلاطة|Une dalle de 2 centimètres.
+mat|la plaque|البلاكة|لوح|
+mat|la tranche|الترونش|شريحة (لوح كبير من البلوك)|
+mat|le bloc|البلوك|كتلة حجر|
+mat|la veine|الفان|العرق في الرخام|Ce marbre a de belles veines.
+mat|le marbre blanc|الماربر بلون|الرخام الأبيض|
+mat|le marbre beige|الماربر بيج|الرخام البيج|
+mat|le marbre noir|الماربر نوار|الرخام الأسود|
+mat|le marbre gris|الماربر غري|الرخام الرمادي|
+mat|la couleur|الكولور|اللون|
+mat|la carrière|لاكاريار|المحجر|Il vient de quelle carrière ?
+mat|le ciment|السيمة|الإسمنت|
+mat|le béton|البيطون|الخرسانة|
+mat|le mortier|المورتي|الملاط (الخلطة)|
+mat|le sable|الصابل / الرمل|الرمل|
+mat|la brique|البريكة|الطوب|
+mat|le plâtre|البلاتر / الجبس|الجبس|
+mat|la colle|لاكول|الغراء (اللاصق)|Il faut une colle spéciale marbre.
+mat|la résine|الريزين|الراتنج|
+mat|le mastic|الماستيك|المعجون|
+mat|le silicone|السيليكون|السيليكون|
+mat|l'enduit|لونديي|طبقة التلبيس|
+mat|l'hydrofuge|ليدروفيج|عازل الماء|
+mat|la cire|السير|الشمع (للتلميع)|
+fac|la façade|لافاصاد|الواجهة|On refait toute la façade.
+fac|le revêtement|الريفيتمون|التغليف (الكسوة)|
+fac|l'habillage|لابياج|التلبيس / التغليف|Habillage de façade en pierre.
+fac|le parement|الباغمون|الحجر الواجهي الرقيق|
+fac|le bardage|البارداج|كسوة خارجية معلقة|
+fac|le mur|الميغ / الحيط|الجدار|
+fac|le soubassement|السوباسمون|أسفل الجدار (القاعدة)|
+fac|la corniche|الكورنيش|الكورنيش (الحلية البارزة أعلى الجدار)|
+fac|le bandeau|البوندو|شريط أفقي بارز|
+fac|l'encadrement|لونكادرمون|إطار النافذة أو الباب|Encadrement de fenêtre en pierre.
+fac|l'appui de fenêtre|لابوي دو فنيتر|عتبة النافذة السفلية|
+fac|le linteau|اللانتو|العتبة العلوية للنافذة|
+fac|la fenêtre|الفنيترة|النافذة|
+fac|la porte|البورطة|الباب|
+fac|le pilier|البيليي|الدعامة (العمود المربع)|
+fac|la colonne|الكولون|العمود|
+fac|le chapiteau|الشابيتو|تاج العمود|
+fac|la base|الباز|قاعدة العمود|
+fac|le balustre|البالوستر|عمود الدرابزين الصغير|
+fac|la balustrade|البالوستراد|الدرابزين|Balustrade en pierre sculptée CNC.
+fac|la main courante|المان كورانت|مسند اليد (الدرابزين العلوي)|
+fac|la couvertine|الكوفرتين|غطاء أعلى الجدار|
+fac|l'angle|لونغل|الزاوية|
+fac|le coin|الكوان|الركن|
+fac|l'arc|لارك|القوس|
+fac|la voûte|لافوت|القبو|
+fac|le portail|البورطاي|البوابة الكبيرة|
+fac|la clôture|الكلوتور|السور|
+fac|le muret|الميري|جدار قصير|
+fin|poli|بولي|ملمّع|Vous le voulez poli ou mat ?
+fin|brillant|بريان|لامع|
+fin|mat|مات|مطفي (غير لامع)|
+fin|adouci|أدوسي|مصقول نصف تلميع|
+fin|satiné|ساتيني|نصف لامع (ساتان)|
+fin|flammé|فلامي|معالج باللهب (خشن)|
+fin|bouchardé|بوشاردي|مطروق (خشن بالمطرقة)|
+fin|sablé|صابلي|مرمّل|
+fin|brossé|بروسي|مفرّش|
+fin|vieilli|فييي|معتّق|
+fin|brut|بريت|خام|
+fin|éclaté|إكلاتي|مكسّر (حافة طبيعية)|
+fin|le polissage|البوليساج|التلميع|
+fin|le ponçage|البونساج|الصنفرة|
+fin|le chanfrein|الشونفران|الشطفة (حافة مشطوفة)|
+fin|l'arrondi|لاروندي|حافة مدوّرة|
+fin|le demi-rond|الدومي رون|نصف دائرة (حافة)|
+fin|le quart de rond|الكار دو رون|ربع دائرة (حافة)|
+fin|le nez de marche|الني دو مارش|مقدمة الدرجة|
+fin|le larmier|اللارمي|مقطر الماء (الحز السفلي)|
+fin|la goutte d'eau|الغوت دو|حز تقطير الماء|
+fin|la rainure|الرينير|المجرى (الحز)|
+fin|le bord|البور|الحافة|
+fin|le profil|البروفيل|شكل الحافة (المقطع)|
+fin|lisse|ليس|أملس|
+fin|rugueux|ريغو|خشن|
+cnc|la machine CNC|الماشينة سي إن سي|آلة النحت الرقمية|
+cnc|la fraise|الفريز / الريشة|ريشة النحت|Une fraise de 10 millimètres.
+cnc|le foret|الفوري|ريشة الثقب|
+cnc|la broche|البروش|رأس الدوران (المحور)|
+cnc|la gravure|الغرافير|الحفر (النقش)|
+cnc|gravé en creux|غرافي أون كرو|محفور للداخل|
+cnc|en relief|أون ريلييف|بارز (نفر)|
+cnc|la sculpture|السكولتير|النحت|
+cnc|la moulure|المولير|الحلية (الإفريز)|
+cnc|le motif|الموتيف|الزخرفة (النقشة)|
+cnc|la rosace|الروزاس|الوردة الزخرفية|
+cnc|la calligraphie|الكاليغرافي|الخط العربي|
+cnc|l'écriture|ليكريتور|الكتابة|
+cnc|la plaque gravée|البلاكة غرافي|اللوحة المحفورة|
+cnc|le dessin|الديسان|الرسم|
+cnc|le fichier|الفيشي|الملف|
+cnc|la profondeur|البروفوندور|العمق|Profondeur de 5 millimètres.
+cnc|la vitesse|الفيتاس|السرعة|
+cnc|le programme|البروغرام|البرنامج|
+cnc|l'eau de refroidissement|لو دو ريفرواديسمون|ماء التبريد|
+cnc|le gabarit|الغاباري|القالب (النموذج)|
+cnc|le pochoir|البوشوار|الستانسل (قالب الرسم)|
+out|le disque diamant|الديسك ديامون|قرص الماس|
+out|le disque|الديسك|القرص|Change le disque.
+out|la meuleuse|المولوز|الصاروخ (المجلخة)|
+out|la ponceuse|البونسوز|آلة الصنفرة|
+out|la polisseuse|البوليسوز|آلة التلميع|
+out|la perceuse|البيرسوز|المثقاب (الدريل)|
+out|le perforateur|البيرفوراتور|الهيلتي (المثقاب الكبير)|
+out|la scie|السي|المنشار|
+out|la débiteuse|الديبيتوز|آلة القص الكبيرة|
+out|le pont scie|البون سي|منشار الجسر|
+out|la tronçonneuse|الترونسونوز|آلة القطع|
+out|le niveau|النيفو|ميزان الماء|Vérifie avec le niveau.
+out|le mètre|الميترو|المتر (شريط القياس)|
+out|l'équerre|ليكار|الزاوية القائمة (الكوس)|
+out|le cordeau|الكوردو|خيط البناء|
+out|le fil à plomb|الفيل آ بلون|ميزان الخيط (الشاقول)|
+out|le marteau|المارطو|المطرقة|
+out|le maillet|المايي|المطرقة الخشبية / المطاطية|
+out|le burin|البيران|الإزميل|
+out|la spatule|السباتول|المجرفة الصغيرة (الملوق)|
+out|la truelle|التريال|المسطرين|
+out|le peigne|البيني|المسطرين المسنن|
+out|la ventouse|الفونطوز|الماسك بالشفط|
+out|le chariot|الشاريو|العربة|
+out|le chariot élévateur|الكلارك|الرافعة الشوكية|
+out|la grue|الغرو|الرافعة|
+out|le palan|البالون|البكرة (الرافعة اليدوية)|
+out|l'échafaudage|الشافوداج / السقالة|السقالة|Il faut monter l'échafaudage.
+out|l'échelle|الإيشال|السلم الخشبي / المعدني|
+out|le compresseur|الكومبريسور|الضاغط|
+out|l'aspirateur|لاسبيراتور|المكنسة الكهربائية|
+out|la rallonge|الرالونج|سلك التمديد|
+out|les gants|الغون|القفازات|
+out|les lunettes|الليناط|النظارات|
+out|le masque|الماسك|الكمامة|
+out|le crayon|الكريون|قلم الرصاص|
+mes|la longueur|اللونغور|الطول|
+mes|la largeur|اللارجور|العرض|
+mes|la hauteur|الأوتور|الارتفاع|
+mes|l'épaisseur|ليبيسور|السُّمك|Quelle épaisseur ? Deux ou trois centimètres ?
+mes|la profondeur|البروفوندور|العمق|
+mes|les dimensions|الديمونسيون|القياسات|
+mes|la mesure|الميزور|القياس|
+mes|sur mesure|سير ميزور|حسب القياس|
+mes|le mètre carré|الميترو كاري|المتر المربع|
+mes|le mètre linéaire|الميترو لينيير|المتر الطولي|
+mes|le centimètre|السونتي|السنتيمتر|
+mes|le millimètre|الميلي|المليمتر|
+mes|la surface|السيرفاس|المساحة|
+mes|le poids|البوا|الوزن|
+mes|la tonne|الطونة|الطن|
+mes|le kilo|الكيلو|الكيلوغرام|
+mes|d'aplomb|دابلون|عمودي تماماً|
+mes|d'équerre|ديكار|بزاوية قائمة|
+mes|de niveau|دو نيفو|مستوٍ أفقياً|
+mes|la pente|البونت|الميل (الانحدار)|
+mes|le diamètre|الديامتر|القطر|
+mes|le rayon|الرايون|نصف القطر|
+mes|la moitié|الموايتي|النصف|
+mes|le double|الدوبل|الضعف|
+prd|l'escalier|ليسكاليي|الدرج|Escalier en marbre beige.
+prd|la marche|المارش|الدرجة|
+prd|la contremarche|الكونترمارش|قائمة الدرجة|
+prd|le palier|الباليي|بسطة الدرج|
+prd|la plinthe|البلانت|النعلة (الوزرة)|
+prd|le seuil|السوي|عتبة الباب|
+prd|le dallage|الدالاج|التبليط|
+prd|le carrelage|الكارلاج|البلاط (الزليج)|
+prd|le sol|الصول|الأرضية|
+prd|le plan de travail|البلان دو ترافاي|سطح المطبخ|
+prd|la vasque|الفاسك|حوض المغسلة|
+prd|le lavabo|اللافابو|المغسلة|
+prd|l'évier|ليفيي|مجلى المطبخ|
+prd|la fontaine|الفونتان|النافورة|On fait des fontaines sur mesure.
+prd|le bassin|الباسان|الحوض (الجرن)|
+prd|la vasque de hammam|الفاسك دو حمام|جرن الحمام|
+prd|la cheminée|الشوميني|المدفأة|
+prd|la table|الطابلة|الطاولة|
+prd|le comptoir|الكونتوار|الكونتوار (طاولة الاستقبال)|
+prd|la mosaïque|الموزاييك|الفسيفساء|
+prd|la colonne|الكولون|العمود|
+prd|la jardinière|الجاردينيار|حوض الزرع|
+prd|la pierre tombale|البيار طومبال|شاهد القبر|
+prd|la plaque d'entrée|البلاكة دونتري|لوحة المدخل|
+prd|la douche|الدوش|الدوش|
+prd|la salle de bain|الصال دو بان|الحمام|
+prd|la cuisine|الكوزينة|المطبخ|
+prd|le salon|الصالون|الصالون|
+pose|la pose|البوز|التركيب|La pose est comprise ?
+pose|poser|بوزي|ركّب|
+pose|le chantier|الشونطي|الورشة (موقع العمل)|On commence le chantier lundi.
+pose|l'atelier|لاتولي|الورشة (المعمل)|
+pose|l'usine|ليزين|المصنع|
+pose|l'agrafe|لاغراف|المشبك (للتعليق)|
+pose|la patte de fixation|البات دو فيكساسيون|حامل التثبيت|
+pose|la fixation|الفيكساسيون|التثبيت|
+pose|la cheville|الشوفي|الدوبل (الوتد)|
+pose|la vis|الفيس|البرغي|
+pose|le goujon|الغوجون|المسمار القلاووظ (البرغي الطويل)|
+pose|le joint|الجوان|الفاصل بين القطع|Joint de 2 millimètres.
+pose|le joint de dilatation|الجوان دو ديلاتاسيون|فاصل التمدد|
+pose|le collage|الكولاج|اللصق|
+pose|coller|كولي|لصق|
+pose|percer|بيرسي|ثقب|
+pose|couper|كوبي|قصّ|
+pose|la découpe|الديكوب|القصّ (فتحة)|Découpe pour la vasque.
+pose|nettoyer|نيطويي|نظّف|
+pose|le nettoyage|النيطوياج|التنظيف|
+pose|la livraison|الليفريزون|التوصيل|
+pose|le camion|الكاميو|الشاحنة|
+pose|le transport|الترانسبور|النقل|
+pose|charger|شارجي|حمّل|
+pose|décharger|ديشارجي|نزّل (فرّغ)|
+pose|cassé|كاسي|مكسور|
+pose|la fissure|الفيسور|الشق (التشقق)|
+pose|la tache|الطاش|البقعة|
+pose|réparer|ريباري|صلّح|
+pose|l'ouvrier|لوفريي|العامل|
+pose|le maçon|الماصو|البنّاء|
+pose|le poseur|البوزور|المركّب|
+pose|le chef de chantier|الشاف دو شونطي|رئيس الورشة|
+cli|le client|الكليون|الزبون|
+cli|le devis|الديفي|عرض السعر|Je vous envoie le devis demain.
+cli|le prix|البري|السعر|
+cli|la facture|الفاكتورة|الفاتورة|
+cli|le bon de commande|البون دو كوموند|وصل الطلب|
+cli|le bon de livraison|البون دو ليفريزون|وصل التسليم|
+cli|la commande|الكوموند|الطلبية|
+cli|l'avance|لافونس|العربون (التسبيق)|Il faut une avance de 50 pour cent.
+cli|l'acompte|لاكونت|دفعة مقدمة|
+cli|le reste|الريست|الباقي|
+cli|payer|بايي|دفع|
+cli|en espèces|أون إسبيس|نقداً (كاش)|
+cli|le chèque|الشيك|الشيك|
+cli|le virement|الفيرمون|التحويل البنكي|
+cli|la remise|الريميز|التخفيض|
+cli|le délai|الديلي|مدة الإنجاز|
+cli|la garantie|الغارونتي|الضمان|
+cli|l'échantillon|ليشونتيون|العيّنة|
+cli|le modèle|الموديل|النموذج|
+cli|le catalogue|الكاتالوغ|الكتالوج|
+cli|la photo|الفوطو|الصورة|
+cli|le rendez-vous|الروندي فو|الموعد|
+cli|le showroom|الشوروم|المعرض|
+cli|l'entrepreneur|لونتروبرونور|المقاول|
+cli|l'architecte|لارشيتكت|المهندس المعماري|
+cli|l'ingénieur|لانجينيور|المهندس|
+cli|le plan|البلان|المخطط|Envoyez-moi le plan de la façade.
+cli|le projet|البروجي|المشروع|
+cli|la villa|الفيلا|الفيلا|
+cli|l'immeuble|ليميبل|العمارة|
+cli|la mosquée|الموسكي / الجامع|المسجد|
+cli|le stock|السطوك|المخزون|
+cli|disponible|ديسبونيبل|متوفر|
+cli|cher|شار|غالي|
+cli|pas cher|با شار|رخيص|
+cli|la qualité|الكاليتي|الجودة|
+phr|C'est combien le mètre carré ?|قداش الميترو كاري؟|كم سعر المتر المربع؟|
+phr|Le prix comprend la pose ?|البري فيه البوز ولا لا؟|هل السعر يشمل التركيب؟|
+phr|Avec la pose et la livraison.|مع البوز والليفريزون|مع التركيب والتوصيل|
+phr|Envoyez-moi les dimensions.|ابعثلي القياسات|أرسل لي القياسات|
+phr|Je passe prendre les mesures.|نجي ناخذ القياسات|سآتي لأخذ القياسات|
+phr|On vous fait un devis gratuit.|نديرولك ديفي باطل|نعمل لك عرض سعر مجاني|
+phr|Il faut une avance pour commencer.|لازم لافونس باش نبداو|يجب دفع عربون للبدء|
+phr|Le délai est de deux semaines.|الديلي جوج سمانات|مدة الإنجاز أسبوعان|
+phr|Quelle épaisseur vous voulez ?|واش من ليبيسور تحب؟|ما السُّمك الذي تريده؟|
+phr|Poli ou mat ?|بولي ولا مات؟|لامع أم مطفي؟|
+phr|Vous pouvez passer au showroom.|تقدر تفوت للشوروم|يمكنك زيارة المعرض|
+phr|Notre showroom est à Dely Ibrahim.|الشوروم تاعنا في دالي ابراهيم|معرضنا في دالي إبراهيم|
+phr|Notre atelier est à Blida.|المعمل تاعنا في البليدة|ورشتنا في البليدة|
+phr|C'est du travail CNC, pas à la main.|هذا خدمة سي إن سي ماشي باليد|هذا عمل آلة CNC وليس يدوياً|
+phr|On peut graver votre nom.|نقدرو نغرافيو سميتك|يمكننا حفر اسمك|
+phr|Le marbre arrive la semaine prochaine.|الماربر يوصل السمانة الجاية|الرخام يصل الأسبوع القادم|
+phr|Le travail est terminé.|الخدمة كملت|انتهى العمل|
+phr|Il reste à payer le reste.|بقا الريست|بقي دفع الباقي|
+phr|Je vous envoie des photos sur WhatsApp.|نبعثلك تصاور في الواتساب|سأرسل لك صوراً على واتساب|
+phr|Appelez-moi au 0541 73 78 88.|عيطلي|اتصل بي على الرقم|
+phr|Bonjour, je peux vous aider ?|صباح الخير، واش نقدر نعاونك؟|مرحباً، كيف أساعدك؟|
+phr|Merci, à bientôt.|يعطيك الصحة، نتلاقاو|شكراً، إلى اللقاء|
+`;
+let W=RAW.trim().split("\n").map((l,i)=>{const p=l.split("|");return{id:"b"+i,c:p[0],fr:p[1],dz:p[2],ar:p[3],ex:p[4]||""}});
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let MINE=LS.get("lug_mine",[]),FAV=new Set(LS.get("lug_fav",[])),KNOWN=new Set(LS.get("lug_known",[]));
+const all=()=>W.concat(MINE);
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ===== الصوت ===== */
+const S=window.speechSynthesis;let VO=[],RATE=LS.get("lug_rate",0.85);
+function loadV(){if(!S)return;VO=S.getVoices();fillV("vFr","fr");fillV("vAr","ar");
+ const w=$("#vw");if(!S){w.style.display="block";w.textContent="الجهاز ما يدعمش الصوت.";return}
+ if(VO.length&&!VO.some(v=>/^fr/i.test(v.lang))){w.style.display="block";w.textContent="ما لقيتش صوت فرنسي في الجهاز — شوف قسم «إضافة» ← الصوت."}else w.style.display="none"}
+function fillV(id,lg){const s=$("#"+id),cur=LS.get("lug_"+id,"");const vs=VO.filter(v=>v.lang.toLowerCase().startsWith(lg));
+ s.innerHTML='<option value="">تلقائي</option>'+vs.map(v=>`<option value="${esc(v.name)}"${v.name===cur?" selected":""}>${esc(v.name)} (${v.lang})</option>`).join("")}
+function pick(lg){const want=LS.get("lug_"+(lg==="fr"?"vFr":"vAr"),"");let v=VO.find(x=>x.name===want);
+ if(!v){const vs=VO.filter(x=>x.lang.toLowerCase().startsWith(lg));v=vs.find(x=>/fr[-_]FR/i.test(x.lang))&&lg==="fr"?vs.find(x=>/fr[-_]FR/i.test(x.lang)):(lg==="ar"?(vs.find(x=>/ar[-_](DZ|MA|TN)/i.test(x.lang))||vs.find(x=>/ar[-_]SA/i.test(x.lang))||vs[0]):vs[0])}return v}
+function say(t,lg){if(!S)return;S.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=lg==="fr"?"fr-FR":"ar-SA";const v=pick(lg);if(v){u.voice=v;u.lang=v.lang}u.rate=RATE;S.speak(u)}
+if(S){loadV();S.onvoiceschanged=loadV}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-say]");if(!b)return;e.stopPropagation();const w=all().find(x=>x.id===b.dataset.id);if(!w)return;
+ const k=b.dataset.say;k==="fr"?say(w.fr,"fr"):k==="ex"?say(w.ex,"fr"):k==="dz"?say(w.dz.split("/")[0],"ar"):say(w.ar.replace(/\(.*?\)/g,""),"ar")});
+
+/* ===== التبويبات ===== */
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x===b));
+ ["dict","cards","quiz","add"].forEach(v=>$("#v-"+v).hidden=v!==b.dataset.v);if(b.dataset.v==="cards")nextCard();if(b.dataset.v==="quiz")nextQ();if(b.dataset.v==="add")renderMine();scrollTo(0,0)});
+
+function chips(el,cur,cb,extra){const list=[["all","الكل"],...(extra?[["fav","⭐ المفضلة"]]:[]),...Object.entries(CATS)];
+ el.innerHTML=list.map(([k,n])=>`<button class="chip${k===cur?" on":""}" data-k="${k}">${n}</button>`).join("");
+ el.onclick=e=>{const b=e.target.closest(".chip");if(!b)return;el.querySelectorAll(".chip").forEach(x=>x.classList.toggle("on",x===b));cb(b.dataset.k)}}
+const inCat=(w,c)=>c==="all"||(c==="fav"?FAV.has(w.id):w.c===c);
+
+/* ===== القاموس ===== */
+let dCat="all";
+const norm=s=>s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[ً-ْ]/g,"").replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي");
+function card(w){return `<div class="w"><div class="fr"><button class="star${FAV.has(w.id)?" on":""}" data-fav="${w.id}">★</button><span>${esc(w.fr)}</span></div>
+<div class="dz">${esc(w.dz)}</div><div class="btns"><button class="snd" data-say="fr" data-id="${w.id}">🔊 FR</button><button class="snd a" data-say="ar" data-id="${w.id}">🔊 ع</button></div>
+<div class="ar">${esc(w.ar)}</div>${w.ex?`<div class="ex"><button class="snd s" data-say="ex" data-id="${w.id}">🔊</button><span>${esc(w.ex)}</span></div>`:""}</div>`}
+function renderDict(){const q=norm($("#q").value.trim());const r=all().filter(w=>inCat(w,dCat)&&(!q||norm(w.fr+" "+w.dz+" "+w.ar+" "+w.ex).includes(q)));
+ $("#cnt").textContent=r.length+" كلمة";$("#list").innerHTML=r.length?r.map(card).join(""):'<div class="empty">ما كاين حتى كلمة. تقدر تزيدها من «إضافة».</div>'}
+$("#q").oninput=renderDict;
+chips($("#cats"),"all",k=>{dCat=k;renderDict()},true);
+$("#list").onclick=e=>{const b=e.target.closest("[data-fav]");if(!b)return;const id=b.dataset.fav;FAV.has(id)?FAV.delete(id):FAV.add(id);LS.set("lug_fav",[...FAV]);b.classList.toggle("on",FAV.has(id));if(dCat==="fav")renderDict()};
+
+/* ===== البطاقات ===== */
+let cCat="all",cur=null,flip=false;
+chips($("#ccats"),"all",k=>{cCat=k;nextCard()},true);
+function pool(c){return all().filter(w=>inCat(w,c))}
+function nextCard(){const p=pool(cCat);const left=p.filter(w=>!KNOWN.has(w.id));const src=left.length?left:p;
+ if(!src.length){$("#fc").innerHTML='<div class="hint">ما كاين كلمات هنا</div>';$("#fcP").textContent="";return}
+ cur=src[Math.floor(Math.random()*src.length)];flip=false;drawCard();
+ $("#fcP").textContent="حفظت "+p.filter(w=>KNOWN.has(w.id)).length+" من "+p.length+(left.length?"":" — كملتهم كامل! 👏")}
+function drawCard(){const w=cur;$("#fc").innerHTML=flip?`<div class="big">${esc(w.fr)}</div><div style="font-size:22px;font-weight:800;color:var(--br)">${esc(w.dz)}</div><div style="font-size:17px">${esc(w.ar)}</div>${w.ex?`<div class="hint" style="direction:ltr">${esc(w.ex)}</div>`:""}<div><button class="snd" data-say="fr" data-id="${w.id}">🔊 FR</button> <button class="snd a" data-say="ar" data-id="${w.id}">🔊 ع</button></div>`
+ :`<div class="big">${esc(w.fr)}</div><div><button class="snd" data-say="fr" data-id="${w.id}">🔊 اسمع</button></div><div class="hint">واش معناها؟ اضغط على البطاقة باش تقلبها</div>`;if(!flip)say(w.fr,"fr")}
+$("#fc").onclick=()=>{if(!cur)return;flip=!flip;drawCard()};
+$("#fcYes").onclick=()=>{if(cur){KNOWN.add(cur.id);LS.set("lug_known",[...KNOWN])}nextCard()};
+$("#fcNo").onclick=()=>{if(cur){KNOWN.delete(cur.id);LS.set("lug_known",[...KNOWN])}nextCard()};
+
+/* ===== الاختبار ===== */
+let qMode="fr",qCat="all",ok=0,no=0;
+document.querySelectorAll(".seg .chip").forEach(b=>b.onclick=()=>{document.querySelectorAll(".seg .chip").forEach(x=>x.classList.toggle("on",x===b));qMode=b.dataset.m;nextQ()});
+chips($("#qcats"),"all",k=>{qCat=k;nextQ()},true);
+function shuf(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function nextQ(){const p=pool(qCat).filter(w=>w.c!=="phr"||qCat==="phr");if(p.length<4){$("#qz").innerHTML='<div class="hint">لازم 4 كلمات على الأقل في هذا القسم</div>';return}
+ const w=p[Math.floor(Math.random()*p.length)];const opts=shuf([w,...shuf(p.filter(x=>x.id!==w.id)).slice(0,3)]);
+ const lab=x=>qMode==="fr"?esc(x.dz)+" — "+esc(x.ar):esc(x.fr);
+ $("#qz").innerHTML=(qMode==="fr"?`<div class="fc" style="min-height:0;cursor:default;border:0;padding:4px"><div class="big">${esc(w.fr)}</div><div><button class="snd" data-say="fr" data-id="${w.id}">🔊 عاود</button></div></div>`
+  :`<div style="font-size:22px;font-weight:800">${esc(w.ar)}</div><div style="color:var(--br);font-weight:800">${esc(w.dz)}</div>`)
+  +`<div class="opts">${opts.map(o=>`<button class="opt" data-a="${o.id}" style="${qMode==="ar"?"direction:ltr;font-family:Georgia,serif":""}">${lab(o)}</button>`).join("")}</div>`;
+ if(qMode==="fr")say(w.fr,"fr");
+ $("#qz").querySelector(".opts").onclick=e=>{const b=e.target.closest(".opt");if(!b||b.disabled)return;$("#qz").querySelectorAll(".opt").forEach(x=>{x.disabled=true;if(x.dataset.a===w.id)x.classList.add("ok")});
+  if(b.dataset.a===w.id){ok++}else{no++;b.classList.add("no")}$("#sOk").textContent=ok;$("#sNo").textContent=no;say(w.fr,"fr");setTimeout(nextQ,1600)}}
+
+/* ===== الإضافة والإعدادات ===== */
+$("#aCat").innerHTML=Object.entries(CATS).map(([k,n])=>`<option value="${k}">${n}</option>`).join("");
+$("#aTry").onclick=()=>{const t=$("#aFr").value.trim();if(t)say(t,"fr")};
+$("#aSave").onclick=()=>{const fr=$("#aFr").value.trim(),dz=$("#aDz").value.trim(),ar=$("#aAr").value.trim();if(!fr||!(dz||ar)){alert("اكتب الفرنسي والدارجة أو العربي");return}
+ MINE.push({id:"m"+Date.now(),c:$("#aCat").value,fr,dz:dz||"—",ar:ar||"—",ex:$("#aEx").value.trim()});LS.set("lug_mine",MINE);["aFr","aDz","aAr","aEx"].forEach(i=>$("#"+i).value="");renderMine();renderDict()};
+function renderMine(){$("#mine").innerHTML=MINE.length?'<h3 style="margin:14px 0 4px;font-size:14px">كلماتك ('+MINE.length+')</h3>'+MINE.map(w=>`<div class="my"><span style="direction:ltr">${esc(w.fr)}</span><span>${esc(w.dz)}</span><button data-del="${w.id}">حذف</button></div>`).join(""):""}
+$("#mine").onclick=e=>{const b=e.target.closest("[data-del]");if(!b)return;MINE=MINE.filter(w=>w.id!==b.dataset.del);LS.set("lug_mine",MINE);renderMine();renderDict()};
+$("#rate").value=RATE;$("#rv").textContent=RATE;
+$("#rate").oninput=e=>{RATE=+e.target.value;$("#rv").textContent=RATE.toFixed(2);LS.set("lug_rate",RATE)};
+$("#vFr").onchange=e=>{LS.set("lug_vFr",e.target.value);say("Bonjour, le marbre","fr")};
+$("#vAr").onchange=e=>{LS.set("lug_vAr",e.target.value);say("الرخام","ar")};
+renderDict();
+</script>
+<script>
+/* الدخول: نفس حساب أدواتي (يشتغل بس على موقعك) */
+if(/cesar-alcham\.com$|github\.io$/.test(location.hostname)){
+ let quick=false;try{quick=localStorage.getItem("my_in")==="1"}catch(e){}
+ if(!quick){$("#app").style.display="none";$("#gate").style.display="block"}
+ const s1=document.createElement("script");s1.src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js";
+ s1.onload=()=>{const s2=document.createElement("script");s2.src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js";
+  s2.onload=()=>{firebase.initializeApp({apiKey:"AIzaSyDi1Pn7guMnyc0CetV8Z9IUC-k0gtav2_8",authDomain:"basel-7b29b.firebaseapp.com",projectId:"basel-7b29b",storageBucket:"basel-7b29b.firebasestorage.app",messagingSenderId:"1025769465563",appId:"1:1025769465563:web:53b5c9949dbb26364d8efe"});
+   firebase.auth().onAuthStateChanged(u=>{if(!u){location.replace("/my/")}else{$("#gate").style.display="none";$("#app").style.display=""}})};document.head.appendChild(s2)};
+ document.head.appendChild(s1)}
+</script>
+</body></html>
