@@ -323,7 +323,13 @@ async function saveSettings(fields){
   if(typeof fields !== 'object' || fields === null) fields = settings;
   const update = {};
   Object.keys(fields).forEach(k => { update['settings.' + k] = fields[k]; });
-  await db.collection(FS_COLLECTION).doc(FS_DOC).set(update, {merge:true});
+  // update() يفهم "settings.xxx" كمسار متداخل؛ set مع merge كان ينشئ حقلاً حرفياً اسمه "settings.xxx" فلا يُحفظ شيء فعلياً
+  const docRef = db.collection(FS_COLLECTION).doc(FS_DOC);
+  try{
+    await docRef.update(update);
+  }catch(e){
+    await docRef.set({settings: {...settings, ...fields}}, {merge:true});
+  }
 }
 
 function byteLen(obj){ return JSON.stringify(obj).length; }
