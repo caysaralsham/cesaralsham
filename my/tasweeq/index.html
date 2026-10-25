@@ -1,0 +1,493 @@
+<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>المنشورات — قيصر الشام</title><meta name="theme-color" content="#3B2414">
+<link rel="icon" href="/my/icon-192.png"><link rel="apple-touch-icon" href="/my/icon-180.png">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#3B2414;--br:#9A6A3A;--deep:#6E4524;--bg:#F5ECDD;--card:#FBF6EE;--line:#E6D6BC;--ok:#2F7D4A;--warn:#B7791F;--bad:#A6453D}
+*{box-sizing:border-box}
+body{margin:0;font-family:Cairo,Tahoma,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;font-size:15px}
+header{background:var(--ink);color:#F5ECDD;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:20}
+header b{font-size:20px;color:#D9B98C}header small{font-size:12px;opacity:.85}
+#store{font-size:12px;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.12);white-space:nowrap}
+nav.tabs{display:flex;gap:6px;max-width:1100px;margin:12px auto 0;padding:0 16px}
+nav.tabs button{flex:1;font:inherit;font-weight:800;padding:10px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--deep);cursor:pointer}
+nav.tabs button.on{background:var(--br);color:#fff;border-color:var(--br)}
+main{max-width:1100px;margin:0 auto;padding:12px 16px 80px}
+.sec{display:none}.sec.on{display:block}
+.box{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.box h3{margin:0 0 10px;font-size:16px}
+label{display:block;font-weight:800;font-size:13px;margin:10px 0 4px}
+input[type=text],select,textarea{width:100%;font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+textarea{min-height:120px;resize:vertical;line-height:1.6}
+.out .tx,.post .pp{min-height:240px}.orig{min-height:240px!important}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:700px){.grid2,.grid3{grid-template-columns:1fr}}
+.btn{font:inherit;font-weight:800;padding:9px 14px;border:0;border-radius:11px;background:var(--br);color:#fff;cursor:pointer;white-space:nowrap}
+.btn.l{background:#fff;color:var(--deep);border:1.5px solid var(--line)}.btn.s{padding:6px 10px;font-size:13px}
+.btn.ok{background:var(--ok)}.btn:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{font:inherit;font-size:13px;font-weight:700;padding:5px 12px;border-radius:999px;border:1.5px solid var(--line);background:#fff;color:var(--deep);cursor:pointer}.chip.on{background:var(--ink);color:#F5ECDD;border-color:var(--ink)}
+#drop{border:2px dashed var(--line);border-radius:14px;padding:16px;text-align:center;cursor:pointer;background:#fff}
+#prev{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}#prev img,#prev video{width:110px;height:110px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.out{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.out .hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.out .hd b{font-size:15px}.meta{font-size:12px;color:var(--deep)}.warn{color:var(--bad);font-weight:800}
+.pf{display:inline-flex;align-items:center;gap:5px;font-weight:800;font-size:12px;padding:2px 9px;border-radius:999px;color:#fff}
+.pf.ig{background:#C13584}.pf.fb{background:#1877F2}.pf.tt{background:#111}.pf.yt{background:#E62117}
+.ideas li{margin:4px 0}
+.post{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.post.sel{border-color:var(--br);box-shadow:0 0 0 2px rgba(154,106,58,.25)}
+.post .top{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.st{font-size:12px;font-weight:800;padding:2px 9px;border-radius:999px;background:var(--bg);color:var(--deep)}
+.st.approved{background:#FFF3D6;color:var(--warn)}.st.applied{background:#E3F4E8;color:var(--ok)}.st.skip{background:#eee;color:#777}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:800px){.cmp{grid-template-columns:1fr}}
+.orig{white-space:pre-wrap;background:var(--bg);border-radius:10px;padding:9px;font-size:14px;max-height:260px;overflow:auto;min-height:120px}
+.cap{font-size:12px;font-weight:800;color:var(--deep);margin-bottom:4px}
+.hist{font-size:12px;color:#666;margin-top:6px;white-space:pre-wrap}
+.bar{position:sticky;top:52px;z-index:10;background:var(--bg);padding:8px 0}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:12px;font-weight:700;opacity:0;transition:.25s;pointer-events:none;z-index:99}#toast.show{opacity:1}
+#login{max-width:360px;margin:30px auto;padding:20px 16px;background:var(--card);border:1.5px solid var(--line);border-radius:16px;display:none}
+#login input{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+#app{display:none}.hint{font-size:13px;color:var(--deep);line-height:1.7}
+.count{font-weight:800}
+dialog{border:1.5px solid var(--line);border-radius:16px;max-width:640px;width:94vw;background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.35)}
+</style>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style id="sb-right">/* شريط التمرير على اليمين (كمبيوتر بس) */@media (min-width:900px) and (hover:hover){html{direction:ltr}body{direction:rtl}}</style>
+</head><body>
+<header><div><b>المنشورات</b> <small>يوتيوب · إنستغرام · فيسبوك · تيك توك</small></div><span id="store">…</span></header>
+
+<form id="login"><b style="font-size:17px">تسجيل الدخول</b><label>البريد الإلكتروني</label><input id="em" type="email" autocomplete="username" required><label>كلمة السر</label><input id="pw" type="password" autocomplete="current-password" required><button class="btn" style="width:100%;margin-top:14px">دخول</button><div id="err" class="warn" style="margin-top:8px"></div></form>
+
+<div id="app">
+<nav class="tabs"><button data-t="new" class="on">✍️ منشور جديد</button><button data-t="old">🗂️ المنشورات القديمة</button></nav>
+<main>
+
+<!-- ============ منشور جديد ============ -->
+<section id="new" class="sec on">
+  <div class="box">
+    <h3>1. الصور أو الفيديو</h3>
+    <div id="drop">📷🎬 اضغط لاختيار صورة أو فيديو (أو عدة صور)<br><small class="meta">الملفات تبقى على جهازك — لا تُرفع إلى أي مكان</small></div>
+    <input id="files" type="file" accept="image/*,video/*" multiple hidden>
+    <div id="prev"></div>
+  </div>
+  <div class="box">
+    <h3>2. ماذا في المنشور؟</h3>
+    <div class="grid3">
+      <div><label>نوع العمل</label><select id="cat"></select></div>
+      <div><label>اللون / نوع الحجر (اختياري)</label><input id="stone" type="text" placeholder="مثال: رخام أبيض كرارا"></div>
+      <div><label>تفصيلة مميزة (اختياري)</label><input id="detail" type="text" placeholder="مثال: بزخارف نباتية منحوتة"></div>
+    </div>
+    <div class="grid3">
+      <div><label>المكان</label><select id="place"><option value="showroom">المعرض — دالي إبراهيم</option><option value="factory">المعمل — البليدة</option><option value="project">مشروع منفّذ عند زبون</option></select></div>
+      <div><label>ولاية المشروع</label><input id="wilaya" type="text" placeholder="مثال: وهران"></div>
+      <div><label>اللغة</label><select id="lang"><option value="arfr">عربي + فرنسي</option><option value="ar">عربي فقط</option><option value="fr">فرنسي فقط</option></select></div>
+    </div>
+    <label>أسلوب النص</label>
+    <div class="chips" id="styles"><button class="chip on" data-s="0">فخامة</button><button class="chip" data-s="1">مباشر وعملي</button><button class="chip" data-s="2">قصة المشروع</button><button class="chip" data-s="3">سؤال للمتابعين</button></div>
+    <div class="row" style="margin-top:12px"><button class="btn" id="gen">✨ اقترح النصوص والهاشتاغات</button><button class="btn l" id="regen">🔀 صياغة أخرى</button></div>
+  </div>
+  <div id="outs"></div>
+  <div class="box" id="ideasBox" style="display:none"><h3>💡 أفكار ونصائح لهذا النوع</h3><ul class="ideas" id="ideas"></ul></div>
+</section>
+
+<!-- ============ المنشورات القديمة ============ -->
+<section id="old" class="sec">
+  <div class="box hint">
+    <b>كيف تعمل هذه الصفحة:</b> تعرض منشوراتك القديمة مع النص الأصلي واقتراح جديد بجانبه. تراجع وتعدّل ثم <b>تعتمد</b>.
+    بعدها تضغط «نسخ وفتح المنشور» فيُنسخ النص ويُفتح المنشور، فتعدّل الوصف من التطبيق وتلصقه، ثم تضغط «تم».
+    <br>⚠️ فيسبوك وإنستغرام وتيك توك <b>لا تسمح رسمياً</b> بتعديل نص المنشورات القديمة آلياً، لذلك التطبيق يدوي. المنشور نفسه وصوره ومشاهداته وتعليقاته لا تتأثر. لا يوجد هنا أي زر حذف أو إعادة نشر.
+    <br>🔒 النص الأصلي يُحفظ مرة واحدة ولا يتغير أبداً، وكل تعديل يُسجَّل بتاريخه.
+  </div>
+  <div class="bar">
+    <div class="row">
+      <select id="fPf" style="width:auto"><option value="">كل المنصات</option><option value="ig">إنستغرام</option><option value="fb">فيسبوك</option><option value="tt">تيك توك</option></select>
+      <select id="fSt" style="width:auto"><option value="">كل الحالات</option><option value="new">مقترح</option><option value="approved">معتمد</option><option value="applied">تم التعديل</option><option value="skip">متروك كما هو</option></select>
+      <select id="fCat" style="width:auto"></select>
+      <input id="fQ" type="text" placeholder="بحث في النص…" style="width:180px">
+      <span class="meta count" id="cnt"></span>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <button class="btn l s" id="selAll">تحديد الظاهر</button><button class="btn l s" id="selNone">إلغاء التحديد</button>
+      <button class="btn s" id="apprSel">✔ اعتماد المحدد</button><button class="btn l s" id="regenSel">🔀 اقتراح جديد للمحدد</button>
+      <span style="flex:1"></span>
+      <button class="btn l s" id="addOne">➕ إضافة منشور</button><button class="btn l s" id="imp">📥 استيراد</button><button class="btn l s" id="exp">💾 نسخة احتياطية</button>
+    </div>
+  </div>
+  <div id="list"></div>
+  <div class="row" style="justify-content:center"><button class="btn l" id="more" style="display:none">عرض المزيد</button></div>
+</section>
+</main>
+</div>
+
+<dialog id="dlgImp"><h3 style="margin-top:0">📥 استيراد منشورات</h3>
+  <p class="hint">الصق هنا قائمة المنشورات بصيغة JSON (يجهّزها Claude لك)، أو ملف نسخة احتياطية من هذه الصفحة. المنشورات الموجودة مسبقاً لا تتغير.</p>
+  <label>المنصة (إذا لم تكن مذكورة في القائمة)</label><select id="impPf"><option value="ig">إنستغرام</option><option value="fb">فيسبوك</option><option value="tt">تيك توك</option></select>
+  <textarea id="impTx" style="min-height:180px;direction:ltr;text-align:left" placeholder='[{"url":"…","text":"…"}]'></textarea>
+  <div class="row" style="margin-top:10px"><button class="btn" id="impGo">استيراد</button><button class="btn l" onclick="this.closest('dialog').close()">إغلاق</button><span class="meta" id="impMsg"></span></div>
+</dialog>
+<dialog id="dlgAdd"><h3 style="margin-top:0">➕ إضافة منشور قديم</h3>
+  <label>رابط المنشور</label><input id="addUrl" type="text" style="direction:ltr" placeholder="https://www.instagram.com/p/…">
+  <label>النص الحالي للمنشور (انسخه من التطبيق)</label><textarea id="addTx"></textarea>
+  <div class="row" style="margin-top:10px"><button class="btn" id="addGo">إضافة</button><button class="btn l" onclick="this.closest('dialog').close()">إغلاق</button></div>
+</dialog>
+<div id="toast"></div>
+
+<script>
+/* ======================= بيانات الأنواع ======================= */
+const PHONE='0541737888', SITE='cesar-alcham.com', WA='https://wa.me/213541737888';
+const CATS={
+ cheminee:{ar:'شمينة رخام',fr:'Cheminée en marbre',em:'🔥',
+  kw:/شمين|شمينه|مدفأ|مدفئ|cheminée|cheminee|chemin[ée]e/i,
+  open:['🔥 شمينة من الرخام الطبيعي تمنح صالونك دفئاً وفخامة','✨ قطعة تعكس ذوقك: شمينة رخام بتفاصيل منحوتة بدقة','🏛️ شمينة كلاسيكية من الرخام الطبيعي بلمسة راقية','🔥 دفء العائلة وجمال الرخام في قطعة واحدة','✨ شمينة رخام فاخرة تصبح قلب الصالون'],
+  body:['نصمّمها وننفّذها حسب مقاس الجدار وذوقك، بزخارف كلاسيكية أو بخطوط عصرية بسيطة.','نحت دقيق بآلات CNC وتشطيب عالي الجودة يُبرز جمال عروق الرخام الطبيعي.','تتوفر بألوان رخام متعددة: أبيض، بيج، كريمي، وبني، لتناسب ديكور منزلك.'],
+  pts:['رخام طبيعي 100%','تصميم حسب المقاس','نحت CNC دقيق','تركيب احترافي'],
+  frl:['Cheminée en marbre naturel sur mesure, sculptée en CNC avec une finition haut de gamme.','Cheminée classique en marbre naturel, conçue et fabriquée sur mesure à Alger.'],
+  hAr:['#شمينة_رخام','#مدفأة_رخام','#ديكور_صالون'],hFr:['#cheminéemarbre','#cheminée'],
+  tags:['شمينة رخام','مدفأة رخام','شمينة كلاسيكية','cheminée en marbre','cheminée marbre Alger','marble fireplace'],
+  ideas:['فيديو قصير للشمينة مع إشعال النار أو الإضاءة الدافئة مساءً','لقطة قريبة للنقوش ثم ابتعاد تدريجي لإظهار الصالون كاملاً','مراحل التصنيع: من كتلة الرخام إلى الشمينة النهائية','سؤال للمتابعين: كلاسيكية أم عصرية؟']},
+ fontaine:{ar:'نافورة رخام',fr:'Fontaine en marbre',em:'💧',
+  kw:/نافور|فوار|فوّار|fontaine/i,
+  open:['💧 نافورة من الرخام الطبيعي تضيف السكينة والفخامة لحديقتك','✨ صوت الماء ولمعان الرخام: نافورة بتصميم راقٍ','🏛️ نافورة رخامية فاخرة للمداخل والحدائق والفيلات','💧 اجعل مدخل منزلك تحفة فنية مع نافورة من الرخام الطبيعي','✨ نافورة رخام منحوتة بدقة، قطعة تدوم لسنوات'],
+  body:['نصنعها بالطبقات والمقاسات التي تناسب المساحة، للداخل أو الخارج.','تفاصيل منحوتة بآلات CNC وتشطيب يقاوم الماء والعوامل الجوية.','تتوفر بألوان رخام متعددة، مع إمكانية إضافة الإضاءة.'],
+  pts:['رخام طبيعي','تصميم حسب المساحة','للداخل والخارج','تركيب وتشغيل'],
+  frl:['Fontaine en marbre naturel sur mesure, pour jardin, entrée ou intérieur.','Fontaine en marbre sculptée, fabriquée dans notre atelier en Algérie.'],
+  hAr:['#نافورة_رخام','#نوافير','#ديكور_حدائق'],hFr:['#fontainemarbre','#fontaine'],
+  tags:['نافورة رخام','نافورة حديقة','فوارة رخام','fontaine en marbre','fontaine jardin Algérie','marble fountain'],
+  ideas:['فيديو بصوت الماء فقط بدون موسيقى (يجذب كثيراً على تيك توك)','لقطة ليلية للنافورة مع الإضاءة','قبل وبعد: الحديقة بدون النافورة ثم معها','مراحل تركيب النافورة في الموقع']},
+ sabil:{ar:'سبالة ماء رخام',fr:'Sabil (fontaine murale) en marbre',em:'💧',
+  kw:/سبال|sabil|fontaine murale/i,
+  open:['💧 سبالة ماء من الرخام الطبيعي، جمال وأصالة لمدخل منزلك','✨ سبالة رخام منحوتة تجمع بين التراث والفخامة','🏛️ لمسة تراثية راقية: سبالة ماء من الرخام الطبيعي'],
+  body:['تُصنع حسب المقاس والتصميم، للحدائق والمداخل والمساجد.','نقوش إسلامية أو نباتية منحوتة بآلات CNC بدقة عالية.','متوفرة بعدة ألوان ونقوش تناسب جميع الأذواق.'],
+  pts:['رخام طبيعي','نقوش حسب الطلب','للمنازل والمساجد','تركيب احترافي'],
+  frl:['Sabil en marbre naturel, fontaine murale sculptée sur mesure.'],
+  hAr:['#سبالة_ماء','#سبالة_رخام','#ديكور_تراثي'],hFr:['#sabil','#fontainemurale'],
+  tags:['سبالة ماء','سبالة رخام','سبيل ماء','fontaine murale marbre','sabil marbre'],
+  ideas:['فيديو للماء يتدفق من السبالة','لقطة قريبة للنقوش','السبالة في مدخل مسجد أو فيلا']},
+ bassin:{ar:'مغسلة وجرن رخام',fr:'Vasque et bassin en marbre',em:'🛁',
+  kw:/جرن|مغسل|مغاسل|باسان|حوض|bassin|lavabo|vasque|حمام/i,
+  open:['✨ مغسلة من كتلة رخام طبيعي، فخامة تبدأ من التفاصيل','🛁 جرن حمام من الرخام الطبيعي بتصميم أنيق','✨ أضف لمسة فندقية لحمامك مع مغسلة رخام محفورة','🛁 مغسلة رخام قطعة واحدة، أناقة تدوم'],
+  body:['تُحفر من كتلة واحدة من الرخام الطبيعي، حسب المقاس الذي تريده.','تشطيب ناعم ومقاوم للماء، مع فتحات مدروسة للحنفية والتصريف.','متوفرة بألوان رخام متعددة لتناسب ديكور الحمام.'],
+  pts:['كتلة رخام واحدة','حسب المقاس','تشطيب مقاوم للماء','تركيب احترافي'],
+  frl:['Vasque et bassin en marbre naturel taillés dans un seul bloc, sur mesure.','Élégance naturelle pour votre salle de bain : vasque en marbre sur mesure.'],
+  hAr:['#مغسلة_رخام','#جرن_رخام','#ديكور_حمامات'],hFr:['#vasquemarbre','#salledebain'],
+  tags:['مغسلة رخام','جرن رخام','باسان رخام','vasque en marbre','lavabo marbre','bassin marbre'],
+  ideas:['فيديو للماء ينساب في المغسلة','لقطة من الأعلى لشكل الحفر','المغسلة مركّبة في حمام الزبون']},
+ sol:{ar:'أرضيات وتابلوهات رخام',fr:'Sol et rosace en marbre',em:'🏛️',
+  kw:/أرضي|ارضي|أرضية|ارضية|rosace|sol |sol$|رزاس|dallage/i,
+  open:['🏛️ أرضيات من الرخام الطبيعي بتصاميم فريدة لكل زاوية في منزلك','✨ تابلو أرضي من الرخام: لوحة فنية تحت قدميك','🏛️ روزاس رخام مزخرف يمنح المدخل فخامة لا تُنسى','✨ أرضيات رخام بتصاميم نباتية وهندسية حسب الطلب'],
+  body:['نقصّ قطع الرخام بآلات CNC ونجمعها بدقة لتشكّل تصميماً متناسقاً.','نصمّم التابلو حسب المقاس والألوان، من الكلاسيكي إلى العصري.','مناسبة للمداخل والصالونات والفيلات والفنادق.'],
+  pts:['قصّ CNC دقيق','ألوان رخام متعددة','تصميم حسب المقاس','تركيب وتلميع'],
+  frl:['Sol et rosace en marbre naturel, découpés en CNC et posés sur mesure.','Tableau de sol en marbre décoratif aux motifs floraux et géométriques.'],
+  hAr:['#أرضيات_رخام','#تابلو_رخام','#روزاس'],hFr:['#solmarbre','#rosace'],
+  tags:['أرضيات رخام','تابلو رخام','روزاس رخام','sol en marbre','rosace marbre','marble floor'],
+  ideas:['فيديو من الأعلى (درون أو سلم) للتابلو كاملاً','مراحل التجميع قطعة بقطعة','قبل وبعد التلميع']},
+ facade:{ar:'تغليف الواجهات بالحجر والرخام',fr:'Revêtement de façade en pierre et marbre',em:'🏠',
+  kw:/واجه|تغليف|façade|facade|devanture|محل|بنايات|فيلا|فيلات/i,
+  open:['🏠 واجهة منزلك هي أول ما يراه الناس، اجعلها من الحجر والرخام الطبيعي','✨ تغليف واجهات الفيلات والمنازل بالحجر الطبيعي، فخامة تدوم','🏛️ واجهة بالحجر والرخام تجمع بين الأصالة والحداثة','🏠 من الخرسانة إلى تحفة: تغليف واجهة بالحجر الطبيعي'],
+  body:['نصمّم الواجهة وننفّذها كاملة: الحجر، الأعمدة، الأقواس، والكرانيش.','حجر ورخام طبيعي مقاوم للعوامل الجوية، مع تركيب متين واحترافي.','ننفّذ المشاريع الكبرى من الفيلات والعمارات إلى واجهات المحلات.'],
+  pts:['حجر ورخام طبيعي','تصميم وتنفيذ','مقاوم للعوامل الجوية','مشاريع في كل الولايات'],
+  frl:['Revêtement de façade en pierre et marbre naturels pour villas et immeubles.','Conception et pose de façades en pierre naturelle partout en Algérie.'],
+  hAr:['#واجهات_منازل','#تغليف_واجهات','#واجهات_حجر'],hFr:['#façade','#revetementfacade'],
+  tags:['تغليف واجهات','واجهات حجر','واجهات منازل','façade pierre','revêtement façade Algérie','stone facade'],
+  ideas:['فيديو قبل وبعد للواجهة (الأقوى لجلب الزبائن)','تصوير مراحل التركيب يوماً بعد يوم','لقطة بالدرون للواجهة كاملة','الواجهة في الليل مع الإضاءة']},
+ colonne:{ar:'أعمدة ودرابزين رخام',fr:'Colonnes et balustrades en marbre',em:'🏛️',
+  kw:/عامود|عواميد|عمود|أعمدة|اعمدة|درابزين|colonne|balustr/i,
+  open:['🏛️ أعمدة من الرخام الطبيعي تمنح المكان هيبة وفخامة','✨ درابزين رخام مخرّط بدقة للدرج والشرفات','🏛️ أعمدة كلاسيكية بتيجان منحوتة من الرخام الطبيعي'],
+  body:['نصنع الأعمدة والدرابزين حسب الارتفاع والطراز المطلوب.','خراطة ونحت دقيق بآلات CNC وتشطيب لامع أو مطفي.','مناسبة للمداخل والدرج والشرفات والواجهات.'],
+  pts:['رخام طبيعي','حسب المقاس والطراز','خراطة ونحت CNC','تركيب احترافي'],
+  frl:['Colonnes et balustrades en marbre naturel, tournées et sculptées sur mesure.'],
+  hAr:['#أعمدة_رخام','#درابزين_رخام','#ديكور_كلاسيكي'],hFr:['#colonnes','#balustrade'],
+  tags:['أعمدة رخام','درابزين رخام','عمود رخام','colonnes en marbre','balustrade marbre'],
+  ideas:['لقطة من الأسفل للأعلى للعمود','الدرابزين مركّب على درج الزبون','مراحل الخراطة في المعمل']},
+ cnc:{ar:'نحت ونقش CNC على الرخام',fr:'Gravure et sculpture CNC sur marbre',em:'⚙️',
+  kw:/CNC|نقش|نحت|لوحة|لوحات|tableau|تابلو|علم|شعار|gravure|sculpt|3D/i,
+  open:['⚙️ نحت ونقش على الرخام الطبيعي بآلات CNC بدقة عالية','✨ لوحة رخام منحوتة: فن يبقى مدى الحياة','🏛️ شعارك أو اسمك أو آية قرآنية محفورة على الرخام بدقة CNC','✨ تابلو رخامي فاخر بتفاصيل منحوتة بدقة'],
+  body:['ننفّذ اللوحات والشعارات والكتابات والزخارف بأي تصميم تريده.','آلات CNC تضمن دقة التفاصيل وتكرارها بنفس الجودة.','مناسبة للمداخل والمكاتب والفيلات والمساجد والهدايا.'],
+  pts:['دقة CNC عالية','أي تصميم أو كتابة','رخام طبيعي','للداخل والخارج'],
+  frl:['Gravure et sculpture CNC sur marbre naturel : tableaux, logos et calligraphie.'],
+  hAr:['#نحت_رخام','#نقش_رخام','#لوحات_رخام'],hFr:['#gravuremarbre','#CNC'],
+  tags:['نحت رخام','نقش CNC','لوحة رخام','gravure marbre','sculpture CNC','CNC marble'],
+  ideas:['فيديو لآلة CNC وهي تنقش (مقاطع الآلات تحصد مشاهدات عالية)','تسريع (Timelapse) من البداية إلى النهاية','لوحة باسم الزبون كهدية']},
+ table:{ar:'طاولات رخام',fr:'Table en marbre',em:'✨',
+  kw:/طاول|table/i,
+  open:['✨ طاولة من الرخام الطبيعي، قطعة ديكور تجمع الفخامة والعملية','🏛️ طاولة رخام بتصميم عصري للصالون أو المكتب'],
+  body:['نصنعها حسب المقاس والشكل، مع قاعدة رخام أو زجاج أو معدن.','رخام طبيعي بتشطيب لامع يسهل تنظيفه.'],
+  pts:['رخام طبيعي','حسب المقاس','تصميم عصري أو كلاسيكي'],
+  frl:['Table en marbre naturel sur mesure, pour salon ou bureau.'],
+  hAr:['#طاولة_رخام','#أثاث_رخام','#ديكور_مودرن'],hFr:['#tablemarbre','#mobilier'],
+  tags:['طاولة رخام','طاولة صالون رخام','table en marbre','table basse marbre'],
+  ideas:['الطاولة في صالون مزيّن','لقطة قريبة لعروق الرخام']},
+ mosquee:{ar:'زخرفة المساجد بالرخام',fr:'Décoration de mosquée en marbre',em:'🕌',
+  kw:/مسجد|مساجد|محراب|إسلامي|اسلامي|mosqu/i,
+  open:['🕌 زخرفة المساجد بالرخام الطبيعي: محاريب وأعمدة ونقوش إسلامية','✨ محراب من الرخام الطبيعي بنقوش إسلامية منحوتة بدقة'],
+  body:['ننفّذ المحاريب والمنابر والأعمدة والسبالات وكسوة الجدران.','نقوش إسلامية وهندسية بآلات CNC وفق التصميم المعتمد.'],
+  pts:['نقوش إسلامية','رخام طبيعي','مشاريع كاملة'],
+  frl:['Décoration de mosquées en marbre naturel : mihrabs, colonnes et motifs islamiques.'],
+  hAr:['#مساجد','#زخرفة_إسلامية','#محراب'],hFr:['#mosquée','#artislamique'],
+  tags:['زخرفة مساجد','محراب رخام','نقوش إسلامية','décoration mosquée marbre'],
+  ideas:['مراحل تركيب المحراب','لقطة واسعة لداخل المسجد بعد الانتهاء']},
+ mosaique:{ar:'موزاييك رخام',fr:'Mosaïque en marbre',em:'🧩',
+  kw:/موزاي|موزاييك|mosa[iï]que/i,
+  open:['🧩 موزاييك من الرخام والحجر الطبيعي بألوان وتصاميم متعددة','✨ قطع موزاييك رخام تضيف لمسة فنية للجدران والأرضيات'],
+  body:['ننتج الموزاييك في معملنا بالبليدة بمقاسات وألوان متعددة.','مناسب للحمامات والمطابخ والواجهات والمسابح.'],
+  pts:['حجر ورخام طبيعي','ألوان متعددة','إنتاج في المعمل'],
+  frl:['Mosaïque en marbre et pierre naturelle, produite dans notre atelier à Blida.'],
+  hAr:['#موزاييك','#موزاييك_رخام','#ديكور_جدران'],hFr:['#mosaïque','#mosaiquemarbre'],
+  tags:['موزاييك رخام','موزاييك حجر','mosaïque marbre','mosaïque Algérie'],
+  ideas:['فيديو لآلة الموزاييك أثناء العمل','الموزاييك مركّب على جدار']},
+ machine:{ar:'آلات الرخام والحجر',fr:'Machines pour marbre et pierre',em:'⚙️',factory:true,
+  kw:/ماكين|آلة|الات|آلات|منشار|machine|scie|carri[eè]re|كاريير|مقلع/i,
+  open:['⚙️ من المقلع إلى القطعة النهائية: آلاتنا في العمل','⚙️ آلة لتقطيع كتل الحجر والرخام بدقة وقوة'],
+  body:['معملنا بالبليدة مجهز بآلات القصّ والنحت CNC والتلميع.','للاستفسار عن المواصفات والأسعار تواصلوا معنا.'],
+  pts:['معمل مجهز','قصّ دقيق','إنتاج حسب الطلب'],
+  frl:['Notre atelier à Blida : sciage, découpe CNC et polissage du marbre.'],
+  hAr:['#آلات_رخام','#قص_الرخام','#معمل_رخام'],hFr:['#machinemarbre','#scie'],
+  tags:['آلات رخام','قص الرخام','منشار رخام','machine marbre','scie marbre Algérie'],
+  ideas:['فيديو بطيء (Slow motion) للمنشار والماء','تقطيع كتلة كبيرة من البداية للنهاية']},
+ general:{ar:'ديكورات الحجر والرخام',fr:'Décoration en marbre et pierre naturelle',em:'🏛️',
+  kw:/$^/,
+  open:['🏛️ ديكورات داخلية وخارجية من الحجر والرخام الطبيعي','✨ قيصر الشام للحجر والرخام: جودة، دقة، وإتقان','🏛️ من التصميم إلى التركيب: مشاريع الرخام والحجر الطبيعي'],
+  body:['نصمّم وننفّذ الواجهات والشمائن والنوافير والأرضيات والنقوش بالرخام الطبيعي.','معرض في دالي إبراهيم ومعمل في البليدة، ونخدم جميع الولايات.'],
+  pts:['رخام وحجر طبيعي','تصميم وتنفيذ','نحت CNC','نخدم كل الولايات'],
+  frl:['Décoration en marbre et pierre naturelle : façades, cheminées, fontaines et gravure CNC.'],
+  hAr:['#ديكور_رخام','#رخام_طبيعي','#حجر_طبيعي'],hFr:['#marbre','#pierrenaturelle'],
+  tags:['رخام طبيعي','ديكور رخام','حجر طبيعي','marbre Algérie','décoration marbre'],
+  ideas:['فيديو تعريفي بالمعرض','جولة في المعمل','أعمال متنوعة في فيديو واحد']}
+};
+const CAT_ORDER=['machine','mosquee','mosaique','sabil','fontaine','cheminee','bassin','sol','facade','colonne','table','cnc','general'];
+const GEN_AR=['#رخام_طبيعي','#الجزائر'], GEN_FR=['#marbre','#Algérie'], BRAND='#قيصر_الشام';
+const CTA=[['للطلب والاستفسار راسلنا أو اتصل بنا 👇','Pour commander ou demander un devis, contactez-nous 👇'],
+ ['نصمّم وننفّذ حسب المقاس، اطلب عرض سعرك الآن 👇','Fabrication sur mesure, demandez votre devis 👇'],
+ ['زورونا في المعرض أو تواصلوا معنا 👇','Visitez notre showroom ou contactez-nous 👇']];
+const QUEST=['أي لون رخام تفضّل لهذا العمل؟ اكتب لنا في التعليقات 👇','لو كان هذا في بيتك، أين تضعه؟ 👇','كلاسيكي أم عصري؟ ما رأيك؟ 👇'];
+const STORY=['هذا العمل نفّذناه لأحد زبائننا','من فكرة على الورق إلى قطعة حقيقية','بدأنا بكتلة رخام خام وانتهينا بهذه النتيجة'];
+
+/* ======================= المولّد ======================= */
+function hash(s){let h=2166136261;for(const c of String(s)){h^=c.codePointAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function rng(seed){let a=hash(seed);return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const pick=(r,a)=>a[Math.floor(r()*a.length)];
+function shuffle(r,a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function detectCat(t){t=String(t||'');for(const k of CAT_ORDER){if(k!=='general'&&CATS[k].kw.test(t))return k}return 'general'}
+function noHand(s){return s.replace(/نقش يدوي|نحت يدوي|يدوي/g,'CNC')}
+function placeLines(o,c){
+  const F=o.lang==='fr';
+  if(c.factory||o.place==='factory')return[F?'🏭 Atelier : Blida':'🏭 المعمل: البليدة','📞 '+PHONE,'🌐 '+SITE];
+  const l=[F?'📍 Showroom : Dely Ibrahim – Alger':'📍 المعرض: دالي إبراهيم – الجزائر العاصمة','📞 '+PHONE,'🌐 '+SITE];
+  if(o.place==='project'&&o.wilaya)l.unshift((F?'📍 Projet réalisé à : ':'📍 مشروع منفّذ في: ')+o.wilaya);
+  return l;
+}
+function hashtags(c,pf,r){
+  const ar=shuffle(r,c.hAr), fr=shuffle(r,c.hFr);
+  if(pf==='ig')return[ar[0],ar[1],fr[0],BRAND,GEN_AR[1]];                // إنستغرام: 5 كحد أقصى
+  if(pf==='fb')return[ar[0],BRAND,GEN_AR[0]];
+  if(pf==='tt')return[ar[0],ar[1],fr[0],GEN_AR[0],BRAND,'#dz'];
+  return[ar[0],fr[0],GEN_AR[1]];                                          // يوتيوب: أول 3 تظهر فوق العنوان
+}
+function build(o){
+  const c=CATS[o.cat]||CATS.general, r=rng(o.seed+'|'+o.cat+'|'+o.style);
+  const op=pick(r,c.open), bd=shuffle(r,c.body), pts=shuffle(r,c.pts).slice(0,3), fr=pick(r,c.frl), cta=CTA[Math.floor(r()*CTA.length)];
+  const det=[o.stone?'('+o.stone+')':'',o.detail].filter(Boolean).join(' ');
+  let arTop;
+  if(o.style==1) arTop=[`${c.em} ${c.ar}${det?' '+det:''}`, bd[0]];
+  else if(o.style==2) arTop=[`${pick(r,STORY)}${o.wilaya&&o.place==='project'?' في '+o.wilaya:''} ${c.em}`, `${c.ar}${det?' '+det:''}.`, bd[0]];
+  else if(o.style==3) arTop=[op, det?`${c.ar} ${det}.`:bd[0], pick(r,QUEST)];
+  else arTop=[op, det?`${c.ar} ${det}.`:'', bd[0], bd[1]||''];
+  arTop=arTop.filter(Boolean).map(noHand);
+  const AR=o.lang!=='fr', FR=o.lang!=='ar';
+  const out={};
+  // إنستغرام
+  {const h=hashtags(c,'ig',r);const p=[];
+   if(AR){p.push(arTop.join('\n'));p.push(pts.map(x=>'✔️ '+x).join('\n'))}
+   if(FR)p.push((AR?'':c.em+' ')+fr);
+   p.push((AR?cta[0]:cta[1])+'\n'+placeLines(o,c).join('\n'));
+   p.push(h.join(' '));out.ig=p.join('\n\n')}
+  // فيسبوك
+  {const h=hashtags(c,'fb',r);const p=[];
+   if(AR){p.push(arTop.join('\n'));if(bd[2])p.push(noHand(bd[2]));p.push(pts.map(x=>'✔️ '+x).join('\n'))}
+   if(FR)p.push(fr);
+   p.push((AR?cta[0]:cta[1])+'\n'+placeLines(o,c).join('\n')+'\n💬 واتساب: '+WA);
+   p.push(h.join(' '));out.fb=p.join('\n\n')}
+  // تيك توك (قصير)
+  {const h=hashtags(c,'tt',r);
+   const first=AR?arTop[0]:c.em+' '+c.fr;
+   out.tt=[first,(FR&&AR?c.fr:'')+'', '📞 '+PHONE+(c.factory||o.place==='factory'?' | البليدة':' | دالي إبراهيم'), h.join(' ')].filter(Boolean).join('\n')}
+  // يوتيوب
+  {const h=hashtags(c,'yt',r);
+   let title=(AR?`${c.ar}${det?' '+det:''}`:c.fr)+(AR&&FR?` | ${c.fr}`:'')+' – '+(c.factory||o.place==='factory'?(AR?'البليدة':'Blida'):(AR?'الجزائر':'Algérie'));
+   if(title.length>100)title=title.slice(0,97)+'…';
+   const desc=[AR?arTop.join('\n'):'', AR?pts.map(x=>'✔️ '+x).join('\n'):'', FR?fr:'',
+     '━━━━━━━━━━━━\n🏛️ قيصر الشام للحجر والرخام\n'+placeLines(o,c).join('\n')+'\n🇩🇿 نخدم جميع الولايات\n━━━━━━━━━━━━',
+     '🔗 إنستغرام: https://www.instagram.com/cesar_du_sham2\n🔗 فيسبوك: https://www.facebook.com/baselalakash\n🔗 تيك توك: https://www.tiktok.com/@basel.akash',
+     h.join(' ')].filter(Boolean).join('\n\n');
+   let tags=[...c.tags,'قيصر الشام','الجزائر','دالي إبراهيم','رخام طبيعي'];
+   while(tags.join(',').length>480)tags.pop();
+   out.yt={title,desc,tags:tags.join(', ')}}
+  return out;
+}
+
+/* ======================= الواجهة العامة ======================= */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2200)}
+async function copy(t){try{await navigator.clipboard.writeText(t);toast('تم النسخ ✓');return true}catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();toast('تم النسخ ✓');return true}}
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const countTags=t=>(String(t).match(/(^|\s)#[^\s#]+/g)||[]).length;
+$$('nav.tabs button').forEach(b=>b.onclick=()=>{$$('nav.tabs button').forEach(x=>x.classList.toggle('on',x===b));$$('.sec').forEach(s=>s.classList.toggle('on',s.id===b.dataset.t));if(b.dataset.t==='old')renderList()});
+const catOpts=Object.entries(CATS).map(([k,c])=>`<option value="${k}">${c.em} ${c.ar}</option>`).join('');
+$('#cat').innerHTML=catOpts;$('#fCat').innerHTML='<option value="">كل الأنواع</option>'+catOpts;
+
+/* ---------- منشور جديد ---------- */
+let files=[], style=0, seed=String(Date.now());
+$('#drop').onclick=()=>$('#files').click();
+$('#files').onchange=e=>{files=[...e.target.files];$('#prev').innerHTML='';files.forEach(f=>{const u=URL.createObjectURL(f);const el=f.type.startsWith('video')?Object.assign(document.createElement('video'),{src:u,muted:true,controls:true}):Object.assign(document.createElement('img'),{src:u});$('#prev').appendChild(el)})};
+$$('#styles .chip').forEach(b=>b.onclick=()=>{$$('#styles .chip').forEach(x=>x.classList.toggle('on',x===b));style=+b.dataset.s;if($('#outs').innerHTML)gen()});
+const PF={ig:['إنستغرام','ig','https://www.instagram.com/'],fb:['فيسبوك','fb','https://business.facebook.com/latest/composer'],tt:['تيك توك','tt','https://www.tiktok.com/tiktokstudio/upload'],yt:['يوتيوب','yt','https://studio.youtube.com/channel/UC3ErMPUSjReq-mG8GQ-7lKw/videos/upload?d=ud']};
+function opts(){return{cat:$('#cat').value,stone:$('#stone').value.trim(),detail:$('#detail').value.trim(),place:$('#place').value,wilaya:$('#wilaya').value.trim(),lang:$('#lang').value,style,seed}}
+function card(pf,txt){
+  const [name,cls,url]=PF[pf];
+  const ht=countTags(txt), warn=pf==='ig'&&ht>5?'<span class="warn">⚠️ إنستغرام يسمح بـ 5 هاشتاغات فقط</span>':'';
+  return `<div class="out" data-pf="${pf}"><div class="hd"><b><span class="pf ${cls}">${name}</span></b><span class="meta"><span class="len">${txt.length}</span> حرف · <span class="ht">${ht}</span> هاشتاغ ${warn}</span></div>
+  <textarea class="tx">${esc(txt)}</textarea>
+  <div class="row" style="margin-top:8px"><button class="btn s cp">📋 نسخ</button><button class="btn s l sh">📤 نسخ ومشاركة الملف</button><a class="btn s l" href="${url}" target="_blank" rel="noopener" style="text-decoration:none">↗ فتح ${name}</a></div></div>`;
+}
+function gen(){
+  const o=opts(), r=build(o), c=CATS[o.cat];
+  const yt=`<div class="out" data-pf="yt"><div class="hd"><b><span class="pf yt">يوتيوب</span></b><span class="meta">العنوان ≤ 100 حرف · الوسوم ≤ 500 حرف</span></div>
+   <label>العنوان</label><input type="text" class="ti" value="${esc(r.yt.title)}"><div class="row" style="margin:6px 0"><button class="btn s cp1">📋 نسخ العنوان</button></div>
+   <label>الوصف</label><textarea class="tx" style="min-height:220px">${esc(r.yt.desc)}</textarea><div class="row" style="margin:6px 0"><button class="btn s cp">📋 نسخ الوصف</button></div>
+   <label>الوسوم (Tags)</label><textarea class="tg" style="min-height:60px">${esc(r.yt.tags)}</textarea>
+   <div class="row" style="margin-top:8px"><button class="btn s cp2">📋 نسخ الوسوم</button><a class="btn s l" href="${PF.yt[2]}" target="_blank" rel="noopener" style="text-decoration:none">↗ فتح يوتيوب ستوديو</a></div></div>`;
+  $('#outs').innerHTML=card('ig',r.ig)+card('fb',r.fb)+card('tt',r.tt)+yt;
+  $('#ideas').innerHTML=[...c.ideas,'الفيديو العمودي 9:16 يناسب ريلز وتيك توك وشورتس معاً، صوّره مرة وانشره في الأربعة.','اجعل أول سطر جملة تشدّ الانتباه، فهو الوحيد الظاهر قبل «المزيد».','إنستغرام صار يسمح بـ 5 هاشتاغات فقط لكل منشور، والأداة تلتزم بذلك.'].map(x=>'<li>'+esc(x)+'</li>').join('');
+  $('#ideasBox').style.display='block';
+  $('#outs').scrollIntoView({behavior:'smooth',block:'start'});
+}
+$('#gen').onclick=()=>{seed=String(Date.now());gen()};$('#regen').onclick=()=>{seed=String(Date.now()+Math.random());gen()};
+$('#outs').addEventListener('input',e=>{const o=e.target.closest('.out');if(!o||!e.target.classList.contains('tx'))return;const t=e.target.value,l=o.querySelector('.len'),h=o.querySelector('.ht');if(l)l.textContent=t.length;if(h)h.textContent=countTags(t)});
+$('#outs').addEventListener('click',async e=>{const o=e.target.closest('.out');if(!o)return;
+  if(e.target.classList.contains('cp'))copy(o.querySelector('.tx').value);
+  if(e.target.classList.contains('cp1'))copy(o.querySelector('.ti').value);
+  if(e.target.classList.contains('cp2'))copy(o.querySelector('.tg').value);
+  if(e.target.classList.contains('sh')){const t=o.querySelector('.tx').value;await copy(t);
+    if(files.length&&navigator.canShare&&navigator.canShare({files})){try{await navigator.share({files,text:t})}catch(x){}}
+    else if(navigator.share&&!files.length){try{await navigator.share({text:t})}catch(x){}}
+    else toast('النص منسوخ — افتح التطبيق وأرفق الملف ثم الصق النص')}});
+
+/* ---------- التخزين: سحابة (Firestore) أو هذا الجهاز ---------- */
+const COL='cesar_marketing', LKEY='tasweeq_posts_v1';
+let db=null, cloud=false, POSTS={};
+function setStore(){$('#store').textContent=cloud?'☁️ محفوظ في حسابك':'💾 محفوظ على هذا الجهاز';$('#store').title=cloud?'':'التخزين السحابي بانتظار تفعيل قاعدة الحماية في Firebase. البيانات محفوظة على هذا الجهاز، وتنتقل للسحابة تلقائياً بعد التفعيل.'}
+function saveLocal(){try{localStorage.setItem(LKEY,JSON.stringify(POSTS))}catch(e){toast('⚠️ تعذر الحفظ على الجهاز')}}
+async function loadAll(){
+  try{POSTS=JSON.parse(localStorage.getItem(LKEY)||'{}')}catch(e){POSTS={}}
+  try{
+    const snap=await db.collection(COL).get(); cloud=true;
+    const remote={};snap.forEach(d=>remote[d.id]=d.data());
+    // ترحيل ما حُفظ على الجهاز قبل تفعيل السحابة
+    for(const [k,v] of Object.entries(POSTS)){ if(!remote[k]){ try{await db.collection(COL).doc(k).set(v);remote[k]=v}catch(e){} } }
+    POSTS=remote; saveLocal();
+  }catch(e){cloud=false}
+  setStore();
+}
+async function put(p,isNew){
+  POSTS[p.key]=p; saveLocal();
+  if(cloud){try{ if(isNew) await db.collection(COL).doc(p.key).set(p); else { const {original,...rest}=p; await db.collection(COL).doc(p.key).update(rest) } }catch(e){toast('⚠️ لم يُحفظ في السحابة: '+(e.code||''))}}
+}
+function logH(p,msg){p.history=(p.history||[]).concat([{at:new Date().toISOString(),msg}])}
+
+/* ---------- المنشورات القديمة ---------- */
+const PFN={ig:'إنستغرام',fb:'فيسبوك',tt:'تيك توك'};
+function pfFromUrl(u){u=String(u||'');if(/instagram\.com/.test(u))return'ig';if(/tiktok\.com/.test(u))return'tt';if(/facebook\.com|fb\.watch/.test(u))return'fb';return''}
+function idFromUrl(u){const m=String(u).match(/\/(p|reel|video|posts|videos|reels)\/([^/?#]+)/);return m?m[2]:String(hash(u))}
+function cleanOrig(t){t=String(t||'').trim();if(/^(Photo|Video) (by|shared by) /i.test(t)||/قد تكون صورة|ربما تكون صورة|May be an image/i.test(t))return'';return t}
+function propose(p,reseed){
+  const c=p.cat||detectCat(p.original||p.hint);p.cat=c;
+  const o={cat:c,stone:'',detail:'',place:CATS[c].factory?'factory':'showroom',wilaya:'',lang:'arfr',style:hash(p.key+(reseed||''))%4,seed:p.key+(reseed||'')};
+  const r=build(o); p.proposed=p.pf==='tt'?r.tt:p.pf==='fb'?r.fb:r.ig; p.status='new';
+}
+function mkPost(x,defPf){
+  const url=x.url||x.link||''; const pf=x.pf||pfFromUrl(url)||defPf; if(!url||!pf)return null;
+  const id=x.id||idFromUrl(url), key='p_'+pf+'_'+String(id).replace(/[^A-Za-z0-9_-]/g,'');
+  const raw=String(x.text??x.alt??x.desc??x.caption??''), original=cleanOrig(raw);
+  const dm=raw.match(/ on ([A-Z][a-z]+ \d{1,2}, \d{4})/); const date=x.date||(dm?new Date(dm[1]+' 12:00').toISOString().slice(0,10):'');
+  const p={key,pf,id:String(id),url,type:x.type||'',date,original,hint:original?'':raw.slice(0,200),original_saved_at:new Date().toISOString(),cat:x.cat||'',status:'new',history:[]};
+  propose(p);logH(p,'حُفظ النص الأصلي + اقتراح أولي');return p;
+}
+let shown=60, sel=new Set();
+function filtered(){const pf=$('#fPf').value,st=$('#fSt').value,ct=$('#fCat').value,q=$('#fQ').value.trim();
+  return Object.values(POSTS).filter(p=>(!pf||p.pf===pf)&&(!st||p.status===st)&&(!ct||p.cat===ct)&&(!q||(p.original+' '+p.proposed).includes(q)))
+   .sort((a,b)=>String(b.date||b.original_saved_at).localeCompare(String(a.date||a.original_saved_at))||a.key.localeCompare(b.key))}
+const STN={new:'مقترح',approved:'معتمد — بانتظار التطبيق',applied:'تم التعديل ✓',skip:'متروك كما هو'};
+function postHtml(p){
+  const ht=countTags(p.proposed), w=p.pf==='ig'&&ht>5?' <span class="warn">⚠️ أكثر من 5 هاشتاغات</span>':'';
+  return `<div class="post ${sel.has(p.key)?'sel':''}" data-k="${p.key}">
+  <div class="top"><input type="checkbox" class="ck" ${sel.has(p.key)?'checked':''}><span class="pf ${p.pf}">${PFN[p.pf]}</span>${p.type?`<span class="meta">${p.type==='reel'?'ريلز':p.type==='video'?'فيديو':'منشور'}</span>`:''}
+   <a href="${esc(p.url)}" target="_blank" rel="noopener" class="meta" style="direction:ltr">${esc(p.url.replace(/^https?:\/\/(www\.)?/,'').slice(0,46))}</a>
+   <span class="st ${p.status}">${STN[p.status]||p.status}</span>${p.original?'':'<span class="warn" style="font-size:12px">⚠️ بدون نص — تأكد من النوع</span>'}${p.date?`<span class="meta">${p.date}</span>`:''}<span style="flex:1"></span>
+   <select class="pc" style="width:auto;padding:4px 8px;font-size:13px">${Object.entries(CATS).map(([k,c])=>`<option value="${k}" ${k===p.cat?'selected':''}>${c.ar}</option>`).join('')}</select></div>
+  <div class="cmp"><div><div class="cap">🔒 النص الأصلي (لا يتغير)</div><div class="orig">${p.original?esc(p.original):'<i class="meta">— لا يوجد نص —</i>'}</div></div>
+   <div><div class="cap">✨ النص المقترح <span class="meta">(${p.proposed.length} حرف · ${ht} هاشتاغ)</span>${w}</div><textarea class="pp">${esc(p.proposed)}</textarea></div></div>
+  <div class="row" style="margin-top:8px">
+   ${p.status!=='approved'&&p.status!=='applied'?'<button class="btn s ap">✔ اعتماد</button>':''}
+   ${p.status==='approved'?'<button class="btn s go">📋 نسخ وفتح المنشور</button><button class="btn s ok dn">✓ تم التعديل في التطبيق</button>':''}
+   ${p.status==='applied'?'<button class="btn s l go">📋 نسخ وفتح المنشور</button>':''}
+   <button class="btn s l rg">🔀 صياغة أخرى</button>${p.status!=='skip'?'<button class="btn s l sk">اتركه كما هو</button>':''}
+   <button class="btn s l hi">🕓 السجل</button></div>
+  <div class="hist" hidden>${(p.history||[]).map(h=>new Date(h.at).toLocaleString('fr-FR')+' — '+esc(h.msg)).join('\n')}</div></div>`;
+}
+function renderList(){
+  const L=filtered(); $('#cnt').textContent=`${L.length} منشور · ${L.filter(p=>p.status==='applied').length} تم تعديلها`;
+  if(!Object.keys(POSTS).length){$('#list').innerHTML='<div class="box hint">لا توجد منشورات بعد. اضغط «📥 استيراد» أو «➕ إضافة منشور».</div>';$('#more').style.display='none';return}
+  $('#list').innerHTML=L.slice(0,shown).map(postHtml).join('');$('#more').style.display=L.length>shown?'inline-block':'none';
+}
+['#fPf','#fSt','#fCat'].forEach(s=>$(s).onchange=()=>{shown=60;renderList()});$('#fQ').oninput=()=>{shown=60;renderList()};
+$('#more').onclick=()=>{shown+=60;renderList()};
+$('#selAll').onclick=()=>{filtered().slice(0,shown).forEach(p=>sel.add(p.key));renderList()};
+$('#selNone').onclick=()=>{sel.clear();renderList()};
+$('#apprSel').onclick=async()=>{if(!sel.size)return toast('لم تحدد أي منشور');if(!confirm(`اعتماد ${sel.size} منشور؟ (الاعتماد لا يغيّر شيئاً على المنصات)`))return;
+  for(const k of sel){const p=POSTS[k];if(p&&p.status!=='applied'){p.status='approved';logH(p,'اعتماد النص المقترح (دفعة)');await put(p)}}sel.clear();renderList();toast('تم الاعتماد ✓')};
+$('#regenSel').onclick=async()=>{if(!sel.size)return toast('لم تحدد أي منشور');for(const k of sel){const p=POSTS[k];if(p&&p.status!=='applied'){propose(p,String(Date.now()));logH(p,'اقتراح جديد');await put(p)}}renderList()};
+$('#list').addEventListener('change',async e=>{const el=e.target.closest('.post');if(!el)return;const p=POSTS[el.dataset.k];
+  if(e.target.classList.contains('ck')){e.target.checked?sel.add(p.key):sel.delete(p.key);el.classList.toggle('sel',e.target.checked)}
+  if(e.target.classList.contains('pc')){p.cat=e.target.value;propose(p,String(Date.now()));logH(p,'تغيير النوع إلى '+CATS[p.cat].ar);await put(p);renderList()}
+  if(e.target.classList.contains('pp')){p.proposed=e.target.value;logH(p,'تعديل يدوي للنص المقترح');await put(p)}});
+$('#list').addEventListener('click',async e=>{const el=e.target.closest('.post');if(!el)return;const p=POSTS[el.dataset.k];const b=e.target;
+  if(b.classList.contains('pp')||b.classList.contains('ck')||b.classList.contains('pc'))return;
+  const ta=el.querySelector('.pp'); if(ta&&ta.value!==p.proposed){p.proposed=ta.value;logH(p,'تعديل يدوي للنص المقترح')}
+  if(b.classList.contains('ap')){p.status='approved';logH(p,'اعتماد النص');await put(p);renderList()}
+  else if(b.classList.contains('go')){await copy(p.proposed);window.open(p.url,'_blank','noopener');if(!p.opened){p.opened=true;logH(p,'نسخ النص وفتح المنشور');await put(p)}}
+  else if(b.classList.contains('dn')){if(!confirm('هل لصقت النص في التطبيق وحفظت التعديل؟'))return;p.status='applied';p.applied_text=p.proposed;p.applied_at=new Date().toISOString();logH(p,'تم التعديل في التطبيق (يدوياً)');await put(p);renderList();toast('تم التسجيل ✓')}
+  else if(b.classList.contains('rg')){propose(p,String(Date.now()));logH(p,'اقتراح جديد');await put(p);renderList()}
+  else if(b.classList.contains('sk')){p.status='skip';logH(p,'ترك المنشور كما هو');await put(p);renderList()}
+  else if(b.classList.contains('hi')){const h=el.querySelector('.hist');h.hidden=!h.hidden}});
+$('#imp').onclick=()=>{$('#impMsg').textContent='';$('#dlgImp').showModal()};
+$('#impGo').onclick=async()=>{let arr;try{arr=JSON.parse($('#impTx').value.trim())}catch(e){$('#impMsg').textContent='⚠️ الصيغة غير صحيحة';return}
+  if(!Array.isArray(arr))arr=Object.values(arr);let n=0,skip=0;
+  for(const x of arr){
+    if(x&&x.key&&x.original!==undefined&&x.pf){ if(POSTS[x.key]){skip++;continue} await put(x,true);n++;continue } // نسخة احتياطية
+    const p=mkPost(x,$('#impPf').value); if(!p)continue; if(POSTS[p.key]){skip++;continue} await put(p,true); n++; if(n%25===0)$('#impMsg').textContent=`جارٍ… ${n}`}
+  $('#impMsg').textContent=`✓ أضيف ${n} منشور${skip?` · ${skip} موجود مسبقاً (لم يتغير)`:''}`;$('#impTx').value='';renderList()};
+$('#addOne').onclick=()=>$('#dlgAdd').showModal();
+$('#addGo').onclick=async()=>{const p=mkPost({url:$('#addUrl').value.trim(),text:$('#addTx').value},'');if(!p)return toast('الرابط غير معروف (إنستغرام / فيسبوك / تيك توك)');if(POSTS[p.key])return toast('هذا المنشور موجود مسبقاً');await put(p,true);$('#dlgAdd').close();$('#addUrl').value=$('#addTx').value='';renderList();toast('أضيف ✓')};
+$('#exp').onclick=()=>{const b=new Blob([JSON.stringify(Object.values(POSTS),null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='منشورات-قيصر-الشام-'+new Date().toISOString().slice(0,10)+'.json';a.click()};
+
+/* ---------- الدخول ---------- */
+window.addEventListener('DOMContentLoaded',()=>{
+  firebase.initializeApp({apiKey:"AIzaSyDi1Pn7guMnyc0CetV8Z9IUC-k0gtav2_8",authDomain:"basel-7b29b.firebaseapp.com",projectId:"basel-7b29b",storageBucket:"basel-7b29b.firebasestorage.app",messagingSenderId:"1025769465563",appId:"1:1025769465563:web:53b5c9949dbb26364d8efe"});
+  const A=firebase.auth(); db=firebase.firestore();
+  A.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
+  A.onAuthStateChanged(async u=>{$('#login').style.display=u?'none':'block';$('#app').style.display=u?'block':'none';if(u){await loadAll();if($('#old').classList.contains('on'))renderList()}});
+  $('#login').addEventListener('submit',async e=>{e.preventDefault();$('#err').textContent='';try{await A.signInWithEmailAndPassword($('#em').value.trim(),$('#pw').value)}catch(x){$('#err').textContent='البريد الإلكتروني أو كلمة السر غير صحيحة'}});
+});
+</script>
+<script src="/js/my-back.js" defer></script>
+<script id="latin-digits">/* أرقام لاتينية دائماً (0-9) */
+(function(){var AR=/[٠-٩۰-۹]/,AR_G=/[٠-٩۰-۹]/g;function fix(s){return String(s).replace(AR_G,function(c){var k=c.charCodeAt(0);return String(k>=0x06F0?k-0x06F0:k-0x0660)})}
+function editable(el){return el&&(el.tagName==='TEXTAREA'||(el.tagName==='INPUT'&&!/^(file|checkbox|radio|button|submit|color|range)$/.test(el.type)))}
+document.addEventListener('input',function(e){var el=e.target;if(!editable(el)||!AR.test(el.value))return;var a=el.selectionStart,b=el.selectionEnd;el.value=fix(el.value);try{el.setSelectionRange(a,b)}catch(_){}},true);})();
+</script>
+</body></html>

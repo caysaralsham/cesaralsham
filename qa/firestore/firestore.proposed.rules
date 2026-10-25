@@ -24,6 +24,13 @@ service cloud.firestore {
       allow read, write: if isOwner();
     }
 
+    // أداة المنشورات (/my/tasweeq): للمالك فقط. النص الأصلي لا يُعدَّل بعد حفظه، ولا يُحذف أي سجل
+    match /cesar_marketing/{docId} {
+      allow read, create: if isOwner();
+      allow update: if isOwner() && request.resource.data.original == resource.data.original;
+      allow delete: if false;
+    }
+
     // عدّاد الزيارات: مسموح للزوار بإضافة 1 فقط، وبدون مسح أو تخريب بيانات الدول
     function validStats(day) {
       let d = request.resource.data;
