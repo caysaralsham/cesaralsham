@@ -24,6 +24,13 @@ service cloud.firestore {
       allow read, write: if isOwner();
     }
 
+    // أداة المنشورات (/my/tasweeq): للمالك فقط. النص الأصلي لا يتغير بعد حفظه، ولا حذف
+    match /cesar_marketing/{docId} {
+      allow read, create: if isOwner();
+      allow update: if isOwner() && request.resource.data.original == resource.data.original;
+      allow delete: if false;
+    }
+
     match /cesar_stats/{day} {
       allow read: if isOwner();
       allow create: if day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
