@@ -160,7 +160,7 @@ const CATS={
   tags:['نافورة رخام','نافورة حديقة','فوارة رخام','fontaine en marbre','fontaine jardin Algérie','marble fountain'],
   ideas:['فيديو بصوت الماء فقط بدون موسيقى (يجذب كثيراً على تيك توك)','لقطة ليلية للنافورة مع الإضاءة','قبل وبعد: الحديقة بدون النافورة ثم معها','مراحل تركيب النافورة في الموقع']},
  sabil:{ar:'سبالة ماء رخام',fr:'Sabil (fontaine murale) en marbre',em:'💧',
-  kw:/سبال|sabil|fontaine murale/i,
+  kw:/سبال|sabil|fontaine murale|شلال|cascade/i,
   open:['💧 سبالة ماء من الرخام الطبيعي، جمال وأصالة لمدخل منزلك','✨ سبالة رخام منحوتة تجمع بين التراث والفخامة','🏛️ لمسة تراثية راقية: سبالة ماء من الرخام الطبيعي'],
   body:['تُصنع حسب المقاس والتصميم، للحدائق والمداخل والمساجد.','نقوش إسلامية أو نباتية منحوتة بآلات CNC بدقة عالية.','متوفرة بعدة ألوان ونقوش تناسب جميع الأذواق.'],
   pts:['رخام طبيعي','نقوش حسب الطلب','للمنازل والمساجد','تركيب احترافي'],
@@ -223,7 +223,7 @@ const CATS={
   tags:['طاولة رخام','طاولة صالون رخام','table en marbre','table basse marbre'],
   ideas:['الطاولة في صالون مزيّن','لقطة قريبة لعروق الرخام']},
  mosquee:{ar:'زخرفة المساجد بالرخام',fr:'Décoration de mosquée en marbre',em:'🕌',
-  kw:/مسجد|مساجد|محراب|إسلامي|اسلامي|mosqu/i,
+  kw:/مسجد|مساجد|محراب|منبر|mosqu/i,
   open:['🕌 زخرفة المساجد بالرخام الطبيعي: محاريب وأعمدة ونقوش إسلامية','✨ محراب من الرخام الطبيعي بنقوش إسلامية منحوتة بدقة'],
   body:['ننفّذ المحاريب والمنابر والأعمدة والسبالات وكسوة الجدران.','نقوش إسلامية وهندسية بآلات CNC وفق التصميم المعتمد.'],
   pts:['نقوش إسلامية','رخام طبيعي','مشاريع كاملة'],
@@ -241,7 +241,7 @@ const CATS={
   tags:['موزاييك رخام','موزاييك حجر','mosaïque marbre','mosaïque Algérie'],
   ideas:['فيديو لآلة الموزاييك أثناء العمل','الموزاييك مركّب على جدار']},
  machine:{ar:'آلات الرخام والحجر',fr:'Machines pour marbre et pierre',em:'⚙️',factory:true,
-  kw:/ماكين|آلة|الات|آلات|منشار|machine|scie|carri[eè]re|كاريير|مقلع/i,
+  kw:/ماكين|منشار|machine|scie|carri[eè]re|كاريير|مقلع|آلة (قص|إنتاج|انتاج|تقطيع)|آلات (قص|إنتاج|انتاج|تقطيع)/i,
   open:['⚙️ من المقلع إلى القطعة النهائية: آلاتنا في العمل','⚙️ آلة لتقطيع كتل الحجر والرخام بدقة وقوة'],
   body:['معملنا بالبليدة مجهز بآلات القصّ والنحت CNC والتلميع.','للاستفسار عن المواصفات والأسعار تواصلوا معنا.'],
   pts:['معمل مجهز','قصّ دقيق','إنتاج حسب الطلب'],
@@ -272,7 +272,8 @@ function hash(s){let h=2166136261;for(const c of String(s)){h^=c.codePointAt(0);
 function rng(seed){let a=hash(seed);return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const pick=(r,a)=>a[Math.floor(r()*a.length)];
 function shuffle(r,a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function detectCat(t){t=String(t||'');for(const k of CAT_ORDER){if(k!=='general'&&CATS[k].kw.test(t))return k}return 'general'}
+// النوع = أول كلمة مفتاحية تظهر في النص (العنوان عادةً في البداية)
+function detectCat(t){t=String(t||'');let best='general',bi=1e9;for(const k of CAT_ORDER){if(k==='general')continue;const m=t.match(CATS[k].kw);if(m&&m.index<bi){bi=m.index;best=k}}return best}
 function noHand(s){return s.replace(/نقش يدوي|نحت يدوي|يدوي/g,'CNC')}
 function placeLines(o,c){
   const F=o.lang==='fr';
