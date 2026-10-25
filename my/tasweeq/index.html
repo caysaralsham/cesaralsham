@@ -83,7 +83,7 @@ dialog::backdrop{background:rgba(0,0,0,.35)}
       <div><label>تفصيلة مميزة (اختياري)</label><input id="detail" type="text" placeholder="مثال: بزخارف نباتية منحوتة"></div>
     </div>
     <div class="grid3">
-      <div><label>المكان</label><select id="place"><option value="showroom">المعرض — دالي إبراهيم</option><option value="factory">المعمل — البليدة</option><option value="project">مشروع منفّذ عند زبون</option></select></div>
+      <div><label>المكان</label><select id="place"><option value="showroom">دالي إبراهيم — الجزائر العاصمة</option><option value="factory">المعمل — البليدة</option><option value="project">مشروع منفّذ عند زبون</option></select></div>
       <div><label>ولاية المشروع</label><input id="wilaya" type="text" placeholder="مثال: وهران"></div>
       <div><label>اللغة</label><select id="lang"><option value="arfr">عربي + فرنسي</option><option value="ar">عربي فقط</option><option value="fr">فرنسي فقط</option></select></div>
     </div>
@@ -257,13 +257,13 @@ const CATS={
   frl:['Décoration en marbre et pierre naturelle : façades, cheminées, fontaines et gravure CNC.'],
   hAr:['#ديكور_رخام','#رخام_طبيعي','#حجر_طبيعي'],hFr:['#marbre','#pierrenaturelle'],
   tags:['رخام طبيعي','ديكور رخام','حجر طبيعي','marbre Algérie','décoration marbre'],
-  ideas:['فيديو تعريفي بالمعرض','جولة في المعمل','أعمال متنوعة في فيديو واحد']}
+  ideas:['فيديو تعريفي بالشركة','جولة في المعمل','أعمال متنوعة في فيديو واحد']}
 };
 const CAT_ORDER=['machine','mosquee','mosaique','sabil','fontaine','cheminee','bassin','sol','facade','colonne','table','cnc','general'];
 const GEN_AR=['#رخام_طبيعي','#الجزائر'], GEN_FR=['#marbre','#Algérie'], BRAND='#قيصر_الشام';
 const CTA=[['للطلب والاستفسار راسلنا أو اتصل بنا 👇','Pour commander ou demander un devis, contactez-nous 👇'],
  ['نصمّم وننفّذ حسب المقاس، اطلب عرض سعرك الآن 👇','Fabrication sur mesure, demandez votre devis 👇'],
- ['زورونا في المعرض أو تواصلوا معنا 👇','Visitez notre showroom ou contactez-nous 👇']];
+ ['زورونا أو تواصلوا معنا 👇','Contactez-nous 👇']];
 const QUEST=['أي لون رخام تفضّل لهذا العمل؟ اكتب لنا في التعليقات 👇','لو كان هذا في بيتك، أين تضعه؟ 👇','كلاسيكي أم عصري؟ ما رأيك؟ 👇'];
 const STORY=['هذا العمل نفّذناه لأحد زبائننا','من فكرة على الورق إلى قطعة حقيقية','بدأنا بكتلة رخام خام وانتهينا بهذه النتيجة'];
 
@@ -277,8 +277,8 @@ function detectCat(t){t=String(t||'');let best='general',bi=1e9;for(const k of C
 function noHand(s){return s.replace(/نقش يدوي|نحت يدوي|يدوي/g,'CNC')}
 function placeLines(o,c){
   const F=o.lang==='fr';
-  if(c.factory||o.place==='factory')return[F?'🏭 Atelier : Blida':'🏭 المعمل: البليدة','📞 '+PHONE,'🌐 '+SITE];
-  const l=[F?'📍 Showroom : Dely Ibrahim – Alger':'📍 المعرض: دالي إبراهيم – الجزائر العاصمة','📞 '+PHONE,'🌐 '+SITE];
+  if(c.factory||o.place==='factory')return[F?'🏭 Atelier : Blida':'🏭 المعمل: البليدة','📞 '+PHONE+'  🟢 واتساب','🌐 '+SITE];
+  const l=[F?'📍 Dely Ibrahim – Alger':'📍 دالي إبراهيم – الجزائر العاصمة','📞 '+PHONE+'  🟢 واتساب','🌐 '+SITE];
   if(o.place==='project'&&o.wilaya)l.unshift((F?'📍 Projet réalisé à : ':'📍 مشروع منفّذ في: ')+o.wilaya);
   return l;
 }
@@ -311,7 +311,7 @@ function build(o){
   {const h=hashtags(c,'fb',r);const p=[];
    if(AR){p.push(arTop.join('\n'));if(bd[2])p.push(noHand(bd[2]));p.push(pts.map(x=>'✔️ '+x).join('\n'))}
    if(FR)p.push(fr);
-   p.push((AR?cta[0]:cta[1])+'\n'+placeLines(o,c).join('\n')+'\n💬 واتساب: '+WA);
+   p.push((AR?cta[0]:cta[1])+'\n'+placeLines(o,c).join('\n'));
    p.push(h.join(' '));out.fb=p.join('\n\n')}
   // تيك توك (قصير)
   {const h=hashtags(c,'tt',r);
