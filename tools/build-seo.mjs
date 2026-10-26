@@ -268,7 +268,7 @@ h = inject(h, 'CATLINKS', cats.map(c => `<a href="/${slugs[c]}">${esc(splitName(
 wr('index.html', h);
 
 // ================= النسخة الفرنسية /fr =================
-const REVIEW_URL = 'https://maps.app.goo.gl/g6wBPVBsZmQipM2j6';
+const REVIEW_URL = 'https://www.google.com/maps?cid=9304963512715322872';
 const frOf = c => splitName(c).fr || (slugs[c] ? (t => t.charAt(0).toUpperCase() + t.slice(1))(slugs[c].replace(/^a3mal-/, '').replace(/-/g, ' ')) : splitName(c).ar);
 const frTitle = (it, c) => (it.title && splitName(it.title).fr) || frOf(c);
 const waFr = t => `https://wa.me/${WA}?text=${encodeURIComponent(t)}`;
@@ -336,7 +336,7 @@ const mb=document.getElementById('more');if(mb)mb.onclick=()=>{const h=[...docum
 const frSlug = c => slugs[c];
 fs.mkdirSync(path.join(ROOT, 'fr'), {recursive: true});
 const reviewsHtml = (lang) => `<section class="sec" id="avis"><h2>${lang==='fr'?'Avis de nos clients':'آراء زبائننا'}</h2>
-  <p>⭐ 4,3 / 5 — Google · <a class="pb" style="display:inline-flex" href="${REVIEW_URL}" target="_blank" rel="noopener">${lang==='fr'?'Laissez-nous un avis sur Google':'قيّمنا على غوغل'}</a></p>
+  <p>⭐ 5,0 / 5 — Google · <a class="pb" style="display:inline-flex" href="${REVIEW_URL}" target="_blank" rel="noopener">${lang==='fr'?'Laissez-nous un avis sur Google':'قيّمنا على غوغل'}</a></p>
   ${reviews.length ? `<div class="rv">${reviews.map(r => `<div><span class="st">${'★'.repeat(Math.max(1, Math.min(5, +r.stars || 5)))}</span><p style="margin:6px 0">${esc(r.text)}</p><b>${esc(r.name || '')}</b></div>`).join('')}</div>` : ''}</section>`;
 // fr/<slug>
 for (const c of cats) {
@@ -366,7 +366,7 @@ live.add('fr/videos.html');
 const FAQ_FR = [['Où êtes-vous situés et quelles régions couvrez-vous ?','Notre atelier se trouve à Dely Ibrahim (Alger). Nous réalisons la conception, la fabrication et la pose dans toutes les wilayas d\'Algérie.'],['Quels travaux réalisez-vous en marbre et en pierre ?','Cheminées en marbre, vasques et bassins de hammam, fontaines, façades en pierre, tableaux de sol et muraux, colonnes, balustrades, encadrements de portes et fenêtres, et décoration de mosquées.'],['Travaillez-vous sur mesure ?','Oui, chaque pièce est conçue et fabriquée selon vos dimensions et le design choisi. Nous vous présentons un dessin avec les mesures avant la fabrication.'],['Quels types de marbre proposez-vous ?','Marbre et pierre naturelle en plusieurs couleurs : blanc italien (Carrare), beige égyptien, teintes foncées, ainsi que des pierres naturelles pour façades.'],['Comment obtenir un devis ?','Envoyez-nous sur WhatsApp au 0541 73 78 88 des photos du lieu et les mesures approximatives : nous vous répondons rapidement avec un devis.']];
 const show = cats.slice(0, 8).map(c => { const it = byCat.get(c)[0], src = imgUrl(it); return src ? `<a class="card" href="/fr/${slugs[c]}"><img src="${esc(src)}" loading="lazy" alt="${esc('Réalisation Cesar Al Cham : ' + frOf(c))}"><div class="b"><b>${esc(frOf(c))}</b></div></a>` : ''; }).join('');
 wr('fr/index.html', frLayout({motion: true, title: 'Cesar Al Cham | Marbre et pierre naturelle - Algérie', desc: 'Cesar Al Cham, Dely Ibrahim (Alger) : conception, sculpture et pose de marbre et pierre naturelle — cheminées, fontaines, vasques, façades, colonnes. Devis gratuit au 0541 73 78 88.', path: '/fr/', arPath: '/',
-  schema: [{'@context':'https://schema.org','@type':'HomeAndConstructionBusiness',name:'Cesar Al Cham — Marbre et Pierre',url:SITE + '/fr/',telephone:'+213541737888',image:SITE + '/img/site/og-card.jpg',address:{'@type':'PostalAddress',streetAddress:'36, Route Nationale',addressLocality:'Dely Ibrahim',addressRegion:'Alger',addressCountry:'DZ'},aggregateRating:{'@type':'AggregateRating',ratingValue:'4.3',reviewCount:'6'}},{'@context':'https://schema.org','@type':'FAQPage',mainEntity:FAQ_FR.map(([q,a]) => ({'@type':'Question',name:q,acceptedAnswer:{'@type':'Answer',text:a}}))}],
+  schema: [{'@context':'https://schema.org','@type':'HomeAndConstructionBusiness',name:'Cesar Al Cham — Marbre et Pierre',url:SITE + '/fr/',telephone:'+213541737888',image:SITE + '/img/site/og-card.jpg',address:{'@type':'PostalAddress',streetAddress:'36, Route Nationale',addressLocality:'Dely Ibrahim',addressRegion:'Alger',addressCountry:'DZ'},aggregateRating:{'@type':'AggregateRating',ratingValue:'5.0',reviewCount:'8'}},{'@context':'https://schema.org','@type':'FAQPage',mainEntity:FAQ_FR.map(([q,a]) => ({'@type':'Question',name:q,acceptedAnswer:{'@type':'Answer',text:a}}))}],
   body: `<section style="text-align:center;padding:40px 0 10px"><h1>Marbre et pierre naturelle d'exception</h1><p class="intro" style="margin:0 auto">Conception, sculpture et pose de marbre et de pierre naturelle avec savoir-faire — depuis Dely Ibrahim (Alger), partout en Algérie, pour des projets élégants et haut de gamme.</p>
   <div class="cta" style="justify-content:center"><a class="wa" href="${esc(waFr('Bonjour, je souhaite un devis de Cesar Al Cham.'))}" rel="nofollow">Demander un devis sur WhatsApp</a><a class="ph" href="/fr/works">Voir nos réalisations</a></div></section>
   <section class="sec"><h2>Nos réalisations</h2><div class="grid">${show}</div><p style="text-align:center;margin-top:16px"><a class="btn ph" href="/fr/works">Toutes nos réalisations</a></p></section>

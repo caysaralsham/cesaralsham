@@ -597,7 +597,7 @@ let googleReviewsOn=false;
   if(d.count){const c=document.getElementById('gCount');if(c)c.textContent=' ('+d.count+' تقييم)'}
   const w=document.getElementById('reviewsList');if(!w)return;
   w.innerHTML=d.reviews.map(r=>`<div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px"><div style="display:flex;align-items:center;gap:8px">${r.photo?`<img src="${e(r.photo)}" alt="" width="34" height="34" loading="lazy" referrerpolicy="no-referrer" style="border-radius:50%">`:''}<div><b dir="auto">${e(r.name)}</b><div style="font-size:12px;color:var(--gold-deep)">${e(r.when)}</div></div></div><div style="color:#E0A100;letter-spacing:2px">${'★'.repeat(Math.max(1,Math.min(5,Math.round(+r.stars||5))))}</div><p dir="auto" style="margin:0;line-height:1.7">${e(r.text.length>320?r.text.slice(0,317)+'…':r.text)}</p></div>`).join('')
-    +`<div style="grid-column:1/-1;text-align:center;font-size:12.5px;color:var(--gold-deep)">الآراء من <a href="${e(d.url||'https://maps.app.goo.gl/g6wBPVBsZmQipM2j6')}" target="_blank" rel="noopener" style="color:inherit;font-weight:700">غوغل</a></div>`;
+    +`<div style="grid-column:1/-1;text-align:center;font-size:12.5px;color:var(--gold-deep)">الآراء من <a href="${e(d.url||'https://www.google.com/maps?cid=9304963512715322872')}" target="_blank" rel="noopener" style="color:inherit;font-weight:700">غوغل</a></div>`;
 }).catch(()=>{})})();
 function renderReviews(list){
   if(googleReviewsOn) return;
