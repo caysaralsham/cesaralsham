@@ -201,7 +201,7 @@
         <div class="field"><label>النوع (اختياري)</label><input type="text" id="upType"></div>
       </div>
       <div class="field"><label>السعر (اختياري)</label><input type="text" id="upPrice"></div>
-      <label style="display:flex;gap:8px;align-items:center;font-size:13px;margin:4px 0 12px;cursor:pointer"><input type="checkbox" id="upWm" checked> إضافة اللوغو والهاتف والعنوان على الصورة <span id="upWmHint" style="color:var(--text-dim);font-size:12px"></span></label>
+      <label style="display:flex;gap:8px;align-items:center;font-size:13px;margin:4px 0 12px;cursor:pointer"><input type="checkbox" id="upWm" checked> إضافة الباركود والرقم على الصورة (يسار تحت) <span id="upWmHint" style="color:var(--text-dim);font-size:12px"></span></label>
       <button class="btn" style="width:100%; justify-content:center;" id="btnUpload">رفع الصورة</button>
     </div>
 
@@ -228,6 +228,14 @@
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="ttRun">حدّث كل العناوين أوتوماتيك</button><button class="btn btn-ghost" id="ttStop" style="display:none">وقّف</button></div>
       <div id="ttStatus" style="font-size:13px;margin-top:10px;font-weight:700"></div>
       <div id="ttSample" style="font-size:12.5px;margin-top:8px;line-height:1.9"></div>
+    </div>
+
+    <div class="panel" id="qrFixPanel">
+      <h2>🔳 استبدال اللوغو بالباركود على كل الصور</h2>
+      <p style="font-size:13px;color:#6b5a48;margin:0 0 10px">بيشيل اللوغو القديم (بيقص الشريط اليمين اللي فيه) وبيحط الباركود يسار تحت مع «امسح الرمز» والرقم. الصورة القديمة بتضل محفوظة احتياط.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="qrScan">1) مثال</button><button class="btn" id="qrGo" style="display:none;background:#1F8F55">2) كمّل على كل الصور</button><button class="btn" id="qrStop" style="display:none;background:#A6453D">وقّف</button></div>
+      <div id="qrStatus" style="font-size:13px;margin-top:10px;font-weight:700"></div>
+      <div id="qrPreview" style="display:none;gap:12px;margin-top:10px;flex-wrap:wrap"><figure style="margin:0;flex:1;min-width:220px"><figcaption style="font-size:12px">قبل</figcaption><img id="qrBefore" style="width:100%;border:1px solid #e6d6bc;border-radius:8px"></figure><figure style="margin:0;flex:1;min-width:220px"><figcaption style="font-size:12px">بعد</figcaption><img id="qrAfter" style="width:100%;border:1px solid #e6d6bc;border-radius:8px"></figure></div>
     </div>
 
     <div class="panel" id="wmFixPanel">
@@ -905,10 +913,33 @@ const WM_PHONE='0541737888', WM_ADDR='الجزائر - دالي ابراهيم';
 let wmLogoP=null;
 function getWmLogo(){ if(!wmLogoP) wmLogoP=new Promise(res=>{const im=new Image();im.onload=()=>res(im);im.onerror=()=>res(null);im.src='/img/site/logo-wm.png';}); return wmLogoP; }
 getWmLogo();
-async function drawWatermark(ctx, w, h){
-  const logo = await getWmLogo();
-  if(!logo) return;
-  drawLogoWithInfo(ctx, w, h, logo, 12, 'bottom-right', Math.round(w*0.0125), 0.9, WM_PHONE, WM_ADDR);
+// الباركود (بدل اللوغو): يسار تحت، بعيد شوي عن الحافة — يفتح صفحة روابط الشركة cesar-alcham.com/links
+let qrImgP=null;
+function getQrImg(){ if(!qrImgP) qrImgP=new Promise(res=>{const im=new Image();im.onload=()=>res(im);im.onerror=()=>res(null);im.src='/img/site/qr-links.png?v=1';}); return qrImgP; }
+getQrImg();
+async function drawQrMark(ctx, W, H){
+  const qr = await getQrImg(); if(!qr) return;
+  const S=Math.min(W,H), side=Math.round(Math.max(110,S*0.16)), mx=Math.round(S*0.045), my=mx;
+  const fs=Math.max(12,Math.round(side*0.12)), pad=Math.round(side*0.08);
+  const pw=side+2*pad, ph=side+2*pad+Math.round(fs*1.25)*2+Math.round(fs*.2);
+  const X0=mx, Y0=H-my-ph;
+  ctx.save();ctx.shadowColor='rgba(0,0,0,0.45)';ctx.shadowBlur=pad*1.5;ctx.shadowOffsetY=3;ctx.fillStyle='#FFFDF8';
+  ctx.beginPath();ctx.roundRect?ctx.roundRect(X0,Y0,pw,ph,pad):ctx.rect(X0,Y0,pw,ph);ctx.fill();ctx.restore();
+  ctx.save();ctx.strokeStyle='#D4AF37';ctx.lineWidth=Math.max(2,Math.round(fs/6));ctx.beginPath();ctx.roundRect?ctx.roundRect(X0,Y0,pw,ph,pad):ctx.rect(X0,Y0,pw,ph);ctx.stroke();
+  ctx.imageSmoothingEnabled=false;ctx.drawImage(qr,X0+pad,Y0+pad,side,side);ctx.imageSmoothingEnabled=true;
+  ctx.textAlign='center';ctx.textBaseline='top';const cx=X0+pw/2,ty=Y0+pad+side+Math.round(fs*.15);
+  ctx.fillStyle='#2E1C10';ctx.font='bold '+fs+'px Tahoma, Arial, sans-serif';ctx.fillText('امسح الرمز',cx,ty);
+  ctx.fillStyle='#8A5A1E';ctx.font='900 '+Math.round(fs*1.1)+'px Tahoma, Arial, sans-serif';ctx.fillText('0541737888',cx,ty+Math.round(fs*1.25));
+  ctx.restore();
+}
+async function drawWatermark(ctx, w, h){ return drawQrMark(ctx, w, h); }
+// اللوغو القديم (يمين تحت: لوغو + شريط غامق فيه العنوان والرقم) — بيرجّع وين لازم ننقص من اليمين، أو 0
+function oldLogoCutX(img){
+  try{const W=img.naturalWidth||img.width,H=img.naturalHeight||img.height,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(img,0,0);
+    const lw=W*0.12,fs=Math.max(13,Math.round(W*0.015)),lg=Math.round(fs*.35),pY=Math.round(fs*.55),tb=(fs+lg)*2-lg+pY*2,m=Math.round(W*0.0125),bx=W-lw-m,ty=H-m-tb;
+    const rx=Math.round(bx+lw*.1),ry=Math.round(ty+tb*.15),rw=Math.round(lw*.8),rh=Math.max(4,Math.round(tb*.7));if(rx<0||ry<0)return 0;
+    const d=x.getImageData(rx,ry,rw,rh).data;let n=0,dk=0,wh=0;for(let i=0;i<d.length;i+=4){const L=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];n++;if(L<100)dk++;if(L>190)wh++}
+    return (dk/n>0.6&&wh/n>0.03&&wh/n<0.4)?Math.round(bx-fs*0.8):0;}catch(e){return 0}
 }
 // كشف تقريبي: إذا في شريط داكن بمكان الهاتف والعنوان (يعني الصورة عليها اللوغو من قبل)
 function hasWatermarkAlready(img){
@@ -1518,6 +1549,27 @@ const TT=(()=>{
     $('bkStatus').textContent='انحذفت '+bad.length+' صورة خربانة ✓';$('bkList').innerHTML='';$('bkDel').style.display='none';bad=[]};
 })();
 
+
+// ---------- استبدال اللوغو بالباركود ----------
+(function(){
+  const $=id=>document.getElementById(id);let stop=false;
+  const loadImgEl=u=>new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=()=>rej(new Error('تعذر فتح الصورة'));im.src='/img-proxy?u='+encodeURIComponent(u)});
+  async function makeQr(im){const cut=oldLogoCutX(im);const w=cut||im.naturalWidth,h=im.naturalHeight;const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(im,0,0,w,h,0,0,w,h);await drawQrMark(x,w,h);return c}
+  window.__qrList=()=>items.filter(it=>it.img&&!it.qrV1);
+  $('qrScan').onclick=async()=>{const l=__qrList();if(!l.length){$('qrStatus').textContent='كل الصور عليها الباركود 👍';return}
+    try{const im=await loadImgEl(l[0].img);const c=await makeQr(im);$('qrBefore').src=im.src;$('qrAfter').src=c.toDataURL('image/jpeg',.85);$('qrPreview').style.display='flex'}catch(e){}
+    $('qrStatus').textContent=l.length+' صورة لسا عليها اللوغو. إذا المثال تمام اكبس «كمّل».';$('qrGo').style.display=''};
+  $('qrStop').onclick=()=>{stop=true};
+  window.__qrRun=async function(){const l=__qrList();stop=false;$('qrGo').style.display='none';$('qrStop').style.display='';let ok=0,bad=0,done={};window.__bgBusy=true;keepAwake(true);
+    for(const [k,it] of l.entries()){if(stop)break;$('qrStatus').textContent='جاري '+(k+1)+' من '+l.length+' — تم '+ok+(bad?(' — فشل '+bad):'');
+      try{const im=await loadImgEl(it.img);const c=await makeQr(im);const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.88));
+        const ref=storage.ref('gallery/'+it.id+'-qr-'+Date.now().toString(36)+'.jpg');await ref.put(blob,{contentType:'image/jpeg'});const url=await ref.getDownloadURL();
+        done[it.id]={img:url,qrV1:true,oldImg:it.img};items=items.map(x=>x.id===it.id?{...x,...done[it.id]}:x);ok++;
+        if(Object.keys(done).length>=5){await saveFresh(done,CHUNK_PREFIX);done={}}}catch(e){console.error(it.id,e);bad++}}
+    if(Object.keys(done).length)await saveFresh(done,CHUNK_PREFIX);window.__bgBusy=false;keepAwake(false);
+    $('qrStop').style.display='none';renderItemsTable();$('qrStatus').textContent='✅ خلص: '+ok+' صورة'+(bad?(' — فشل '+bad+' (اكبس مثال وكمّل مرة تانية)'):'');window.__qrDone={ok,bad};return {ok,bad}};
+  $('qrGo').onclick=()=>{if(confirm('تبديل اللوغو بالباركود على '+__qrList().length+' صورة؟'))__qrRun()};
+})();
 // ---------- تحديث اللوغو على الصور القديمة (الشريط القديم ← اللوغو الجديد) ----------
 (function(){
   const $=id=>document.getElementById(id);let stop=false,found=[];
@@ -1600,7 +1652,7 @@ document.getElementById('upFile').addEventListener('change', async (e)=>{
   const img = new Image();
   img.onload = ()=>{
     loadedImage = img; rotation = 0;
-    const had=hasWatermarkAlready(img);document.getElementById('upWm').checked=!had;document.getElementById('upWmHint').textContent=had?'— الصورة عليها اللوغو من قبل، فما رح ينضاف':'';
+    document.getElementById('upWm').checked=true;document.getElementById('upWmHint').textContent='';
     document.getElementById('previewImg').src = img.src;
     document.getElementById('previewWrap').style.display = '';
   };
