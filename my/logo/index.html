@@ -589,7 +589,9 @@ async function processAll() {
       drawQrBox(ctx, canvas.width, canvas.height, logoImg, sizePercent, position, margin, opacity, phone);
 
       // إرجاع الحفظ لـ PNG دائماً (زي ما كان يشتغل تمام قبل التجربة الأخيرة)
-      const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+      // الآيفون: JPEG بجودة عالية (PNG حجمه كبير كتير وقائمة المشاركة بتعلّق/بتحفظ جزء بس)
+      const outType = IS_IOS ? 'image/jpeg' : 'image/png';
+      const blob = await new Promise(res => canvas.toBlob(res, outType, 0.93));
       if (!blob) {
         throw new Error('تعذّر إنشاء الصورة النهائية (قد تكون الصورة كبيرة جداً على ذاكرة المتصفح)');
       }
@@ -597,7 +599,7 @@ async function processAll() {
       const url = URL.createObjectURL(blob);
       // لو الأصل HEIC، نغيّر الامتداد في المسار والاسم لـ jpg لأن المحتوى الفعلي صار JPEG
       const rawRelPath = file.webkitRelativePath || file.name;
-      const relPath = heicOriginal ? rawRelPath.replace(/\.(heic|heif)$/i, '.jpg') : rawRelPath;
+      const relPath = (heicOriginal || IS_IOS) ? rawRelPath.replace(/\.(heic|heif|png|jpeg|webp)$/i, '.jpg') : rawRelPath;
       const outName = heicOriginal ? file.name.replace(/\.(heic|heif)$/i, '.jpg') : file.name;
       processedResults.push({ name: outName, relPath, blob, url, status: 'ok' });
       successCount++;
@@ -649,11 +651,21 @@ async function processAll() {
 // سفاري على الآيفون ما بيحفظ الصور بروابط التنزيل (وبيمنع أكثر من تنزيل وحدة بالكبسة)، وبوضع التطبيق (أدواتي) ما بينزّل أبداً.
 // الحل: قائمة المشاركة تبع الآيفون («حفظ الصور» بتحطها بالصور مباشرة)، بدفعات كل 20 صورة.
 const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const SHARE_BATCH = 20;
+const SHARE_BATCH = 10; // دفعات صغيرة: الآيفون أحياناً بيحفظ جزء بس إذا الدفعة كبيرة
 function asFile(r) { return new File([r.blob], r.name, { type: r.blob.type || 'image/jpeg' }); }
 function canShareFiles(files) { try { return !!(navigator.share && navigator.canShare && navigator.canShare({ files })); } catch (e) { return false; } }
 let shareQueue = null, sharePos = 0;
 function resetShareQueue() { shareQueue = null; sharePos = 0; downloadAllBtn.textContent = 'حفظ الكل (بنفس الأسماء الأصلية)'; }
+// شريط كبير تحت الشاشة يبيّن كم انحفظ ويكمّل الدفعة التالية بكبسة (الآيفون بيطلب كبسة لكل دفعة)
+function showSaveBar(text, done) {
+  let b = document.getElementById('saveBar');
+  if (!b) { b = document.createElement('button'); b.id = 'saveBar'; b.type = 'button';
+    b.style.cssText = 'position:fixed;left:12px;right:12px;bottom:14px;z-index:9999;padding:16px 12px;border:0;border-radius:14px;font:800 17px Tahoma,Arial,sans-serif;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.35)';
+    document.body.appendChild(b); }
+  b.textContent = text; b.style.background = done ? '#1F8F55' : '#8A5A1E';
+  b.onclick = done ? () => b.remove() : () => downloadAllIndividually();
+  if (done) setTimeout(() => { try { b.remove(); } catch (e) {} }, 6000);
+}
 async function iosSaveAll(okResults) {
   if (!shareQueue) { shareQueue = okResults; sharePos = 0; }
   const batch = shareQueue.slice(sharePos, sharePos + SHARE_BATCH);
@@ -670,8 +682,10 @@ async function iosSaveAll(okResults) {
     const to = Math.min(sharePos + SHARE_BATCH, total);
     downloadAllBtn.textContent = `حفظ الدفعة التالية (${sharePos + 1}-${to} من ${total})`;
     statusEl.textContent = `انحفظ ${sharePos} من ${total}. اكبس «حفظ الدفعة التالية» لتكمل.`;
+    showSaveBar(`✅ انحفظ ${sharePos} من ${total} — اكبس هون لحفظ ${sharePos + 1}-${to}`);
   } else {
     statusEl.textContent = `انحفظت ${total} صورة بالصور على الآيفون.`;
+    showSaveBar(`✅ انحفظت كل الصور (${total})`, true);
     resetShareQueue();
   }
 }
