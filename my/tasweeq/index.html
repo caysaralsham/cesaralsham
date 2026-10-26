@@ -57,6 +57,7 @@ dialog::backdrop{background:rgba(0,0,0,.35)}
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <style id="sb-right">/* شريط التمرير على اليمين (كمبيوتر بس) */@media (min-width:900px) and (hover:hover){html{direction:ltr}body{direction:rtl}}</style>
 </head><body>
 <header><div><b>المنشورات</b> <small>يوتيوب · إنستغرام · فيسبوك · تيك توك</small></div><span id="store">…</span></header>
@@ -71,7 +72,7 @@ dialog::backdrop{background:rgba(0,0,0,.35)}
 <section id="new" class="sec on">
   <div class="box">
     <h3>1. الصور أو الفيديو</h3>
-    <div id="drop">📷🎬 اضغط لاختيار صورة أو فيديو (أو عدة صور)<br><small class="meta">الملفات تبقى على جهازك — لا تُرفع إلى أي مكان</small></div>
+    <div id="drop">📷🎬 اضغط لاختيار صورة أو فيديو (أو عدة صور)<br><small class="meta">الملفات تبقى على جهازك، ولا تُرفع إلا عند ضغط «انشر الآن»</small></div>
     <input id="files" type="file" accept="image/*,video/*" multiple hidden>
     <div id="prev"></div>
   </div>
@@ -92,6 +93,14 @@ dialog::backdrop{background:rgba(0,0,0,.35)}
     <div class="row" style="margin-top:12px"><button class="btn" id="gen">✨ اقترح النصوص والهاشتاغات</button><button class="btn l" id="regen">🔀 صياغة أخرى</button></div>
   </div>
   <div id="outs"></div>
+  <div class="box" id="pubBox" style="display:none">
+    <h3>🚀 نشر مباشر</h3>
+    <p class="meta" id="pubStat">جارٍ فحص الربط…</p>
+    <div class="row"><label style="margin:0"><input type="checkbox" id="pIg" checked style="width:auto"> إنستغرام (cesar_du_sham2)</label><label style="margin:0"><input type="checkbox" id="pFb" checked style="width:auto"> صفحة فيسبوك</label></div>
+    <p class="meta">يُنشر النص الموجود في بطاقة كل منصة أعلاه كما عدّلته، مع الصور أو الفيديو المختار (حتى 10 ملفات). تيك توك ويوتيوب: من زر المشاركة إلى أن توافق المنصتان على النشر المباشر.</p>
+    <div class="row"><button class="btn" id="pubGo" disabled>🚀 انشر الآن</button><span class="meta" id="pubMsg"></span></div>
+    <div id="pubRes"></div>
+  </div>
   <div class="box" id="ideasBox" style="display:none"><h3>💡 أفكار ونصائح لهذا النوع</h3><ul class="ideas" id="ideas"></ul></div>
 </section>
 
@@ -364,7 +373,7 @@ function gen(){
    <div class="row" style="margin-top:8px"><button class="btn s cp2">📋 نسخ الوسوم</button><a class="btn s l" href="${PF.yt[2]}" target="_blank" rel="noopener" style="text-decoration:none">↗ فتح يوتيوب ستوديو</a></div></div>`;
   $('#outs').innerHTML=card('ig',r.ig)+card('fb',r.fb)+card('tt',r.tt)+yt;
   $('#ideas').innerHTML=[...c.ideas,'الفيديو العمودي 9:16 يناسب ريلز وتيك توك وشورتس معاً، صوّره مرة وانشره في الأربعة.','اجعل أول سطر جملة تشدّ الانتباه، فهو الوحيد الظاهر قبل «المزيد».','إنستغرام صار يسمح بـ 5 هاشتاغات فقط لكل منشور، والأداة تلتزم بذلك.'].map(x=>'<li>'+esc(x)+'</li>').join('');
-  $('#ideasBox').style.display='block';
+  $('#ideasBox').style.display='block';$('#pubBox').style.display='block';pubCheck();
   $('#outs').scrollIntoView({behavior:'smooth',block:'start'});
 }
 $('#gen').onclick=()=>{seed=String(Date.now());gen()};$('#regen').onclick=()=>{seed=String(Date.now()+Math.random());gen()};
@@ -378,6 +387,31 @@ $('#outs').addEventListener('click',async e=>{const o=e.target.closest('.out');i
     else if(navigator.share&&!files.length){try{await navigator.share({text:t})}catch(x){}}
     else toast('النص منسوخ — افتح التطبيق وأرفق الملف ثم الصق النص')}});
 
+
+/* ---------- النشر المباشر (فيسبوك + إنستغرام عبر Meta الرسمي) ---------- */
+let pubReady=false;
+async function idTok(){const u=firebase.auth().currentUser;return u?await u.getIdToken():''}
+async function pubCheck(){if(pubReady)return;try{const r=await fetch('/api/meta-publish',{headers:{authorization:'Bearer '+await idTok()}});const d=await r.json();
+  if(d.ok){pubReady=true;$('#pubStat').textContent='✅ مربوط: صفحة «'+d.pageName+'»'+(d.igUser?' + إنستغرام @'+d.igUser:' (إنستغرام غير مربوط)');$('#pubGo').disabled=false}
+  else $('#pubStat').textContent=d.error==='no-token'?'⏳ النشر المباشر بانتظار ربط فيسبوك (خطوة واحدة مع Claude).':'⚠️ '+(d.error||'تعذر الفحص')}catch(e){$('#pubStat').textContent='⚠️ تعذر الاتصال'}}
+$('#pubGo').onclick=async()=>{
+  const pf=[];if($('#pIg').checked)pf.push('ig');if($('#pFb').checked)pf.push('fb');
+  if(!pf.length)return toast('اختر منصة');if(!files.length)return toast('اختر صورة أو فيديو أولاً');
+  const tx=k=>($(`.out[data-pf="${k}"] .tx`)||{}).value||'';
+  if(pf.includes('ig')&&countTags(tx('ig'))>5)return toast('إنستغرام: 5 هاشتاغات كحد أقصى');
+  if(!confirm('سيُنشر الآن على: '+pf.map(k=>PF[k][0]).join(' و ')+' مع '+Math.min(files.length,10)+' ملف. متأكد؟'))return;
+  $('#pubGo').disabled=true;$('#pubRes').innerHTML='';
+  try{const st=firebase.storage(),items=[];let i=0;
+    for(const f of files.slice(0,10)){i++;$('#pubMsg').textContent=`رفع الملف ${i}/${Math.min(files.length,10)}…`;
+      const ext=(f.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');const ref=st.ref(`gallery/marketing/${Date.now()}-${i}.${ext}`);
+      await ref.put(f,{contentType:f.type});items.push({url:await ref.getDownloadURL(),type:f.type.startsWith('video')?'video':'image'})}
+    $('#pubMsg').textContent='جارٍ النشر… (الفيديو قد يأخذ دقيقة)';
+    const r=await fetch('/api/meta-publish',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+await idTok()},body:JSON.stringify({platforms:pf,items,captionIg:tx('ig'),captionFb:tx('fb')})});
+    const d=await r.json();if(!d.ok)throw new Error(d.error||'فشل');
+    $('#pubRes').innerHTML=Object.entries(d.out).map(([k,v])=>`<p>${PF[k][0]}: ${v.ok?'✅ نُشر'+(v.link?` — <a href="${esc(v.link)}" target="_blank" rel="noopener">فتح المنشور</a>`:''):'❌ '+esc(v.error)}</p>`).join('');
+    $('#pubMsg').textContent='';
+  }catch(e){$('#pubMsg').textContent='⚠️ '+(e.message||e)}
+  $('#pubGo').disabled=false};
 /* ---------- التخزين: سحابة (Firestore) أو هذا الجهاز ---------- */
 const COL='cesar_marketing', LKEY='tasweeq_posts_v1';
 let db=null, cloud=false, POSTS={};
