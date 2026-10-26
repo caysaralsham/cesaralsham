@@ -50,10 +50,16 @@ async function gpost(path, params, token) {
   if (d.error) throw new Error(d.error.error_user_msg || d.error.message || 'graph');
   return d;
 }
+const PAGE_ID = '112512051459689'; // قيصر الشام للحجر والرخام 2
+// المفتاح المحفوظ قد يكون مفتاح صفحة أو مفتاح مستخدم؛ في الحالة الثانية نأخذ منه مفتاح الصفحة
 async function ids(token, env) {
+  let acc = null;
+  try { acc = await gget('me/accounts?fields=id,name,access_token,instagram_business_account{id,username}&limit=100', token); } catch (e) {}
+  const p = acc && (acc.data || []).find(x => x.id === (env.META_PAGE_ID || PAGE_ID));
+  if (p) return { kind: 'user', token: p.access_token, pageId: p.id, pageName: p.name, igId: env.IG_USER_ID || p.instagram_business_account?.id, igUser: p.instagram_business_account?.username };
   const me = await gget('me?fields=id,name', token);
   const pg = await gget(`${me.id}?fields=instagram_business_account{id,username}`, token);
-  return { pageId: me.id, pageName: me.name, igId: env.IG_USER_ID || pg.instagram_business_account?.id, igUser: pg.instagram_business_account?.username };
+  return { kind: 'page', token, pageId: me.id, pageName: me.name, igId: env.IG_USER_ID || pg.instagram_business_account?.id, igUser: pg.instagram_business_account?.username };
 }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -99,7 +105,11 @@ export async function onRequest({ request, env }) {
   const token = env.META_PAGE_TOKEN;
   if (!token) return json({ ok: false, error: 'no-token' });
   if (request.method === 'GET') { // فحص الربط
-    try { return json({ ok: true, ...(await ids(token, env)) }); } catch (e) { return json({ ok: false, error: String(e.message || e) }); }
+    try {
+      const I = await ids(token, env); let exp = null;
+      try { const d = await gget('debug_token?input_token=' + encodeURIComponent(token), token); exp = d.data ? d.data.expires_at : null; } catch (e) {}
+      return json({ ok: true, kind: I.kind, pageId: I.pageId, pageName: I.pageName, igUser: I.igUser, expiresAt: exp });
+    } catch (e) { return json({ ok: false, error: String(e.message || e) }); }
   }
   if (request.method !== 'POST') return json({ ok: false, error: 'post-only' }, 405);
   let b; try { b = await request.json(); } catch (e) { return json({ ok: false, error: 'bad-json' }, 400); }
@@ -108,7 +118,7 @@ export async function onRequest({ request, env }) {
   const pf = Array.isArray(b.platforms) ? b.platforms : [];
   const out = {};
   let I; try { I = await ids(token, env); } catch (e) { return json({ ok: false, error: String(e.message || e) }); }
-  if (pf.includes('ig')) { try { if (!I.igId) throw new Error('حساب إنستغرام غير مربوط بالصفحة'); out.ig = { ok: true, ...(await publishIG(I.igId, token, items, String(b.captionIg || '').slice(0, 2200))) }; } catch (e) { out.ig = { ok: false, error: String(e.message || e) }; } }
-  if (pf.includes('fb')) { try { out.fb = { ok: true, ...(await publishFB(I.pageId, token, items, String(b.captionFb || '').slice(0, 60000))) }; } catch (e) { out.fb = { ok: false, error: String(e.message || e) }; } }
+  if (pf.includes('ig')) { try { if (!I.igId) throw new Error('حساب إنستغرام غير مربوط بالصفحة'); out.ig = { ok: true, ...(await publishIG(I.igId, I.token, items, String(b.captionIg || '').slice(0, 2200))) }; } catch (e) { out.ig = { ok: false, error: String(e.message || e) }; } }
+  if (pf.includes('fb')) { try { out.fb = { ok: true, ...(await publishFB(I.pageId, I.token, items, String(b.captionFb || '').slice(0, 60000))) }; } catch (e) { out.fb = { ok: false, error: String(e.message || e) }; } }
   return json({ ok: true, out });
 }
