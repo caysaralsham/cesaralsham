@@ -371,7 +371,7 @@ function card(pf,txt){
   const ht=countTags(txt), warn=pf==='ig'&&ht>5?'<span class="warn">⚠️ إنستغرام يسمح بـ 5 هاشتاغات فقط</span>':'';
   return `<div class="out" data-pf="${pf}"><div class="hd"><b><span class="pf ${cls}">${name}</span></b><span class="meta"><span class="len">${txt.length}</span> حرف · <span class="ht">${ht}</span> هاشتاغ ${warn}</span></div>
   <textarea class="tx">${esc(txt)}</textarea>
-  <div class="row" style="margin-top:8px"><button class="btn s cp">📋 نسخ</button><button class="btn s l sh">📤 نسخ ومشاركة الملف</button><a class="btn s l" href="${url}" target="_blank" rel="noopener" style="text-decoration:none">↗ فتح ${name}</a></div></div>`;
+  <div class="row" style="margin-top:8px">${pf==='ig'||pf==='fb'?`<button class="btn s pub">🚀 انشر الآن على ${name}</button>`:''}<button class="btn s ${pf==='ig'||pf==='fb'?'l ':''}cp">📋 نسخ</button><button class="btn s l sh">📤 نسخ ومشاركة الملف</button><a class="btn s l" href="${url}" target="_blank" rel="noopener" style="text-decoration:none">↗ فتح ${name} (نشر يدوي)</a></div><div class="pubOne meta" style="margin-top:6px"></div></div>`;
 }
 function gen(){
   const o=opts(), r=build(o), c=CATS[o.cat];
@@ -403,24 +403,26 @@ async function idTok(){const u=firebase.auth().currentUser;return u?await u.getI
 async function pubCheck(){if(pubReady)return;try{const r=await fetch('/api/meta-publish',{headers:{authorization:'Bearer '+await idTok()}});const d=await r.json();
   if(d.ok){pubReady=true;$('#pubStat').textContent='✅ مربوط: صفحة «'+d.pageName+'»'+(d.igUser?' + إنستغرام @'+d.igUser:' (إنستغرام غير مربوط)');$('#pubGo').disabled=false}
   else $('#pubStat').textContent=d.error==='no-token'?'⏳ النشر المباشر بانتظار ربط فيسبوك (خطوة واحدة مع Claude).':'⚠️ '+(d.error||'تعذر الفحص')}catch(e){$('#pubStat').textContent='⚠️ تعذر الاتصال'}}
-$('#pubGo').onclick=async()=>{
-  const pf=[];if($('#pIg').checked)pf.push('ig');if($('#pFb').checked)pf.push('fb');
-  if(!pf.length)return toast('اختر منصة');if(!files.length)return toast('اختر صورة أو فيديو أولاً');
+async function doPublish(pf,msgEl,resEl,btn){
+  if(!pubReady){await pubCheck();if(!pubReady)return toast('النشر المباشر غير مربوط بعد')}
+  if(!pf.length)return toast('اختر منصة');if(!files.length)return toast('اختر صورة أو فيديو أولاً (الخطوة 1 فوق)');
   const tx=k=>($(`.out[data-pf="${k}"] .tx`)||{}).value||'';
   if(pf.includes('ig')&&countTags(tx('ig'))>5)return toast('إنستغرام: 5 هاشتاغات كحد أقصى');
   if(!confirm('سيُنشر الآن على: '+pf.map(k=>PF[k][0]).join(' و ')+' مع '+Math.min(files.length,10)+' ملف. متأكد؟'))return;
-  $('#pubGo').disabled=true;$('#pubRes').innerHTML='';
+  if(btn)btn.disabled=true;resEl.innerHTML='';
   try{const st=firebase.storage(),items=[];let i=0;
-    for(const f of files.slice(0,10)){i++;$('#pubMsg').textContent=`رفع الملف ${i}/${Math.min(files.length,10)}…`;
+    for(const f of files.slice(0,10)){i++;msgEl.textContent=`رفع الملف ${i}/${Math.min(files.length,10)}…`;
       const ext=(f.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');const ref=st.ref(`gallery/marketing/${Date.now()}-${i}.${ext}`);
       await ref.put(f,{contentType:f.type});items.push({url:await ref.getDownloadURL(),type:f.type.startsWith('video')?'video':'image'})}
-    $('#pubMsg').textContent='جارٍ النشر… (الفيديو قد يأخذ دقيقة)';
+    msgEl.textContent='جارٍ النشر… (الفيديو قد يأخذ دقيقة)';
     const r=await fetch('/api/meta-publish',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+await idTok()},body:JSON.stringify({platforms:pf,items,captionIg:tx('ig'),captionFb:tx('fb')})});
     const d=await r.json();if(!d.ok)throw new Error(d.error||'فشل');
-    $('#pubRes').innerHTML=Object.entries(d.out).map(([k,v])=>`<p>${PF[k][0]}: ${v.ok?'✅ نُشر'+(v.link?` — <a href="${esc(v.link)}" target="_blank" rel="noopener">فتح المنشور</a>`:''):'❌ '+esc(v.error)}</p>`).join('');
-    $('#pubMsg').textContent='';
-  }catch(e){$('#pubMsg').textContent='⚠️ '+(e.message||e)}
-  $('#pubGo').disabled=false};
+    resEl.innerHTML=Object.entries(d.out).map(([k,v])=>`<p>${PF[k][0]}: ${v.ok?'✅ نُشر'+(v.link?` — <a href="${esc(v.link)}" target="_blank" rel="noopener">فتح المنشور</a>`:''):'❌ '+esc(v.error)}</p>`).join('');
+    msgEl.textContent='';
+  }catch(e){msgEl.textContent='⚠️ '+(e.message||e)}
+  if(btn)btn.disabled=false}
+$('#pubGo').onclick=()=>{const pf=[];if($('#pIg').checked)pf.push('ig');if($('#pFb').checked)pf.push('fb');doPublish(pf,$('#pubMsg'),$('#pubRes'),$('#pubGo'))};
+$('#outs').addEventListener('click',e=>{if(!e.target.classList.contains('pub'))return;const o=e.target.closest('.out');const box=o.querySelector('.pubOne');doPublish([o.dataset.pf],box,box,e.target)});
 /* ---------- التخزين: سحابة (Firestore) أو هذا الجهاز ---------- */
 const COL='cesar_marketing', LKEY='tasweeq_posts_v1';
 let db=null, cloud=false, POSTS={};
