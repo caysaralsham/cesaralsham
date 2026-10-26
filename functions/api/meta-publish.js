@@ -103,7 +103,7 @@ async function publishFB(pageId, token, items, caption) {
 
 export async function onRequest({ request, env }) {
   if (!(await verifyUser(request, env))) return json({ ok: false, error: 'login' }, 401);
-  const token = env.META_PAGE_TOKEN;
+  const token = env.META_PAGE_TOKEN_PERM || env.META_PAGE_TOKEN;
   if (!token) return json({ ok: false, error: 'no-token' });
   if (request.method === 'GET') { // فحص الربط
     try {
