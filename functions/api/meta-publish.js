@@ -119,6 +119,12 @@ export async function onRequest({ request, env }) {
   const pf = Array.isArray(b.platforms) ? b.platforms : [];
   const out = {};
   let I; try { I = await ids(token, env); } catch (e) { return json({ ok: false, error: String(e.message || e) }); }
+  if (b.story) { // قصة إنستغرام (صورة واحدة) — للقصص الثابتة
+    try { if (!I.igId) throw new Error('no-ig'); const cid = (await gpost(`${I.igId}/media`, { media_type: 'STORIES', image_url: items[0].url }, I.token)).id;
+      for (let i = 0; i < 20; i++) { const s = await gget(`${cid}?fields=status_code`, I.token); if (s.status_code === 'FINISHED') break; if (s.status_code === 'ERROR') throw new Error('IG story processing failed'); await sleep(1500); }
+      const r = await gpost(`${I.igId}/media_publish`, { creation_id: cid }, I.token); return json({ ok: true, out: { ig: { ok: true, id: r.id } } });
+    } catch (e) { return json({ ok: false, error: String(e.message || e) }); }
+  }
   if (pf.includes('ig')) { try { if (!I.igId) throw new Error('حساب إنستغرام غير مربوط بالصفحة'); out.ig = { ok: true, ...(await publishIG(I.igId, I.token, items, String(b.captionIg || '').slice(0, 2200))) }; } catch (e) { out.ig = { ok: false, error: String(e.message || e) }; } }
   if (pf.includes('fb')) { try { out.fb = { ok: true, ...(await publishFB(I.pageId, I.token, items, String(b.captionFb || '').slice(0, 60000))) }; } catch (e) { out.fb = { ok: false, error: String(e.message || e) }; } }
   return json({ ok: true, out });
