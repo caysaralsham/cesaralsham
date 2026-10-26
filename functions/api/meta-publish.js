@@ -31,7 +31,8 @@ async function verifyUser(request, env) {
     const now = Date.now() / 1000;
     if (!ok || pl.aud !== FB_PROJECT || pl.iss !== 'https://securetoken.google.com/' + FB_PROJECT) return null;
     if (!(pl.exp > now) || !(pl.iat < now + 300) || !pl.sub) return null;
-    const owners = String(env.OWNER_UIDS || '').split(',').map(x => x.trim()).filter(Boolean);
+    let owners = String(env.OWNER_UIDS || '').split(',').map(x => x.trim()).filter(Boolean);
+    if (!owners.length) owners = ['dzrssSkOkqSFAcLpO1JkUROQU0D2', 'b9mGtbtfmqRWtW3WDcqL7iBKrig1']; // نفس أصحاب الحساب في قواعد Firebase
     if (!owners.length || !owners.includes(pl.sub)) return null;
     return pl.sub;
   } catch (e) { return null; }
