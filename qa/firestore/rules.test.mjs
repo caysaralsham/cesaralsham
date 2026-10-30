@@ -13,6 +13,7 @@ const here = f => new URL(f, import.meta.url);
 const VERSIONS = {
   'القواعد الحالية': 'firestore.rules',
   'القواعد المقترحة': 'firestore.proposed.rules',
+  'قواعد للنشر الآن (الحالية + عدّاد واتساب)': 'firestore.publish-now.rules',
 };
 
 // ثغرات معروفة في القواعد الحالية فقط — تُصلح في النسخة المقترحة
@@ -25,7 +26,7 @@ for (const [label, file] of Object.entries(VERSIONS)) {
     const stranger = () => env.authenticatedContext('someone-else').firestore();
     const visitor = () => env.unauthenticatedContext().firestore();
     const seed = (path, data) => env.withSecurityRulesDisabled(ctx => setDoc(doc(ctx.firestore(), path), data));
-    const gap = (id, name, fn) => test(name, { todo: file === 'firestore.rules' && KNOWN_GAPS_IN_CURRENT.has(id) ? 'ثغرة معروفة في القواعد الحالية' : false }, fn);
+    const gap = (id, name, fn) => test(name, { todo: (file === 'firestore.rules' || file === 'firestore.publish-now.rules') && KNOWN_GAPS_IN_CURRENT.has(id) ? 'ثغرة معروفة في القواعد الحالية' : false }, fn);
 
     before(async () => {
       env = await initializeTestEnvironment({
@@ -66,6 +67,24 @@ for (const [label, file] of Object.entries(VERSIONS)) {
     describe('أي مجموعة غير مذكورة مرفوضة', () => {
       test('site_requests', () => assertFails(setDoc(doc(visitor(), 'site_requests/x'), { a: 1 })));
       test('مجموعة عشوائية', () => assertFails(getDoc(doc(owner(), 'random/x'))));
+    });
+
+    // عدّاد واتساب: موجود بالنسخة المقترحة ونسخة النشر الآن بس
+    if (file !== 'firestore.rules') describe('عدّاد طلب السعر cesar_price_clicks', () => {
+      const P = 'cesar_price_clicks/' + DAY;
+      test('الزائر بيبدأ عدّاد اليوم بـ 1', () => assertSucceeds(setDoc(doc(visitor(), P), { date: DAY, count: increment(1), uniq: increment(1), cats: { 'نوافير رخام': increment(1) } }, { merge: true })));
+      test('الزائر بيزيد 1 (مع قسم تاني)', async () => { await seed(P, { date: DAY, count: 3, uniq: 2, cats: { 'نوافير رخام': 3 } });
+        await assertSucceeds(setDoc(doc(visitor(), P), { date: DAY, count: increment(1), uniq: increment(0), cats: { 'شمينه رخام': increment(1) } }, { merge: true })); });
+      test('ممنوع يزيد أكتر من 1', async () => { await seed(P, { date: DAY, count: 3, uniq: 2, cats: {} });
+        await assertFails(setDoc(doc(visitor(), P), { date: DAY, count: increment(5) }, { merge: true })); });
+      test('ممنوع ينقّص أو يمسح', async () => { await seed(P, { date: DAY, count: 3, uniq: 2, cats: { a: 3 } });
+        await assertFails(setDoc(doc(visitor(), P), { date: DAY, count: 0, uniq: 0, cats: {} })); });
+      test('ممنوع يزيد قسمين بنفس الكبسة', async () => { await seed(P, { date: DAY, count: 3, uniq: 2, cats: {} });
+        await assertFails(setDoc(doc(visitor(), P), { date: DAY, count: increment(1), cats: { a: increment(1), b: increment(1) } }, { merge: true })); });
+      test('ممنوع حقول غريبة', () => assertFails(setDoc(doc(visitor(), 'cesar_price_clicks/2026-10-17'), { date: '2026-10-17', count: 1, phone: '0550' })));
+      test('الزائر ما بيقرا الأرقام', async () => { await seed(P, { date: DAY, count: 3 }); await assertFails(getDoc(doc(visitor(), P))); });
+      test('صاحب الموقع بيقرا', async () => { await seed(P, { date: DAY, count: 3 }); await assertSucceeds(getDoc(doc(owner(), P))); });
+      test('ممنوع الحذف', async () => { await seed(P, { date: DAY, count: 3 }); await assertFails(deleteDoc(doc(owner(), P))); });
     });
 
     describe('عدّاد الزيارات cesar_stats', () => {
