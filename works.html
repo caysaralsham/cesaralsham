@@ -360,9 +360,12 @@ document.getElementById('lightboxOverlay').addEventListener('click', (e)=>{
 
 db.collection(FS_COLLECTION).onSnapshot((snap)=>{
   let combined = [];
+  let hiddenIds = new Set(); // الصور المكررة المخفية (site_hidden) — مخفية من الموقع بس، مش محذوفة
   snap.forEach(doc=>{
     if(doc.id.startsWith(CHUNK_PREFIX)) combined = combined.concat(doc.data().items || []);
+    else if(doc.id === 'site_hidden') hiddenIds = new Set((doc.data().items || []).map(x => x && x.id));
   });
+  combined = combined.filter(it => !hiddenIds.has(it.id));
   combined.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
   items = combined;
   renderFilters();

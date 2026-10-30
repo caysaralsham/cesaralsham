@@ -178,6 +178,7 @@ const docs = await loadDocs();
 const settings = (docs.main && docs.main.settings) || {};
 let items = [];
 for (const [id, d] of Object.entries(docs)) if (id.startsWith('items_')) items = items.concat(d.items || []);
+{ const hid = new Set(((docs.site_hidden && docs.site_hidden.items) || []).map(x => x && x.id)); items = items.filter(it => !hid.has(it.id)); } // الصور المكررة المخفية
 items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 const byCat = new Map();
 for (const it of items) { const c = String(it.category || '').trim(); if (!c) continue; if (!byCat.has(c)) byCat.set(c, []); byCat.get(c).push(it); }

@@ -107,7 +107,8 @@ $('#zip').onclick=async()=>{const L=list();if(!L.length)return toast('لا يو�
   btn.disabled=false;btn.textContent='⬇️ تنزيل المعروض (مجلد ZIP)';toast(bad?`تم — تعذّر ${bad}`:'تم ✓')};
 
 async function load(){const db=firebase.firestore();const s=await db.collection('cesar_website').get();const all=[];
-  s.forEach(d=>{if(d.id.startsWith('items_'))(d.data().items||[]).forEach(it=>{if(it&&it.img&&it.qrV1&&/^https:/.test(it.img))all.push(it)})});
+  let hid=new Set();s.forEach(d=>{if(d.id==='site_hidden')hid=new Set((d.data().items||[]).map(x=>x&&x.id))});
+  s.forEach(d=>{if(d.id.startsWith('items_'))(d.data().items||[]).forEach(it=>{if(it&&it.img&&it.qrV1&&/^https:/.test(it.img)&&!hid.has(it.id))all.push(it)})});
   all.sort((a,b)=>String(a.id).localeCompare(String(b.id)));ITEMS=all;
   const cats=[...new Set(all.map(x=>x.category).filter(Boolean))];$('#cat').innerHTML='<option value="">كل الأقسام</option>'+cats.map(c=>`<option>${esc(c)}</option>`).join('');render()}
 

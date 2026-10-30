@@ -781,13 +781,24 @@ async function removeVideoCloud(id){
   }catch(e){ console.error(e); toast('تعذر حذف الفيديو من السحابة'); }
 }
 
+// الصور المكررة المخفية من الموقع (مستند site_hidden) — مش محذوفة، وكبسة «إظهار» بترجّعها
+let hiddenMap = {};
+async function unhideItem(id){
+  try{
+    const ref = db.collection(FS_COLLECTION).doc('site_hidden');
+    await db.runTransaction(async t=>{ const d = await t.get(ref); const arr = (d.exists && d.data().items) || []; t.set(ref, {items: arr.filter(x => x && x.id !== id)}); });
+    toast('رجعت الصورة للموقع ✓');
+  }catch(e){ console.error(e); toast('ما زبط — تأكد من الإنترنت'); }
+}
 function startSync(){
   db.collection(FS_COLLECTION).onSnapshot((snap)=>{
     const itemChunks = {};
     const videoChunks = {};
+    hiddenMap = {};
     snap.forEach(doc=>{
       if(doc.id.startsWith(VCHUNK_PREFIX)) videoChunks[doc.id] = doc.data().items || [];
       else if(doc.id.startsWith(CHUNK_PREFIX)) itemChunks[doc.id] = doc.data().items || [];
+      else if(doc.id === 'site_hidden') (doc.data().items || []).forEach(x => { if(x && x.id) hiddenMap[x.id] = x; });
     });
     chunkCache = itemChunks;
     chunkOf = {};
@@ -1134,11 +1145,11 @@ function groupHTML(list, kind){
     const warn=(noTitle?`<span class="tag warn">${noTitle} بلا عنوان</span>`:'')+(dup?`<span class="tag warn">${dup} عنوان مكرر</span>`:'');
     const cards=arr.map((x,k)=>`
       <div class="acard${selected.has(x.id)?' picked':''}">
-        ${kind==='img'?`<label class="sel"><input type="checkbox" class="sel-cb" data-id="${x.id}"${selected.has(x.id)?' checked':''}></label>${x.cover?'<span class="cover-badge">⭐ صورة القسم</span>':''}<img src="${x.img}" loading="lazy">`:`<video src="${x.url}" muted preload="none"${x.poster?` poster="${x.poster}"`:''}></video>${x.poster?'':'<span class="cover-badge" style="background:#FCEBD9;color:#A0640C">بلا غلاف</span>'}`}
+        ${kind==='img'?`<label class="sel"><input type="checkbox" class="sel-cb" data-id="${x.id}"${selected.has(x.id)?' checked':''}></label>${x.cover?'<span class="cover-badge">⭐ صورة القسم</span>':''}${hiddenMap[x.id]?`<span class="cover-badge" style="background:#7a1f1f;color:#fff">🙈 مخفية (مكررة)</span>`:''}<img src="${x.img}" loading="lazy"${hiddenMap[x.id]?' style="opacity:.45"':''}>`:`<video src="${x.url}" muted preload="none"${x.poster?` poster="${x.poster}"`:''}></video>${x.poster?'':'<span class="cover-badge" style="background:#FCEBD9;color:#A0640C">بلا غلاف</span>'}`}
         <div class="acard-b">
           <div class="acard-t">${(x.title||'').trim()||'<span style="color:var(--danger);">بلا عنوان</span>'}${(x.title||'').trim()&&titleCount[(x.title||'').trim()]>1?' <span class="tag warn">مكرر</span>':''}</div>
           <div class="row-actions">
-            ${kind==='img'?`<button class="btn btn-ghost btn-sm" onclick="openEditItem('${x.id}')" title="تعديل">✎</button>${x.cover?'':`<button class="btn btn-ghost btn-sm" onclick="setCover('${x.id}')" title="خليها صورة القسم">⭐</button>`}<button class="btn btn-ghost btn-sm" onclick="moveItem('${x.id}',-1)" title="لقدّام"${k===0?' disabled':''}>▲</button><button class="btn btn-ghost btn-sm" onclick="moveItem('${x.id}',1)" title="لورا"${k===arr.length-1?' disabled':''}>▼</button><button class="btn btn-danger btn-sm" onclick="deleteItem('${x.id}')" title="حذف">🗑</button>`
+            ${kind==='img'?`${hiddenMap[x.id]?`<button class="btn btn-ghost btn-sm" onclick="unhideItem('${x.id}')" title="رجّعها تبين بالموقع">👁 إظهار</button>`:''}<button class="btn btn-ghost btn-sm" onclick="openEditItem('${x.id}')" title="تعديل">✎</button>${x.cover?'':`<button class="btn btn-ghost btn-sm" onclick="setCover('${x.id}')" title="خليها صورة القسم">⭐</button>`}<button class="btn btn-ghost btn-sm" onclick="moveItem('${x.id}',-1)" title="لقدّام"${k===0?' disabled':''}>▲</button><button class="btn btn-ghost btn-sm" onclick="moveItem('${x.id}',1)" title="لورا"${k===arr.length-1?' disabled':''}>▼</button><button class="btn btn-danger btn-sm" onclick="deleteItem('${x.id}')" title="حذف">🗑</button>`
               :`<button class="btn btn-sm btn-edit-video" data-video-id="${x.id}" title="تعديل">✎ تعديل</button><button class="btn btn-danger btn-sm btn-delete-video" data-video-id="${x.id}" title="حذف">🗑</button>`}
           </div>
         </div>
