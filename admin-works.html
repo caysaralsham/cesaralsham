@@ -1593,7 +1593,8 @@ async function processFbQueue(){
   const ref=db.collection(FS_COLLECTION).doc('fb_queue');let q=[];
   try{const d=await ref.get();q=(d.exists&&d.data().items)||[]}catch(e){return}
   if(!q.length)return;fbQueueBusy=true;toast('عم ضيف '+q.length+' صورة من فيسبوك للموقع...');let ok=0;
-  for(const x of q){
+  for(const [k,x] of q.entries()){
+    if(k%10===0)toast('صور فيسبوك: '+k+' من '+q.length+'...');
     try{
       if(items.some(it=>it.id===x.id||(x.fbId&&it.fbId===x.fbId))){ok++;continue}
       const newItem={id:x.id,createdAt:Date.now(),title:'',category:x.category,size:'',color:'',type:'',price:'',img:x.img,qrV1:true,wmV2:true,fbId:x.fbId||''};
@@ -1604,6 +1605,7 @@ async function processFbQueue(){
   }
   try{await db.runTransaction(async t=>{const d=await t.get(ref);const cur=(d.exists&&d.data().items)||[];const done=new Set(q.map(x=>x.id));const rest=cur.filter(x=>!done.has(x.id));if(rest.length)t.set(ref,{items:rest,updatedAt:Date.now()});else t.delete(ref)})}catch(e){}
   renderItemsTable();fbQueueBusy=false;toast('✓ انضافت '+ok+' صورة من فيسبوك للموقع');
+  setTimeout(()=>{try{processFbQueue()}catch(e){}},5000); // إذا انضافت صور جديدة للقائمة بالأثناء
 }
 // ---------- استبدال اللوغو بالباركود ----------
 (function(){
