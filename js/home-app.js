@@ -647,6 +647,32 @@ function renderHomeShowcase(){
       <span>${short(cat)}</span>
     </a>`)).join('');
   if(window.__motionShowcase) window.__motionShowcase();
+  renderHomeCats();
+  renderHomeLatest();
+}
+// روابط الأقسام: من البيانات الحية — أي قسم جديد بيبين فوراً (مش بس بعد تحديث الصفحات كل 3 ساعات)
+function renderHomeCats(){
+  const box = document.querySelector('.sc-cats'); if(!box || !items.length) return;
+  const cats = [...new Set(items.map(it=>(it.category||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar'));
+  const shown = new Set([...box.querySelectorAll('a')].map(a=>a.textContent.trim()));
+  const short = c => c.replace(/\*\*/g,'').split('|')[0].trim();
+  cats.filter(c=>!shown.has(short(c))).forEach(c=>{ const a=document.createElement('a'); a.href='/works?category='+encodeURIComponent(c); a.textContent=short(c); box.appendChild(a); });
+}
+// «أحدث الإضافات»: آخر الأعمال اللي انضافت (آخر 30 يوم)، كل وحدة مع اسم قسمها ورابط القسم نفسه
+function renderHomeLatest(){
+  const wrap = document.getElementById('homeShowcase'); if(!wrap) return;
+  let sec = document.getElementById('homeLatest');
+  const short = c => String(c||'').replace(/\*\*/g,'').split('|')[0].trim();
+  const fresh = items.filter(it=>it.img && (it.category||'').trim() && (Date.now()-(it.createdAt||0)) < 30*864e5)
+    .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0,6);
+  if(!fresh.length){ if(sec) sec.remove(); return; }
+  if(!sec){ sec = document.createElement('div'); sec.id='homeLatest'; sec.innerHTML='<h3 class="sc-title" style="font-size:1.15em;margin-top:22px">🆕 أحدث الإضافات</h3><div class="sc-latest" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px"></div>';
+    const cats = document.querySelector('.sc-cats'); (cats||wrap).insertAdjacentElement('afterend', sec); }
+  sec.querySelector('.sc-latest').innerHTML = fresh.map(it=>{ const c=(it.category||'').trim(); return `
+    <a class="sc-item" href="/works?category=${encodeURIComponent(c)}">
+      <img src="${it.img}" loading="lazy" alt="${(it.aiAltAr||it.title||short(c))} - قيصر الشام">
+      <span>${short(c)}</span>
+    </a>`; }).join('');
 }
 
 function renderVideoShowcase(){
