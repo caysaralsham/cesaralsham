@@ -3394,11 +3394,11 @@ function drawColumn(s){
   const DN={none:'',flute:'، مخدد',twist:'، ملفوف',panel:'، حشوة غائرة',leaves:'، حشوة منحوتة أوراق'};
   const stats=[[HN+'العامود',(half?'نص عامود ملصوق عالحيط — ':'')+nm+' — '+kn+(DN[s.deco||'none']||'')+(+s.ring?'، مع حلقة':'')],['الارتفاع الكلي',fmt(tot)],[shape==='round'?'القطر من برّا':'العرض من برّا',outer+' سم']];
   const cut=[];let qty='',unit='';
-  if(kind==='block'){const v=outer*outer*H*HF/1e6;stats.push(['الحجم (بلوك '+outer+' × '+outer+' × '+H+')',v.toFixed(3)+' م³'],['عدد القطع',nb+' × '+Math.round(H/nb)+' سم']);cut.push({cells:['جسم العامود (كتلة)',(shape==='round'?'قطر ':'عرض ')+outer+'، ارتفاع '+Math.round(H/nb),nb]});qty=v.toFixed(3);unit='م³'}
+  if(kind==='block'){const v=outer*outer*H*HF/1e6;stats.push(['الحجم (بلوك '+outer+' × '+outer+' × '+H+')',v.toFixed(3)+' م³'],['عدد القطع',nb+' × '+Math.round(H/nb)+' سم']);cut.push({cells:[HN+'جسم العامود (كتلة)',(shape==='round'?'قطر ':'عرض ')+outer+'، ارتفاع '+Math.round(H/nb),nb]});qty=v.toFixed(3);unit='م³'}
   if(kind==='wrap'){const v=outer*outer*H*HF/1e6;stats.push(['سماكة الرخام',th+' سم'],['الحجم (كتلة '+outer+' × '+outer+' × '+H+')',v.toFixed(3)+' م³'],['عدد القطع',nb+' × قطعتين، ارتفاع '+Math.round(H/nb)+' سم']);
     cut.push({cells:['نص عامود',(shape==='round'?'قطر ':'عرض ')+outer+'، ارتفاع '+Math.round(H/nb)+'، سماكة '+th,(half?1:2)*nb]});qty=v.toFixed(3);unit='م³'}
   if(kind==='tiles'){const nA=Math.max(1,Math.round(per*HF/+s.tW)),pw=per*HF/nA,dm=outer/100,hm=H/100,a=(shape==='round'?dm*3.14*hm:shape==='square'?dm*4*hm:per*H/1e4)*HF;stats.push(['سماكة الرخام',th+' سم'],['قطع بالدورة',nA],['عدد القطع (لفوق)',nb],['مجموع القطع',nA*nb],['المساحة',(shape==='round'?dm.toFixed(2)+' × 3.14 × '+hm.toFixed(2)+' = ':shape==='square'?dm.toFixed(2)+' × 4 × '+hm.toFixed(2)+' = ':'')+a.toFixed(2)+' م²']);
-    cut.push({cells:['قطعة لصق',pw.toFixed(1)+' × '+Math.round(tHc)+' سم، سماكة '+th,nA*nb]});qty=a.toFixed(2);unit='م²'}
+    cut.push({cells:[(half?'قطعة لصق (نص دورة)':'قطعة لصق'),pw.toFixed(1)+' × '+Math.round(tHc)+' سم، سماكة '+th,nA*nb]});qty=a.toFixed(2);unit='م²'}
   if(bH){stats.push([HN+'القاعدة',BT[bT]+'، '+bW+' × '+bH+' سم']);cut.push({cells:[HN+'قاعدة '+BT[bT],'عرض '+bW+'، ارتفاع '+bH,Math.max(1,+s.cnt||1)]})}
   if(cH){stats.push([HN+'التاج',CTp[cT]+'، '+cW+' × '+cH+' سم']);cut.push({cells:[HN+'تاج '+CTp[cT],'عرض '+cW+'، ارتفاع '+cH,Math.max(1,+s.cnt||1)]})}
   const cnt=Math.max(1,+s.cnt||1);if(cnt>1){stats.splice(1,0,['عدد العواميد',cnt]);if(qty)stats.push([unit==='م³'?'الحجم الكلي لـ '+cnt+' عواميد':'المساحة الكلية لـ '+cnt+' عواميد',(qty*cnt).toFixed(unit==='م³'?3:2)+' '+unit])}
