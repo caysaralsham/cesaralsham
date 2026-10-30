@@ -593,6 +593,7 @@ firebase.auth().onAuthStateChanged(user=>{
     loadMusicSlots();
     renderVisitStats(); renderWaStats();
     setTimeout(runWeeklyBackupIfNeeded, 3000);
+    setTimeout(()=>{try{processFbQueue()}catch(e){console.warn(e)}}, 7000);
   } else {
     document.getElementById('loginScreen').style.display = 'flex';
     fbReady = false;
@@ -1581,6 +1582,29 @@ const TT=(()=>{
 })();
 
 
+
+// ---------- صور من فيسبوك (من أداة «صور فيسبوك» بأدواتي) ----------
+// الأداة بترفع الصورة بالباركود وبتحطها بـ cesar_website/fb_queue — هون منكمّلها متل أي صورة جديدة:
+// عنوان ووصف بالذكاء الاصطناعي، اسم «موديل» حسب القسم، وبتنحفظ بالأعمال.
+let fbQueueBusy=false;
+async function processFbQueue(){
+  if(fbQueueBusy||!fbReady)return;
+  for(let i=0;i<40&&!Object.keys(chunkCache||{}).length;i++)await new Promise(r=>setTimeout(r,500));
+  const ref=db.collection(FS_COLLECTION).doc('fb_queue');let q=[];
+  try{const d=await ref.get();q=(d.exists&&d.data().items)||[]}catch(e){return}
+  if(!q.length)return;fbQueueBusy=true;toast('عم ضيف '+q.length+' صورة من فيسبوك للموقع...');let ok=0;
+  for(const x of q){
+    try{
+      if(items.some(it=>it.id===x.id||(x.fbId&&it.fbId===x.fbId))){ok++;continue}
+      const newItem={id:x.id,createdAt:Date.now(),title:'',category:x.category,size:'',color:'',type:'',price:'',img:x.img,qrV1:true,wmV2:true,fbId:x.fbId||''};
+      if(window.aiAnalyze){try{Object.assign(newItem,await Promise.race([window.aiAnalyze(newItem),new Promise((_,r)=>setTimeout(()=>r(new Error('t')),25000))]))}catch(e){}}
+      if(!newItem.title){try{const cat=(newItem.category||'').trim(),t=TT.make([...items.filter(y=>(y.category||'').trim()===cat),newItem],false)[newItem.id];if(t){newItem.title=t.title;newItem.titleV2=true}}catch(e){}}
+      items.unshift(newItem);await saveNewItem(newItem);ok++;
+    }catch(e){console.error('fb_queue',x.id,e)}
+  }
+  try{await db.runTransaction(async t=>{const d=await t.get(ref);const cur=(d.exists&&d.data().items)||[];const done=new Set(q.map(x=>x.id));const rest=cur.filter(x=>!done.has(x.id));if(rest.length)t.set(ref,{items:rest,updatedAt:Date.now()});else t.delete(ref)})}catch(e){}
+  renderItemsTable();fbQueueBusy=false;toast('✓ انضافت '+ok+' صورة من فيسبوك للموقع');
+}
 // ---------- استبدال اللوغو بالباركود ----------
 (function(){
   const $=id=>document.getElementById(id);let stop=false;
