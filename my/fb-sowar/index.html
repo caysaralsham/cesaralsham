@@ -110,7 +110,10 @@ function oldLogoCutX(img){
 }
 
 // بصمة الصورة (dHash 64 بت) — نفس اللي استعملناه لمطابقة القصص
-function dh(im){const c=document.createElement('canvas');c.width=9;c.height=8;const x=c.getContext('2d');x.drawImage(im,0,0,9,8);const d=x.getImageData(0,0,9,8).data;const b=[];for(let y=0;y<8;y++)for(let i=0;i<8;i++){const a=(y*9+i)*4,q=a+4;b.push((d[a]+d[a+1]+d[a+2])>(d[q]+d[q+1]+d[q+2])?1:0)}return b}
+// 3 بصمات لكل صورة (كاملة، بلا الشريط التحتاني، والوسط) — لأن صور الموقع انقصّ منها شريط اللوغو
+const dh3=im=>{const W=im.naturalWidth,H=im.naturalHeight;return[dh(im,0,0,W,H),dh(im,0,0,W,H*.88),dh(im,W*.1,H*.1,W*.8,H*.8)]};
+const ham3=(A,B)=>{let m=99;for(let i=0;i<3;i++)for(let j=0;j<3;j++){if(i!==j&&(i===2||j===2))continue;const d=ham(A[i],B[j]);if(d<m)m=d}return m};
+function dh(im,sx=0,sy=0,sw,sh){sw=sw||im.naturalWidth;sh=sh||im.naturalHeight;const c=document.createElement('canvas');c.width=9;c.height=8;const x=c.getContext('2d');x.drawImage(im,sx,sy,sw,sh,0,0,9,8);const d=x.getImageData(0,0,9,8).data;const b=[];for(let y=0;y<8;y++)for(let i=0;i<8;i++){const a=(y*9+i)*4,q=a+4;b.push((d[a]+d[a+1]+d[a+2])>(d[q]+d[q+1]+d[q+2])?1:0)}return b}
 const ham=(a,b)=>{let n=0;for(let i=0;i<64;i++)if(a[i]!==b[i])n++;return n};
 const loadUrl=u=>new Promise((res,rej)=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>res(i);i.onerror=()=>rej(new Error('img'));i.src=u});
 async function fbBlob(p){const r=await fetch('/api/meta-photos?img='+encodeURIComponent(p.src),{headers:{authorization:'Bearer '+await tok()}});if(!r.ok)throw new Error('img '+r.status);return r.blob()}
@@ -125,22 +128,24 @@ async function run(){STOP=false;$('#go').disabled=true;$('#stop').style.display=
  try{
   setSt('جارٍ تحميل صور الموقع…',0);const items=await loadSite();SITE=[];
   let k=0;for(const it of items){if(STOP)break;k++;setSt(`بصمات صور الموقع ${k} من ${items.length}`,k/items.length*.2);
-    for(const u of [it.img,it.oldImg].filter(u=>u&&/^https:/.test(u))){try{SITE.push({h:dh(await loadUrl(u)),cat:(it.category||'').trim(),id:it.id})}catch(e){}}}
+    const orig='https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/'+encodeURIComponent('gallery/'+it.id+'.jpg')+'?alt=media';
+    for(const u of [it.img,it.oldImg,orig].filter((u,i,a)=>u&&/^https:/.test(u)&&a.indexOf(u)===i)){try{SITE.push({h:dh3(await loadUrl(u)),cat:(it.category||'').trim(),id:it.id})}catch(e){}}}
   setSt('جارٍ جلب قائمة صور فيسبوك…',.2);PH=[];let after=null,g=0;
   do{const r=await fetch('/api/meta-photos'+(after?'?after='+encodeURIComponent(after):''),{headers:{authorization:'Bearer '+await tok()}});const d=await r.json();if(!d.ok)throw new Error(d.error||'meta');PH.push(...d.photos);after=d.next;g++;setSt(`صور فيسبوك: ${PH.length}`,.2)}while(after&&g<60&&!STOP);
   const seen=[];let n=0;
   for(const p of PH){if(STOP)break;n++;setSt(`فحص صورة ${n} من ${PH.length}`,.2+.5*n/PH.length);
-    try{const im=await fbImg(p);p.h=dh(im);p.thumb=small(im,400);
-      const dup=seen.find(q=>ham(q.h,p.h)<=4);if(dup){p.dup=true;continue}seen.push(p);
-      let best=99,bc=null;for(const s of SITE){const d=ham(s.h,p.h);if(d<best){best=d;bc=s}}
-      if(best<=9){p.onSite=true;p.cat=bc.cat;p.siteId=bc.id}}catch(e){p.bad=true}}
+    try{const im=await fbImg(p);p.h=dh3(im);p.thumb=small(im,400);
+      const dup=seen.find(q=>ham(q.h[0],p.h[0])<=4);if(dup){p.dup=true;continue}seen.push(p);
+      let best=99,bc=null;for(const s of SITE){const d=ham3(s.h,p.h);if(d<best){best=d;bc=s}}
+      if(best<=10){p.onSite=true;p.cat=bc.cat;p.siteId=bc.id}}catch(e){p.bad=true}}
   PH=PH.filter(p=>!p.dup&&!p.bad);
   const need=PH.filter(p=>!p.onSite);let m=0;
-  for(const p of need){if(STOP)break;m++;setSt(`تصنيف بالذكاء الاصطناعي ${m} من ${need.length}`,.7+.3*m/Math.max(1,need.length));
-    if(SAVED[p.id]!==undefined){p.cat=SAVED[p.id];continue}
-    try{const r=await fetch('/api/ai-cat',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+await tok()},body:JSON.stringify({image:p.thumb,cats:CATS})});const d=await r.json();
-      if(d.ok){p.cat=d.cat||X;SAVED[p.id]=p.cat;saveCats()}else if(d.error==='rate'){await sleep(8000)}}catch(e){}
-    await sleep(250)}
+  need.forEach(p=>{if(SAVED[p.id]!==undefined)p.cat=SAVED[p.id]});const todo=need.filter(p=>!p.cat);
+  const batches=[];for(let i=0;i<todo.length;i+=8)batches.push(todo.slice(i,i+8));
+  const one=async B=>{for(let t=0;t<4;t++){try{const r=await fetch('/api/ai-cat',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+await tok()},body:JSON.stringify({images:B.map(p=>p.thumb),cats:CATS})});const d=await r.json();
+      if(d.ok){B.forEach((p,i)=>{p.cat=d.cats[i]||X;SAVED[p.id]=p.cat});saveCats();return}if(d.error==='rate'){await sleep(10000*(t+1));continue}}catch(e){}await sleep(2000)}};
+  let bi=0;const worker=async()=>{while(bi<batches.length&&!STOP){const B=batches[bi++];await one(B);m+=B.length;setSt(`تصنيف بالذكاء الاصطناعي ${Math.min(m,todo.length)} من ${todo.length}`,.7+.3*m/Math.max(1,todo.length))}};
+  await Promise.all([worker(),worker()]);
   PH.forEach(p=>{if(!p.cat)p.cat=X;if(SAVED[p.id]&&p.onSite)delete SAVED[p.id]});
   setSt(`✓ ${PH.length} صورة (بدون المكرر) — ${PH.filter(p=>p.onSite).length} موجودة بالموقع، ${PH.filter(p=>!p.onSite&&p.cat!==X).length} شغل مش بالموقع، ${PH.filter(p=>p.cat===X).length} مش شغل`,1);
   $('#tools').style.display='';render()

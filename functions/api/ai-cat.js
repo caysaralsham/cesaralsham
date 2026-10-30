@@ -42,25 +42,28 @@ export async function onRequest({ request, env }) {
   if (!(await verifyUser(request, env))) return json({ ok: false, error: 'login' }, 401);
   const key = env.GEMINI_API_KEY; if (!key) return json({ ok: false, error: 'no-key' }, 503);
   let b; try { b = await request.json(); } catch (e) { return json({ ok: false, error: 'bad-json' }, 400); }
-  const data = String(b.image || '').replace(/^data:image\/\w+;base64,/, '');
-  if (!data || data.length > 1.5e6) return json({ ok: false, error: 'bad-image' }, 400);
+  const imgs = (Array.isArray(b.images) ? b.images : [b.image]).map(x => String(x || '').replace(/^data:image\/\w+;base64,/, '')).filter(Boolean).slice(0, 10);
+  if (!imgs.length || imgs.some(x => x.length > 400000)) return json({ ok: false, error: 'bad-image' }, 400);
   const cats = (Array.isArray(b.cats) ? b.cats : []).map(c => String(c).slice(0, 120)).slice(0, 30);
   if (!cats.length) return json({ ok: false, error: 'no-cats' }, 400);
   const prompt = `أنت خبير بالرخام والحجر الطبيعي لشركة «قيصر الشام للحجر والرخام».
-صنّف الصورة في قسم واحد من هالأقسام بالضبط (انسخ الاسم حرفياً):
+رح توصلك ${imgs.length} صور مرقّمة من 1 لـ ${imgs.length} بالترتيب. صنّف كل صورة في قسم واحد من هالأقسام بالضبط (انسخ الاسم حرفياً):
 ${cats.map((c, i) => (i + 1) + ') ' + c).join('\n')}
-إذا الصورة مش شغل رخام أو حجر (إعلان مكتوب، صورة شخص، شعار، لقطة شاشة...) أو ما بتناسب ولا قسم، رجّع cat فاضي.
-تجاهل اللوغو والكتابة على الصورة.`;
-  const req = { contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: 'image/jpeg', data } }] }],
-    generationConfig: { responseMimeType: 'application/json', responseSchema: { type: 'OBJECT', properties: { cat: { type: 'STRING' } }, required: ['cat'] }, temperature: 0 } };
+إذا الصورة مش شغل رخام أو حجر (إعلان مكتوب، صورة شخص، شعار، لقطة شاشة، آلة...) أو ما بتناسب ولا قسم، رجّع cat فاضي.
+تجاهل اللوغو والكتابة على الصور. رجّع مصفوفة فيها لكل صورة: n (رقمها) و cat.`;
+  const parts = [{ text: prompt }];
+  imgs.forEach((d, i) => { parts.push({ text: 'صورة ' + (i + 1) + ':' }); parts.push({ inline_data: { mime_type: 'image/jpeg', data: d } }); });
+  const req = { contents: [{ parts }],
+    generationConfig: { responseMimeType: 'application/json', responseSchema: { type: 'ARRAY', items: { type: 'OBJECT', properties: { n: { type: 'INTEGER' }, cat: { type: 'STRING' } }, required: ['n', 'cat'] } }, temperature: 0 } };
   for (const m of (env.GEMINI_MODEL ? [env.GEMINI_MODEL] : MODELS)) {
     const g = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': key }, body: JSON.stringify(req) });
     const d = await g.json().catch(() => ({}));
     if (g.status === 404) continue;
     if (g.status === 429) return json({ ok: false, error: 'rate' }, 429);
     if (!g.ok) return json({ ok: false, error: 'gemini-' + g.status }, 502);
-    try { const t = d.candidates[0].content.parts.map(p => p.text || '').join(''); const c = String(JSON.parse(t).cat || '').trim();
-      return json({ ok: true, cat: cats.includes(c) ? c : '' }); } catch (e) { return json({ ok: false, error: 'parse' }, 502); }
+    try { const t = d.candidates[0].content.parts.map(p => p.text || '').join(''); const arr = JSON.parse(t); const out = imgs.map(() => '');
+      for (const x of arr) { const i = (x.n | 0) - 1, c = String(x.cat || '').trim(); if (i >= 0 && i < out.length && cats.includes(c)) out[i] = c; }
+      return json({ ok: true, cats: out, cat: out[0] }); } catch (e) { return json({ ok: false, error: 'parse' }, 502); }
   }
   return json({ ok: false, error: 'no-model' }, 502);
 }
