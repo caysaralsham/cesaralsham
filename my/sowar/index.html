@@ -69,12 +69,14 @@ const toast=t=>{const e=$('#toast');e.textContent=t;e.style.display='block';clea
 const nameAr=it=>String(it.title||'').split('|')[0].trim();
 const pageOf=it=>{const p=PAGES.find(([k])=>String(it.category||'').includes(k));return 'https://cesar-alcham.com/'+(p?p[1]:'')};
 const fileName=it=>(nameAr(it).replace(/[\\/:*?"<>|]/g,'-')+' ['+it.id+'].jpg');
-const isDone=it=>DONE_WA.has(it.id)||MINE.has(it.id);
+// كل صور الموقع حتى 30 أكتوبر 2026 مساءً تبدّلت في كتالوج واتساب — «الباقي» يعرض فقط الصور الجديدة بعدها
+const CATALOG_DONE_AT=Date.UTC(2026,9,30,19,0);
+const isDone=it=>DONE_WA.has(it.id)||MINE.has(it.id)||(Number(it.createdAt)||0)<CATALOG_DONE_AT;
 
 function list(){const c=$('#cat').value,q=$('#q').value.trim().toLowerCase();
   return ITEMS.filter(it=>(F==='all'||!isDone(it))&&(!c||it.category===c)&&(!q||nameAr(it).toLowerCase().includes(q)||it.id.includes(q)))}
 function render(){const L=list();
-  $('#msg').textContent=F==='rem'?`باقي ${L.length} صورة لم تُبدَّل في كتالوج واتساب (من ${ITEMS.length})`:`${L.length} صورة`;
+  $('#msg').textContent=F==='rem'?(L.length?`باقي ${L.length} صورة جديدة لم تُضف لكتالوج واتساب (من ${ITEMS.length})`:'✓ كل الصور مبدّلة في كتالوج واتساب — الصور الجديدة التي ترفعها تظهر هنا'):`${L.length} صورة`;
   $('#grid').innerHTML=L.map(it=>`<div class="card${isDone(it)?' done':''}" data-id="${it.id}">
    <img loading="lazy" src="${esc(it.img)}" alt="${esc(nameAr(it))}">
    <div class="b"><div class="t">${esc(nameAr(it))}</div><div class="c">${esc(it.id)}</div>
