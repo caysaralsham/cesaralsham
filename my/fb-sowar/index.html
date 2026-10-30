@@ -116,7 +116,8 @@ const ham3=(A,B)=>{let m=99;for(let i=0;i<3;i++)for(let j=0;j<3;j++){if(i!==j&&(
 function dh(im,sx=0,sy=0,sw,sh){sw=sw||im.naturalWidth;sh=sh||im.naturalHeight;const c=document.createElement('canvas');c.width=9;c.height=8;const x=c.getContext('2d');x.drawImage(im,sx,sy,sw,sh,0,0,9,8);const d=x.getImageData(0,0,9,8).data;const b=[];for(let y=0;y<8;y++)for(let i=0;i<8;i++){const a=(y*9+i)*4,q=a+4;b.push((d[a]+d[a+1]+d[a+2])>(d[q]+d[q+1]+d[q+2])?1:0)}return b}
 const ham=(a,b)=>{let n=0;for(let i=0;i<64;i++)if(a[i]!==b[i])n++;return n};
 const loadUrl=u=>new Promise((res,rej)=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>res(i);i.onerror=()=>rej(new Error('img'));i.src=u});
-async function fbBlob(p){const r=await fetch('/api/meta-photos?img='+encodeURIComponent(p.src),{headers:{authorization:'Bearer '+await tok()}});if(!r.ok)throw new Error('img '+r.status);return r.blob()}
+// النت بيقطع أحياناً: منعيد المحاولة كم مرة قبل ما نتخطّى الصورة
+async function fbBlob(p){for(let t=0;t<4;t++){try{const r=await fetch('/api/meta-photos?img='+encodeURIComponent(p.src),{headers:{authorization:'Bearer '+await tok()}});if(r.ok)return r.blob()}catch(e){}await sleep(2000*(t+1))}throw new Error('img')}
 // الصورة الكاملة بتنحمّل وقت الحاجة بس (فحص، مجلد مضغوط، رفع) وبعدين بتنترك — بيضل معنا صورة صغيرة للعرض
 async function fbImg(p){const b=await fbBlob(p);const u=URL.createObjectURL(b);try{return await loadUrl(u)}finally{setTimeout(()=>URL.revokeObjectURL(u),60000)}}
 function small(im,max=512){const s=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));const c=document.createElement('canvas');c.width=Math.round(im.naturalWidth*s);c.height=Math.round(im.naturalHeight*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.8)}
@@ -126,12 +127,12 @@ async function loadSite(){const s=await db.collection('cesar_website').get();con
 
 async function run(){STOP=false;$('#go').disabled=true;$('#stop').style.display='';
  try{
-  setSt('جارٍ تحميل صور الموقع…',0);const items=await loadSite();SITE=[];
+  setSt('جارٍ تحميل صور الموقع…',0);const items=await loadSite();if(SITE.length)items.length=0;else SITE=[]; // بصمات الموقع محسوبة من قبل؟ ما منعيدها
   let k=0;for(const it of items){if(STOP)break;k++;setSt(`بصمات صور الموقع ${k} من ${items.length}`,k/items.length*.2);
     const orig='https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/'+encodeURIComponent('gallery/'+it.id+'.jpg')+'?alt=media';
     for(const u of [it.img,it.oldImg,orig].filter((u,i,a)=>u&&/^https:/.test(u)&&a.indexOf(u)===i)){try{SITE.push({h:dh3(await loadUrl(u)),cat:(it.category||'').trim(),id:it.id})}catch(e){}}}
   setSt('جارٍ جلب قائمة صور فيسبوك…',.2);PH=[];let after=null,g=0;
-  do{const r=await fetch('/api/meta-photos'+(after?'?after='+encodeURIComponent(after):''),{headers:{authorization:'Bearer '+await tok()}});const d=await r.json();if(!d.ok)throw new Error(d.error||'meta');PH.push(...d.photos);after=d.next;g++;setSt(`صور فيسبوك: ${PH.length}`,.2)}while(after&&g<60&&!STOP);
+  do{let d;for(let t=0;t<5;t++){try{const r=await fetch('/api/meta-photos'+(after?'?after='+encodeURIComponent(after):''),{headers:{authorization:'Bearer '+await tok()}});d=await r.json();break}catch(e){await sleep(3000*(t+1))}}if(!d)throw new Error('انقطع النت — اكبس الزر مرة تانية');if(!d.ok)throw new Error(d.error||'meta');PH.push(...d.photos);after=d.next;g++;setSt(`صور فيسبوك: ${PH.length}`,.2)}while(after&&g<60&&!STOP);
   const seen=[];let n=0;
   for(const p of PH){if(STOP)break;n++;setSt(`فحص صورة ${n} من ${PH.length}`,.2+.5*n/PH.length);
     try{const im=await fbImg(p);p.h=dh3(im);p.thumb=small(im,400);
