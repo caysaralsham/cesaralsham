@@ -184,11 +184,13 @@ $('#zip').onclick=async()=>{const L=list().filter(p=>p.cat!==X);if(!L.length)ret
 
 // الإضافة للموقع: الصورة بتنرفع بالباركود، وبتنحط بقائمة انتظار — لوحة الأعمال بتكمّلها (عنوان ووصف بالذكاء الاصطناعي) لحالها
 $('#add').onclick=async()=>{const L=PH.filter(p=>p.sel&&!p.onSite&&p.cat!==X);if(!L.length)return toast('حدّد صور «أضفها للموقع» أول');
-  if(!confirm(`إضافة ${L.length} صورة للموقع؟`))return;const btn=$('#add');btn.disabled=true;let ok=0;const q=[];
-  for(const p of L){btn.textContent=`جارٍ ${ok+1} من ${L.length}…`;try{const c=await makeQr(await fbImg(p),1600);const id='fb'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  if(!confirm(`إضافة ${L.length} صورة للموقع؟`))return;const btn=$('#add');btn.disabled=true;let ok=0,idx=0,buf=[];
+  // كل 20 صورة بتنحفظ بقائمة الانتظار (إذا انقطع شي ما بيضيع اللي انرفع)
+  const flush=async()=>{if(!buf.length)return;const add=buf;buf=[];const ref=db.collection('cesar_website').doc('fb_queue');await db.runTransaction(async t=>{const d=await t.get(ref);const old=(d.exists&&d.data().items)||[];t.set(ref,{items:[...old,...add],updatedAt:Date.now()})})};
+  const worker=async()=>{while(idx<L.length){const p=L[idx++];try{const c=await makeQr(await fbImg(p),1600);const id='fb'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
     const ref=st.ref('gallery/'+id+'.jpg');await ref.put(await toBlob(c),{contentType:'image/jpeg'});const url=await ref.getDownloadURL();
-    q.push({id,img:url,category:p.cat,fbId:p.id,at:p.at||''});p.onSite=true;p.sel=false;ok++}catch(e){console.error(e)}}
-  if(q.length){const ref=db.collection('cesar_website').doc('fb_queue');await db.runTransaction(async t=>{const d=await t.get(ref);const old=(d.exists&&d.data().items)||[];t.set(ref,{items:[...old,...q],updatedAt:Date.now()})})}
+    buf.push({id,img:url,category:p.cat,fbId:p.id,at:p.at||''});p.onSite=true;p.sel=false;ok++;btn.textContent=`جارٍ ${ok} من ${L.length}…`;if(buf.length>=20)await flush()}catch(e){console.error(e)}}};
+  await Promise.all([worker(),worker(),worker(),worker()]);await flush();
   btn.disabled=false;btn.textContent='➕ أضف المحدّدة للموقع';render();
   toast(`✓ ${ok} صورة جاهزة — افتح «لوحة الموقع» لتكمل الإضافة`)};
 
