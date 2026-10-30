@@ -58,10 +58,10 @@ export async function onRequest({ request, env }) {
     const d = await g.json().catch(() => ({}));
     if (g.status === 404) continue;
     if (g.status === 429) return json({ ok: false, error: 'rate' }, 429);
-    if (!g.ok) return json({ ok: false, error: 'gemini-' + g.status }, 502);
+    if (!g.ok) return json({ ok: false, error: 'gemini-' + g.status, msg: String((d.error && d.error.message) || '').slice(0, 200) }, 200);
     try { const t = d.candidates[0].content.parts.map(p => p.text || '').join(''); const arr = JSON.parse(t);
       const same = [...new Set(arr.map(n => n | 0).filter(n => n >= 1 && n <= cands.length))];
-      return json({ ok: true, same, model: m }); } catch (e) { return json({ ok: false, error: 'parse' }, 502); }
+      return json({ ok: true, same, model: m }); } catch (e) { return json({ ok: false, error: 'parse' }, 200); }
   }
-  return json({ ok: false, error: 'no-model' }, 502);
+  return json({ ok: false, error: 'no-model' }, 200);
 }
