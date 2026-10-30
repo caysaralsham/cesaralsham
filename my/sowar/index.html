@@ -1,0 +1,120 @@
+<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>صور الباركود — قيصر الشام</title><meta name="theme-color" content="#3B2414">
+<link rel="icon" href="/my/icon-192.png"><link rel="apple-touch-icon" href="/my/icon-180.png">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;700;800&display=swap" rel="stylesheet">
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root{--ink:#3B2414;--br:#9A6A3A;--deep:#6E4524;--bg:#F5ECDD;--card:#FBF6EE;--line:#E6D6BC;--ok:#2F7D4A}
+*{box-sizing:border-box}
+body{margin:0;font-family:Cairo,Tahoma,sans-serif;background:var(--bg);color:var(--ink);font-size:15px}
+header{background:var(--ink);color:#F5ECDD;padding:10px 16px;position:sticky;top:0;z-index:20}
+header b{font-size:19px;color:#D9B98C}header small{display:block;font-size:12px;opacity:.85}
+main{max-width:1100px;margin:0 auto;padding:12px 16px 90px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:10px;margin-bottom:12px}
+select,input[type=text],input[type=email],input[type=password]{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+input[type=text]{flex:1;min-width:160px}
+.btn{font:inherit;font-weight:800;padding:8px 14px;border:0;border-radius:11px;background:var(--br);color:#fff;cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-block}
+.btn.l{background:#fff;color:var(--deep);border:1.5px solid var(--line)}.btn.ok{background:var(--ok)}.btn.s{padding:5px 10px;font-size:13px}
+.btn:disabled{opacity:.5}
+.chip{font:inherit;font-weight:700;font-size:13px;padding:6px 12px;border-radius:999px;border:1.5px solid var(--line);background:#fff;color:var(--deep);cursor:pointer}
+.chip.on{background:var(--br);color:#fff;border-color:var(--br)}
+#msg{font-weight:800;font-size:13px;width:100%}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.card{background:#fff;border:1.5px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.card.done{opacity:.55}
+.card img{width:100%;aspect-ratio:3/4;object-fit:cover;background:#eee;display:block}
+.card .b{padding:9px 10px;display:flex;flex-direction:column;gap:6px;flex:1}
+.card .t{font-weight:800;font-size:14px;line-height:1.5}
+.card .c{font-size:12px;color:var(--deep);direction:ltr;text-align:right;font-family:monospace}
+.card .row{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
+#login{max-width:360px;margin:40px auto;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:18px;display:none}
+#login label{display:block;font-weight:800;font-size:13px;margin:10px 0 4px}#login input{width:100%}
+#err{color:#A6453D;font-weight:800;font-size:13px;margin-top:8px}
+#app{display:none}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 16px;border-radius:999px;font-weight:700;display:none;z-index:50}
+</style>
+<style id="sb-right">/* شريط التمرير على اليمين (كمبيوتر بس) */@media (min-width:900px) and (hover:hover){html{direction:ltr}body{direction:rtl}}</style>
+</head><body>
+<header><b>🔳 صور الباركود</b><small>صور الأعمال من الموقع عليها الباركود والرقم — للكتالوج وأي منصة</small></header>
+
+<form id="login"><b style="font-size:17px">تسجيل الدخول</b><label>البريد الإلكتروني</label><input id="em" type="email" autocomplete="username" required><label>كلمة السر</label><input id="pw" type="password" autocomplete="current-password" required><button class="btn" style="margin-top:12px;width:100%">دخول</button><div id="err"></div></form>
+
+<div id="app"><main>
+<div class="bar">
+  <button class="chip on" data-f="rem">الباقي للكتالوج</button>
+  <button class="chip" data-f="all">كل الصور</button>
+  <select id="cat"><option value="">كل الأقسام</option></select>
+  <input type="text" id="q" placeholder="بحث بالاسم أو الكود">
+  <button class="btn ok" id="zip">⬇️ تنزيل المعروض (مجلد ZIP)</button>
+  <div id="msg"></div>
+</div>
+<div class="grid" id="grid"></div>
+</main></div>
+<div id="toast"></div>
+
+<script>
+// منتجات كتالوج واتساب التي تبدّلت صورتها بالباركود (30 أكتوبر 2026) — تُعرض باهتة في «الباقي»
+const DONE_WA=new Set("msf76dddly2w0a,msg2eqn4o270mo,msg2d4b4xgsv1q,msg2g9dnd32kmu,mskpuamo97969t,mskpv2um6q2vec,mskpvijkmhjche,mskpvwllbdhikz,mskpwa3oyd4cmk,mskpxav7767upx,mskpxzdfessowt,mskpyiyr7uij25,mskpz1u9t051ya,mskpzjfuwt9c1d,mskq00ex6smk9p,mskq0c8oy6wvan,mskq0q3ag81ykm,mskq137er25uj2,mskq1jo6u61n9b,mskq29zdzai4tj,mskq2mkpx2967u,mskq30hlacl09c,mskq3c6cvi5r9b,mskq3urms709ks,mskq4hbsrr1hs8,mskq5c6jlv9fl1,mskq64oevzizdu,mskq993h6kazio,mskq9yv9pnreb0,mskqal3ijarl1s,mskqaya24mnnx0,mskqbhatl7acsq,mskqchj20n4v3z,mskqd435kk42lz,mskqdkpuxz8t00,mskqdynaxwsx4u,mskqei7ugsh2tc,mskqf033x516m0,mskqfgjdb8ua09,mskqfuxuv5kvsq,mskqikq37mk8gc,mskqjs4osokrlf,mskqkbfkj8iviw,mskqktbrnfos6x,mskqlcukjec45v,mskqlvomk3u5za,mskqmkf6xgo2bc,mskqnlx2bgnlqv,mskqo40af5n50l,mskqoirggoxj5t,mskqoy80ru7to9,mskqpdzm8hfkgn,mskqpvrecm5mz0,mskqqdh7parz60,mskqqs585izdfe,mskqr8pe7nbb96,mskqrq3iwqt28p,mskqs71xmbqqpn,mskqsmt4vhuom0,mskqt4m2tb6blb,mskqtjuqjew2u6,mskqu1hmcs2a2g,mskqun2utiz9cu,mskqvaeufta97l,mskrjvvkmdqnfp,mskrklrcz1brit,mskrl0h2sed100,mskrlitrltai9n,mskrmannlqn56r,mskrmo4dnfdg0o,mskrn2hibx95n5,mskrngtafchm51,mskrnzrh73iigk,mskroc9yjtkcyy,mskrot9cifynn8,mskrpbrndqjbmo,mskrpwk7fwjbhx,mskrqgyo8inklh,mskrqw9tqgshdn,mskrrddwzpschi,mskrs98rtaogwy,mskrt07x3ugyjx,mskrtjn22hjrzd,mskrv8yy87rcvg,mskrvpfx2rv3or,mskrwe71ippa2y,mskrws2ydp5o0e,mskrxdkqyopf1j,mskrxusw68tzty,mskry8gn6k8971,mskryn7icj4748,mskrz1807leshu,mskrzfyzh4c3k7,mskrzyenmxdrap,msks0daxfxdvg6,msks10l10xlvmn,msks1mww6183jc,msks27bwyf54p9,msks3ipr2valck,msks3xd71h8j7w,msks4bbntfrvms,msks4pkj6j1s73,msks7d8s9mah3h,msks7zdbq1iao6,msks8dnbvozt3v,msks8q264ttt4j".split(','));
+const PAGES=[['Lavabo','a3mal-lavabo-en-marbre-naturel'],['Colonnes','a3mal-colonnes-et-balustrades-en-marbre'],['Tableaux de sol','a3mal-tableaux-de-sol-en-marbre'],['bassin','a3mal-bassin-en-bloc-de-marbre'],['Salles de bains','a3mal-salles-de-bains-en-marbre'],['Murs','a3mal-murs-en-marbre-sculpte'],['mosquées','a3mal-decoration-de-mosquees'],['Sabils','a3mal-sabils-en-marbre'],['Cascades','a3mal-cascades-murales'],['Cheminées','a3mal-cheminees-en-marbre'],['Tables','a3mal-tables-en-marbre'],['Fenêtres','a3mal-fenetres-en-marbre'],['Fontaines','a3mal-fontaines-en-marbre'],['Façades','a3mal-facades-de-maisons-en-pierre']];
+const $=s=>document.querySelector(s);
+let ITEMS=[],F='rem',MINE=new Set();
+try{MINE=new Set(JSON.parse(localStorage.getItem('sowar_done')||'[]'))}catch(e){}
+const saveMine=()=>{try{localStorage.setItem('sowar_done',JSON.stringify([...MINE]))}catch(e){}};
+const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const toast=t=>{const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(e._t);e._t=setTimeout(()=>e.style.display='none',1800)};
+const nameAr=it=>String(it.title||'').split('|')[0].trim();
+const pageOf=it=>{const p=PAGES.find(([k])=>String(it.category||'').includes(k));return 'https://cesar-alcham.com/'+(p?p[1]:'')};
+const fileName=it=>(nameAr(it).replace(/[\\/:*?"<>|]/g,'-')+' ['+it.id+'].jpg');
+const isDone=it=>DONE_WA.has(it.id)||MINE.has(it.id);
+
+function list(){const c=$('#cat').value,q=$('#q').value.trim().toLowerCase();
+  return ITEMS.filter(it=>(F==='all'||!isDone(it))&&(!c||it.category===c)&&(!q||nameAr(it).toLowerCase().includes(q)||it.id.includes(q)))}
+function render(){const L=list();
+  $('#msg').textContent=F==='rem'?`باقي ${L.length} صورة لم تُبدَّل في كتالوج واتساب (من ${ITEMS.length})`:`${L.length} صورة`;
+  $('#grid').innerHTML=L.map(it=>`<div class="card${isDone(it)?' done':''}" data-id="${it.id}">
+   <img loading="lazy" src="${esc(it.img)}" alt="${esc(nameAr(it))}">
+   <div class="b"><div class="t">${esc(nameAr(it))}</div><div class="c">${esc(it.id)}</div>
+   <div class="row"><button class="btn s" data-a="dl">⬇️ حفظ الصورة</button><button class="btn s l" data-a="cp">نسخ الكود</button>
+   <a class="btn s l" href="${esc(pageOf(it))}" target="_blank" rel="noopener">رابط القسم</a>
+   <button class="btn s l" data-a="ok">${isDone(it)?'↩ لم أبدّلها':'✓ بدّلتها'}</button></div></div></div>`).join('')}
+
+async function blobOf(it){const r=await fetch(it.img);if(!r.ok)throw new Error(r.status);return r.blob()}
+async function saveOne(it){const b=await blobOf(it);const f=new File([b],fileName(it),{type:'image/jpeg'});
+  // على الآيفون والجوال: نافذة المشاركة فيها «حفظ الصورة» — على الكمبيوتر: تنزيل عادي
+  if(navigator.canShare&&navigator.canShare({files:[f]})&&/Mobi|iPhone|iPad|Android/.test(navigator.userAgent)){try{await navigator.share({files:[f]});return}catch(e){if(e.name==='AbortError')return}}
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fileName(it);document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000)}
+
+$('#grid').addEventListener('click',async e=>{const b=e.target.closest('button[data-a]');if(!b)return;const it=ITEMS.find(x=>x.id===b.closest('.card').dataset.id);
+  if(b.dataset.a==='dl'){b.disabled=true;try{await saveOne(it)}catch(x){toast('تعذّر التنزيل')}b.disabled=false}
+  if(b.dataset.a==='cp'){try{await navigator.clipboard.writeText(it.id);toast('نُسخ الكود')}catch(x){toast(it.id)}}
+  if(b.dataset.a==='ok'){if(isDone(it)&&MINE.has(it.id))MINE.delete(it.id);else MINE.add(it.id);saveMine();render()}});
+document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===c));F=c.dataset.f;render()});
+$('#cat').onchange=render;$('#q').oninput=render;
+
+$('#zip').onclick=async()=>{const L=list();if(!L.length)return toast('لا يوجد صور');if(typeof JSZip==='undefined')return toast('انتظر ثانية وأعد المحاولة');
+  const btn=$('#zip');btn.disabled=true;const z=new JSZip();let n=0,bad=0;
+  const lines=['الاسم,الكود,رابط القسم,الصورة'];
+  for(const it of L){btn.textContent=`جارٍ ${n+1} من ${L.length}…`;try{z.file(fileName(it),await blobOf(it));lines.push([nameAr(it),it.id,pageOf(it),fileName(it)].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(','))}catch(e){bad++}n++}
+  z.file('القائمة.csv','﻿'+lines.join('\n'));
+  btn.textContent='جارٍ تجهيز الملف…';const b=await z.generateAsync({type:'blob'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='صور-الباركود-'+(F==='rem'?'الباقي-':'')+new Date().toISOString().slice(0,10)+'.zip';document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),4000);
+  btn.disabled=false;btn.textContent='⬇️ تنزيل المعروض (مجلد ZIP)';toast(bad?`تم — تعذّر ${bad}`:'تم ✓')};
+
+async function load(){const db=firebase.firestore();const s=await db.collection('cesar_website').get();const all=[];
+  s.forEach(d=>{if(d.id.startsWith('items_'))(d.data().items||[]).forEach(it=>{if(it&&it.img&&it.qrV1&&/^https:/.test(it.img))all.push(it)})});
+  all.sort((a,b)=>String(a.id).localeCompare(String(b.id)));ITEMS=all;
+  const cats=[...new Set(all.map(x=>x.category).filter(Boolean))];$('#cat').innerHTML='<option value="">كل الأقسام</option>'+cats.map(c=>`<option>${esc(c)}</option>`).join('');render()}
+
+window.addEventListener('DOMContentLoaded',()=>{
+  firebase.initializeApp({apiKey:"AIzaSyDi1Pn7guMnyc0CetV8Z9IUC-k0gtav2_8",authDomain:"basel-7b29b.firebaseapp.com",projectId:"basel-7b29b",storageBucket:"basel-7b29b.firebasestorage.app",messagingSenderId:"1025769465563",appId:"1:1025769465563:web:53b5c9949dbb26364d8efe"});
+  const A=firebase.auth();A.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
+  A.onAuthStateChanged(async u=>{$('#login').style.display=u?'none':'block';$('#app').style.display=u?'block':'none';if(u){try{await load()}catch(e){$('#msg').textContent='تعذّر تحميل الصور'}}});
+  $('#login').addEventListener('submit',async e=>{e.preventDefault();$('#err').textContent='';try{await A.signInWithEmailAndPassword($('#em').value.trim(),$('#pw').value)}catch(x){$('#err').textContent='البريد الإلكتروني أو كلمة السر غير صحيحة'}});
+});
+</script>
+<script src="/js/my-back.js" defer></script>
+</body></html>
