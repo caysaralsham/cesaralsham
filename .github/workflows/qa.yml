@@ -32,6 +32,8 @@ jobs:
           cache-dependency-path: qa/package-lock.json
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      - name: دالتي المعرض والمعمل (مهلة، نسخة احتياطية، صفحة خطأ)
+        run: node tools/test-proxy.mjs maarad && node tools/test-proxy.mjs maamal
       - name: تشغيل الاختبارات
         run: npx playwright test
       - name: حفظ التقرير عند الفشل
