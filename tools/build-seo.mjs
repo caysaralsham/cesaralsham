@@ -83,8 +83,8 @@ function inject(html, name, content){
 // ---------- page template ----------
 function catPage(cat, slug, list, cats, slugs, settings){
   const {ar, fr} = splitName(cat);
-  const title = `${ar}${fr ? ' | ' + fr : ''} - قيصر الشام للحجر والرخام، الجزائر`;
-  const desc = `${ar}${fr ? ' (' + fr + ')' : ''} — صور من أعمال قيصر الشام للحجر والرخام: تصميم وتصنيع وتركيب بالرخام والحجر الطبيعي، من دالي إبراهيم إلى جميع ولايات الجزائر. اطلب عرض سعر على الرقم 0541737888.`;
+  const title = `${ar} في الجزائر | قيصر الشام`; // قصير (أقل من 60 حرف) حتى ما يقصّه غوغل
+  const desc = `${ar} حسب الطلب من قيصر الشام للحجر والرخام: تصميم وتصنيع وتركيب لجميع ولايات الجزائر. اطلب السعر: 0541737888`;
   const imgs = list.map(it => ({it, src: imgUrl(it)})).filter(x => x.src);
   const ogImg = imgs[0] ? abs(imgs[0].src) : SITE + '/img/site/og-card.jpg';
   const social = ['facebook','instagram','tiktok','youtube'].map(k => settings[k]).filter(Boolean);
@@ -345,7 +345,7 @@ for (const c of cats) {
   const imgs = list.map(it => ({it, src: imgUrl(it)})).filter(x => x.src);
   const cards = imgs.map(({it, src}) => `<figure class="card"><a href="${esc(src)}" class="lb"><img src="${esc(src)}" loading="lazy" alt="${esc((it.aiAltFr || frTitle(it, c)) + ' - Cesar Al Cham, marbre Algérie')}"></a><figcaption><b>${esc(frTitle(it, c))}</b>${[it.size].filter(Boolean).length ? `<span>${esc(it.size)}</span>` : ''}<a class="pb" target="_blank" rel="nofollow noopener" href="${esc(waFr('Bonjour, je voudrais connaître le prix de ce travail : ' + frTitle(it, c) + '\n' + abs(src)))}">💬 Demander le prix</a></figcaption></figure>`).join('');
   const others = cats.filter(x => x !== c).map(x => `<a href="/fr/${slugs[x]}">${esc(frOf(x))}</a>`).join('');
-  wr(`fr/${slug}.html`, frLayout({title: `${fr} - Cesar Al Cham, marbre et pierre naturelle en Algérie`, desc: `${fr} : conception, fabrication et pose sur mesure en marbre et pierre naturelle par Cesar Al Cham, Dely Ibrahim (Alger). Devis gratuit au 0541 73 78 88.`, path: `/fr/${slug}`, arPath: `/${slug}`, og: imgs[0] ? abs(imgs[0].src) : '',
+  wr(`fr/${slug}.html`, frLayout({title: `${fr} en Algérie | Cesar Al Cham`, desc: `${fr} sur mesure : conception, fabrication et pose par Cesar Al Cham, Dely Ibrahim (Alger). Devis gratuit : 0541 73 78 88.`, path: `/fr/${slug}`, arPath: `/${slug}`, og: imgs[0] ? abs(imgs[0].src) : '',
     body: `<div class="crumbs"><a href="/fr/">Accueil</a> › <a href="/fr/works">Nos réalisations</a> › ${esc(fr)}</div><h1>${esc(fr)}</h1>
     <p class="intro">Chez Cesar Al Cham, nous concevons, fabriquons et posons ${esc(fr.toLowerCase())} en marbre et pierre naturelle, sur mesure, partout en Algérie. Voici une sélection de nos réalisations.</p>
     <div class="cta"><a class="wa" href="${esc(waFr('Bonjour, je souhaite un devis pour : ' + fr))}" rel="nofollow">Demander un devis sur WhatsApp</a><a class="ph" href="tel:${PHONE}">Appeler : 0541 73 78 88</a></div>
