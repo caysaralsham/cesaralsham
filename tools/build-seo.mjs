@@ -152,7 +152,7 @@ footer{background:#2A190D;color:#C9B08F;text-align:center;padding:24px;font-size
 <body>
 <header><div class="hi">
   <a class="brand" href="/" style="display:flex;align-items:center;gap:10px"><img src="/img/site/243fa7c39e4b.jpg" alt="قيصر الشام" width="46" height="46" style="border-radius:6px"><span><b>قيصر الشام</b><span>للحجر والرخام · الجزائر</span></span></a>
-  <nav><a href="/">الرئيسية</a><a href="/works" class="on">أعمالنا</a><a href="/videos">معرض الفيديو</a><a href="/#contact">تواصل معنا</a><a href="tel:${PHONE}" dir="ltr">0541.73.78.88</a><a href="/fr/${slug}" hreflang="fr" style="border:1.5px solid #D9B98C;border-radius:8px;padding:0 10px">FR</a></nav>
+  <nav><a href="/">الرئيسية</a><a href="/works" class="on">أعمالنا</a><a href="/taghlif-wajihat-hajar">تغليف الواجهات</a><a href="/videos">معرض الفيديو</a><a href="/#contact">تواصل معنا</a><a href="tel:${PHONE}" dir="ltr">0541.73.78.88</a><a href="/fr/${slug}" hreflang="fr" style="border:1.5px solid #D9B98C;border-radius:8px;padding:0 10px">FR</a></nav>
 </div></header>
 <main class="wrap">
   <div class="crumbs"><a href="/">الرئيسية</a> › <a href="/works">أعمالنا</a> › ${esc(ar)}</div>
@@ -384,7 +384,7 @@ const urlE = (loc, lm, pr, imgs = []) => `  <url>\n    <loc>${loc}</loc>\n    <l
 const imgsOf = (list, c) => list.map(it => ({src: imgUrl(it), title: altOf(it, c)})).filter(x => x.src);
 const sm = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-${[urlE(SITE + '/', lastOf(items), '1.0'), urlE(SITE + '/works', lastOf(items), '0.9', items.slice(0, 50).map(it => ({src: imgUrl(it), title: altOf(it, String(it.category || '').trim())})).filter(x => x.src)), urlE(SITE + '/videos', today, '0.7'),
+${[urlE(SITE + '/', lastOf(items), '1.0'), urlE(SITE + '/works', lastOf(items), '0.9', items.slice(0, 50).map(it => ({src: imgUrl(it), title: altOf(it, String(it.category || '').trim())})).filter(x => x.src)), urlE(SITE + '/videos', today, '0.7'), urlE(SITE + '/taghlif-wajihat-hajar', '2026-10-31', '0.9'),
   ...cats.map(c => urlE(`${SITE}/${slugs[c]}`, lastOf(byCat.get(c)), '0.8', imgsOf(byCat.get(c), c))),
   urlE(SITE + '/fr/', lastOf(items), '0.9'), urlE(SITE + '/fr/works', lastOf(items), '0.8'), urlE(SITE + '/fr/videos', today, '0.6'),
   ...cats.map(c => urlE(`${SITE}/fr/${slugs[c]}`, lastOf(byCat.get(c)), '0.7', imgsOf(byCat.get(c), c)))].join('\n')}
