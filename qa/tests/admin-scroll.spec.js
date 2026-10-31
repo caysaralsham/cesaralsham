@@ -14,6 +14,7 @@ test('لوحة الأعمال: حذف صورة ما بيطلّع الصفحة ل
     window.scrollTo(0, 1500); await new Promise(r=>setTimeout(r,200));
     const before = window.scrollY;
     window.confirm = ()=>true;
+    removeItemCloud = async ()=>1;   // نجاح الحذف من السحابة (المحاكاة)
     deleteItem('i20');
     await new Promise(r=>setTimeout(r,600));
     return {before, after: window.scrollY, left: items.length};
