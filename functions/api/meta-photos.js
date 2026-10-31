@@ -1,7 +1,8 @@
 // قراءة فقط: صور صفحة فيسبوك «قيصر الشام» (للأداة الخاصة «صور فيسبوك» بأدواتي)
 // ما في هون أي حذف أو تعديل أو نشر. المفتاح بيضل مخفي بـ Cloudflare، والطلب لازم يكون من حسابك (Firebase).
 //  GET ?after=<cursor>   → قائمة الصور (100 بالمرة) مع رابط أكبر نسخة
-//  GET ?img=<رابط fbcdn> → الصورة نفسها من نفس موقعنا (حتى المتصفح يقدر يحط عليها الباركود)
+//  GET ?videos=1&after=<cursor> → قائمة فيديوهات الصفحة (قراءة فقط) مع رابط الملف
+//  GET ?img=<رابط fbcdn> → الصورة (أو الفيديو) نفسه من نفس موقعنا (حتى المتصفح يقدر يحط عليها الباركود)
 const G = 'https://graph.facebook.com/v21.0';
 const json = (o, st = 200) => new Response(JSON.stringify(o), { status: st, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
 
@@ -82,6 +83,12 @@ export async function onRequest({ request, env }) {
   try {
     const I = await ids(token, env);
     const after = u.searchParams.get('after');
+    if (u.searchParams.get('videos')) {
+      const v = await gget(`${I.pageId}/videos?fields=id,created_time,title,description,length,source,permalink_url,picture&limit=50${after ? '&after=' + encodeURIComponent(after) : ''}`, I.token);
+      const videos = (v.data || []).map(x => ({ id: x.id, at: x.created_time, title: String(x.title || ''), text: String(x.description || '').slice(0, 1000), len: x.length || 0, src: x.source || '', thumb: x.picture || '', link: x.permalink_url ? 'https://www.facebook.com' + x.permalink_url : '' })).filter(x => x.src);
+      const next = v.paging && v.paging.next && v.paging.cursors ? v.paging.cursors.after : null;
+      return json({ ok: true, videos, next });
+    }
     const d = await gget(`${I.pageId}/photos?type=uploaded&fields=id,created_time,images,link,name&limit=100${after ? '&after=' + encodeURIComponent(after) : ''}`, I.token);
     const photos = (d.data || []).map(p => {
       const im = (p.images || []).slice().sort((a, b) => b.width - a.width);
