@@ -232,7 +232,7 @@
     <div class="panel" id="titlesPanel">
       <h2>✨ عناوين احترافية (عربي + فرنسي) لكل الصور والفيديوهات</h2>
       <p style="font-size:13px;color:#6b5a48;margin:0 0 10px">بيكتب لكل صورة وفيديو عنوان خاص فيه، مختلف عن غيره: القسم + اللون + وصف + رقم موديل — بالعربي للصفحة العربية وبالفرنسي للصفحة الفرنسية. اللون إذا مش مكتوب بيقرّبه من الصورة. العنوان القديم بيضل محفوظ. الصور اللي بترفعها بعدين بياخدوا عنوان لحالهن إذا تركت العنوان فاضي.</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="ttRun">حدّث كل العناوين أوتوماتيك</button><button class="btn btn-ghost" id="ttStop" style="display:none">وقّف</button></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="renumRun" style="background:#1F8F55">🔢 رتّب أرقام الموديلات بس</button><button class="btn" id="ttRun">حدّث كل العناوين أوتوماتيك</button><button class="btn btn-ghost" id="ttStop" style="display:none">وقّف</button></div>
       <div id="ttStatus" style="font-size:13px;margin-top:10px;font-weight:700"></div>
       <div id="ttSample" style="font-size:12.5px;margin-top:8px;line-height:1.9"></div>
     </div>
@@ -1208,8 +1208,23 @@ function removeCardInPlace(id){
     if(!left) grp.remove();
   }
   if(!items.length) renderItemsTable();
+  refreshWarnsInPlace();
   lastItemsSig = itemsSig(items);
   return true;
+}
+// بيحدّث علامات «بلا عنوان» و«عنوان مكرر» بعد الحذف، بلا إعادة رسم
+function refreshWarnsInPlace(){
+  const byId = {}; items.forEach(x=>byId[x.id]=x);
+  const titleCount = {}; filterList(items).forEach(x=>{ const t=(x.title||'').trim(); if(t) titleCount[t]=(titleCount[t]||0)+1; });
+  document.querySelectorAll('#itemsTableWrap .cat-group').forEach(g=>{
+    const arr = [...g.querySelectorAll('.acard[data-card]')].map(c=>byId[c.dataset.card]).filter(Boolean);
+    const noTitle = arr.filter(x=>!(x.title||'').trim()).length, dup = arr.filter(x=>titleCount[(x.title||'').trim()]>1).length;
+    const sum = g.querySelector('summary'); if(!sum) return;
+    sum.querySelectorAll('.tag.warn').forEach(t=>t.remove());
+    sum.insertAdjacentHTML('beforeend', (noTitle?`<span class="tag warn">${noTitle} بلا عنوان</span>`:'')+(dup?`<span class="tag warn">${dup} عنوان مكرر</span>`:''));
+    g.querySelectorAll('.acard[data-card]').forEach(c=>{ const x = byId[c.dataset.card], t = c.querySelector('.acard-t'); if(!x||!t) return; const tt=(x.title||'').trim();
+      t.innerHTML = (tt ? tt.replace(/</g,'&lt;') : '<span style="color:var(--danger);">بلا عنوان</span>') + (tt && titleCount[tt]>1 ? ' <span class="tag warn">مكرر</span>' : ''); });
+  });
 }
 async function deleteItem(id){
   if(!confirm('حذف هذه الصورة؟')) return;
@@ -1547,6 +1562,39 @@ const TT=(()=>{
       $('ttStatus').textContent='خلص ✓ — انحدّثت '+a+' صورة و'+b+' فيديو. الصفحات بتتحدّث لحالها خلال 3 ساعات.';$('ttSample').innerHTML=ex;
     }catch(e){$('ttStatus').textContent=e.message==='stopped'?'وقّفت — اكبس الزر مرة تانية بيكمّل من وين وقف':'ما زبط: '+(e.message||e);console.error(e)}
     finally{window.__bgBusy=false;keepAwake(false);$('ttRun').disabled=false;$('ttStop').style.display='none'}
+  };
+})();
+
+// ---------- إعادة ترقيم الموديلات (بعد حذف صور): بيغيّر الرقم بس، والعنوان والوصف بيضلوا متل ما هني ----------
+// الترقيم بكل قسم لحاله، حسب تاريخ الإضافة (متل ما بتنكتب العناوين): موديل 01، 02، 03...
+(function(){
+  const $=id=>document.getElementById(id);
+  const AR=/(موديل|عمل)\s*[0-9٠-٩]+/, FR=/(modèle|réalisation)\s*[0-9]+/i;
+  function plan(list){
+    const byCat={}; list.forEach(it=>{ const k=(it.category||'').trim()||'—'; (byCat[k]=byCat[k]||[]).push(it); });
+    const out={}; let changed=0;
+    for(const arr of Object.values(byCat)){
+      const nums = arr.filter(it=>AR.test(it.title||'')||FR.test(it.title||'')).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+      const w = nums.length>99?3:2;
+      nums.forEach((it,i)=>{ const n=String(i+1).padStart(w,'0'), t=String(it.title||'');
+        const nt=t.replace(AR,(m,word)=>word+' '+n).replace(FR,(m,word)=>word+' '+n);
+        if(nt!==t){ out[it.id]={title:nt, oldTitle: it.oldTitle||t}; changed++; } });
+    }
+    return {out, changed};
+  }
+  $('renumRun').onclick=async()=>{
+    const pi=plan(items), pv=plan(videos);
+    if(!pi.changed && !pv.changed){ $('ttStatus').textContent='✓ أرقام الموديلات مرتّبة، ما في شي يتغيّر'; return; }
+    const ex=Object.keys(pi.out).slice(0,3).map(id=>{ const it=items.find(x=>x.id===id); return '• '+(it.title||'').split('|')[0].trim()+'  ←  '+pi.out[id].title.split('|')[0].trim(); }).join('\n');
+    if(!confirm('رح يتغيّر رقم الموديل بـ '+pi.changed+' صورة و'+pv.changed+' فيديو (كل قسم بيبلش من 01 وبلا فراغات). العنوان والوصف ما بيتغيّروا.\n\nمثال:\n'+ex+'\n\nمتابعة؟')) return;
+    $('renumRun').disabled=true; $('ttStatus').textContent='بحفظ الأرقام الجديدة...';
+    try{
+      const a=await saveFresh(pi.out,CHUNK_PREFIX), b=await saveFresh(pv.out,VCHUNK_PREFIX);
+      items=items.map(it=>pi.out[it.id]?{...it,...pi.out[it.id]}:it); videos=videos.map(v=>pv.out[v.id]?{...v,...pv.out[v.id]}:v);
+      renderItemsTable(); if(typeof renderVideosTable==='function') renderVideosTable();
+      $('ttStatus').textContent='خلص ✓ — انرتّبت أرقام '+a+' صورة و'+b+' فيديو. الصفحات بتتحدّث لحالها خلال 3 ساعات.';
+    }catch(e){ console.error(e); $('ttStatus').textContent='ما زبط: '+(e.message||e); }
+    finally{ $('renumRun').disabled=false; }
   };
 })();
 
