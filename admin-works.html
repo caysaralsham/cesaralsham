@@ -724,15 +724,35 @@ async function saveNewItem(item){
     );
   }catch(e){ console.error(e); toast('تعذر حفظ الصورة على السحابة'); }
 }
-async function removeItemCloud(id){
-  if(!fbReady) return;
-  const chunkId = chunkOf[id];
-  if(!chunkId) return;
-  const remaining = (chunkCache[chunkId]||[]).filter(it=>it.id !== id);
+// الحذف من السحابة: بيدوّر بكل المقاطع (مش بس آخر مقطع معروف)، وبيقرأ آخر نسخة قبل ما يكتب (معاملة)،
+// فالصورة اللي إلها نسختين بمقطعين بتنحذف من الاثنين، وما في حذف بيرجّع صورة انحذفت قبله.
+// بيرجّع عدد النسخ اللي انحذفت، أو -1 إذا صار خطأ.
+async function removeIdsCloud(ids, prefix){
+  if(!fbReady) return -1;
+  const idset = new Set(ids);
   try{
-    if(remaining.length) await db.collection(FS_COLLECTION).doc(chunkId).set({items: remaining});
-    else await db.collection(FS_COLLECTION).doc(chunkId).delete();
-  }catch(e){ console.error(e); toast('تعذر الحذف من السحابة'); }
+    const snap = await db.collection(FS_COLLECTION).get();
+    let removed = 0;
+    for(const d of snap.docs){
+      if(!d.id.startsWith(prefix)) continue;
+      if(!(d.data().items||[]).some(it=>it && idset.has(it.id))) continue;
+      const ref = db.collection(FS_COLLECTION).doc(d.id);
+      await db.runTransaction(async t=>{
+        const fresh = await t.get(ref);
+        const arr = fresh.exists ? (fresh.data().items||[]) : [];
+        const keep = arr.filter(it=>!(it && idset.has(it.id)));
+        if(keep.length === arr.length) return;
+        removed += arr.length - keep.length;
+        if(keep.length) t.set(ref, {items: keep}); else t.delete(ref);
+      });
+    }
+    return removed;
+  }catch(e){ console.error(e); return -1; }
+}
+async function removeItemCloud(id){
+  const n = await removeIdsCloud([id], CHUNK_PREFIX);
+  if(n < 0) toast('⚠️ تعذر الحذف من السحابة — تأكد من الإنترنت وجرّب مرة تانية');
+  return n;
 }
 async function updateItemInCloud(updatedItem){
   if(!fbReady) return;
@@ -780,18 +800,14 @@ async function saveNewVideo(video){
   }catch(e){ console.error(e); toast('تعذر حفظ الفيديو على السحابة'); }
 }
 async function removeVideoCloud(id){
-  if(!fbReady) return;
-  const chunkId = videoChunkOf[id];
-  if(!chunkId) return;
-  const remaining = (videoChunkCache[chunkId]||[]).filter(it=>it.id !== id);
-  try{
-    if(remaining.length) await db.collection(FS_COLLECTION).doc(chunkId).set({items: remaining});
-    else await db.collection(FS_COLLECTION).doc(chunkId).delete();
-  }catch(e){ console.error(e); toast('تعذر حذف الفيديو من السحابة'); }
+  const n = await removeIdsCloud([id], VCHUNK_PREFIX);
+  if(n < 0) toast('⚠️ تعذر حذف الفيديو من السحابة — تأكد من الإنترنت وجرّب مرة تانية');
+  return n;
 }
 
 // الصور المكررة المخفية من الموقع (مستند site_hidden) — مش محذوفة، وكبسة «إظهار» بترجّعها
 let hiddenMap = {};
+const pendingDel = new Set();   // صور عم تنحذف هلأ — ما منرجّعها عالشاشة لحتى يخلص الحذف
 // بصمة القائمة: إذا السحابة رجّعت نفس القائمة (صدى حذف عملناه هون) ما منعيد رسمها
 var lastItemsSig = '';
 function itemsSig(list){ try{ return JSON.stringify([list.map(it=>[it.id,it.img,it.title,it.category,it.cover,it.order,it.size,it.color,it.type]), Object.keys(hiddenMap).sort()]); }catch(e){ return String(Math.random()); } }
@@ -815,8 +831,11 @@ function startSync(){
     chunkCache = itemChunks;
     chunkOf = {};
     let combined = [];
+    const seenIds = new Set();
     Object.keys(itemChunks).forEach(cid=>{
-      itemChunks[cid].forEach(it=>{ chunkOf[it.id] = cid; combined.push(it); });
+      itemChunks[cid].forEach(it=>{ if(!it || !it.id) return; chunkOf[it.id] = cid;
+        if(seenIds.has(it.id) || pendingDel.has(it.id)) return;   // نسخة مكررة لنفس الصورة، أو عم تنحذف هلأ
+        seenIds.add(it.id); combined.push(it); });
     });
     combined.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
     items = combined;
@@ -1134,10 +1153,14 @@ function renderBulkBar(){
     if(!confirm(`حذف ${selected.size} صورة؟`)) return;
     const ids=[...selected], map={}; ids.forEach(id=>map[id]=null);
     const imgs=items.filter(it=>ids.includes(it.id)).flatMap(it=>[it.img,it.oldImg]).filter(u=>u&&/firebasestorage/.test(u));
-    selected.clear(); applyLocal(map); await saveItemsBatch(map);
+    const keepCopies = items.filter(it=>ids.includes(it.id));
+    selected.clear(); ids.forEach(id=>pendingDel.add(id)); applyLocal(map);
+    const n = await removeIdsCloud(ids, CHUNK_PREFIX);
+    ids.forEach(id=>pendingDel.delete(id));
+    if(n < 0){ items = [...keepCopies, ...items]; renderItemsTable(); toast('⚠️ تعذر الحذف من السحابة — تأكد من الإنترنت وجرّب مرة تانية'); return; }
     for(const id of ids){ try{ await storage.ref('gallery/' + id + '.jpg').delete(); }catch(e){} }
     for(const u of imgs){ try{ await storage.refFromURL(u).delete(); }catch(e){} }
-    toast('تم الحذف');
+    toast('تم حذف '+ids.length+' صورة ✓');
   };
 }
 document.addEventListener('change',e=>{ const cb=e.target.closest&&e.target.closest('.sel-cb'); if(!cb) return; cb.checked?selected.add(cb.dataset.id):selected.delete(cb.dataset.id); cb.closest('.acard').classList.toggle('picked',cb.checked); renderBulkBar(); });
@@ -1245,10 +1268,13 @@ async function deleteItem(id){
   items = items.filter(it => it.id !== id);
   selected.delete(id);
   if(!removeCardInPlace(id)) renderItemsTable();
-  await removeItemCloud(id);
+  pendingDel.add(id);
+  const n = await removeItemCloud(id);
+  pendingDel.delete(id);
+  if(n < 0){ if(del){ items = [del, ...items]; } renderItemsTable(); return; }   // ما انحذفت: بترجع تبيّن
   try{ await storage.ref('gallery/' + id + '.jpg').delete(); }catch(e){}
   for(const u of [del&&del.img,del&&del.oldImg]){ if(u&&/firebasestorage/.test(u)) try{ await storage.refFromURL(u).delete(); }catch(e){} }
-  toast('تم الحذف');
+  toast(n > 1 ? `تم الحذف ✓ (كانت محفوظة ${n} مرات وانحذفت كلها)` : 'تم الحذف ✓');
 }
 
 // ---------- videos table ----------
@@ -1375,9 +1401,10 @@ async function deleteVideo(id){
   const target = videos.find(v => v.id === id);
   videos = videos.filter(v => v.id !== id);
   renderVideosTable();
-  await removeVideoCloud(id);
+  const n = await removeVideoCloud(id);
+  if(n < 0){ if(target){ videos = [target, ...videos]; } renderVideosTable(); return; }
   try{ if(target && target.ext) await storage.ref('gallery/' + id + '.' + target.ext).delete(); }catch(e){}
-  toast('تم حذف الفيديو');
+  toast('تم حذف الفيديو ✓');
 }
 function renderVideoCategorySelectOptions(){
   const sel = document.getElementById('upVideoCategorySelect');
@@ -1681,7 +1708,7 @@ const TT=(()=>{
     $('bkList').innerHTML=lines.join('<br><br>');
     $('bkStatus').textContent=lines.length?'خلص الفحص — شوف التفاصيل تحت':'خلص الفحص ✓ — كل الصور والفيديوهات تمام';
     $('bkDel').style.display=bad.length?'':'none';};
-  $('bkDel').onclick=async()=>{if(!bad.length||!confirm('حذف '+bad.length+' صورة خربانة من الموقع؟'))return;const map={};bad.forEach(it=>map[it.id]=null);applyLocal(map);await saveItemsBatch(map);
+  $('bkDel').onclick=async()=>{if(!bad.length||!confirm('حذف '+bad.length+' صورة خربانة من الموقع؟'))return;const map={};bad.forEach(it=>map[it.id]=null);const ids=bad.map(it=>it.id);ids.forEach(id=>pendingDel.add(id));applyLocal(map);const nDel=await removeIdsCloud(ids,CHUNK_PREFIX);ids.forEach(id=>pendingDel.delete(id));if(nDel<0){toast('⚠️ تعذر الحذف من السحابة — جرّب مرة تانية');return}
     $('bkStatus').textContent='انحذفت '+bad.length+' صورة خربانة ✓';$('bkList').innerHTML='';$('bkDel').style.display='none';bad=[]};
 })();
 
