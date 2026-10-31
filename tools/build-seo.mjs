@@ -384,7 +384,7 @@ const urlE = (loc, lm, pr, imgs = []) => `  <url>\n    <loc>${loc}</loc>\n    <l
 const imgsOf = (list, c) => list.map(it => ({src: imgUrl(it), title: altOf(it, c)})).filter(x => x.src);
 const sm = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-${[urlE(SITE + '/', lastOf(items), '1.0'), urlE(SITE + '/works', lastOf(items), '0.9', items.slice(0, 50).map(it => ({src: imgUrl(it), title: altOf(it, String(it.category || '').trim())})).filter(x => x.src)), urlE(SITE + '/videos', today, '0.7'), urlE(SITE + '/taghlif-wajihat-hajar', '2026-10-31', '0.9'),
+${[urlE(SITE + '/', lastOf(items), '1.0'), urlE(SITE + '/works', lastOf(items), '0.9', items.slice(0, 50).map(it => ({src: imgUrl(it), title: altOf(it, String(it.category || '').trim())})).filter(x => x.src)), urlE(SITE + '/videos', today, '0.7'),
   ...cats.map(c => urlE(`${SITE}/${slugs[c]}`, lastOf(byCat.get(c)), '0.8', imgsOf(byCat.get(c), c))),
   urlE(SITE + '/fr/', lastOf(items), '0.9'), urlE(SITE + '/fr/works', lastOf(items), '0.8'), urlE(SITE + '/fr/videos', today, '0.6'),
   ...cats.map(c => urlE(`${SITE}/fr/${slugs[c]}`, lastOf(byCat.get(c)), '0.7', imgsOf(byCat.get(c), c)))].join('\n')}
