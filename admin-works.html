@@ -92,6 +92,15 @@
 .agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;padding:12px}
 .acard{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff;display:flex;flex-direction:column}
 .acard img,.acard video{width:100%;aspect-ratio:4/3;object-fit:cover;background:#000;display:block}
+/* الصورة وهي عم تتحمّل: مربع فاتح بيلمع بدل الأسود، وبتبيّن الصورة بهدوء لما تخلص */
+.acard img{background:linear-gradient(100deg,#efe6d6 30%,#f8f2e8 50%,#efe6d6 70%) #efe6d6;background-size:300% 100%;animation:imgwait 1.3s linear infinite;opacity:.001;transition:opacity .25s ease}
+.acard img.ok{opacity:1;animation:none;background:#f4efe6}
+.acard img.bad{opacity:0;animation:none}
+.acard .img-err{position:absolute;inset:auto 0 0 0;top:0;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;font-size:12px;color:#A6453D;pointer-events:none}
+.acard .img-box{position:relative;background:linear-gradient(100deg,#efe6d6 30%,#f8f2e8 50%,#efe6d6 70%) #efe6d6;background-size:300% 100%;animation:imgwait 1.3s linear infinite}
+.acard .img-box.ok{animation:none;background:#f4efe6}
+@keyframes imgwait{from{background-position:100% 0}to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.acard img,.acard .img-box{animation:none}}
 .acard-b{padding:8px;display:flex;flex-direction:column;gap:6px;flex:1}
 .acard-t{font-size:12.5px;font-weight:700;line-height:1.4}
 .admin-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}.admin-tools input{flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;font:inherit}
@@ -1149,7 +1158,7 @@ function groupHTML(list, kind){
     const warn=(noTitle?`<span class="tag warn">${noTitle} بلا عنوان</span>`:'')+(dup?`<span class="tag warn">${dup} عنوان مكرر</span>`:'');
     const cards=arr.map((x,k)=>`
       <div class="acard${selected.has(x.id)?' picked':''}" data-card="${x.id}">
-        ${kind==='img'?`<label class="sel"><input type="checkbox" class="sel-cb" data-id="${x.id}"${selected.has(x.id)?' checked':''}></label>${x.cover?'<span class="cover-badge">⭐ صورة القسم</span>':''}${hiddenMap[x.id]?`<span class="cover-badge" style="background:#7a1f1f;color:#fff">🙈 مخفية (مكررة)</span>`:''}<img src="${x.img}" loading="lazy"${hiddenMap[x.id]?' style="opacity:.45"':''}>`:`<video src="${x.url}" muted preload="none"${x.poster?` poster="${x.poster}"`:''}></video>${x.poster?'':'<span class="cover-badge" style="background:#FCEBD9;color:#A0640C">بلا غلاف</span>'}`}
+        ${kind==='img'?`<label class="sel"><input type="checkbox" class="sel-cb" data-id="${x.id}"${selected.has(x.id)?' checked':''}></label>${x.cover?'<span class="cover-badge">⭐ صورة القسم</span>':''}${hiddenMap[x.id]?`<span class="cover-badge" style="background:#7a1f1f;color:#fff">🙈 مخفية (مكررة)</span>`:''}<div class="img-box"><img src="${x.img}" loading="lazy" decoding="async" alt=""${hiddenMap[x.id]?' data-dim="1"':''}></div>`:`<video src="${x.url}" muted preload="none"${x.poster?` poster="${x.poster}"`:''}></video>${x.poster?'':'<span class="cover-badge" style="background:#FCEBD9;color:#A0640C">بلا غلاف</span>'}`}
         <div class="acard-b">
           <div class="acard-t">${(x.title||'').trim()||'<span style="color:var(--danger);">بلا عنوان</span>'}${(x.title||'').trim()&&titleCount[(x.title||'').trim()]>1?' <span class="tag warn">مكرر</span>':''}</div>
           <div class="row-actions">
@@ -1169,6 +1178,10 @@ function keepScroll(wrap, y){
   requestAnimationFrame(()=>window.scrollTo(0, y));
   setTimeout(()=>wrap.querySelectorAll('.cat-group[data-bulk]').forEach(d=>delete d.dataset.bulk), 150);
 }
+document.addEventListener('load',e=>{const im=e.target;if(im.tagName!=='IMG'||!im.closest('.acard'))return;
+  im.classList.add('ok');if(im.dataset.dim)im.style.opacity='.45';const b=im.closest('.img-box');if(b)b.classList.add('ok')},true);
+document.addEventListener('error',e=>{const im=e.target;if(im.tagName!=='IMG'||!im.closest('.acard'))return;
+  im.classList.add('bad');const b=im.closest('.img-box');if(b){b.classList.add('ok');if(!b.querySelector('.img-err'))b.insertAdjacentHTML('beforeend','<div class="img-err">⚠️ الصورة ما تحمّلت</div>')}},true);
 function filterList(list){
   const q=adminSearch.trim().toLowerCase(); if(!q) return list;
   return list.filter(x=>[(x.title||''),(x.category||''),(x.size||''),(x.color||''),(x.type||'')].join(' ').toLowerCase().includes(q));
