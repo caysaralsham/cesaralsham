@@ -783,6 +783,9 @@ async function removeVideoCloud(id){
 
 // الصور المكررة المخفية من الموقع (مستند site_hidden) — مش محذوفة، وكبسة «إظهار» بترجّعها
 let hiddenMap = {};
+// بصمة القائمة: إذا السحابة رجّعت نفس القائمة (صدى حذف عملناه هون) ما منعيد رسمها
+var lastItemsSig = '';
+function itemsSig(list){ try{ return JSON.stringify([list.map(it=>[it.id,it.img,it.title,it.category,it.cover,it.order,it.size,it.color,it.type]), Object.keys(hiddenMap).sort()]); }catch(e){ return String(Math.random()); } }
 async function unhideItem(id){
   try{
     const ref = db.collection(FS_COLLECTION).doc('site_hidden');
@@ -808,7 +811,8 @@ function startSync(){
     });
     combined.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
     items = combined;
-    renderItemsTable();
+    const sig = itemsSig(items);
+    if(sig !== lastItemsSig){ lastItemsSig = sig; renderItemsTable(); }
     renderCategoryFilters();
     renderVideoCategorySelectOptions();
 
@@ -1144,7 +1148,7 @@ function groupHTML(list, kind){
     const noTitle=arr.filter(x=>!(x.title||'').trim()).length, dup=arr.filter(x=>titleCount[(x.title||'').trim()]>1).length;
     const warn=(noTitle?`<span class="tag warn">${noTitle} بلا عنوان</span>`:'')+(dup?`<span class="tag warn">${dup} عنوان مكرر</span>`:'');
     const cards=arr.map((x,k)=>`
-      <div class="acard${selected.has(x.id)?' picked':''}">
+      <div class="acard${selected.has(x.id)?' picked':''}" data-card="${x.id}">
         ${kind==='img'?`<label class="sel"><input type="checkbox" class="sel-cb" data-id="${x.id}"${selected.has(x.id)?' checked':''}></label>${x.cover?'<span class="cover-badge">⭐ صورة القسم</span>':''}${hiddenMap[x.id]?`<span class="cover-badge" style="background:#7a1f1f;color:#fff">🙈 مخفية (مكررة)</span>`:''}<img src="${x.img}" loading="lazy"${hiddenMap[x.id]?' style="opacity:.45"':''}>`:`<video src="${x.url}" muted preload="none"${x.poster?` poster="${x.poster}"`:''}></video>${x.poster?'':'<span class="cover-badge" style="background:#FCEBD9;color:#A0640C">بلا غلاف</span>'}`}
         <div class="acard-b">
           <div class="acard-t">${(x.title||'').trim()||'<span style="color:var(--danger);">بلا عنوان</span>'}${(x.title||'').trim()&&titleCount[(x.title||'').trim()]>1?' <span class="tag warn">مكرر</span>':''}</div>
@@ -1170,6 +1174,7 @@ function filterList(list){
   return list.filter(x=>[(x.title||''),(x.category||''),(x.size||''),(x.color||''),(x.type||'')].join(' ').toLowerCase().includes(q));
 }
 function renderItemsTable(){
+  lastItemsSig = itemsSig(items);
   document.getElementById('itemsCount').textContent = items.length;
   const wrap = document.getElementById('itemsTableWrap');
   const y0 = window.scrollY;
@@ -1190,11 +1195,28 @@ document.addEventListener('toggle',e=>{const d=e.target;if(!(d.classList&&d.clas
     if(!d.dataset.bulk){d.parentElement.querySelectorAll(':scope > .cat-group[open]').forEach(o=>{if(o!==d){o.open=false;openCats.delete(o.dataset.key)}});
       setTimeout(()=>{const y=d.getBoundingClientRect().top+window.scrollY-70;if(d.getBoundingClientRect().top<0)window.scrollTo({top:y,behavior:'smooth'})},30)}}
   else openCats.delete(d.dataset.key)},true);
+// بيشيل الكرت من مكانه بس، بلا ما يعيد رسم كل القائمة — فالصفحة ما بتتحرك أبداً
+function removeCardInPlace(id){
+  const card = document.querySelector(`#itemsTableWrap .acard[data-card="${CSS.escape(id)}"]`);
+  if(!card) return false;
+  const grp = card.closest('.cat-group');
+  card.remove();
+  document.getElementById('itemsCount').textContent = items.length;
+  if(grp){
+    const left = grp.querySelectorAll('.acard').length, tag = grp.querySelector('summary .tag');
+    if(tag) tag.textContent = left;
+    if(!left) grp.remove();
+  }
+  if(!items.length) renderItemsTable();
+  lastItemsSig = itemsSig(items);
+  return true;
+}
 async function deleteItem(id){
   if(!confirm('حذف هذه الصورة؟')) return;
   const del=items.find(it=>it.id===id);
   items = items.filter(it => it.id !== id);
-  renderItemsTable();
+  selected.delete(id);
+  if(!removeCardInPlace(id)) renderItemsTable();
   await removeItemCloud(id);
   try{ await storage.ref('gallery/' + id + '.jpg').delete(); }catch(e){}
   for(const u of [del&&del.img,del&&del.oldImg]){ if(u&&/firebasestorage/.test(u)) try{ await storage.refFromURL(u).delete(); }catch(e){} }
