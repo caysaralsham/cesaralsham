@@ -1154,10 +1154,16 @@ function groupHTML(list, kind){
           </div>
         </div>
       </div>`).join('');
-    return `<details class="cat-group" data-key="${key.replace(/"/g,'&quot;')}"${open?' open':''}>
+    return `<details class="cat-group" data-key="${key.replace(/"/g,'&quot;')}"${open?' open data-bulk="1"':''}>
       <summary><b>${name}</b>${fr} <span class="tag">${arr.length}</span>${warn}</summary>
       <div class="agrid">${cards}</div></details>`;
   }).join('');
+}
+// بعد إعادة رسم القائمة (حذف صورة، ترتيب، نقل...): الصفحة بتضل بمكانها، وما بتطلع لفوق
+function keepScroll(wrap, y){
+  window.scrollTo(0, y);
+  requestAnimationFrame(()=>window.scrollTo(0, y));
+  setTimeout(()=>wrap.querySelectorAll('.cat-group[data-bulk]').forEach(d=>delete d.dataset.bulk), 150);
 }
 function filterList(list){
   const q=adminSearch.trim().toLowerCase(); if(!q) return list;
@@ -1166,6 +1172,7 @@ function filterList(list){
 function renderItemsTable(){
   document.getElementById('itemsCount').textContent = items.length;
   const wrap = document.getElementById('itemsTableWrap');
+  const y0 = window.scrollY;
   if(!items.length){ wrap.innerHTML = '<div class="empty-state">لا توجد صور بعد.</div>'; return; }
   const list=filterList(items);
   renderBulkBar();
@@ -1176,6 +1183,7 @@ function renderItemsTable(){
   si.addEventListener('input',()=>{adminSearch=si.value;const pos=si.selectionStart;renderItemsTable();const n=document.getElementById('adminSearchImg');n.focus();n.setSelectionRange(pos,pos);});
   document.getElementById('btnOpenAll').onclick=()=>{wrap.querySelectorAll('.cat-group').forEach(d=>{d.dataset.bulk='1';d.open=true;openCats.add(d.dataset.key);setTimeout(()=>delete d.dataset.bulk,50)})};
   document.getElementById('btnCloseAll').onclick=()=>{wrap.querySelectorAll('.cat-group').forEach(d=>{d.open=false;openCats.delete(d.dataset.key)})};
+  keepScroll(wrap, y0);
 }
 document.addEventListener('toggle',e=>{const d=e.target;if(!(d.classList&&d.classList.contains('cat-group')))return;
   if(d.open){openCats.add(d.dataset.key);
@@ -1200,7 +1208,9 @@ function renderVideosTable(){
     if(b && !autoPostersBusy){ b.style.display = n ? '' : 'none'; b.textContent = `🎬 غلاف تلقائي للفيديوهات بلا غلاف (${n})`; } }
   const wrap = document.getElementById('videosTableWrap');
   if(!videos.length){ wrap.innerHTML = '<div class="empty-state">لا توجد فيديوهات بعد.</div>'; return; }
+  const y0 = window.scrollY;
   wrap.innerHTML = groupHTML(videos,'vid');
+  keepScroll(wrap, y0);
 }
 document.getElementById('videosTableWrap').addEventListener('click', (e)=>{
   const editBtn = e.target.closest('.btn-edit-video');
