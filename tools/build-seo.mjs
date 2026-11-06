@@ -497,6 +497,9 @@ wr('fr/index.html', frLayout({motion: true, title: 'Cesar Al Cham | Marbre et pi
   <section class="sec faq"><h2>Questions fréquentes</h2>${FAQ_FR.map(([q,a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}</section>
   <section class="sec" id="contact"><h2>Contact</h2><p style="text-align:center">📞 <a href="tel:${PHONE}" dir="ltr"><b>0541 73 78 88</b></a> · WhatsApp : <a href="https://wa.me/${WA}" style="color:#16774A;font-weight:800">écrivez-nous</a><br>📍 36, Route Nationale, Dely Ibrahim, Alger — <a href="https://www.google.com/maps?cid=9304963512715322872" target="_blank" rel="noopener" style="color:var(--gold-deep);text-decoration:underline">voir sur Google Maps ↗</a></p></section>`}));
 live.add('fr/index.html');
+// صفحات فرنسية لأقسام انحذفت أو انعدّل اسمها: بتتحول على أعمالنا بالفرنسي
+for (const s of Object.values(saved)) if (!live.has(`fr/${s}.html`) && fs.existsSync(path.join(ROOT, 'fr', s + '.html')))
+  wr(`fr/${s}.html`, `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="robots" content="noindex"><link rel="canonical" href="${SITE}/fr/works"><meta http-equiv="refresh" content="0; url=/fr/works"><title>Nos réalisations</title></head><body><a href="/fr/works">Nos réalisations</a></body></html>\n`);
 
 // sitemap مع الصور
 const today = new Date().toISOString().slice(0, 10);
