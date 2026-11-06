@@ -1212,14 +1212,31 @@ function renderCategoryManager(cats){
   }).join('');
 }
 async function renameCategory(oldName){
-  const newName = prompt('اكتب الاسم الجديد للقسم:', oldName);
+  const newName = prompt('اكتب الاسم الجديد للقسم (عربي | Français):', oldName);
   if(newName === null) return;
-  const trimmed = newName.trim();
+  const trimmed = newName.trim().replace(/\s*\|\s*/g,' | ');
   if(!trimmed){ toast('الاسم ما ينفع يكون فاضي'); return; }
   if(trimmed === oldName) return;
-  items = items.map(it => (it.category||'').trim() === oldName ? {...it, category: trimmed} : it);
-  await chunkAndWriteItems(items);
-  toast('تم تعديل اسم القسم');
+  // الاسم بيتغيّر بالصور والفيديوهات، وبالعناوين والأوصاف اللي مكتوب فيها الاسم القديم
+  const sp = c => { const [a,f] = String(c||'').split('|').map(x=>(x||'').trim()); return {ar:a||'', fr:f||''}; };
+  const o = sp(oldName), n = sp(trimmed);
+  const fixTxt = s => { if(typeof s!=='string' || !s) return s; const parts = s.split(' | ');
+    if(o.ar && n.ar && o.ar!==n.ar) parts[0] = parts[0].split(o.ar).join(n.ar);
+    if(parts.length>1 && o.fr && n.fr && o.fr!==n.fr) parts[1] = parts[1].split(o.fr).join(n.fr);
+    return parts.join(' | '); };
+  const patch = list => { const m = {}; list.forEach(it=>{ if((it.category||'').trim()!==oldName) return;
+    const p = {category: trimmed}; ['title','description','alt'].forEach(k=>{ const v = fixTxt(it[k]); if(v!==it[k]) p[k]=v; }); m[it.id]=p; }); return m; };
+  const mi = patch(items), mv = patch(typeof videos!=='undefined'?videos:[]);
+  try{
+    await saveFresh(mi, CHUNK_PREFIX);
+    if(Object.keys(mv).length) await saveFresh(mv, VCHUNK_PREFIX);
+  }catch(e){ console.error(e); toast('تعذر حفظ الاسم الجديد على السحابة'); return; }
+  items = items.map(it => mi[it.id] ? {...it, ...mi[it.id]} : it);
+  if(typeof videos!=='undefined') videos = videos.map(v => mv[v.id] ? {...v, ...mv[v.id]} : v);
+  if(typeof renderCategoryFilters==='function') renderCategoryFilters();
+  if(typeof renderItemsTable==='function') renderItemsTable();
+  if(typeof renderVideosTable==='function') renderVideosTable();
+  toast('تم تعديل اسم القسم ('+Object.keys(mi).length+' صورة، '+Object.keys(mv).length+' فيديو) — صفحات الموقع بتتحدّث خلال 3 ساعات بالكتير');
 }
 async function deleteCategory(name){
   const count = items.filter(it => (it.category||'').trim() === name).length;
