@@ -8,10 +8,10 @@
 :root{--ink:#3B2414;--br:#9A6A3A;--deep:#6E4524;--bg:#F5ECDD;--line:#E6D6BC}
 *{box-sizing:border-box}body{margin:0;font-family:Cairo,Tahoma,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
 header{background:var(--ink);color:#F5ECDD;padding:12px 16px;text-align:center}header b{font-size:24px;color:#D9B98C;display:block}header span{font-size:13px;opacity:.85}
-main{max-width:900px;margin:0 auto;padding:14px 16px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px}@media(min-width:700px){main{grid-template-columns:repeat(4,1fr)}}
-a{display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;text-align:center;background:#FBF6EE;border:1.5px solid var(--line);border-radius:16px;padding:14px 8px;text-decoration:none;color:var(--ink);font-weight:800;font-size:15px;min-height:96px;box-shadow:0 8px 20px rgba(59,36,20,.06)}
-a:hover{border-color:var(--br)}a i{font-style:normal;font-size:26px}a small{font-weight:600;font-size:12px;color:var(--deep)}
-@media(max-width:380px){main{grid-template-columns:1fr}}
+main{max-width:960px;margin:0 auto;padding:6px 16px 14px}.grp{margin-top:14px}.grp h2{font-size:14px;font-weight:800;color:var(--deep);margin:0 4px 8px;display:flex;align-items:center;gap:8px}.grp h2::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}@media(min-width:700px){.grid{grid-template-columns:repeat(4,1fr)}}
+main a{position:relative;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;text-align:center;background:#FBF6EE;border:1.5px solid var(--line);border-radius:16px;padding:14px 8px;text-decoration:none;color:var(--ink);font-weight:800;font-size:15px;min-height:112px;box-shadow:0 8px 20px rgba(59,36,20,.06);transition:border-color .2s,transform .2s,box-shadow .2s}main a b{font-weight:800}main a:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(59,36,20,.1)}main a em{position:absolute;top:8px;inset-inline-start:8px;font-style:normal;font-size:10.5px;font-weight:800;background:#B9874F;color:#fff;border-radius:999px;padding:1px 8px}
+main a:hover{border-color:var(--br)}main a i{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#8A5A30,#5E3A1E);color:#F2D9AE;box-shadow:inset 0 0 0 1px rgba(217,185,140,.45)}main a i svg{width:24px;height:24px}main a small{font-weight:600;font-size:12px;color:var(--deep)}
+@media(max-width:340px){.grid{grid-template-columns:1fr}}
 #login{max-width:360px;margin:30px auto;padding:20px 16px;background:#FBF6EE;border:1.5px solid var(--line);border-radius:16px;display:none}
 #login label{display:block;font-weight:800;font-size:13px;margin:10px 0 4px}#login input{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#F5ECDD}
 #login button,#out{width:100%;margin-top:14px;font:inherit;font-weight:800;padding:11px;border:0;border-radius:12px;background:var(--br);color:#fff;cursor:pointer}
@@ -23,30 +23,40 @@ a:hover{border-color:var(--br)}a i{font-style:normal;font-size:26px}a small{font
 <header><b>قيصر الشام</b><span>أدواتي — كل البرامج بمكان واحد</span></header>
 <form id="login"><b style="font-size:17px">تسجيل الدخول</b><label>البريد الإلكتروني</label><input id="em" type="email" autocomplete="username" required><label>كلمة السر</label><input id="pw" type="password" autocomplete="current-password" required><button>دخول</button><div id="err"></div></form>
 <main>
-<a href="/my/maarad/"><i>🏪</i>المعرض<small>محاسبة ووصولات</small></a>
-<a href="/my/maamal/"><i>🏭</i>المعمل<small>محاسبة المعمل</small></a>
-<a href="/studio-q7m4/"><i>✏️</i>مرسم ديكور<small>رسم بالقياسات</small></a>
-<a href="/admin-works.html"><i>🖼️</i>لوحة الموقع<small>صور، فيديو، أسئلة</small></a>
-<a href="/my/lugha/"><i>🗣️</i>قاموس الحجر<small>فرنسي · دارجة · صوت</small></a>
-<a href="/my/logo/"><i>🔳</i>باركود للصور<small>باركود ورقم على الصور</small></a>
-<a href="/my/sowar/"><i>🖼️</i>صور الباركود<small>تنزيل صور الأعمال للكتالوج</small></a>
-<a href="/my/fb-sowar/"><i>📘</i>صور فيسبوك<small>سحب، تصنيف، باركود، مجلد مضغوط</small></a>
-<a href="/my/tasweeq/"><i>📣</i>المنشورات<small>نصوص وهاشتاغات للمنصات</small></a>
-<a href="/links/"><i>🔗</i>الباركود<small>صفحة الروابط</small></a>
-<a href="/"><i>🌐</i>الموقع<small>cesar-alcham.com</small></a>
+<section class="grp"><h2>المحاسبة</h2><div class="grid">
+<a href="/my/maarad/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v11h16V9"/><path d="M3 9h18"/><path d="M9 20v-6h6v6"/></svg></i><b>المعرض</b><small>محاسبة ووصولات</small></a>
+<a href="/my/maamal/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21V10l6 4V10l6 4V6h6v15z"/><path d="M7 17h2M12 17h2M17 17h2"/></svg></i><b>المعمل</b><small>محاسبة المعمل</small></a>
+</div></section>
+<section class="grp"><h2>النشر والتسويق</h2><div class="grid">
+<a href="/my/nashr/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 3L10 14"/><path d="M21 3l-7 18-4-7-7-4z"/></svg></i><b>المنشورات</b><small>نشر صور وفيديو على كل المنصات</small><em>جديد</em></a>
+<a href="/my/tasweeq/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M4 10h10M4 14h6"/><path d="M14 20l1-4 6-6 3 3-6 6z" transform="translate(-3 -1)"/></svg></i><b>صياغة المنشورات</b><small>نصوص وهاشتاغات وتحسين القديم</small></a>
+<a href="/links/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/></svg></i><b>الروابط وQR</b><small>صفحة روابط الشركة</small></a>
+<a href="/my/qr/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/><path d="M6 6h1v1H6zM17 6h1v1h-1zM6 17h1v1H6z"/></svg></i><b>إنشاء QR</b><small>QR لأي رابط مع التحميل</small><em>جديد</em></a>
+</div></section>
+<section class="grp"><h2>الصور والفيديو</h2><div class="grid">
+<a href="/admin-works.html"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M7 13h5M7 16h8"/><circle cx="16.5" cy="14.5" r="1.8"/></svg></i><b>لوحة الموقع</b><small>صور، فيديو، أسئلة</small></a>
+<a href="/my/logo/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><rect x="13" y="5" width="6" height="6" rx="1"/><path d="M15 7h2v2h-2z"/></svg></i><b>باركود للصور</b><small>باركود ورقم على الصور</small></a>
+<a href="/my/sowar/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M7 13l3-3 3 3 2-2 3 3"/><path d="M12 17v4M9 19l3 2 3-2"/></svg></i><b>صور الباركود</b><small>تنزيل صور الأعمال للكتالوج</small></a>
+<a href="/my/fb-sowar/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M15 8h-1.5A2.5 2.5 0 0011 10.5V21"/><path d="M9 13h6"/></svg></i><b>صور فيسبوك</b><small>سحب، تصنيف، باركود، مجلد مضغوط</small></a>
+</div></section>
+<section class="grp"><h2>أدوات أخرى</h2><div class="grid">
+<a href="/studio-q7m4/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/><path d="M3 21h18"/></svg></i><b>مرسم ديكور</b><small>رسم بالقياسات</small></a>
+<a href="/my/lugha/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/><path d="M5 17a3 3 0 013-3h11"/><path d="M9 8h6"/></svg></i><b>قاموس الحجر</b><small>فرنسي · دارجة · صوت</small></a>
+<a href="/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></svg></i><b>الموقع</b><small>cesar-alcham.com</small></a>
+</div></section>
 </main><button id="out">تسجيل خروج</button>
 <script>
 // السرعة: إذا كنت داخل من قبل، القائمة بتبين فوراً بدون ما تستنى Firebase يحمّل (التأكد بيصير بالخلفية)
 const L=document.getElementById('login'),M=document.querySelector('main'),O=document.getElementById('out');
 let was=false;try{was=localStorage.getItem('my_in')==='1'}catch(e){}
-if(was){M.style.display='grid';O.style.display='block'}
+if(was){M.style.display='block';O.style.display='block'}
 // الفتح بنفس النافذة: إذا في برنامج تاني منزّل على الجهاز (متل المعمل أو الموقع)، كروم كان يلقط الرابط ويفتحه بنافذة جديدة
 M.addEventListener('click',e=>{const a=e.target.closest('a[href]');if(!a||e.ctrlKey||e.metaKey||e.shiftKey||e.button)return;e.preventDefault();location.assign(a.href)});
 window.addEventListener('DOMContentLoaded',()=>{
 firebase.initializeApp({apiKey:"AIzaSyDi1Pn7guMnyc0CetV8Z9IUC-k0gtav2_8",authDomain:"basel-7b29b.firebaseapp.com",projectId:"basel-7b29b",storageBucket:"basel-7b29b.firebasestorage.app",messagingSenderId:"1025769465563",appId:"1:1025769465563:web:53b5c9949dbb26364d8efe"});
 const A=firebase.auth();
 A.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
-A.onAuthStateChanged(u=>{L.style.display=u?'none':'block';M.style.display=u?'grid':'none';O.style.display=u?'block':'none';try{u?localStorage.setItem('my_in','1'):localStorage.removeItem('my_in')}catch(e){}});
+A.onAuthStateChanged(u=>{L.style.display=u?'none':'block';M.style.display=u?'block':'none';O.style.display=u?'block':'none';try{u?localStorage.setItem('my_in','1'):localStorage.removeItem('my_in')}catch(e){}});
 L.addEventListener('submit',async e=>{e.preventDefault();const er=document.getElementById('err');er.textContent='';
   try{await A.signInWithEmailAndPassword(document.getElementById('em').value.trim(),document.getElementById('pw').value)}catch(x){er.textContent='البريد الإلكتروني أو كلمة السر غير صحيحة'}});
 O.onclick=()=>A.signOut();
