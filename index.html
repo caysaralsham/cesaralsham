@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>قيصر الشام للحجر والرخام | Marble et Pierre - Algérie</title>
+<title>قيصر الشام للحجر والرخام | Marbre et Pierre - Algérie</title>
 <link rel="canonical" href="https://cesar-alcham.com/">
 <link rel="alternate" hreflang="ar" href="https://cesar-alcham.com/"><link rel="alternate" hreflang="fr" href="https://cesar-alcham.com/fr/"><link rel="alternate" hreflang="x-default" href="https://cesar-alcham.com/">
 <meta name="description" content="متخصصون في أعمال الرخام والحجر: واجهات المباني، الحمامات، الأحواض، النوافير، الشلالات والديكور الرخامي في جميع ولايات الجزائر.">
 <meta name="keywords" content="رخام, حجر, شمينة, مدفأة رخام, جرن حمام, سبالة, تابلو أرضية, تابلو حائط, رخام الجزائر, حجر الجزائر, قيصر الشام, دالي إبراهيم, marbre, marbre naturel, pierre naturelle, cheminée marbre, vasque marbre, evier en marbre, dallage marbre, marbre Algérie, pierre Algérie, marbrerie Alger, marbrerie Algérie">
-<meta property="og:title" content="قيصر الشام للحجر والرخام | Marble et Pierre - Algérie">
+<meta property="og:title" content="قيصر الشام للحجر والرخام | Marbre et Pierre - Algérie">
 <meta property="og:description" content="متخصصون في أعمال الرخام والحجر: واجهات المباني، الحمامات، الأحواض، النوافير، الشلالات والديكور الرخامي في جميع ولايات الجزائر.">
 <meta property="og:type" content="business.business">
 <meta property="og:locale" content="ar_DZ">
@@ -19,7 +19,7 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="قيصر الشام للحجر والرخام | Marble et Pierre - Algérie">
+<meta name="twitter:title" content="قيصر الشام للحجر والرخام | Marbre et Pierre - Algérie">
 <meta name="twitter:description" content="متخصصون في أعمال الرخام والحجر: واجهات المباني، الحمامات، الأحواض، النوافير، الشلالات والديكور الرخامي في جميع ولايات الجزائر.">
 <meta name="twitter:image" content="https://cesar-alcham.com/img/site/og-card.jpg">
 <script type="application/ld+json" id="businessSchema">
@@ -265,6 +265,126 @@
     .header-left{flex-wrap:wrap; row-gap:10px;}
     .header-left .social-icons{flex:1 1 100%; justify-content:center;}
   }
+  /* ===== تحسينات نوفمبر 2026: الهيدر، الواجهة، البطاقات، الأعمال، الآراء ===== */
+  :root{--bronze:#B8864E; --bronze-lt:#D9B98C; --hh:115px;}
+  html{scroll-padding-top:calc(var(--hh) + 8px);}
+  body{text-rendering:optimizeLegibility; -webkit-font-smoothing:antialiased;}
+  h1,h2,h3{line-height:1.35; letter-spacing:0;}
+  p{line-height:1.9;}
+  /* الهيدر: يصغر بهدوء عند النزول */
+  .header-inner{transition:min-height .3s ease, padding .3s ease;}
+  .brand img{border-radius:10px; transition:width .3s ease, height .3s ease;}
+  .brand .name{line-height:1.2;}
+  header.scrolled .header-inner{min-height:76px;}
+  header.scrolled .brand img{width:48px; height:48px;}
+  header.scrolled .brand .name{font-size:20px;}
+  nav{gap:26px;}
+  nav a{padding:6px 0 8px; white-space:nowrap;}
+  nav a::after{content:""; position:absolute; right:0; left:0; bottom:0; height:2px; background:var(--bronze-lt); border-radius:2px; transform:scaleX(0); transition:transform .25s ease;}
+  nav a:hover::after, nav a.active::after{transform:scaleX(1);}
+  nav a.active{color:var(--bronze-lt);}
+  nav a.active::after{background:var(--bronze-lt);}
+  nav a.lang-btn{border:1.5px solid var(--bronze-lt); border-radius:9px; padding:3px 12px; color:var(--bronze-lt); font-size:13.5px; letter-spacing:.5px;}
+  nav a.lang-btn::after{display:none;}
+  nav a.lang-btn:hover{background:var(--bronze-lt); color:var(--ink);}
+  .header-phone{border:1px solid rgba(217,185,140,.45); border-radius:999px; padding:6px 14px; font-size:14px; letter-spacing:.3px; white-space:nowrap; transition:.25s;}
+  .header-phone:hover{background:rgba(217,185,140,.12); border-color:var(--bronze-lt);}
+  .header-phone svg{width:15px; height:15px; color:var(--bronze-lt);}
+  .header-phone bdi{direction:ltr; unicode-bidi:isolate;}
+  .social-icons{gap:8px;}
+  .social-icons a{width:36px; height:36px;}
+  .social-icons a svg{width:18px; height:18px;}
+  @media (max-width:1180px){ nav{gap:18px;} nav a{font-size:14px;} .social-icons a{width:32px;height:32px;} .social-icons a svg{width:16px;height:16px;} }
+  @media (max-width:820px){
+    header.scrolled .header-inner{min-height:0; padding-block:10px;}
+    header.scrolled .brand .sub{display:none;}
+    .burger{width:42px; height:42px; border:1.5px solid rgba(217,185,140,.5); border-radius:10px; font-size:20px; line-height:1;}
+    #navRow.open{background:#4A2E1A; border-radius:14px; padding:6px 14px; box-shadow:0 12px 30px rgba(0,0,0,.25);}
+    #navWrap nav{gap:0;}
+    #navWrap nav a{width:100%; padding:12px 4px; border-bottom:1px solid rgba(217,185,140,.15); font-size:15.5px;}
+    #navWrap nav a:last-child{border-bottom:0;}
+    #navWrap nav a::after{display:none;}
+    #navWrap nav a.lang-btn{width:auto; margin:10px 0 6px; padding:6px 16px;}
+  }
+
+  /* الواجهة: رخام طبيعي فاتح بتعرّجات خفيفة جداً */
+  .hero{position:relative; padding:84px 24px 64px; background-color:#FBF8F3;
+    background-image:
+      radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.9), transparent 60%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900' preserveAspectRatio='none'%3E%3Cfilter id='m' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='turbulence' baseFrequency='.0022 .0065' numOctaves='5' seed='11'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .38 0 0 0 0 .27 -2.4 0 0 0 1'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='gamma' amplitude='1' exponent='7'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)' opacity='.42'/%3E%3C/svg%3E"),
+      linear-gradient(160deg,#FFFFFF 0%,#F7F1E8 55%,#F3EADD 100%);
+    background-size:auto, cover, auto; background-repeat:no-repeat;}
+  .hero-inner{max-width:860px; margin:0 auto;}
+  .hero-badge{display:inline-flex; align-items:center; gap:10px; background:rgba(255,255,255,.85); border:1px solid var(--line); border-radius:999px; padding:6px 16px 6px 8px; font-size:13px; font-weight:700; color:var(--gold-deep); box-shadow:0 4px 14px rgba(59,36,20,.06); margin-bottom:22px;}
+  .hero-badge svg{border-radius:4px; box-shadow:0 1px 3px rgba(0,0,0,.18); flex-shrink:0;}
+  .hero h1{font-size:clamp(32px,5.2vw,58px); line-height:1.25; margin:0 0 18px;}
+  .hero h1 .hero-accent{color:#8A5A2E; background:linear-gradient(100deg,#6E4524 0%,#B8864E 50%,#6E4524 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
+  .hero p{font-size:clamp(15.5px,1.6vw,18px); color:#5A4535; max-width:640px; margin:0 auto 30px;}
+  .hero-cta{display:flex; gap:12px; justify-content:center; flex-wrap:wrap;}
+  .hero-cta .btn{min-width:220px; justify-content:center; box-shadow:0 8px 20px rgba(110,69,36,.18);}
+  .hero-cta .btn-outline{background:rgba(255,255,255,.75); box-shadow:none;}
+  .btn-dark{background:#3B2414;} .btn-dark:hover{background:#2A190D;}
+  @keyframes heroUp{from{opacity:0; transform:translateY(16px);}to{opacity:1; transform:none;}}
+  .hero-inner > *{animation:heroUp .7s cubic-bezier(.2,.7,.2,1) backwards;}
+  .hero-inner > :nth-child(2){animation-delay:.08s;} .hero-inner > :nth-child(3){animation-delay:.16s;} .hero-inner > :nth-child(4){animation-delay:.24s;}
+  @media (prefers-reduced-motion:reduce){ .hero-inner > *{animation:none;} }
+  @media (max-width:520px){ .hero{padding:52px 18px 44px;} .hero-cta .btn{width:100%; min-width:0;} }
+
+  /* بطاقات المميزات */
+  .features-row{gap:20px; align-items:stretch;}
+  .feature-card{display:flex; flex-direction:column; align-items:center; height:100%; padding:30px 18px 26px; border:1px solid #EFE3D0; border-radius:18px; background:linear-gradient(180deg,#fff 0%,#FFFCF8 100%); position:relative; overflow:hidden;}
+  .feature-card::before{content:""; position:absolute; top:0; right:22%; left:22%; height:3px; border-radius:0 0 3px 3px; background:linear-gradient(90deg,transparent,var(--bronze),transparent); opacity:.55; transition:.35s;}
+  .feature-card:hover, .feature-card.in-view:hover{transform:translateY(-5px); box-shadow:0 18px 36px rgba(59,36,20,.10); border-color:var(--bronze-lt);}
+  .feature-card:hover::before{right:10%; left:10%; opacity:1;}
+  .feature-card .icon-circle{width:62px; height:62px; background:linear-gradient(145deg,#F6EBDB,#EBD9BE); box-shadow:inset 0 0 0 1px rgba(154,106,58,.18); transition:.35s;}
+  .feature-card:hover .icon-circle{background:linear-gradient(145deg,#B8864E,#8A5A2E);}
+  .feature-card:hover .icon-circle svg{stroke:#fff;}
+  .feature-card .icon-circle svg{width:28px; height:28px; transition:.35s;}
+  .feature-card h2{font-size:16px;}
+  .feature-card p{font-size:13.5px;}
+  @media (max-width:1100px) and (min-width:821px){ .features-row{grid-template-columns:repeat(3,1fr);} }
+  @media (max-width:820px){ .features-row{gap:14px;} .feature-card{padding:22px 12px;} }
+  @media (max-width:520px){ .features-row{grid-template-columns:repeat(2,1fr);} .feature-card:last-child{grid-column:1/-1;} .feature-card h2{font-size:15px;} .feature-card p{font-size:12.5px;} }
+
+  /* أحدث أعمالنا */
+  .showcase-wrap{margin-top:72px; max-width:1200px;}
+  .sc-title{margin-bottom:6px;}
+  .sc-lead{color:var(--text-dim); margin:0 auto 22px; font-size:15px;}
+  #homeShowcase{grid-template-columns:repeat(3,1fr); gap:18px;}
+  .sc-item{aspect-ratio:4/3; border-radius:16px; box-shadow:0 10px 26px rgba(59,36,20,.10); isolation:isolate;}
+  .sc-item img{transition:transform .6s cubic-bezier(.2,.7,.2,1), filter .4s;}
+  .sc-item:hover img{transform:scale(1.06); filter:saturate(1.08);}
+  .sc-item span{padding:40px 16px 14px; font-size:15px; background:linear-gradient(transparent,rgba(30,18,10,.82)); display:flex; flex-direction:column; gap:2px; text-align:right;}
+  .sc-item span b{font-weight:800; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .sc-item span small{font-weight:600; font-size:12.5px; color:var(--bronze-lt);}
+  .sc-item::after{content:""; position:absolute; inset:0; border-radius:inherit; box-shadow:inset 0 0 0 0 rgba(217,185,140,0); transition:box-shadow .35s; pointer-events:none;}
+  .sc-item:hover::after{box-shadow:inset 0 0 0 3px rgba(217,185,140,.85);}
+  .sc-cats{margin:24px 0 18px;}
+  .sc-actions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
+  @media (max-width:820px){ #homeShowcase{grid-template-columns:repeat(2,1fr) !important; gap:12px;} }
+  @media (max-width:520px){ .sc-item span{padding:28px 10px 10px;} .sc-item span b{font-size:13px;} .sc-item span small{font-size:11.5px !important;} }
+
+  /* آراء زبائننا */
+  .reviews{max-width:1150px; margin:0 auto; padding:30px 24px 20px; text-align:center;}
+  .reviews h2{font-size:clamp(22px,3vw,30px); font-weight:900; margin:0 0 12px;}
+  .rv-summary{display:inline-flex; align-items:center; gap:14px; flex-wrap:wrap; justify-content:center; background:#fff; border:1px solid var(--line); border-radius:999px; padding:8px 10px 8px 20px; box-shadow:var(--shadow);}
+  .rv-score{display:flex; align-items:center; gap:8px;} .rv-score b{font-size:22px; font-weight:900; color:var(--ink);}
+  .rv-stars{color:#D9A23A; letter-spacing:2px; font-size:16px;}
+  .rv-src{color:var(--text-dim); font-size:14px; font-weight:600;}
+  .rv-cta{background:#1F8F55; color:#fff; padding:8px 16px; border-radius:999px; font-weight:800; font-size:14px; white-space:nowrap;}
+  .rv-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:16px; margin-top:22px; text-align:right;}
+  .rv-card{background:#fff; border:1px solid #EFE3D0; border-radius:18px; padding:18px; display:flex; flex-direction:column; gap:10px; box-shadow:0 8px 22px rgba(59,36,20,.05); position:relative; transition:.3s;}
+  .rv-card:hover{transform:translateY(-3px); box-shadow:0 16px 32px rgba(59,36,20,.09);}
+  .rv-card::before{content:"”"; position:absolute; top:4px; left:16px; font-size:54px; line-height:1; color:#EADBC4; font-family:Georgia,serif;}
+  .rv-head{display:flex; align-items:center; gap:10px; min-width:0;}
+  .rv-av{width:40px; height:40px; border-radius:50%; flex-shrink:0; object-fit:cover; background:linear-gradient(145deg,#B8864E,#6E4524); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800;}
+  .rv-who{min-width:0;} .rv-who b{display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer;} .rv-who b.open{white-space:normal;}
+  .rv-who small{color:var(--text-dim); font-size:12px;}
+  .rv-card .rv-stars{font-size:15px;}
+  .rv-card p{margin:0; color:#3F2E22; font-size:14.5px; line-height:1.85; display:-webkit-box; -webkit-line-clamp:6; -webkit-box-orient:vertical; overflow:hidden; cursor:pointer;}
+  .rv-card p.open{-webkit-line-clamp:unset; display:block;}
+  .rv-foot{grid-column:1/-1; text-align:center; font-size:12.5px; color:var(--gold-deep);}
+  @media (max-width:520px){ .rv-summary{border-radius:18px; padding:12px;} .rv-grid{grid-template-columns:1fr;} }
 </style>
 </head>
 <body>
@@ -273,7 +393,7 @@
   <div class="header-inner">
     <div class="header-left">
       <div class="social-icons" id="headerSocial"><a href="https://wa.me/213541737888" target="_blank" title="واتساب"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.14h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.37c0-4.54 3.7-8.24 8.25-8.24 2.2 0 4.27.86 5.83 2.42a8.18 8.18 0 0 1 2.41 5.83c0 4.55-3.7 8.22-8.24 8.22zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.17.24-.64.81-.78.97-.14.17-.29.19-.53.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.24-.02-.38.11-.5.11-.11.25-.29.37-.43.12-.15.16-.25.25-.42.08-.16.04-.31-.02-.43-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.43h-.48c-.16 0-.43.06-.65.31-.23.24-.85.83-.85 2.03 0 1.19.87 2.34.99 2.51.12.16 1.71 2.61 4.14 3.66.58.25 1.03.4 1.38.51.58.18 1.11.16 1.53.1.47-.07 1.47-.6 1.68-1.18.2-.58.2-1.08.14-1.18-.06-.1-.22-.16-.47-.28z"/></svg></a><a href="https://www.facebook.com/baselalakash" target="_blank" title="فيسبوك"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.99 3.66 9.13 8.44 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.78-3.89 1.09 0 2.23.2 2.23.2v2.45h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99C18.34 21.13 22 16.99 22 12z"/></svg></a><a href="https://www.instagram.com/cesar_du_sham2" target="_blank" title="انستغرام"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.3" cy="6.7" r="1.3" fill="currentColor" stroke="none"/></svg></a><a href="https://www.tiktok.com/@basel.akash" target="_blank" title="تيك توك"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 2h-3.2v13.6a2.9 2.9 0 1 1-2.06-2.78V9.6a6.1 6.1 0 1 0 5.26 6.05V8.32a7.6 7.6 0 0 0 4.5 1.46V6.6a4.4 4.4 0 0 1-4.5-4.6z"/></svg></a><a href="https://www.youtube.com/@cesaralcham" target="_blank" title="يوتيوب"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.6 15.5V8.5L15.8 12l-6.2 3.5z"/></svg></a></div>
-      <a class="header-phone" href="tel:0541737888">📞 0541.73.78.88</a>
+      <a class="header-phone" href="tel:0541737888" aria-label="اتصل بنا"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg><bdi>0541 73 78 88</bdi></a>
       <button class="burger" id="burgerBtn" aria-label="القائمة">☰</button>
     </div>
     <div id="navRow">
@@ -285,7 +405,7 @@
           <a href="/videos" id="navVideos">معرض الفيديو</a>
           <a href="#about">من نحن</a>
           <a href="#contact">تواصل معنا</a>
-          <a href="/fr/" hreflang="fr" style="border:1.5px solid #D9B98C;border-radius:8px;padding:0 10px">FR</a>
+          <a href="/fr/" hreflang="fr" lang="fr" class="lang-btn" title="Version française">FR</a>
         </nav>
         <div id="navCategoryDropdown" style="display:none; position:absolute; top:100%; margin-top:10px; background:#4A2E1A; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.35); padding:8px; min-width:180px; max-height:340px; overflow-y:auto; z-index:60;"></div>
       </div>
@@ -302,18 +422,12 @@
 <main>
 
 <section class="hero" id="home">
-  <svg width="52" height="52" viewBox="0 0 52 52" style="margin:0 auto 14px; display:block; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.15);" xmlns="http://www.w3.org/2000/svg">
-    <rect width="26" height="52" fill="#006233"/>
-    <rect x="26" width="26" height="52" fill="#ffffff"/>
-    <g fill="#d21034">
-      <circle cx="26" cy="26" r="9"/>
-      <circle cx="29" cy="26" r="7.4" fill="#ffffff"/>
-      <path d="M26 18.5 L27.5 22.8 L32 22.8 L28.4 25.4 L29.8 29.7 L26 27 L22.2 29.7 L23.6 25.4 L20 22.8 L24.5 22.8 Z"/>
-    </g>
-  </svg>
-  <h1><span id="heroTitleMain">أرقى أنواع</span> <span id="heroTitleAccent" style="color:var(--gold-deep);">الحجر والرخام</span></h1>
+  <div class="hero-inner">
+  <div class="hero-badge"><svg width="30" height="20" viewBox="0 0 30 20" aria-hidden="true"><rect width="15" height="20" fill="#006233"/><rect x="15" width="15" height="20" fill="#fff"/><circle cx="15" cy="10" r="4.6" fill="#d21034"/><circle cx="16.6" cy="10" r="3.8" fill="#fff"/><path d="M17.2 7.2l.6 1.8h1.9l-1.5 1.1.6 1.8-1.6-1.1-1.5 1.1.6-1.8-1.6-1.1h1.9z" fill="#d21034"/></svg><span>صناعة جزائرية · دالي إبراهيم</span></div>
+  <h1><span id="heroTitleMain">أرقى أنواع</span> <span id="heroTitleAccent" class="hero-accent">الحجر والرخام</span></h1>
   <p id="heroSubtitle">تصاميم ونحت وتركيب الرخام والحجر الطبيعي بخبرة عالية — من دالي إبراهيم، الجزائر، لمشاريع فاخرة بتفاصيل مميزة.</p>
-  <a class="btn" href="#quote">تواصل معنا واطلب عرض سعر</a>
+  <div class="hero-cta"><a class="btn" href="#quote">تواصل معنا واطلب عرض سعر</a><a class="btn btn-outline" href="#works">اكتشف أعمالنا</a></div>
+  </div>
 
   <div class="features-row">
     <div class="feature-card">
@@ -343,11 +457,12 @@
     </div>
   </div>
 
-  <div class="showcase-wrap">
-    <h2 class="sc-title">مجموعة من أعمالنا</h2>
-    <div id="homeShowcase"><!--SEO:SHOWCASE--><a href="/a3mal-decoration-de-mosquees" class="sc-item"><img src="https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Ffbmvvbut4tw4fx.jpg?alt=media&amp;token=2895c26c-c4da-47eb-abc7-7428f6c92905" loading="lazy" decoding="async" width="600" height="450" alt="ديكورات مساجد بتفاصيل منحوتة CNC — موديل 29 - قيصر الشام للحجر والرخام - Décoration de mosquées"><span><b>ديكورات مساجد بتفاصيل منحوتة CNC — موديل 29</b><small>ديكورات مساجد</small></span></a><a href="/a3mal-murs-en-marbre-sculpte" class="sc-item"><img src="https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Ffbmvvbuu90nt2c.jpg?alt=media&amp;token=34e85417-9340-4ae6-9156-8f39863fb243" loading="lazy" decoding="async" width="600" height="450" alt="حوائط رخام منحوتة بتشطيب لامع — موديل 92 - قيصر الشام للحجر والرخام - Murs en marbre sculpté"><span><b>حوائط رخام منحوتة بتشطيب لامع — موديل 92</b><small>حوائط رخام منحوتة</small></span></a><a href="/a3mal-murs-en-marbre-sculpte" class="sc-item"><img src="https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Ffbmvvbuslyoxjg.jpg?alt=media&amp;token=f5056496-84b9-460a-a4cd-49f60116015f" loading="lazy" decoding="async" width="600" height="450" alt="حوائط رخام منحوتة بلمسة فاخرة — موديل 91 - قيصر الشام للحجر والرخام - Murs en marbre sculpté"><span><b>حوائط رخام منحوتة بلمسة فاخرة — موديل 91</b><small>حوائط رخام منحوتة</small></span></a><a href="/a3mal-fenetres-en-marbre" class="sc-item"><img src="https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Ffbmvvbut0eflgb.jpg?alt=media&amp;token=854700cf-247d-44b4-8c67-049c90603a87" loading="lazy" decoding="async" width="600" height="450" alt="نوافذ رخام بتشطيب لامع — موديل 12 - قيصر الشام للحجر والرخام - Fenêtres en marbre"><span><b>نوافذ رخام بتشطيب لامع — موديل 12</b><small>نوافذ رخام</small></span></a><a href="/a3mal-cheminees-en-marbre" class="sc-item"><img src="https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Ffbmvvburrkkw0l.jpg?alt=media&amp;token=cfa0d529-7677-45aa-9931-df18fcaa54db" loading="lazy" decoding="async" width="600" height="450" alt="شمينه رخام بلمسة فاخرة — موديل 139 - قيصر الشام للحجر والرخام - Cheminées en marbre"><span><b>شمينه رخام بلمسة فاخرة — موديل 139</b><small>شمينه رخام</small></span></a><a href="/a3mal-murs-en-marbre-sculpte" class="sc-item"><img src="https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Ffbmvvbus11wbfc.jpg?alt=media&amp;token=cfadeeb8-7c11-4f3c-b825-b76eb6e18d21" loading="lazy" decoding="async" width="600" height="450" alt="حوائط رخام منحوتة بنحت CNC — موديل 89 - قيصر الشام للحجر والرخام - Murs en marbre sculpté"><span><b>حوائط رخام منحوتة بنحت CNC — موديل 89</b><small>حوائط رخام منحوتة</small></span></a><!--/SEO:SHOWCASE--></div>
+  <div class="showcase-wrap" id="works">
+    <h2 class="sc-title">أحدث أعمالنا</h2>
+    <p class="sc-lead">صور حقيقية من مشاريعنا المنجزة بالرخام والحجر الطبيعي</p>
+    <div id="homeShowcase"><!--SEO:SHOWCASE--><a href="/a3mal-colonnes-et-balustrades-en-marbre" class="sc-item"><img src="https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Fmslmtpjzqtzyvb-qr-mvpi3vju.jpg?alt=media&amp;token=fa6e90b9-cf44-4e57-a91c-1444cc17df0a" loading="lazy" alt="درابزين درج من الحجر الطبيعي بزخارف هندسية إسلامية مفرغة ومنحوتة بدقة لمظهر داخلي راقٍ. - قيصر الشام للحجر والرخام"><span>أعمدة ودرابزينات رخام</span></a><a href="/a3mal-tableaux-de-sol-en-marbre" class="sc-item"><img src="https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Fmslmnce94gzelr-qr-mvpi5pak.jpg?alt=media&amp;token=49204de5-47c9-4d9c-af5f-ee621bbd30e3" loading="lazy" alt="تابلوه أرضي رخامي بيج مزين بزخارف وترجيت نباتية كلاسيكية ملونة بدقة عالية لمدخل فيلا - قيصر الشام للحجر والرخام"><span>تابلوهات أرضية رخام</span></a><a href="/a3mal-bassin-en-bloc-de-marbre" class="sc-item"><img src="https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Fmvscjld7zn2naw.jpg?alt=media&amp;token=3842e5d9-df10-4661-bd5e-cf89ef2ce291" loading="lazy" alt="جرن حمام منحوت من كتلة رخام بيج بتصميم كروي مصقول يناسب ديكورات المغاسل الفاخرة. - قيصر الشام للحجر والرخام"><span>جرون حمامات رخام</span></a><a href="/a3mal-salles-de-bains-en-marbre" class="sc-item"><img src="https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Fmskygqfb8gp6f3-qr-mvpii552.jpg?alt=media&amp;token=646bc965-4dc8-4dad-b543-edead01a0071" loading="lazy" alt="تصميم حمام تقليدي فاخر مكسو بالرخام البيج مع أعمدة دائرية وزخارف هندسية جدارية وأرضية - قيصر الشام للحجر والرخام"><span>حمامات رخام</span></a><a href="/a3mal-murs-en-marbre-sculpte" class="sc-item"><img src="https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Fmslmb22m33152r-qr-mvpia5z4.jpg?alt=media&amp;token=8cbf7a70-17b3-4eb4-835c-4a62a49afbe6" loading="lazy" alt="جدار حجر بيج منحوت بزخارف أوراق بارزة يتوسطه مدفأة كلاسيكية مدمجة داخل صالون عصري. - قيصر الشام للحجر والرخام"><span>حوائط رخام منحوتة</span></a><a href="/a3mal-decoration-de-mosquees" class="sc-item"><img src="https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Fmsks7zdbq1iao6-qr-mvpjnjur.jpg?alt=media&amp;token=a00d83d3-0c95-4b6a-bce2-3297e0acb220" loading="lazy" alt="محراب مسجد مزين بالرخام البيج مع أعمدة دائرية مزدوجة وشريط علوي من الزخارف والخط القرآني - قيصر الشام للحجر والرخام"><span>ديكورات مساجد</span></a><a href="/a3mal-sabils-en-marbre" class="sc-item"><img src="https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Fmskrngtafchm51-qr-mvpk04ri.jpg?alt=media&amp;token=b65ac3d4-1c47-48a4-91ac-d50d8976c413" loading="lazy" alt="سبيل ماء جداري من الرخام البيج بتصميم مقوس وحوض مستطيل مع زهرة منحوتة لمخرج المياه - قيصر الشام للحجر والرخام"><span>سبالات مياه رخام</span></a><a href="/a3mal-cascades-murales" class="sc-item"><img src="https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Fmskrklrcz1brit-qr-mvpk3qd2.jpg?alt=media&amp;token=4bc765be-85d8-4c1e-b8fb-ea10dff337ff" loading="lazy" alt="شلال جداري من الترافرتين البيج بتصميم متموج بارز وإطار مزخرف مع حوض ومساقط مياه مدمجة. - قيصر الشام للحجر والرخام"><span>شلالات مياه</span></a><!--/SEO:SHOWCASE--></div>
     <div class="sc-cats"><!--SEO:CATLINKS--><a href="/a3mal-colonnes-et-balustrades-en-marbre">أعمدة ودرابزينات رخام</a><a href="/a3mal-tableaux-de-sol-en-marbre">تابلوهات أرضية رخام</a><a href="/a3mal-bassin-en-bloc-de-marbre">جرون حمامات رخام</a><a href="/a3mal-salles-de-bains-en-marbre">حمامات رخام</a><a href="/a3mal-murs-en-marbre-sculpte">حوائط رخام منحوتة</a><a href="/a3mal-decoration-de-mosquees">ديكورات مساجد</a><a href="/a3mal-sabils-en-marbre">سبالات مياه رخام</a><a href="/a3mal-cascades-murales">شلالات مياه</a><a href="/a3mal-cheminees-en-marbre">شمينه رخام</a><a href="/a3mal-tables-en-marbre">طاولات رخام</a><a href="/a3mal-fenetres-en-marbre">نوافذ رخام</a><a href="/a3mal-fontaines-en-marbre">نوافير رخام</a><a href="/a3mal-facades-de-maisons-en-pierre">واجهات منازل حجر</a><a href="/a3mal-lavabo-en-marbre-naturel">Lavabo en marbre naturel</a><!--/SEO:CATLINKS--></div>
-    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><a class="btn" href="/works">عرض جميع الأعمال</a><a class="btn" href="/videos" style="background:#3B2414">▶ معرض الفيديو</a></div>
+    <div class="sc-actions"><a class="btn" href="/works">مشاهدة جميع الأعمال</a><a class="btn btn-dark" href="/videos">▶ معرض الفيديو</a></div>
   </div>
 </section>
 
@@ -419,10 +534,10 @@
     <button class="btn" type="submit" data-via="wa">إرسال الطلب عبر واتساب</button>
   </form>
 </section>
-<section class="faq" id="reviews" style="padding-bottom:10px">
+<section class="reviews" id="reviews">
   <h2>آراء زبائننا</h2>
-  <p style="text-align:center;font-size:16px">⭐ <b id="gRating">5.0</b> من 5 على غوغل<span id="gCount"></span> &nbsp; <a href="https://www.google.com/maps?cid=9304963512715322872" target="_blank" rel="noopener" style="display:inline-block;background:#1F8F55;color:#fff;padding:8px 16px;border-radius:10px;font-weight:800">قيّمنا على غوغل</a></p>
-  <div id="reviewsList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;margin-top:14px"></div>
+  <div class="rv-summary"><span class="rv-score"><b id="gRating">5.0</b><span class="rv-stars" aria-hidden="true">★★★★★</span></span><span class="rv-src">على غوغل<span id="gCount"></span></span><a class="rv-cta" href="https://www.google.com/maps?cid=9304963512715322872" target="_blank" rel="noopener">قيّمنا على غوغل</a></div>
+  <div id="reviewsList" class="rv-grid"></div>
 </section>
 <section class="faq" id="follow" style="padding-top:10px">
   <h2>تابعنا</h2>
