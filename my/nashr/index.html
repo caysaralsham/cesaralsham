@@ -116,6 +116,7 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
     </div>
     <div class="card"><h3><span class="n">4</span>تخصيص لكل منصة <small style="font-weight:600;color:var(--deep);font-size:12px">(اختياري)</small></h3>
       <div id="cust"></div>
+      <div id="pinBox" hidden><label class="l" for="board">لوحة Pinterest</label><select id="board"><option value="">— جارٍ التحميل —</option></select></div>
       <div id="siteBox">
         <label class="l" for="cat">قسم الموقع الرسمي</label>
         <select id="cat"><option value="">— اختر القسم —</option></select>
@@ -197,15 +198,17 @@ function setKind(k){kind=k;files.forEach(x=>URL.revokeObjectURL(x.url));files=[]
 $('tabs').onclick=e=>{const b=e.target.closest('button');if(!b||busy)return;[...$('tabs').children].forEach(x=>x.classList.toggle('on',x===b));
   const t=b.dataset.t;$('compose').hidden=t==='log';$('logView').hidden=t!=='log';if(t==='log')loadLog().then(renderLog);else if(t!==kind)setKind(t)};
 function renderPf(){$('pf').innerHTML=ORDER.map(k=>{const p=P[k],fits=p.kinds.includes(kind),on=sel.has(k);
-  const sub=!fits?(kind==='image'?'للفيديو فقط':'—'):p.ready?(k==='site'?'تحديد القسم بالخطوة 4':(k==='fb'?(prof.fb.name||'مربوط'):k==='ig'?(prof.ig.user?'@'+prof.ig.user:'مربوط'):'مربوط')):(p.need?'يحتاج ربط':(p.err||'غير متاح'));
-  const off=!fits||!p.ready;return `<label class="pfc ${on?'on':''} ${off?'off':''}" title="${esc(p.name+' — '+sub)}"><input type="checkbox" data-p="${k}" ${on?'checked':''} ${off?'disabled':''}><span class="ic ${p.cls}">${p.ic}</span><span class="tx"><b>${p.name}</b><small><bdi>${esc(sub)}</bdi>${!p.ready&&p.need&&fits?`<button type="button" class="q" data-need="${k}">ما المطلوب؟</button>`:''}</small></span></label>`}).join('')}
+  const sub=!fits?(kind==='image'?'للفيديو فقط':'—'):p.ready?(k==='site'?'تحديد القسم بالخطوة 4':(k==='fb'?(prof.fb.name||'مربوط'):k==='ig'?(prof.ig.user?'@'+prof.ig.user:'مربوط'):(p.who||'مربوط'))):(p.conf?'جاهز للربط':p.need?'يحتاج ربط':(p.err||'غير متاح'));
+  const off=!fits||!p.ready;return `<label class="pfc ${on?'on':''} ${off?'off':''}" title="${esc(p.name+' — '+sub)}"><input type="checkbox" data-p="${k}" ${on?'checked':''} ${off?'disabled':''}><span class="ic ${p.cls}">${p.ic}</span><span class="tx"><b>${p.name}</b><small><bdi>${esc(sub)}</bdi>${!p.ready&&p.conf&&fits?`<button type="button" class="q" data-conn="${k}">ربط الآن</button>`:!p.ready&&p.need&&fits?`<button type="button" class="q" data-need="${k}">ما المطلوب؟</button>`:''}</small></span></label>`}).join('')}
 $('pf').addEventListener('change',e=>{const k=e.target.dataset.p;if(!k)return;e.target.checked?sel.add(k):sel.delete(k);render()});
+const SKEY={pin:'pinterest',yt:'youtube',tk:'tiktok'};
+$('pf').addEventListener('click',async e=>{const c=e.target.closest('[data-conn]');if(c){e.preventDefault();try{const r=await fetch('/api/oauth/connect/'+SKEY[c.dataset.conn],{method:'POST',headers:{authorization:'Bearer '+await idTok()}});const d=await r.json();if(d.ok&&d.url)location.href=d.url;else toast(d.error||'تعذر بدء الربط')}catch(x){toast('تعذر بدء الربط')}return}});
 $('pf').addEventListener('click',e=>{const b=e.target.closest('[data-need]');if(!b)return;e.preventDefault();showModal(P[b.dataset.need].need)});
 function showModal(h){$('mBody').innerHTML=h;$('modal').classList.add('show')}$('mClose').onclick=()=>$('modal').classList.remove('show');
 function txt(k){const c=custom[k];return (c!=null&&String(c).trim()!=='')?String(c):$('text').value}
 function renderCust(){const ks=ORDER.filter(k=>sel.has(k)&&k!=='site');
   $('cust').innerHTML=ks.length?ks.map(k=>`<details class="cust" ${custom[k]?'open':''}><summary><span class="ic ${P[k].cls}" style="width:22px;height:22px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;color:#fff">${P[k].ic.replace('<svg','<svg width="13" height="13"')}</span>${P[k].name}<small>${custom[k]?'نص خاص':'يستخدم النص الرئيسي'}</small></summary><textarea data-c="${k}" style="margin-top:8px;min-height:90px" placeholder="اتركه فارغاً لاستخدام النص الرئيسي">${esc(custom[k]||'')}</textarea><div class="cnt" data-cc="${k}"></div></details>`).join(''):'<p class="note" style="margin:0">اختر منصة في الخطوة 3 لتخصيص نصها.</p>';
-  $('siteBox').hidden=!sel.has('site');counts()}
+  $('siteBox').hidden=!sel.has('site');$('pinBox').hidden=!sel.has('pin');counts()}
 $('cust').addEventListener('input',e=>{const k=e.target.dataset.c;if(!k)return;custom[k]=e.target.value;counts();renderPreview()});
 function counts(){const set=(el,n,max)=>{el.textContent=n+' / '+max;el.classList.toggle('over',n>max)};
   document.querySelector('[data-for=text]').textContent=len($('text').value)+' حرف';
@@ -228,6 +231,7 @@ $('pvt').onclick=e=>{const b=e.target.closest('button');if(!b)return;pvK=b.datas
 function render(){renderThumbs();renderPf();renderCust();renderPreview();renderChecks()}
 // ---------- قسم الموقع ----------
 function catVal(){const v=$('cat').value;return v==='__new__'?$('catNew').value.trim().replace(/\s*\|\s*/g,' | '):v}
+$('board').onchange=async()=>{try{await fetch('/api/oauth/board',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+await idTok()},body:JSON.stringify({board:$('board').value})})}catch(e){}};
 $('cat').onchange=()=>{$('catNew').hidden=$('cat').value!=='__new__';renderPreview();renderChecks()};$('catNew').oninput=()=>{renderPreview();renderChecks()};$('siteTitle').oninput=renderPreview;
 // ---------- الفحص ----------
 function problems(ks){const out=[];const add=(k,m,bad=true)=>out.push({k,m,bad});
@@ -238,7 +242,9 @@ function problems(ks){const out=[];const add=(k,m,bad=true)=>out.push({k,m,bad})
     if(k==='ig'){const tags=(t.match(/#[^\s#]+/g)||[]).length;if(tags>30)add(k,'إنستغرام يسمح بـ 30 هاشتاغ كحد أقصى (عندك '+tags+')');
       if(kind==='image')files.forEach((x,i)=>{const r=x.w/x.h;if(x.w&&(r<0.8-0.01||r>1.91+0.01))add(k,`الصورة ${i+1}: أبعادها (${x.w}×${x.h}) خارج ما يقبله إنستغرام (بين 4:5 و 1.91:1) — قد يرفضها`)});
       if(kind==='video'&&files[0]&&files[0].d&&(files[0].d<3||files[0].d>900))add(k,'ريلز إنستغرام: المدة بين 3 ثوانٍ و 15 دقيقة')}
-    if(k==='site'&&!catVal())add(k,'اختر قسم الموقع في الخطوة 4')}
+    if(k==='site'&&!catVal())add(k,'اختر قسم الموقع في الخطوة 4');
+    if(k==='pin'&&!$('board').value)add(k,'اختر لوحة Pinterest في الخطوة 4');
+    if((k==='yt')&&!$('vTitle').value.trim())add(k,'اكتب عنوان الفيديو (يوتيوب يشترطه)')}
   if(kind==='video'&&files[0]&&!/mp4$/i.test(files[0].f.type)&&!/\.mp4$/i.test(files[0].f.name))add('',`صيغة الفيديو (${files[0].f.type||'غير معروفة'}): الأفضل MP4. فيديوهات الآيفون (MOV) قد لا تعمل في الموقع أو إنستغرام — ارفعها من «لوحة الموقع» التي تحوّلها تلقائياً`,false);
   if(!$('text').value.trim()&&ks.some(k=>k!=='site'))add('','نص المنشور فارغ',false);
   return out}
@@ -319,6 +325,13 @@ async function publish(ks){
           else{results[k]={status:'fail',error:(o&&o.error)||d.error||('HTTP '+r.status)};row(k,'fail',results[k].error)}}
       }catch(e){for(const k of meta){results[k]={status:'fail',error:'انقطع الاتصال: '+(e.message||e)};row(k,'fail',results[k].error)}}
       await saveRes()})())}
+    for(const k of run.filter(x=>SKEY[x])){row(k,'run','جارٍ الرفع والنشر…');jobs.push((async()=>{
+      try{const r=await fetch('/api/oauth/publish/'+SKEY[k],{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+await idTok()},body:JSON.stringify({items:prep.media.map(m=>({url:m.url,type:m.type})),text:txt(k),title:kind==='video'?$('vTitle').value.trim():'',cover:prep.cover||'',board:$('board').value,link:'https://cesar-alcham.com'})});
+        const d=await r.json().catch(()=>({}));
+        if(d.ok&&(d.id||d.link)){results[k]={status:'ok',link:d.link||'',id:d.id||'',note:d.note||''};row(k,'ok',d.note?d.note:'تم النشر',d.link||'')}
+        else{results[k]={status:'fail',error:d.error||('HTTP '+r.status)};row(k,'fail',results[k].error)}
+      }catch(e){results[k]={status:'fail',error:'انقطع الاتصال: '+(e.message||e)};row(k,'fail',results[k].error)}
+      await saveRes()})())}
     if(run.includes('site')){row('site','run','جارٍ الإضافة إلى الموقع…');jobs.push((async()=>{try{const o=await publishSite(id,prep);results.site={status:'ok',link:o.link};row('site','ok',o.msg,o.link)}catch(e){results.site={status:'fail',error:String(e.message||e)};row('site','fail',results.site.error)}await saveRes()})())}
     await Promise.all(jobs);
     const okN=run.filter(k=>results[k].status==='ok').length;toast(okN===run.length?'✓ تم النشر على كل المنصات المحددة':okN?`نُشر على ${okN} من ${run.length} — راجع الحالة`:'فشل النشر — راجع الحالة');
@@ -326,6 +339,7 @@ async function publish(ks){
   }finally{busy=false;['pubAll','pubSel','check'].forEach(b=>$(b).disabled=false)}}
 $('pubSel').onclick=()=>publish([...sel]);
 $('pubAll').onclick=()=>{const ks=ORDER.filter(k=>P[k].ready&&P[k].kinds.includes(kind));
+  if(ks.includes('pin')&&!$('board').value){ks.splice(ks.indexOf('pin'),1);toast('Pinterest: اختر اللوحة في الخطوة 4',5000)}
   if(ks.includes('site')&&!catVal()){ks.splice(ks.indexOf('site'),1);toast('الموقع الرسمي: اختر القسم في الخطوة 4 لينشر عليه أيضاً',5000)}
   if(!ks.length){toast('لا توجد منصة مربوطة لهذا النوع');return}
   const names=ks.map(k=>P[k].name).join('، ');const off=ORDER.filter(k=>!P[k].ready&&P[k].kinds.includes(kind)).map(k=>P[k].name);
@@ -342,7 +356,11 @@ async function checkConn(){const msgs=[];
   try{const s=await db.collection(FS).get();const c=new Set();s.docs.forEach(d=>{if(/^(items_|videos_)/.test(d.id))(d.data().items||[]).forEach(it=>{const x=String(it.category||'').trim();if(x)c.add(x)})});
     CATS=[...c].sort((a,b)=>a.localeCompare(b,'ar'));$('cat').innerHTML='<option value="">— اختر القسم —</option>'+CATS.map(x=>`<option value="${esc(x)}">${esc(x.split('|')[0].trim())}</option>`).join('')+'<option value="__new__">➕ قسم جديد…</option>';P.site.ready=true}
   catch(e){P.site.err='تعذر قراءة الأقسام';msgs.push('تعذر قراءة أقسام الموقع')}
-  $('conn').innerHTML=(msgs.length?msgs.map(esc).join('<br>')+'<br>':'')+'منصات تحتاج ربطاً بحساباتك أولاً: <bdi>Pinterest</bdi>، <bdi>TikTok</bdi>، <bdi>YouTube</bdi> — اضغط «ما المطلوب؟» على كل منها.';
+  try{const r=await fetch('/api/oauth/status',{headers:{authorization:'Bearer '+await idTok()}});const d=await r.json();
+    if(d.ok)for(const [k,s] of Object.entries(SKEY)){const x=d[s]||{};P[k].conf=!!x.configured;P[k].ready=!!(x.configured&&x.connected);if(x.name)P[k].who=x.name}
+    if(P.pin.ready){try{const r2=await fetch('/api/oauth/boards',{headers:{authorization:'Bearer '+await idTok()}});const b2=await r2.json();if(b2.ok){$('board').innerHTML='<option value="">— اختر اللوحة —</option>'+b2.boards.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('');if(b2.board)$('board').value=b2.board}else{$('board').innerHTML='<option value="">'+esc(b2.error||'تعذر جلب اللوحات')+'</option>'}}catch(x){}}}catch(e){}
+  const off=Object.keys(SKEY).filter(k=>!P[k].ready).map(k=>'<bdi>'+P[k].name+'</bdi>'+(P[k].conf?' (اضغط «ربط الآن»)':''));
+  $('conn').innerHTML=(msgs.length?msgs.map(esc).join('<br>')+'<br>':'')+(off.length?'غير مربوط بعد: '+off.join('، ')+' — اضغط «ما المطلوب؟» أو «ربط الآن» على كل منها.':'كل المنصات مربوطة ✓');
   render()}
 // ---------- الدخول ----------
 window.addEventListener('DOMContentLoaded',()=>{
