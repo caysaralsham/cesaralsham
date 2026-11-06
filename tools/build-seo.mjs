@@ -194,6 +194,10 @@ const saved = fs.existsSync(path.join(ROOT, slugFile)) ? JSON.parse(rd(slugFile)
 const slugs = {}, used = new Set(Object.values(saved));
 for (const c of cats) {
   if (saved[c]) { slugs[c] = saved[c]; continue; }
+  { // قسم انعدّل اسمه: إذا رابطه الطبيعي محجوز لاسم قديم ما عاد موجود، بياخد نفس الرابط
+    const s0 = 'a3mal-' + slugify(c), owner = Object.keys(saved).find(k => saved[k] === s0);
+    if (owner && !byCat.has(owner) && !Object.values(slugs).includes(s0)) { slugs[c] = s0; continue; }
+  }
   let s = 'a3mal-' + slugify(c), n = 2; while (used.has(s)) s = 'a3mal-' + slugify(c) + '-' + n++;
   slugs[c] = s; used.add(s);
 }
@@ -279,6 +283,9 @@ wr('index.html', h);
 
 // ================= النسخة الفرنسية /fr =================
 const REVIEW_URL = 'https://www.google.com/maps?cid=9304963512715322872';
+// رابط كتابة التقييم المباشر (من Google Business Profile — نفس الشركة: قيصر الشام للحجر والرخام 2)
+const REVIEW_WRITE_URL = 'https://g.page/r/CfglXtcD3yGBEBM/review';
+const G_LOGO = '<svg class="g-logo" viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
 const frOf = c => splitName(c).fr || (slugs[c] ? (t => t.charAt(0).toUpperCase() + t.slice(1))(slugs[c].replace(/^a3mal-/, '').replace(/-/g, ' ')) : splitName(c).ar);
 const frTitle = (it, c) => (it.title && splitName(it.title).fr) || frOf(c);
 const waFr = t => `https://wa.me/${WA}?text=${encodeURIComponent(t)}`;
@@ -385,7 +392,7 @@ footer{background:#2A190D;color:#C9B08F;text-align:center;padding:24px;font-size
 .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 @media(max-width:820px){.works6{grid-template-columns:repeat(2,1fr);gap:12px}}@media(max-width:520px){.wk span{padding:26px 10px 10px}.wk b{font-size:13px}.wk small{font-size:11.5px}.hero{padding:52px 18px 44px}.hero .cta a{width:100%;min-width:0}}
 .rv-sum{display:flex;width:max-content;max-width:100%;margin:0 auto;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center;background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 8px 8px 20px;box-shadow:0 10px 30px rgba(59,36,20,.06)}
-.rv-sum b{font-size:22px;font-weight:900}.rv-stars{color:#D9A23A;letter-spacing:2px}.rv-sum .src{color:var(--dim);font-size:14px;font-weight:600}.rv-sum a{background:#16774A;color:#fff;padding:8px 16px;border-radius:999px;font-weight:800;font-size:14px;white-space:nowrap}
+.rv-sum b{font-size:22px;font-weight:900}.rv-stars{color:#D9A23A;letter-spacing:2px}.rv-sum .src{color:var(--dim);font-size:14px;font-weight:600}.rv-sum a.rv-cta{display:inline-flex;align-items:center;gap:10px;background:#fff;color:#3C4043;border:1px solid #DADCE0;padding:9px 18px 9px 16px;border-radius:999px;font-weight:800;font-size:15px;white-space:nowrap;text-decoration:none;box-shadow:0 1px 3px rgba(60,64,67,.18);transition:box-shadow .2s,transform .2s,border-color .2s}.rv-sum a.rv-cta:hover,.rv-sum a.rv-cta:focus-visible{box-shadow:0 4px 14px rgba(60,64,67,.22);border-color:#C6C9CE;transform:translateY(-1px)}.rv-cta .g-logo{flex-shrink:0;display:block}.rv-cta b{font-weight:800;font-family:Arial,Helvetica,sans-serif}
 .rv{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;margin-top:22px}
 .rv-card{background:#fff;border:1px solid #EFE3D0;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 8px 22px rgba(59,36,20,.05);transition:.3s}.rv-card:hover{transform:translateY(-3px);box-shadow:0 16px 32px rgba(59,36,20,.09)}
 .rv-head{display:flex;align-items:center;gap:10px;min-width:0}.rv-av{width:40px;height:40px;border-radius:50%;flex-shrink:0;object-fit:cover;background:linear-gradient(145deg,#B8864E,#6E4524);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
@@ -435,7 +442,7 @@ fs.mkdirSync(path.join(ROOT, 'fr'), {recursive: true});
 const rvCardFr = (name, stars, text, photo) => { const n = Math.max(1, Math.min(5, Math.round(+stars || 5)));
   return `<div class="rv-card"><div class="rv-head">${photo ? `<img class="rv-av" src="${esc(photo)}" alt="" width="40" height="40" loading="lazy" referrerpolicy="no-referrer">` : `<span class="rv-av" aria-hidden="true">${esc(String(name || '').trim()[0] || '★')}</span>`}<b dir="auto" title="${esc(name)}">${esc(name)}</b></div><span class="rv-stars" aria-label="${n} sur 5">${'★'.repeat(n)}${'☆'.repeat(5 - n)}</span><p dir="auto">${esc(text)}</p></div>`; };
 const reviewsHtml = () => `<section class="sec" id="avis"><h2>Avis de nos clients</h2>
-  <div class="rv-sum"><b id="gRating">5,0</b><span class="rv-stars" aria-hidden="true">★★★★★</span><span class="src">sur Google<span id="gCount"></span></span><a href="${REVIEW_URL}" target="_blank" rel="noopener">Laissez-nous un avis</a></div>
+  <div class="rv-sum"><b id="gRating">5,0</b><span class="rv-stars" aria-hidden="true">★★★★★</span><span class="src">sur Google<span id="gCount"></span></span><a class="rv-cta" href="${REVIEW_WRITE_URL}" target="_blank" rel="noopener" aria-label="Donnez-nous votre avis sur Google">${G_LOGO}<span>Votre avis sur <b>Google</b></span></a></div>
   <div class="rv" id="reviewsList">${reviews.filter(r => !r.hidden && r.approved !== false).map(r => rvCardFr(r.name || '', r.stars, r.text, r.photo || '')).join('')}</div>
   <script>(function(){fetch('/api/google-reviews').then(r=>r.ok?r.json():null).then(d=>{if(!d||!d.ok||!d.reviews||!d.reviews.length)return;
   const e=t=>String(t||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
