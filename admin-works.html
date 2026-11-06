@@ -133,11 +133,142 @@
 <link rel="manifest" href="/qs-manifest-home.json">
 <link rel="apple-touch-icon" href="/qs-apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/qs-icon-192.png">
-<meta name="theme-color" content="#0a0a0a">
+<meta name="theme-color" content="#3B2414">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="قيصر الشام">
 <style id="sb-right">/* شريط التمرير على اليمين (كمبيوتر بس — عالجوال بيمنع التحريك يمين/يسار) */@media (min-width:900px) and (hover:hover){html{direction:ltr}body{direction:rtl}}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap">
+<style id="admin-2026">
+/* ===== تصميم لوحة التحكم (نوفمبر 2026): ألوان الهوية البنية والبرونزية + تخطيط جديد — الوظائف والمعرّفات كما هي ===== */
+:root{
+  --ink:#3B2414; --gold:#9A6A3A; --gold-deep:#6E4524; --bronze-lt:#D9B98C; --cream:#FFFFFF; --cream-2:#F7F1E8;
+  --stone:#2A190D; --text-dim:#7A6250; --line:#EADFCF; --white:#FFFFFF; --danger:#A6453D; --danger-soft:#F6E4E1;
+  --radius:18px; --shadow:0 10px 28px rgba(59,36,20,.07); --hh:72px;
+}
+body{background:#F4EEE5; color:#2E1C10; font-family:'Cairo','Tajawal',sans-serif; -webkit-font-smoothing:antialiased;}
+/* الهيدر */
+header{position:sticky; top:0; z-index:90; background:linear-gradient(90deg,#3B2414,#4A2E1A); padding:12px 28px; box-shadow:0 6px 24px rgba(42,25,13,.25); gap:14px;}
+header h1{display:flex; align-items:center; gap:12px; font-size:18px; color:#fff; letter-spacing:0;}
+header h1 img{width:44px; height:44px; border-radius:10px; background:#fff; object-fit:contain; flex-shrink:0;}
+header h1 small{display:block; font-size:12px; font-weight:600; color:var(--bronze-lt);}
+header .right{gap:8px;}
+header a.backlink{display:inline-flex; align-items:center; gap:6px; color:#F3E6D2; border:1px solid rgba(217,185,140,.4); border-radius:999px; padding:6px 14px; font-size:13px; font-weight:700; transition:.2s;}
+header a.backlink:hover{background:rgba(217,185,140,.15); border-color:var(--bronze-lt);}
+#whoEmail{color:var(--bronze-lt); font-size:12.5px; background:rgba(255,255,255,.06); border-radius:999px; padding:5px 12px; max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+#whoEmail:empty{display:none;}
+header .btn-ghost{background:transparent; border-color:var(--bronze-lt); color:var(--bronze-lt); border-radius:999px;}
+header .btn-ghost:hover{background:var(--bronze-lt); color:var(--ink);}
+/* التخطيط: إحصائيات فوق، قائمة جانبية ثابتة، والمحتوى جنبها */
+.wrap{max-width:1400px; padding:26px 28px 70px;}
+@media (min-width:1000px){
+  .wrap{display:grid; grid-template-columns:230px minmax(0,1fr); column-gap:26px; align-items:start;}
+  .wrap > .panel:nth-child(1){grid-column:1/-1; grid-row:1;}
+  .wrap > .panel:nth-child(2){grid-column:1/-1; grid-row:2;}
+  .wrap > .tabs{grid-column:1; grid-row:3; position:sticky; top:calc(var(--hh) + 18px); flex-direction:column; gap:4px; border:1px solid var(--line); border-radius:var(--radius); background:#fff; padding:10px; box-shadow:var(--shadow); margin:0;}
+  .wrap > .view{grid-column:2; grid-row:3; min-width:0;}
+  .tab{border:0 !important; border-radius:12px; padding:11px 14px !important;}
+  .tab.active{background:linear-gradient(135deg,#9A6A3A,#6E4524); color:#fff !important; box-shadow:0 6px 16px rgba(110,69,36,.25);}
+}
+@media (min-width:1200px){
+  /* الزيارات بعمود القائمة، وطلبات واتساب جنبها */
+  .wrap > .panel:nth-child(1){grid-column:1/2; grid-row:1; align-self:stretch;}
+  .wrap > .panel:nth-child(2){grid-column:2/3; grid-row:1; align-self:stretch;}
+  .wrap > .panel:nth-child(1) #adminStats{grid-template-columns:1fr !important;}
+}
+/* التبويبات */
+.tabs{gap:6px; border-bottom:0; margin-bottom:20px;}
+.tab{display:flex; align-items:center; gap:10px; color:#5A4535; font-size:14.5px; border-radius:12px; transition:background .2s, color .2s;}
+.tab:hover{background:#F7F1E8; color:var(--ink);}
+.tab.active{color:var(--gold-deep);}
+.tab::before{content:""; width:20px; height:20px; flex-shrink:0; background:currentColor; -webkit-mask:var(--ic) center/contain no-repeat; mask:var(--ic) center/contain no-repeat;}
+.tab[data-view="images"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='3'/%3E%3Ccircle cx='9' cy='9' r='2'/%3E%3Cpath d='M21 15l-5-5L5 21'/%3E%3C/svg%3E");}
+.tab[data-view="videos"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='5' width='15' height='14' rx='3'/%3E%3Cpath d='M17 10l5-3v10l-5-3z'/%3E%3C/svg%3E");}
+.tab[data-view="categories"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='7' height='7' rx='1.5'/%3E%3Crect x='14' y='3' width='7' height='7' rx='1.5'/%3E%3Crect x='3' y='14' width='7' height='7' rx='1.5'/%3E%3Crect x='14' y='14' width='7' height='7' rx='1.5'/%3E%3C/svg%3E");}
+.tab[data-view="faq"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14'/%3E%3Cpath d='M12 17h.01'/%3E%3C/svg%3E");}
+.tab[data-view="reviews"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z'/%3E%3C/svg%3E");}
+.tab[data-view="updates"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z'/%3E%3C/svg%3E");}
+/* البطاقات (اللوحات) */
+.panel{border:1px solid var(--line); border-radius:var(--radius); padding:22px 24px; box-shadow:var(--shadow); margin-bottom:22px;}
+.panel h2{display:flex; align-items:center; gap:10px; font-size:16.5px; font-weight:800; color:var(--ink); margin:0 0 16px; padding-bottom:12px; border-bottom:1px solid #F1E8DA;}
+.panel h2::before{content:""; width:5px; height:20px; border-radius:3px; background:linear-gradient(180deg,#B8864E,#6E4524); flex-shrink:0;}
+/* بطاقات الأرقام (زيارات وطلبات واتساب) */
+#adminStats > div, #adminWaStats > div{background:linear-gradient(160deg,#FFFFFF,#F7F1E8) !important; border:1px solid var(--line); border-radius:14px !important; padding:14px 12px !important; position:relative; overflow:hidden;}
+#adminStats > div::after, #adminWaStats > div::after{content:""; position:absolute; inset:0 0 auto 0; height:3px; background:linear-gradient(90deg,transparent,#B8864E,transparent); opacity:.6;}
+#adminStats > div > div:nth-child(2), #adminWaStats > div > div:nth-child(2){font-size:26px !important; font-weight:900 !important; color:var(--gold-deep) !important;}
+#adminStats > div > div:first-child, #adminWaStats > div > div:first-child{font-size:12.5px !important; font-weight:700;}
+/* الأزرار والحقول */
+.btn{border-radius:12px; padding:10px 18px; font-weight:800; transition:background .2s, transform .15s, box-shadow .2s; box-shadow:0 4px 12px rgba(110,69,36,.15);}
+.btn:hover{transform:translateY(-1px);}
+.btn:active{transform:none;}
+.btn-ghost{box-shadow:none; border-color:#CDB089; background:#fff;}
+.btn-danger{box-shadow:none;}
+.btn-sm{border-radius:10px; padding:6px 12px;}
+.btn:disabled{opacity:.55; cursor:not-allowed; transform:none;}
+.field label{font-size:13px; color:#5A4535;}
+.field input, .field select, .field textarea, .admin-tools input, #bulkBar select, .panel textarea, .panel input[type="text"], .panel input[type="number"], .panel select{border:1.5px solid var(--line); border-radius:12px; padding:10px 12px; background:#FFFDF9; font:inherit; transition:border-color .2s, box-shadow .2s;}
+.field input:focus, .field select:focus, .field textarea:focus, .admin-tools input:focus, .panel textarea:focus, .panel input:focus, .panel select:focus{outline:none; border-color:var(--gold); box-shadow:0 0 0 4px rgba(154,106,58,.14);}
+input[type="file"]{padding:14px !important; border:2px dashed #D9C3A0 !important; background:#FBF6EE !important; border-radius:14px !important; width:100%; cursor:pointer;}
+input[type="file"]::file-selector-button{font:inherit; font-weight:800; border:0; border-radius:10px; background:var(--ink); color:#fff; padding:8px 16px; margin-inline-end:12px; cursor:pointer;}
+input[type="checkbox"]{accent-color:var(--gold);}
+/* الأقسام وبطاقات الصور */
+.cat-group{border:1px solid var(--line); border-radius:16px; margin:12px 0; box-shadow:0 4px 14px rgba(59,36,20,.04);}
+.cat-group > summary{padding:14px 18px; background:#FBF6EE; font-size:15px; list-style:none;}
+.cat-group > summary::-webkit-details-marker{display:none;}
+.cat-group > summary::before{content:"‹"; display:inline-flex; width:24px; height:24px; align-items:center; justify-content:center; border-radius:50%; background:#fff; border:1px solid var(--line); color:var(--gold-deep); font-weight:900; transition:transform .2s;}
+.cat-group[open] > summary::before{transform:rotate(-90deg);}
+.cat-group > summary:hover{background:#F5ECDD;}
+.tag{background:#EFE3D0; color:var(--gold-deep);}
+.tag.warn{background:#FCEBD9; color:#A0640C;}
+.agrid{gap:14px; padding:16px; grid-template-columns:repeat(auto-fill,minmax(180px,1fr));}
+.acard{border-radius:14px; transition:transform .2s, box-shadow .2s, border-color .2s;}
+.acard:hover{transform:translateY(-2px); box-shadow:0 10px 22px rgba(59,36,20,.1); border-color:#D9C3A0;}
+.acard.picked{outline:3px solid var(--gold); outline-offset:-1px;}
+.acard-b{padding:10px;}
+.acard-t{font-size:13px;}
+.cover-badge{background:var(--gold); border-radius:8px;}
+.cat-row{background:#FBF6EE; border:1px solid var(--line); border-radius:12px; padding:10px 14px;}
+/* الجداول */
+table{border-collapse:separate; border-spacing:0;}
+th{background:#F7F1E8; color:#5A4535; font-size:12px; padding:11px 10px;}
+th:first-child{border-start-start-radius:10px;} th:last-child{border-start-end-radius:10px;}
+td{padding:11px 10px;}
+tbody tr:hover td{background:#FFFBF5;}
+td img{border-radius:10px;}
+/* شريط التحديد الجماعي، النوافذ، الرسائل، الدخول */
+#bulkBar{background:#3B2414; border:1px solid rgba(217,185,140,.35);}
+.overlay{background:rgba(42,25,13,.55); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);}
+.modal{border-radius:20px; padding:26px; box-shadow:0 30px 70px rgba(42,25,13,.35); max-height:92vh; overflow-y:auto;}
+.modal h3{font-size:17px; color:var(--ink); padding-bottom:12px; border-bottom:1px solid #F1E8DA;}
+.toast{background:#3B2414; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.25);}
+#authLoading{background:#3B2414;}
+#loginScreen{background:radial-gradient(ellipse at 50% 0%,#5A3A22,#2A190D 70%);}
+#loginScreen .box{border-radius:22px; padding:32px 28px; max-width:380px; text-align:center;}
+#loginScreen .box::before{content:""; display:block; width:72px; height:72px; margin:0 auto 14px; border-radius:16px; background:#fff url('/img/site/243fa7c39e4b.jpg') center/contain no-repeat; box-shadow:0 6px 18px rgba(59,36,20,.2);}
+#loginScreen .box .field{text-align:right;}
+#loginScreen h2{font-size:18px; color:var(--ink);}
+/* الجوال */
+@media (max-width:999px){
+  header{padding:10px 16px;}
+  .wrap{padding:18px 14px 60px;}
+  header{position:relative;} /* الجوال: الهيدر بيطلع مع الصفحة حتى ما ياخد نص الشاشة، والتبويبات بتضل ظاهرة فوق */
+  .tabs{position:sticky; top:0; z-index:40; background:#F4EEE5; padding:6px 0; flex-wrap:nowrap !important; overflow-x:auto !important;}
+  .tab{background:#fff; border:1px solid var(--line) !important; border-radius:999px; padding:8px 14px !important;}
+  .tab.active{background:var(--ink); color:#fff !important; border-color:var(--ink) !important;}
+  .tab::before{width:17px; height:17px;}
+}
+@media (max-width:700px){
+  header h1 img{width:36px; height:36px;}
+  header h1{font-size:15.5px;}
+  header .right{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  header a.backlink{justify-content:center; font-size:12px; padding:6px 10px;}
+  header .right #whoEmail{grid-column:1/-1; max-width:none; text-align:center;}
+  .panel{padding:16px; border-radius:16px;}
+  .agrid{grid-template-columns:repeat(2,1fr); gap:10px; padding:10px;}
+}
+</style>
+<script>/* ارتفاع الهيدر الثابت (للقائمة الجانبية/التبويبات الثابتة) */document.addEventListener('DOMContentLoaded',function(){var h=document.querySelector('header');if(!h)return;var s=function(){document.documentElement.style.setProperty('--hh',h.offsetHeight+'px')};s();addEventListener('resize',s,{passive:true});});</script>
 </head>
 <body>
 <div id="authLoading"><div class="spinner"></div></div>
@@ -153,10 +284,10 @@
 </div>
 
 <header>
-  <h1>لوحة إدارة الأعمال — قيصر الشام</h1>
+  <h1><img src="/img/site/243fa7c39e4b.jpg" alt="" width="44" height="44"><span>لوحة إدارة الأعمال<small>قيصر الشام للحجر والرخام</small></span></h1>
   <div class="right">
     <a class="backlink" href="index.html">↩ العودة للموقع</a>
-    <a class="backlink" href="/links/admin-settings.html">⚙ الإعدادات العامة (النصوص، الشعار، النسخة الاحتياطية...)</a>
+    <a class="backlink" href="/links/admin-settings.html" title="النصوص، الشعار، النسخة الاحتياطية...">⚙ الإعدادات العامة</a>
     <span id="whoEmail"></span>
     <button class="btn btn-ghost btn-sm" id="btnLogout">تسجيل خروج</button>
   </div>
@@ -183,7 +314,7 @@
     <div class="tab" data-view="categories">الأقسام</div>
     <div class="tab" data-view="faq">الأسئلة الشائعة</div>
     <div class="tab" data-view="reviews">آراء الزبائن</div>
-    <div class="tab" data-view="updates">🛠 تحديثات الموقع</div>
+    <div class="tab" data-view="updates">تحديثات الموقع</div>
   </div>
 
   <!-- ================= الصور ================= -->
