@@ -92,6 +92,7 @@ const DEFAULT_SETTINGS = {
 };
 
 let items = [];
+let hiddenIds = new Set(); // الصور المكررة المخفية (نفس ما بتعمله صفحات الأقسام)
 let settings = {...DEFAULT_SETTINGS};
 const SETTINGS_CACHE_KEY = 'cesar_settings_cache_v1';
 let fbReady = false;
@@ -248,9 +249,12 @@ document.getElementById('lightboxOverlay').addEventListener('click', (e)=>{
 
 window.addEventListener('scroll', ()=>{
   const h = document.querySelector('header');
-  if(window.scrollY > 12) h.classList.add('scrolled');
-  else h.classList.remove('scrolled');
+  // فرق بين حد التصغير وحد الرجوع، حتى ما يرجف الهيدر لما يتغير طوله
+  if(window.scrollY > 80) h.classList.add('scrolled');
+  else if(window.scrollY < 20) h.classList.remove('scrolled');
 }, {passive:true});
+// ارتفاع الهيدر الثابت: حتى الروابط الداخلية (#works، #contact) ما تختبي تحته
+(function(){ const h=document.querySelector('header'); if(!h) return; const set=()=>document.documentElement.style.setProperty('--hh', h.offsetHeight+'px'); set(); window.addEventListener('resize', set, {passive:true}); })();
 
 if('IntersectionObserver' in window){
   const revealObserver = new IntersectionObserver((entries)=>{
@@ -529,6 +533,7 @@ async function handleSnap(snap){
       if(doc.id === FS_DOC) mainDoc = doc.data();
       else if(doc.id === 'site_faq') renderFaq(doc.data().items);
       else if(doc.id === 'site_reviews') renderReviews(doc.data().items);
+      else if(doc.id === 'site_hidden') hiddenIds = new Set(((doc.data().items)||[]).map(x=>x&&x.id));
       else if(doc.id.startsWith(VCHUNK_PREFIX)) videoChunks[doc.id] = doc.data().items || [];
       else if(doc.id.startsWith(CHUNK_PREFIX)) itemChunks[doc.id] = doc.data().items || [];
     });
@@ -591,19 +596,27 @@ function renderFaq(list){
 }
 // آراء غوغل الحقيقية (من /api/google-reviews) — إذا ما اشتغلت بتضل الآراء المكتوبة باليد
 let googleReviewsOn=false;
+// بطاقة رأي واحدة: الاسم والنص الطويل بسطر/أسطر محدودة، والضغط عليهم بيبيّن الباقي
+function rvCard(name,stars,text,when,photo){
+  const e=t=>String(t||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const n=Math.max(1,Math.min(5,Math.round(+stars||5)));
+  const av=photo?`<img class="rv-av" src="${e(photo)}" alt="" width="40" height="40" loading="lazy" referrerpolicy="no-referrer">`:`<span class="rv-av" aria-hidden="true">${e((String(name||'').trim()[0]||'★'))}</span>`;
+  return `<div class="rv-card"><div class="rv-head">${av}<div class="rv-who"><b dir="auto" title="${e(name)}">${e(name)}</b>${when?`<small>${e(when)}</small>`:''}</div></div><span class="rv-stars" aria-label="${n} من 5">${'★'.repeat(n)}${'☆'.repeat(5-n)}</span><p dir="auto">${e(text)}</p></div>`;
+}
+document.addEventListener('click',ev=>{const x=ev.target.closest&&ev.target.closest('.rv-card p, .rv-who b'); if(x) x.classList.toggle('open');});
 (function(){fetch('/api/google-reviews').then(r=>r.ok?r.json():null).then(d=>{if(!d||!d.ok||!d.reviews||!d.reviews.length)return;googleReviewsOn=true;
   const e=t=>String(t||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   if(d.rating){const g=document.getElementById('gRating');if(g)g.textContent=(+d.rating).toFixed(1)}
   if(d.count){const c=document.getElementById('gCount');if(c)c.textContent=' ('+d.count+' تقييم)'}
   const w=document.getElementById('reviewsList');if(!w)return;
-  w.innerHTML=d.reviews.map(r=>`<div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px"><div style="display:flex;align-items:center;gap:8px">${r.photo?`<img src="${e(r.photo)}" alt="" width="34" height="34" loading="lazy" referrerpolicy="no-referrer" style="border-radius:50%">`:''}<div><b dir="auto">${e(r.name)}</b><div style="font-size:12px;color:var(--gold-deep)">${e(r.when)}</div></div></div><div style="color:#E0A100;letter-spacing:2px">${'★'.repeat(Math.max(1,Math.min(5,Math.round(+r.stars||5))))}</div><p dir="auto" style="margin:0;line-height:1.7">${e(r.text.length>320?r.text.slice(0,317)+'…':r.text)}</p></div>`).join('')
-    +`<div style="grid-column:1/-1;text-align:center;font-size:12.5px;color:var(--gold-deep)">الآراء من <a href="${e(d.url||'https://www.google.com/maps?cid=9304963512715322872')}" target="_blank" rel="noopener" style="color:inherit;font-weight:700">غوغل</a></div>`;
+  w.innerHTML=d.reviews.map(r=>rvCard(r.name,r.stars,r.text,r.when,r.photo)).join('')
+    +`<div class="rv-foot">الآراء من <a href="${e(d.url||'https://www.google.com/maps?cid=9304963512715322872')}" target="_blank" rel="noopener" style="color:inherit;font-weight:700">غوغل</a></div>`;
 }).catch(()=>{})})();
 function renderReviews(list){
   if(googleReviewsOn) return;
   const w=document.getElementById('reviewsList'); if(!w||!Array.isArray(list)) return;
   const e=t=>String(t||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  w.innerHTML=list.filter(r=>r&&r.text).map(r=>`<div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px"><div style="color:#E0A100;letter-spacing:2px">${'★'.repeat(Math.max(1,Math.min(5,+r.stars||5)))}</div><p style="margin:6px 0">${e(r.text)}</p><b>${e(r.name)}</b></div>`).join('');
+  w.innerHTML=list.filter(r=>r&&r.text&&!r.hidden&&r.approved!==false).map(r=>rvCard(r.name,r.stars,r.text,r.date||'',r.photo||'')).join('');
 }
 let didInitialHashScroll = false;
 function reScrollToHashIfNeeded(){
@@ -624,31 +637,32 @@ function setTextIfChanged(id, txt){
   const el = document.getElementById(id);
   if(el && el.textContent !== txt) el.textContent = txt;
 }
+// الصفحة العربية بتعرض الجزء العربي بس من الوصف (الفرنسي إله صفحته /fr/) — النص المحفوظ بلوحة التحكم ما بيتغيّر
+function arOnly(t){ return String(t||'').trim().split(/\s+(?=[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ'’ ,\-]{15,})/)[0].trim(); }
 function renderHeroSection(){
   setTextIfChanged('heroTitleMain', settings.heroTitleMain || DEFAULT_SETTINGS.heroTitleMain);
   setTextIfChanged('heroTitleAccent', settings.heroTitleAccent || DEFAULT_SETTINGS.heroTitleAccent);
-  setTextIfChanged('heroSubtitle', settings.heroSubtitle || DEFAULT_SETTINGS.heroSubtitle);
+  setTextIfChanged('heroSubtitle', arOnly(settings.heroSubtitle || DEFAULT_SETTINGS.heroSubtitle));
 }
 
 const sortCat=arr=>arr.slice().sort((a,b)=>(b.cover?1:0)-(a.cover?1:0)||((a.order??1e9)-(b.order??1e9))||((b.createdAt||0)-(a.createdAt||0)));
+// «أحدث أعمالنا»: آخر 6 أعمال حقيقية (الأحدث أولاً)، كل وحدة بعنوانها وقسمها، والضغط بيفتح معرض صور القسم
 function renderHomeShowcase(){
   const wrap = document.getElementById('homeShowcase');
   if(!wrap || !items.length) return;
-  const per = new Map();
-  for(const it of sortCat(items)){
-    const cat = (it.category||'').trim(); if(!cat) continue;
-    if(!per.has(cat)){ if(per.size>=8) continue; per.set(cat, []); }
-    if(per.get(cat).length < 1) per.get(cat).push(it);
-  }
-  const short = c => c.split('|')[0].trim();
-  wrap.innerHTML = [...per.entries()].flatMap(([cat, list]) => list.map(it => `
+  const e = t=>String(t||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const short = c => String(c||'').replace(/\*\*/g,'').split('|')[0].trim();
+  const latest = items.filter(it=>it.img && (it.category||'').trim() && !hiddenIds.has(it.id))
+    .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0,6);
+  if(!latest.length) return;
+  wrap.innerHTML = latest.map(it => { const cat=(it.category||'').trim(), t=short(it.title)||short(cat); return `
     <a class="sc-item" href="/works?category=${encodeURIComponent(cat)}">
-      <img src="${it.img}" loading="lazy" alt="${(it.aiAltAr||it.title||short(cat))} - قيصر الشام">
-      <span>${short(cat)}</span>
-    </a>`)).join('');
+      <img src="${e(it.img)}" loading="lazy" decoding="async" width="600" height="450" alt="${e(it.aiAltAr||t)} - قيصر الشام">
+      <span><b>${e(t)}</b>${t!==short(cat)?`<small>${e(short(cat))}</small>`:''}</span>
+    </a>`; }).join('');
   if(window.__motionShowcase) window.__motionShowcase();
   renderHomeCats();
-  renderHomeLatest();
+  const old = document.getElementById('homeLatest'); if(old) old.remove(); // اندمجت بـ«أحدث أعمالنا»
 }
 // روابط الأقسام: من البيانات الحية — أي قسم جديد بيبين فوراً (مش بس بعد تحديث الصفحات كل 3 ساعات)
 function renderHomeCats(){

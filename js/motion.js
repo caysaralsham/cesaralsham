@@ -55,7 +55,7 @@
     }
 
     // 2) محتوى الواجهة يبتعد بهدوء عند النزول (عمق خفيف)
-    var heroBits = hero ? hero.querySelectorAll(':scope > svg, :scope > h1, :scope > p, :scope > .btn, :scope > .cta') : [];
+    var heroBits = hero ? hero.querySelectorAll(':scope > svg, :scope > h1, :scope > p, :scope > .btn, :scope > .cta, .hero-inner > *') : [];
     if (heroBits.length){
       gsap.to(heroBits, {
         y: -36, opacity: .45, ease: 'none',
