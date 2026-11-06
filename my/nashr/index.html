@@ -342,7 +342,7 @@ async function checkConn(){const msgs=[];
   try{const s=await db.collection(FS).get();const c=new Set();s.docs.forEach(d=>{if(/^(items_|videos_)/.test(d.id))(d.data().items||[]).forEach(it=>{const x=String(it.category||'').trim();if(x)c.add(x)})});
     CATS=[...c].sort((a,b)=>a.localeCompare(b,'ar'));$('cat').innerHTML='<option value="">— اختر القسم —</option>'+CATS.map(x=>`<option value="${esc(x)}">${esc(x.split('|')[0].trim())}</option>`).join('')+'<option value="__new__">➕ قسم جديد…</option>';P.site.ready=true}
   catch(e){P.site.err='تعذر قراءة الأقسام';msgs.push('تعذر قراءة أقسام الموقع')}
-  $('conn').innerHTML=(msgs.length?msgs.map(esc).join('<br>')+'<br>':'')+'Pinterest وTikTok وYouTube تحتاج ربطاً بحساباتك أولاً — اضغط «ما المطلوب؟» على كل منها.';
+  $('conn').innerHTML=(msgs.length?msgs.map(esc).join('<br>')+'<br>':'')+'منصات تحتاج ربطاً بحساباتك أولاً: <bdi>Pinterest</bdi>، <bdi>TikTok</bdi>، <bdi>YouTube</bdi> — اضغط «ما المطلوب؟» على كل منها.';
   render()}
 // ---------- الدخول ----------
 window.addEventListener('DOMContentLoaded',()=>{
