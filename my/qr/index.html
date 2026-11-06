@@ -1,0 +1,126 @@
+<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>إنشاء QR — قيصر الشام</title><meta name="theme-color" content="#3B2414">
+<link rel="icon" href="/my/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style id="sb-right">/* شريط التمرير على اليمين */@media (min-width:900px) and (hover:hover){html{direction:ltr}body{direction:rtl}}</style>
+<style>
+:root{--ink:#3B2414;--br:#9A6A3A;--deep:#6E4524;--bg:#F5ECDD;--line:#E6D6BC;--card:#FBF6EE}
+*{box-sizing:border-box}body{margin:0;font-family:Cairo,Tahoma,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+header{background:var(--ink);color:#F5ECDD;padding:12px 16px;text-align:center}header b{font-size:22px;color:#D9B98C;display:block}header span{font-size:13px;opacity:.85}
+.wrap{max-width:900px;margin:0 auto;padding:16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media(max-width:760px){.wrap{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 8px 20px rgba(59,36,20,.06)}
+label{display:block;font-weight:800;font-size:13px;margin:12px 0 6px}label:first-child{margin-top:0}
+input[type=text],input[type=url],select{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+input[dir=ltr]{text-align:left}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips button{font:inherit;font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--deep);cursor:pointer;white-space:nowrap}
+.chips button:hover,.chips button.on{border-color:var(--br);background:#F2E3CC}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chk{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;margin-top:12px;cursor:pointer}.chk input{width:18px;height:18px;accent-color:var(--br)}
+.prev{display:flex;flex-direction:column;align-items:center;gap:12px}
+.prev canvas{width:100%;max-width:320px;height:auto;border-radius:12px;box-shadow:0 10px 26px rgba(59,36,20,.14);background:#fff}
+.url{font-size:12px;color:var(--deep);direction:ltr;word-break:break-all;text-align:center;max-width:320px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:inherit;font-weight:800;padding:11px 18px;border:0;border-radius:12px;background:linear-gradient(135deg,#8A5A30,#5E3A1E);color:#fff;cursor:pointer;min-width:200px}
+.btn.ghost{background:transparent;color:var(--deep);border:1.5px solid var(--line)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.err{color:#A6453D;font-size:13px;min-height:1em}
+.back{display:block;text-align:center;margin:4px auto 24px;color:var(--deep);font-weight:700}
+</style></head><body>
+<header><b>إنشاء QR</b><span>اكتب أي رابط واحصل على صورة QR جاهزة للتحميل</span></header>
+<div class="wrap">
+  <div class="card">
+    <label for="u">الرابط</label>
+    <input id="u" type="url" dir="ltr" placeholder="https://..." value="https://cesar-alcham.com/links">
+    <label>روابط جاهزة</label>
+    <div class="chips" id="pre">
+      <button type="button" data-u="https://cesar-alcham.com/links">صفحة الروابط</button>
+      <button type="button" data-u="https://cesar-alcham.com">الموقع</button>
+      <button type="button" data-u="https://g.page/r/CfglXtcD3yGBEBM/review">تقييم Google</button>
+      <button type="button" data-u="https://wa.me/213541737888">واتساب</button>
+      <button type="button" data-u="https://www.facebook.com/baselalakash">فيسبوك</button>
+      <button type="button" data-u="https://www.instagram.com/cesar_du_sham2">إنستغرام</button>
+      <button type="button" data-u="https://www.tiktok.com/@cesaralcham">تيك توك</button>
+      <button type="button" data-u="https://www.youtube.com/@cesaralcham">يوتيوب</button>
+    </div>
+    <div class="row">
+      <div><label for="sz">حجم الصورة</label><select id="sz"><option value="512">512 بكسل</option><option value="1024" selected>1024 بكسل</option><option value="2048">2048 بكسل (للطباعة)</option></select></div>
+      <div><label for="col">اللون</label><select id="col"><option value="#2E1C10">بني غامق</option><option value="#000000">أسود</option><option value="#6E4524">برونزي</option></select></div>
+    </div>
+    <label for="cap">نص تحت الرمز (اختياري)</label>
+    <input id="cap" type="text" placeholder="مثلاً: امسح الرمز — 0541737888">
+    <label class="chk"><input type="checkbox" id="logo" checked> شعار قيصر الشام في الوسط</label>
+    <label class="chk"><input type="checkbox" id="frame" checked> إطار ذهبي حول الرمز</label>
+  </div>
+  <div class="card prev">
+    <canvas id="cv" width="1024" height="1024" aria-label="معاينة QR"></canvas>
+    <div class="url" id="shown"></div>
+    <div class="err" id="err"></div>
+    <button class="btn" id="dl">تحميل صورة QR (PNG)</button>
+    <button class="btn ghost" id="test">فتح الرابط للتجربة</button>
+  </div>
+</div>
+<a class="back" href="/my/">← رجوع إلى أدواتي</a>
+<script>
+const $=id=>document.getElementById(id);
+let logoImg=null;(function(){const im=new Image();im.onload=()=>{logoImg=im;draw()};im.src='/img/site/fav-512.png';})();
+function valid(u){try{const x=new URL(u);return /^https?:$/.test(x.protocol)}catch(e){return false}}
+function draw(){
+  const u=$('u').value.trim(),cv=$('cv'),ctx=cv.getContext('2d'),err=$('err');
+  const S=+$('sz').value,cap=$('cap').value.trim(),frame=$('frame').checked,useLogo=$('logo').checked&&logoImg;
+  err.textContent='';$('shown').textContent=u;
+  if(!valid(u)){err.textContent='اكتب رابطاً صحيحاً يبدأ بـ https://';$('dl').disabled=true;ctx.clearRect(0,0,cv.width,cv.height);return}
+  if(typeof qrcode!=='function'){err.textContent='تعذر تحميل مكتبة QR — تأكد من الإنترنت';$('dl').disabled=true;return}
+  const q=qrcode(0,useLogo?'H':'M');q.addData(u);q.make();
+  const n=q.getModuleCount(),capH=cap?Math.round(S*0.11):0,pad=Math.round(S*(frame?0.09:0.06));
+  cv.width=S;cv.height=S+capH;
+  ctx.fillStyle='#FFFDF8';ctx.fillRect(0,0,cv.width,cv.height);
+  if(frame){const lw=Math.max(4,Math.round(S*0.012)),r=Math.round(S*0.05);ctx.strokeStyle='#C9A06A';ctx.lineWidth=lw;ctx.beginPath();ctx.roundRect?ctx.roundRect(lw,lw,cv.width-2*lw,cv.height-2*lw,r):ctx.rect(lw,lw,cv.width-2*lw,cv.height-2*lw);ctx.stroke()}
+  const area=S-2*pad,cell=area/n;ctx.fillStyle=$('col').value;
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))ctx.fillRect(Math.floor(pad+c*cell),Math.floor(pad+r*cell),Math.ceil(cell),Math.ceil(cell));
+  if(useLogo){const L=Math.round(area*0.22),x=(S-L)/2,y=(S-L)/2,b=Math.round(L*0.12);ctx.fillStyle='#FFFDF8';ctx.beginPath();ctx.roundRect?ctx.roundRect(x-b,y-b,L+2*b,L+2*b,b*1.6):ctx.rect(x-b,y-b,L+2*b,L+2*b);ctx.fill();ctx.drawImage(logoImg,x,y,L,L)}
+  if(cap){ctx.fillStyle='#2E1C10';ctx.font='800 '+Math.round(capH*0.42)+'px Cairo, Tahoma, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.direction='rtl';ctx.fillText(cap,S/2,S+capH*0.35)}
+  $('dl').disabled=false;
+}
+['u','sz','col','cap','logo','frame'].forEach(id=>$(id).addEventListener('input',draw));
+$('pre').addEventListener('click',e=>{const b=e.target.closest('button[data-u]');if(!b)return;$('u').value=b.dataset.u;[...$('pre').children].forEach(x=>x.classList.toggle('on',x===b));draw()});
+$('dl').onclick=()=>{const u=$('u').value.trim();let name='qr';try{const x=new URL(u);name='qr-'+(x.hostname+x.pathname).replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').slice(0,40)}catch(e){}
+  $('cv').toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name+'.png';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)},'image/png')};
+$('test').onclick=()=>{const u=$('u').value.trim();if(valid(u))window.open(u,'_blank','noopener')};
+draw();
+</script><script id="latin-digits">/* أرقام لاتينية دائماً (0-9): أي رقم عربي ٠-٩ أو فارسي ۰-۹ يُكتب أو يُلصق في أي خانة يتحول فوراً */
+(function(){
+  var AR=/[٠-٩۰-۹]/, AR_G=/[٠-٩۰-۹]/g;
+  function fix(s, numeric){
+    s=String(s).replace(AR_G,function(c){var k=c.charCodeAt(0);return String(k>=0x06F0?k-0x06F0:k-0x0660);});
+    return numeric ? s.replace(/٫/g,'.').replace(/٬/g,'') : s;
+  }
+  function numericField(el){ return el.type==='number' || /^(decimal|numeric|tel)$/.test(el.inputMode||'') || el.type==='tel'; }
+  function editable(el){ return el && (el.tagName==='TEXTAREA' || (el.tagName==='INPUT' && !/^(file|checkbox|radio|button|submit|color|range)$/.test(el.type))); }
+  function insert(el, text){
+    if(document.execCommand && document.execCommand('insertText', false, text)) return;
+    try{ var a=el.selectionStart,b=el.selectionEnd; el.setRangeText(text,a,b,'end'); el.dispatchEvent(new Event('input',{bubbles:true})); }catch(_){ el.value+=text; el.dispatchEvent(new Event('input',{bubbles:true})); }
+  }
+  document.addEventListener('beforeinput', function(e){
+    var el=e.target; if(!editable(el) || !e.data || !(AR.test(e.data) || (numericField(el) && /[٫٬]/.test(e.data)))) return;
+    if(e.isComposing) return;
+    e.preventDefault(); insert(el, fix(e.data, numericField(el)));
+  }, true);
+  document.addEventListener('paste', function(e){
+    var el=e.target; if(!editable(el) || !e.clipboardData) return;
+    var t=e.clipboardData.getData('text'); if(!AR.test(t)) return;
+    e.preventDefault(); insert(el, fix(t, numericField(el)));
+  }, true);
+  // احتياط (لوحات مفاتيح تكتب بطريقة التركيب): تصحيح القيمة بعد الكتابة مع الحفاظ على مكان المؤشر
+  document.addEventListener('input', function(e){
+    var el=e.target; if(!editable(el) || el.type==='number' || !AR.test(el.value)) return;
+    var a=el.selectionStart,b=el.selectionEnd; el.value=fix(el.value, numericField(el)); try{el.setSelectionRange(a,b);}catch(_){}
+  }, true);
+  window.latinDigits = fix;
+  // خانات الأرقام والتواريخ: المتصفح العربي يعرض أرقامها ٠١٢ حسب لغة الصفحة، فنعطيها لغة أرقام لاتينية
+  function latnLang(root){ (root.querySelectorAll ? root : document).querySelectorAll('input[type=number],input[type=date],input[type=time],input[type=datetime-local],input[type=month]').forEach(function(el){ if(el.getAttribute('lang')!=='en') el.setAttribute('lang','en'); }); }
+  function startLatn(){ latnLang(document); new MutationObserver(function(ms){ for(var i=0;i<ms.length;i++){ var m=ms[i]; for(var j=0;j<m.addedNodes.length;j++){ var n=m.addedNodes[j]; if(n.nodeType!==1) continue; if(n.tagName==='INPUT'){ if(/^(number|date|time|datetime-local|month)$/.test(n.type)&&n.getAttribute('lang')!=='en') n.setAttribute('lang','en'); } else if(n.querySelector&&n.querySelector('input')) latnLang(n); } } }).observe(document.documentElement,{childList:true,subtree:true}); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', startLatn); else startLatn();
+})();
+</script><script src="/js/my-back.js" defer></script>
+</body></html>
