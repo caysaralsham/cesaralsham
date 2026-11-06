@@ -246,11 +246,15 @@ function renderChecks(){$('checks').innerHTML=''}
 $('check').onclick=()=>{const ps=problems([...sel]);$('checks').innerHTML=ps.length?ps.map(p=>`<div class="warn ${p.bad?'bad':''}">${p.k?'<b>'+P[p.k].name+':</b> ':''}${esc(p.m)}</div>`).join(''):'<div class="warn" style="background:#E7F4EC;border-color:#B5DCC4">✓ كل شيء جاهز للنشر على: '+[...sel].map(k=>P[k].name).join('، ')+'</div>'};
 // ---------- السجل + منع التكرار ----------
 const LOGCOL='cesar_publish_log';
-async function loadLog(){try{const s=await db.collection(LOGCOL).orderBy('createdAt','desc').limit(150).get();LOG=s.docs.map(d=>({id:d.id,...d.data()}))}catch(e){console.warn('log',e);LOG=null}return LOG}
+// السجل: بالسحابة إذا قاعدة Firebase بتسمح، ودايماً نسخة على هذا الجهاز (حتى منع التكرار يشتغل بكل الأحوال)
+let logCloud=false;const LLOG='nashr_log';
+function locLog(){try{return JSON.parse(localStorage.getItem(LLOG)||'[]')}catch(e){return []}}
+function saveLocalLog(id,rec){try{const a=locLog();const r={id,...rec};const i=a.findIndex(x=>x.id===id);if(i>=0)a[i]=r;else a.unshift(r);localStorage.setItem(LLOG,JSON.stringify(a.slice(0,300)))}catch(e){}}
+async function loadLog(){const loc=locLog();try{const s=await db.collection(LOGCOL).orderBy('createdAt','desc').limit(150).get();const cl=s.docs.map(d=>({id:d.id,...d.data()}));const ids=new Set(cl.map(x=>x.id));LOG=[...cl,...loc.filter(x=>!ids.has(x.id))].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));logCloud=true}catch(e){LOG=loc;logCloud=false}return LOG}
 async function fp(k){const s=k+'|'+kind+'|'+txt(k).trim()+'|'+(k==='site'?catVal():'')+'|'+files.map(x=>x.hash).join(',');const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(h)].slice(0,12).map(b=>b.toString(16).padStart(2,'0')).join('')}
-function renderLog(){const L=$('log');if(LOG===null){L.innerHTML='<div class="warn bad">تعذر قراءة السجل من السحابة</div>';return}
-  if(!LOG.length){L.innerHTML='<div class="empty">لا توجد عمليات نشر بعد</div>';return}
-  L.innerHTML=LOG.map(r=>{const res=r.results||{};return `<div class="lr"><span class="tm">${fmt(r.createdAt)}</span><span class="t" title="${esc(r.text||'')}">${r.kind==='video'?'🎬':'🖼️'} ${esc((r.text||r.title||'(بدون نص)').replace(/\s+/g,' '))}</span><div class="bs">${Object.keys(res).map(k=>{const x=res[k],n=(P[k]||{}).name||k,cl=x.status==='ok'?'p-ok':x.status==='fail'?'p-bad':x.status==='skip'?'p-skip':'p-run';
+function renderLog(){const L=$('log');const note=logCloud?'':'<div class="warn">السجل محفوظ على هذا الجهاز فقط — حفظه في حسابك (السحابة) ينتظر تفعيل قاعدة الحماية في Firebase.</div>';
+  if(!LOG||!LOG.length){L.innerHTML=note+'<div class="empty">لا توجد عمليات نشر بعد</div>';return}
+  L.innerHTML=note+LOG.map(r=>{const res=r.results||{};return `<div class="lr"><span class="tm">${fmt(r.createdAt)}</span><span class="t" title="${esc(r.text||'')}">${r.kind==='video'?'🎬':'🖼️'} ${esc((r.text||r.title||'(بدون نص)').replace(/\s+/g,' '))}</span><div class="bs">${Object.keys(res).map(k=>{const x=res[k],n=(P[k]||{}).name||k,cl=x.status==='ok'?'p-ok':x.status==='fail'?'p-bad':x.status==='skip'?'p-skip':'p-run';
     return x.status==='ok'&&x.link?`<a class="${cl}" href="${esc(x.link)}" target="_blank" rel="noopener">${n} ✓ فتح</a>`:`<span class="${cl}" title="${esc(x.error||'')}">${n} ${x.status==='ok'?'✓':x.status==='fail'?'✗ فشل':x.status==='skip'?'تخطي':'…'}</span>`}).join('')}</div></div>`}).join('')}
 $('log').addEventListener('click',e=>{const t=e.target.closest('.t');if(t)t.classList.toggle('open')});
 // ---------- حالة النشر ----------
@@ -300,11 +304,11 @@ async function publish(ks){
     if(!run.length){toast('لم يُنشر شيء');return}
     const id=uidF(),ref=db.collection(LOGCOL).doc(id),results={};skip.forEach(k=>results[k]={status:'skip',error:'مكرر'});run.forEach(k=>results[k]={status:'run'});
     const rec={createdAt:Date.now(),kind,text:$('text').value,title:kind==='video'?$('vTitle').value.trim():'',custom:Object.fromEntries(run.filter(k=>custom[k]&&custom[k].trim()).map(k=>[k,custom[k]])),category:sel.has('site')?catVal():'',fps,results,files:files.map(x=>({name:x.f.name,size:x.f.size,hash:x.hash}))};
-    try{await ref.set(rec)}catch(e){console.warn('log write',e);toast('تنبيه: تعذر حفظ السجل في السحابة — النشر مستمر')}
-    const saveRes=async()=>{try{await ref.update({results})}catch(e){}};
+    saveLocalLog(id,rec);try{await ref.set(rec)}catch(e){console.warn('log write',e)}
+    const saveRes=async()=>{rec.results=results;saveLocalLog(id,rec);try{await ref.update({results})}catch(e){}};
     run.forEach(k=>row(k,'run','تجهيز الملفات…'));
     let prep;try{prep=await prepare(id,m=>run.forEach(k=>row(k,'run',m)))}catch(e){run.forEach(k=>{results[k]={status:'fail',error:'تعذر رفع الملفات: '+(e.message||e)};row(k,'fail',results[k].error)});await saveRes();return}
-    try{await ref.update({media:prep.media,cover:prep.cover||''})}catch(e){}
+    rec.media=prep.media;rec.cover=prep.cover||'';saveLocalLog(id,rec);try{await ref.update({media:prep.media,cover:prep.cover||''})}catch(e){}
     const meta=run.filter(k=>k==='fb'||k==='ig');
     const jobs=[];
     if(meta.length){meta.forEach(k=>row(k,'run','جارٍ النشر…'));jobs.push((async()=>{
