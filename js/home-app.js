@@ -652,8 +652,11 @@ function renderHomeShowcase(){
   if(!wrap || !items.length) return;
   const e = t=>String(t||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const short = c => String(c||'').replace(/\*\*/g,'').split('|')[0].trim();
+  // نفس العمل ممكن يكون محفوظ مرتين (نفس ملف الصورة أو نفس العنوان والقسم) — بيبين مرة وحدة بس
+  const seen=new Set();
   const latest = items.filter(it=>it.img && (it.category||'').trim() && !hiddenIds.has(it.id))
-    .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0,6);
+    .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))
+    .filter(it=>{const k1=String(it.img).split('?')[0], k2=short(it.title)+'|'+(it.category||'').trim();if(seen.has(k1)||(short(it.title)&&seen.has(k2)))return false;seen.add(k1);seen.add(k2);return true}).slice(0,6);
   if(!latest.length) return;
   wrap.innerHTML = latest.map(it => { const cat=(it.category||'').trim(), t=short(it.title)||short(cat); return `
     <a class="sc-item" href="/works?category=${encodeURIComponent(cat)}">
