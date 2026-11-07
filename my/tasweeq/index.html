@@ -153,6 +153,9 @@ const PHONE='0541737888', SITE='https://cesar-alcham.com', WA='https://wa.me/213
 const PHL='\u200E'+PHONE+'\u200E';
 const EMBED=new URLSearchParams(location.search).has('embed')&&window.parent!==window;
 if(EMBED){const st=document.createElement('style');st.textContent='html{direction:ltr}body{direction:rtl}body>header{display:none!important}#pubBox{display:none!important}';document.head.appendChild(st)}
+// من داخل منشور الصور/الفيديو: الملفات مختارة هناك، فمنخبّي خطوة الملفات وتبويب القديم
+const PICK=EMBED&&new URLSearchParams(location.search).has('pick');
+if(PICK){const st=document.createElement('style');st.textContent='nav.tabs{display:none!important}#new>.box:first-child{display:none!important}#useAll{font-size:16px;padding:12px 22px}';document.head.appendChild(st)}
 const CATS={
  cheminee:{ar:'شمينة رخام',fr:'Cheminée en marbre',em:'🔥',
   kw:/شمين|شمينه|مدفأ|مدفئ|cheminée|cheminee|chemin[ée]e/i,
@@ -451,15 +454,15 @@ function gen(){
    <label>الوصف</label><textarea class="tx" style="min-height:220px">${esc(r.yt.desc)}</textarea><div class="row" style="margin:6px 0"><button class="btn s cp">📋 نسخ الوصف</button></div>
    <label>الوسوم (Tags)</label><textarea class="tg" style="min-height:60px">${esc(r.yt.tags)}</textarea>
    <div class="row" style="margin-top:8px"><button class="btn s cp2">📋 نسخ الوسوم</button><a class="btn s l" href="${PF.yt[2]}" target="_blank" rel="noopener" style="text-decoration:none">↗ فتح يوتيوب ستوديو</a></div></div>`;
-  $('#outs').innerHTML=(EMBED?'<div class="box" style="text-align:center"><button class="btn" id="useAll">⬅️ استخدم هذه النصوص في النشر</button><p class="meta" style="margin:6px 0 0">تنتقل النصوص لتبويب النشر (فيسبوك، إنستغرام، تيك توك، يوتيوب) وتقدر تعدّلها هناك</p></div>':'')+card('ig',r.ig)+card('fb',r.fb)+card('tt',r.tt)+yt;
+  $('#outs').innerHTML=(EMBED?'<div class="box" style="text-align:center"><button class="btn" id="useAll">'+(PICK?'✅ استخدم هذا النص':'⬅️ استخدم هذه النصوص في النشر')+'</button><p class="meta" style="margin:6px 0 0">تنتقل النصوص لتبويب النشر (فيسبوك، إنستغرام، تيك توك، يوتيوب) وتقدر تعدّلها هناك</p></div>':'')+card('ig',r.ig)+card('fb',r.fb)+card('tt',r.tt)+yt;
   $('#ideas').innerHTML=[...c.ideas,'الفيديو العمودي 9:16 يناسب ريلز وتيك توك وشورتس معاً، صوّره مرة وانشره في الأربعة.','اجعل أول سطر جملة تشدّ الانتباه، فهو الوحيد الظاهر قبل «المزيد».','إنستغرام صار يسمح بـ 5 هاشتاغات فقط لكل منشور، والأداة تلتزم بذلك.'].map(x=>'<li>'+esc(x)+'</li>').join('');
   $('#ideasBox').style.display='block';$('#pubBox').style.display='block';pubCheck();
   $('#outs').scrollIntoView({behavior:'smooth',block:'start'});
 }
 // داخل «المنشورات»: زر واحد بيبعت كل النصوص لصفحة النشر
 document.addEventListener('click',e=>{if(!e.target.closest||!e.target.closest('#useAll'))return;const v=pf=>{const o=document.querySelector('.out[data-pf="'+pf+'"]');return o?o.querySelector('.tx').value:''};
-  const yo=document.querySelector('.out[data-pf="yt"]');const kind=files.some(f=>f.type.startsWith('video'))?'video':(files.length?'image':'');
-  parent.postMessage({type:'siyagha',kind,fb:v('fb'),ig:v('ig'),tt:v('tt'),yt:{title:yo?yo.querySelector('.ti').value:'',desc:v('yt')}},location.origin)});
+  const yo=document.querySelector('.out[data-pf="yt"]');const kind=files.some(f=>f.type.startsWith('video'))?'video':(files.length?'image':'');const pick=PICK;
+  parent.postMessage({type:'siyagha',pick,kind,fb:v('fb'),ig:v('ig'),tt:v('tt'),yt:{title:yo?yo.querySelector('.ti').value:'',desc:v('yt')}},location.origin)});
 $('#gen').onclick=()=>{seed=String(Date.now());gen()};$('#regen').onclick=()=>{seed=String(Date.now()+Math.random());gen()};
 $('#outs').addEventListener('input',e=>{const o=e.target.closest('.out');if(!o||!e.target.classList.contains('tx'))return;const t=e.target.value,l=o.querySelector('.len'),h=o.querySelector('.ht');if(l)l.textContent=t.length;if(h)h.textContent=countTags(t)});
 $('#outs').addEventListener('click',async e=>{const o=e.target.closest('.out');if(!o)return;
