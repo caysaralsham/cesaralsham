@@ -1,0 +1,21 @@
+name: سحب صور وفيديوهات فيسبوك (أسبوعي)
+
+on:
+  schedule:
+    - cron: '23 2 * * 1'   # كل اثنين الساعة 3:23 الصبح بتوقيت الجزائر
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: تحديث مكتبة «صور فيسبوك» بأدواتي
+        run: |
+          for i in 1 2 3; do
+            out=$(curl -sS -X POST "https://cesar-alcham.com/api/fb-lib?cron=1" --max-time 120) && echo "$out" && echo "$out" | grep -q '"ok":true' && exit 0
+            sleep 30
+          done
+          exit 1
