@@ -9,8 +9,15 @@
 *{box-sizing:border-box}body{margin:0;font-family:Cairo,Tahoma,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
 header{background:var(--ink);color:#F5ECDD;padding:12px 16px;text-align:center}header b{font-size:24px;color:#D9B98C;display:block}header span{font-size:13px;opacity:.85}
 main{max-width:960px;margin:0 auto;padding:6px 16px 14px}.grp{margin-top:14px}.grp h2{font-size:14px;font-weight:800;color:var(--deep);margin:0 4px 8px;display:flex;align-items:center;gap:8px}.grp h2::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}@media(min-width:700px){.grid{grid-template-columns:repeat(4,1fr)}}
-main a{position:relative;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;text-align:center;background:#FBF6EE;border:1.5px solid var(--line);border-radius:16px;padding:14px 8px;text-decoration:none;color:var(--ink);font-weight:800;font-size:15px;min-height:112px;box-shadow:0 8px 20px rgba(59,36,20,.06);transition:border-color .2s,transform .2s,box-shadow .2s}main a b{font-weight:800}main a:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(59,36,20,.1)}main a em{position:absolute;top:8px;inset-inline-start:8px;font-style:normal;font-size:10.5px;font-weight:800;background:#B9874F;color:#fff;border-radius:999px;padding:1px 8px}
-main a:hover{border-color:var(--br)}main a i{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#8A5A30,#5E3A1E);color:#F2D9AE;box-shadow:inset 0 0 0 1px rgba(217,185,140,.45)}main a i svg{width:24px;height:24px}main a small{font-weight:600;font-size:12px;color:var(--deep)}
+.card{position:relative;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;text-align:center;background:#FBF6EE;border:1.5px solid var(--line);border-radius:16px;padding:14px 8px;text-decoration:none;color:var(--ink);font-weight:800;font-size:15px;min-height:112px;box-shadow:0 8px 20px rgba(59,36,20,.06);transition:border-color .2s,transform .2s,box-shadow .2s}.card b{font-weight:800}
+.card:hover,.card:focus-within{transform:translateY(-2px);box-shadow:0 12px 26px rgba(59,36,20,.1);border-color:var(--br)}.card:focus-visible,.card a:focus-visible{outline:2px solid var(--br);outline-offset:2px}
+.card em{position:absolute;top:8px;inset-inline-start:8px;font-style:normal;font-size:10.5px;font-weight:800;background:#B9874F;color:#fff;border-radius:999px;padding:1px 8px}
+.card i{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#8A5A30,#5E3A1E);color:#F2D9AE;box-shadow:inset 0 0 0 1px rgba(217,185,140,.45)}.card i svg{width:24px;height:24px}.card small{font-weight:600;font-size:12px;color:var(--deep)}
+.duo .cover{position:absolute;inset:0;border-radius:16px;z-index:1}.duo .sub{position:relative;z-index:2;margin-top:2px;font-size:11.5px;font-weight:800;color:var(--br);text-decoration:none;padding:2px 10px;border:1px solid var(--line);border-radius:999px;background:var(--bg)}.duo .sub:hover{border-color:var(--br);color:var(--ink)}
+.lead .card{background:#FFFBF4;border-color:#DCC39E}.lead h2{color:var(--ink);font-size:15px}
+.find{display:flex;align-items:center;gap:8px;max-width:420px;margin:10px auto 0;background:#FBF6EE;border:1.5px solid var(--line);border-radius:999px;padding:0 14px;color:var(--deep)}.find:focus-within{border-color:var(--br)}.find svg{width:17px;height:17px;flex:none}
+.find input{flex:1;min-width:0;font:inherit;font-weight:600;font-size:14px;border:0;background:transparent;padding:9px 0;color:var(--ink);outline:none}.find input::placeholder{color:#A88B6A}
+#none{text-align:center;color:var(--deep);font-weight:600;margin:24px 0}.grp[hidden],.card[hidden]{display:none}
 @media(max-width:340px){.grid{grid-template-columns:1fr}}
 #login{max-width:360px;margin:30px auto;padding:20px 16px;background:#FBF6EE;border:1.5px solid var(--line);border-radius:16px;display:none}
 #login label{display:block;font-weight:800;font-size:13px;margin:10px 0 4px}#login input{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#F5ECDD}
@@ -23,26 +30,25 @@ main a:hover{border-color:var(--br)}main a i{width:44px;height:44px;border-radiu
 <header><b>قيصر الشام</b><span>أدواتي — كل البرامج بمكان واحد</span></header>
 <form id="login"><b style="font-size:17px">تسجيل الدخول</b><label>البريد الإلكتروني</label><input id="em" type="email" autocomplete="username" required><label>كلمة السر</label><input id="pw" type="password" autocomplete="current-password" required><button>دخول</button><div id="err"></div></form>
 <main>
-<section class="grp"><h2>المحاسبة</h2><div class="grid">
-<a href="/my/maarad/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v11h16V9"/><path d="M3 9h18"/><path d="M9 20v-6h6v6"/></svg></i><b>المعرض</b><small>محاسبة ووصولات</small></a>
-<a href="/my/maamal/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21V10l6 4V10l6 4V6h6v15z"/><path d="M7 17h2M12 17h2M17 17h2"/></svg></i><b>المعمل</b><small>محاسبة المعمل</small></a>
+<label class="find"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" type="search" placeholder="ابحث عن أداة…" autocomplete="off" aria-label="ابحث عن أداة"></label>
+<section class="grp lead"><h2>المعرض</h2><div class="grid">
+<a class="card" href="/my/maarad/" data-k="برنامج المحاسبة ميراكوس وصولات زبائن"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v11h16V9"/><path d="M3 9h18"/><path d="M9 20v-6h6v6"/></svg></i><b>محاسبة المعرض</b><small>حسابات ووصولات</small></a>
+<div class="card duo" data-k="لوحة التحكم الموقع صور فيديو اسئلة cesar-alcham.com"><a class="cover" href="/admin-works.html" aria-label="لوحة الموقع"></a><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M7 13h5M7 16h8"/><circle cx="16.5" cy="14.5" r="1.8"/></svg></i><b>لوحة الموقع</b><small>صور، فيديو، أسئلة</small><a class="sub" href="/">فتح الموقع ↗</a></div>
+<a class="card" href="/my/nashr/" data-k="نشر فيسبوك انستغرام تيك توك يوتيوب صياغة"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 3L10 14"/><path d="M21 3l-7 18-4-7-7-4z"/></svg></i><b>المنشورات</b><small>نشر على كل المنصات + صياغة النصوص</small><em data-until="2026-11-21">جديد</em></a>
+<a class="card" href="/studio-q7m4/" data-k="رسم المرسم الحجر نافورة واجهة"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/><path d="M3 21h18"/></svg></i><b>مرسم ديكور</b><small>رسم بالقياسات</small></a>
 </div></section>
-<section class="grp"><h2>النشر والتسويق</h2><div class="grid">
-<a href="/my/nashr/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 3L10 14"/><path d="M21 3l-7 18-4-7-7-4z"/></svg></i><b>المنشورات</b><small>نشر على كل المنصات + صياغة النصوص</small><em>جديد</em></a>
-<a href="/links/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/></svg></i><b>الروابط وQR</b><small>صفحة روابط الشركة</small></a>
-<a href="/my/qr/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/><path d="M6 6h1v1H6zM17 6h1v1h-1zM6 17h1v1H6z"/></svg></i><b>إنشاء QR</b><small>QR لأي رابط مع التحميل</small><em>جديد</em></a>
-</div></section>
-<section class="grp"><h2>الصور والفيديو</h2><div class="grid">
-<a href="/admin-works.html"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M7 13h5M7 16h8"/><circle cx="16.5" cy="14.5" r="1.8"/></svg></i><b>لوحة الموقع</b><small>صور، فيديو، أسئلة</small></a>
-<a href="/my/logo/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><rect x="13" y="5" width="6" height="6" rx="1"/><path d="M15 7h2v2h-2z"/></svg></i><b>باركود للصور</b><small>باركود ورقم على الصور</small></a>
-<a href="/my/sowar/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M7 13l3-3 3 3 2-2 3 3"/><path d="M12 17v4M9 19l3 2 3-2"/></svg></i><b>صور الباركود</b><small>تنزيل صور الأعمال للكتالوج</small></a>
-<a href="/my/fb-sowar/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M15 8h-1.5A2.5 2.5 0 0011 10.5V21"/><path d="M9 13h6"/></svg></i><b>صور فيسبوك</b><small>صور وفيديوهات الصفحة — تتحدّث كل أسبوع</small></a>
+<section class="grp"><h2>التسويق والصور</h2><div class="grid">
+<a class="card" href="/my/maktaba/" data-k="صور الباركود فيسبوك فيديو كتالوج تنزيل"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M7 13l3-3 3 3 2-2 3 3"/><path d="M12 17v4M9 19l3 2 3-2"/></svg></i><b>مكتبة الصور</b><small>صور الأعمال بالباركود + صور فيسبوك</small><em data-until="2026-11-21">جديد</em></a>
+<a class="card" href="/my/barcode/" data-k="باركود للصور لوغو QR كيو ار انشاء رمز"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><rect x="13" y="5" width="6" height="6" rx="1"/><path d="M15 7h2v2h-2z"/></svg></i><b>باركود و QR</b><small>باركود على الصور + إنشاء QR</small><em data-until="2026-11-21">جديد</em></a>
+<a class="card" href="/links/" data-k="روابط links"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/></svg></i><b>الروابط وQR</b><small>صفحة روابط الشركة</small></a>
 </div></section>
 <section class="grp"><h2>أدوات أخرى</h2><div class="grid">
-<a href="/studio-q7m4/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/><path d="M3 21h18"/></svg></i><b>مرسم ديكور</b><small>رسم بالقياسات</small></a>
-<a href="/my/lugha/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/><path d="M5 17a3 3 0 013-3h11"/><path d="M9 8h6"/></svg></i><b>قاموس الحجر</b><small>فرنسي · دارجة · صوت</small></a>
-<a href="/"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></svg></i><b>الموقع</b><small>cesar-alcham.com</small></a>
+<a class="card" href="/my/lugha/" data-k="قاموس لغة فرنسي دارجة ترجمة"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/><path d="M5 17a3 3 0 013-3h11"/><path d="M9 8h6"/></svg></i><b>قاموس الحجر</b><small>فرنسي، دارجة، صوت</small></a>
 </div></section>
+<section class="grp"><h2>المعمل</h2><div class="grid">
+<a class="card" href="/my/maamal/" data-k="المعمل البليدة محاسبة"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21V10l6 4V10l6 4V6h6v15z"/><path d="M7 17h2M12 17h2M17 17h2"/></svg></i><b>محاسبة المعمل</b><small>حسابات المعمل</small></a>
+</div></section>
+<p id="none" hidden>ما في أداة بهالاسم</p>
 </main><button id="out">تسجيل خروج</button>
 <script>
 // السرعة: إذا كنت داخل من قبل، القائمة بتبين فوراً بدون ما تستنى Firebase يحمّل (التأكد بيصير بالخلفية)
@@ -61,6 +67,17 @@ L.addEventListener('submit',async e=>{e.preventDefault();const er=document.getEl
 O.onclick=()=>A.signOut();
 });
 </script><script src="/js/my-back.js" defer></script>
+<script id="hub-extra">
+// علامة «جديد» بتختفي لحالها بعد تاريخها (data-until)
+(function(){var t=new Date().toISOString().slice(0,10);document.querySelectorAll('.card em[data-until]').forEach(function(e){if(t>e.dataset.until)e.remove()})})();
+// البحث: بيفلتر البطاقات حسب الاسم والوصف وكلمات إضافية؛ Enter بيفتح أول نتيجة، Esc بيمسح
+(function(){var q=document.getElementById('q'),cards=[].slice.call(document.querySelectorAll('main .card')),none=document.getElementById('none');
+function n(x){return String(x).toLowerCase().replace(/[\u064B-\u0652\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/\s+/g,' ').trim()}
+cards.forEach(function(c){c._t=n(c.textContent+' '+(c.dataset.k||''))});
+function run(){var v=n(q.value),words=v?v.split(' '):[],any=false;cards.forEach(function(c){var ok=words.every(function(w){return c._t.indexOf(w)>-1});c.hidden=!ok;if(ok)any=true});
+document.querySelectorAll('main .grp').forEach(function(g){g.hidden=!g.querySelector('.card:not([hidden])')});none.hidden=any}
+q.addEventListener('input',run);q.addEventListener('keydown',function(e){if(e.key==='Escape'){q.value='';run()}else if(e.key==='Enter'){var c=cards.find(function(c){return !c.hidden});if(c){var a=c.matches('a')?c:c.querySelector('a.cover');location.assign(a.href)}}});})();
+</script>
 <script id="latin-digits">/* أرقام لاتينية دائماً (0-9): أي رقم عربي ٠-٩ أو فارسي ۰-۹ يُكتب أو يُلصق في أي خانة يتحول فوراً */
 (function(){
   var AR=/[٠-٩۰-۹]/, AR_G=/[٠-٩۰-۹]/g;

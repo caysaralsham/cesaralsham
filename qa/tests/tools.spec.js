@@ -6,8 +6,10 @@ const TOOLS = {
   'لوحة تحكم الأعمال': '/admin-works.html',
   'الإعدادات العامة': '/links/admin-settings.html',
   'أدواتي': '/my/',
-  'أداة اللوغو': '/my/logo/',
+  'أداة اللوغو': '/my/logo/?solo',
   'مرسم ديكور': '/studio-q7m4/',
+  'مكتبة الصور': '/my/maktaba/',
+  'باركود و QR': '/my/barcode/',
 };
 
 for (const [name, url] of Object.entries(TOOLS)) {
@@ -98,7 +100,7 @@ test.describe('الأرقام لاتينية دائماً (0-9)', () => {
 });
 
 test('أداة اللوغو: قص إنستغرام بدقة الصورة الأصلية', async ({ page }) => {
-  await openOffline(page, '/my/logo/');
+  await openOffline(page, '/my/logo/?solo');
   const r = await page.evaluate(() => ({
     p45: cropRect(4032, 3024, 0.8, 'center'), sq: cropRect(3024, 4032, 1, 'a'),
     land: cropRect(2000, 2000, 1.91, 'b'), none: cropRect(4032, 3024, 0, 'center'),
@@ -113,7 +115,7 @@ test('أداة اللوغو خفيفة: المكتبات الثقيلة بتتح
   const html = await (await request.get('/my/logo/')).text();
   expect(html.length).toBeLessThan(200_000);
   expect(html).not.toContain('كشف وحذف الصور المكررة');
-  await openOffline(page, '/my/logo/');
+  await openOffline(page, '/my/logo/?solo');
   expect(await page.evaluate(() => typeof window.JSZip)).toBe('undefined');
   const ok = await page.evaluate(async () => { const Z = await loadLib('JSZip'); const z = new Z(); z.file('a.txt', 'x'); return (await z.generateAsync({ type: 'blob' })).size > 0; });
   expect(ok).toBe(true);
@@ -124,4 +126,24 @@ test('أدواتي: القائمة بتبين فوراً إذا كنت داخل 
   await page.addInitScript(() => localStorage.setItem('my_in', '1'));
   await openOffline(page, '/my/');
   await expect(page.locator('main')).toBeVisible();
+});
+
+test('الأدوات المدموجة: الروابط القديمة بتتحوّل للتبويب الصحيح، والإطار بيفتح الأداة', async ({ page }) => {
+  const cases = { '/my/sowar/': '/my/maktaba/#barcode', '/my/fb-sowar/': '/my/maktaba/#fb', '/my/logo/': '/my/barcode/#logo', '/my/qr/': '/my/barcode/#qr' };
+  for (const [old, want] of Object.entries(cases)) {
+    await openOffline(page, old);
+    expect(new URL(page.url()).pathname + new URL(page.url()).hash, old).toBe(want);
+    const src = await page.locator('.stage iframe:not([hidden])').getAttribute('src');
+    expect(src).toBe(old);
+    await expect(page.locator('.tabs button[aria-selected="true"]')).toHaveCount(1);
+  }
+});
+
+test('أدواتي: البحث بيفلتر الأدوات', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('my_in', '1'));
+  await openOffline(page, '/my/');
+  await page.fill('#q', 'قاموس');
+  await expect(page.locator('main .card:visible')).toHaveCount(1);
+  await page.fill('#q', 'زززز');
+  await expect(page.locator('#none')).toBeVisible();
 });

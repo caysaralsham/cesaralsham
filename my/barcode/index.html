@@ -1,0 +1,88 @@
+<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>باركود و QR — قيصر الشام</title><meta name="theme-color" content="#3B2414">
+<link rel="icon" href="/my/icon-192.png"><link rel="apple-touch-icon" href="/my/icon-180.png">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<style id="sb-right">/* شريط التمرير على اليمين (كمبيوتر بس) */@media (min-width:900px) and (hover:hover){html{direction:ltr}body{direction:rtl}}</style>
+<style>
+/* صفحة مدموجة: تبويبات فوق، وكل أداة بإطار تحتها. الإطار اللي انفتح بيضل محمّل لما تتنقّل بين التبويبات، فما بيضيع شغلك */
+:root{--ink:#3B2414;--br:#9A6A3A;--deep:#6E4524;--bg:#F5ECDD;--line:#E6D6BC;--gold:#D9B98C}
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;font-family:Cairo,Tahoma,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
+.top{background:var(--ink);color:#F5ECDD;padding:8px 12px 0;display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px}
+.top .home{color:var(--gold);text-decoration:none;font-weight:800;font-size:13px;padding:5px 10px;border:1px solid rgba(217,185,140,.4);border-radius:999px;white-space:nowrap}
+.top .home:hover,.top .home:focus-visible{background:rgba(217,185,140,.14);outline:none}
+.top h1{margin:0;font-size:18px;font-weight:800;color:var(--gold);white-space:nowrap}
+.tabs{flex-basis:100%;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+.tabs button{font:inherit;font-weight:800;font-size:14px;color:rgba(245,236,221,.72);background:transparent;border:0;border-radius:12px 12px 0 0;padding:8px 16px 9px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:7px}
+.tabs button svg{width:17px;height:17px;flex:none}
+.tabs button:hover{color:#F5ECDD;background:rgba(245,236,221,.07)}
+.tabs button[aria-selected="true"]{background:var(--bg);color:var(--ink)}
+.tabs button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+.stage{flex:1;position:relative;min-height:0}
+.stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--bg)}
+.stage iframe[hidden]{display:none}
+</style></head><body>
+<div class="top"><a class="home" href="/my/">↩ أدواتي</a><h1>باركود و QR</h1>
+<div class="tabs" role="tablist"><button role="tab" data-t="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><rect x="13" y="5" width="6" height="6" rx="1"/></svg>باركود ورقم على الصور</button><button role="tab" data-t="qr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg>إنشاء QR لأي رابط</button></div></div>
+<div class="stage" id="stage"></div>
+<script>
+(function(){
+  var KEY='barcode_tab', TABS={"logo": {"name": "باركود ورقم على الصور", "src": "/my/logo/"}, "qr": {"name": "إنشاء QR لأي رابط", "src": "/my/qr/"}};
+  var stage=document.getElementById('stage'), btns=[].slice.call(document.querySelectorAll('.tabs button')), frames={};
+  function pick(id){
+    if(!TABS[id]) id=Object.keys(TABS)[0];
+    btns.forEach(function(b){b.setAttribute('aria-selected', b.dataset.t===id?'true':'false'); b.tabIndex=b.dataset.t===id?0:-1});
+    if(!frames[id]){var f=document.createElement('iframe'); f.src=TABS[id].src; f.title=TABS[id].name; f.setAttribute('allow','clipboard-write; camera'); frames[id]=f; stage.appendChild(f)}
+    for(var k in frames) frames[k].hidden = k!==id;
+    document.title=TABS[id].name+' — قيصر الشام';
+    try{localStorage.setItem(KEY,id)}catch(e){}
+    if(location.hash!=='#'+id) history.replaceState(null,'','#'+id);
+  }
+  btns.forEach(function(b,i){
+    b.addEventListener('click',function(){pick(b.dataset.t)});
+    b.addEventListener('keydown',function(e){var d=e.key==='ArrowLeft'?1:e.key==='ArrowRight'?-1:0; if(!d)return; var n=btns[(i+d+btns.length)%btns.length]; n.focus(); pick(n.dataset.t)});
+  });
+  window.addEventListener('hashchange',function(){pick(location.hash.slice(1))});
+  // الأولوية: الرابط (#…) ← آخر تبويب فتحته ← الأول
+  var last=null; try{last=localStorage.getItem(KEY)}catch(e){}
+  pick(location.hash.slice(1) || last);
+})();
+</script>
+
+<script id="latin-digits">/* أرقام لاتينية دائماً (0-9): أي رقم عربي ٠-٩ أو فارسي ۰-۹ يُكتب أو يُلصق في أي خانة يتحول فوراً */
+(function(){
+  var AR=/[٠-٩۰-۹]/, AR_G=/[٠-٩۰-۹]/g;
+  function fix(s, numeric){
+    s=String(s).replace(AR_G,function(c){var k=c.charCodeAt(0);return String(k>=0x06F0?k-0x06F0:k-0x0660);});
+    return numeric ? s.replace(/٫/g,'.').replace(/٬/g,'') : s;
+  }
+  function numericField(el){ return el.type==='number' || /^(decimal|numeric|tel)$/.test(el.inputMode||'') || el.type==='tel'; }
+  function editable(el){ return el && (el.tagName==='TEXTAREA' || (el.tagName==='INPUT' && !/^(file|checkbox|radio|button|submit|color|range)$/.test(el.type))); }
+  function insert(el, text){
+    if(document.execCommand && document.execCommand('insertText', false, text)) return;
+    try{ var a=el.selectionStart,b=el.selectionEnd; el.setRangeText(text,a,b,'end'); el.dispatchEvent(new Event('input',{bubbles:true})); }catch(_){ el.value+=text; el.dispatchEvent(new Event('input',{bubbles:true})); }
+  }
+  document.addEventListener('beforeinput', function(e){
+    var el=e.target; if(!editable(el) || !e.data || !(AR.test(e.data) || (numericField(el) && /[٫٬]/.test(e.data)))) return;
+    if(e.isComposing) return;
+    e.preventDefault(); insert(el, fix(e.data, numericField(el)));
+  }, true);
+  document.addEventListener('paste', function(e){
+    var el=e.target; if(!editable(el) || !e.clipboardData) return;
+    var t=e.clipboardData.getData('text'); if(!AR.test(t)) return;
+    e.preventDefault(); insert(el, fix(t, numericField(el)));
+  }, true);
+  // احتياط (لوحات مفاتيح تكتب بطريقة التركيب): تصحيح القيمة بعد الكتابة مع الحفاظ على مكان المؤشر
+  document.addEventListener('input', function(e){
+    var el=e.target; if(!editable(el) || el.type==='number' || !AR.test(el.value)) return;
+    var a=el.selectionStart,b=el.selectionEnd; el.value=fix(el.value, numericField(el)); try{el.setSelectionRange(a,b);}catch(_){}
+  }, true);
+  window.latinDigits = fix;
+  // خانات الأرقام والتواريخ: المتصفح العربي يعرض أرقامها ٠١٢ حسب لغة الصفحة، فنعطيها لغة أرقام لاتينية
+  function latnLang(root){ (root.querySelectorAll ? root : document).querySelectorAll('input[type=number],input[type=date],input[type=time],input[type=datetime-local],input[type=month]').forEach(function(el){ if(el.getAttribute('lang')!=='en') el.setAttribute('lang','en'); }); }
+  function startLatn(){ latnLang(document); new MutationObserver(function(ms){ for(var i=0;i<ms.length;i++){ var m=ms[i]; for(var j=0;j<m.addedNodes.length;j++){ var n=m.addedNodes[j]; if(n.nodeType!==1) continue; if(n.tagName==='INPUT'){ if(/^(number|date|time|datetime-local|month)$/.test(n.type)&&n.getAttribute('lang')!=='en') n.setAttribute('lang','en'); } else if(n.querySelector&&n.querySelector('input')) latnLang(n); } } }).observe(document.documentElement,{childList:true,subtree:true}); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', startLatn); else startLatn();
+})();
+</script>
+</body></html>
