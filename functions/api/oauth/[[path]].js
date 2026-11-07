@@ -135,7 +135,14 @@ async function pinApi(env, t, path, opt = {}) {
 }
 async function pubPinterest(env, b) {
   const t = await getTok(env, 'pinterest');
-  const board = String(b.board || t.board || ''); if (!board) throw new Error('اختر لوحة Pinterest');
+  let board = String(b.board || '');
+  if (!board && b.boardName) { // لوحة باسم القسم (بالفرنسية): نبحث عنها، وإن لم توجد ننشئها
+    const want = String(b.boardName).trim().slice(0, 50), norm = x => String(x).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    const list = await pinApi(env, t, '/v5/boards?page_size=250');
+    const f = (list.items || []).find(x => norm(x.name) === norm(want));
+    board = f ? f.id : (await pinApi(env, t, '/v5/boards', { method: 'POST', body: JSON.stringify({ name: want, description: 'قيصر الشام للحجر والرخام — ' + want, privacy: 'PUBLIC' }) })).id;
+  }
+  if (!board) board = String(t.board || ''); if (!board) throw new Error('اختر لوحة Pinterest أو قسماً');
   const items = (b.items || []).filter(x => ALLOW.test(String(x.url)));
   const text = String(b.text || ''), title = String(b.title || text.split('\n')[0] || 'قيصر الشام للحجر والرخام').slice(0, 100);
   const pin = { board_id: board, title, description: text.slice(0, 500), link: String(b.link || SITE), alt_text: title.slice(0, 500) };
@@ -160,23 +167,37 @@ async function tkApi(t, path, body) {
   const r = await fetch('https://open.tiktokapis.com' + path, { method: 'POST', headers: { authorization: 'Bearer ' + t.access, 'content-type': 'application/json; charset=UTF-8' }, body: JSON.stringify(body || {}) });
   const d = await r.json().catch(() => ({})); if (!r.ok || (d.error && d.error.code && d.error.code !== 'ok')) throw new Error('TikTok: ' + clean((d.error && (d.error.message || d.error.code)) || r.status)); return d.data || {};
 }
+// الوضع الافتراضي «مسودة»: يُرسل الفيديو إلى صندوق تيك توك (إشعار في التطبيق) فتختار الموسيقى الترند وتنشر بنفسك.
+// يعمل بدون مراجعة (Audit) تيك توك. للرجوع للنشر المباشر: متغير البيئة TIKTOK_MODE=direct (يحتاج Audit وإلا يُنشر خاصاً).
+const TK_ERR = { spam_risk_too_many_pending_share: 'وصلت حد 5 مسودات معلّقة خلال 24 ساعة — انشر أو احذف المسودات في تطبيق تيك توك ثم أعد المحاولة', spam_risk_too_many_posts: 'وصلت حد النشر اليومي في تيك توك', scope_not_authorized: 'الربط ينقصه صلاحية video.upload — أعد ربط تيك توك', access_token_invalid: 'انتهى الربط — أعد ربط تيك توك', unaudited_client_can_only_post_to_private_accounts: 'التطبيق غير مُراجَع: النشر المباشر غير مسموح — استعمل وضع المسودة' };
 async function pubTikTok(env, b) {
   const t = await getTok(env, 'tiktok');
   const v = (b.items || []).find(x => x.type === 'video'); if (!v) throw new Error('تيك توك: فيديو فقط');
-  const ci = await tkApi(t, '/v2/post/publish/creator_info/query/');
-  const opts = ci.privacy_level_options || []; const privacy = opts.includes('PUBLIC_TO_EVERYONE') ? 'PUBLIC_TO_EVERYONE' : (opts[0] || 'SELF_ONLY');
+  const draft = String(env.TIKTOK_MODE || 'draft') !== 'direct';
   const head = await fetch(v.url, { method: 'HEAD' }); const size = Number(head.headers.get('content-length') || 0); if (!size) throw new Error('حجم الفيديو غير معروف');
   const CH = 10 * 1024 * 1024; const single = size <= 64 * 1024 * 1024; const chunk = single ? size : CH; const count = single ? 1 : Math.floor(size / CH);
-  const init = await tkApi(t, '/v2/post/publish/video/init/', { post_info: { title: String(b.text || b.title || '').slice(0, 2200), privacy_level: privacy, disable_comment: false, disable_duet: false, disable_stitch: false, video_cover_timestamp_ms: 1000 }, source_info: { source: 'FILE_UPLOAD', video_size: size, chunk_size: chunk, total_chunk_count: count } });
+  const source_info = { source: 'FILE_UPLOAD', video_size: size, chunk_size: chunk, total_chunk_count: count };
+  let ci = {}, privacy = '';
+  const call = async (path, body) => { try { return await tkApi(t, path, body); } catch (e) { const k = Object.keys(TK_ERR).find(x => String(e.message).includes(x)); throw new Error(k ? 'TikTok: ' + TK_ERR[k] : e.message); } };
+  let init;
+  if (draft) init = await call('/v2/post/publish/inbox/video/init/', { source_info });
+  else {
+    ci = await call('/v2/post/publish/creator_info/query/');
+    const opts = ci.privacy_level_options || []; privacy = opts.includes('PUBLIC_TO_EVERYONE') ? 'PUBLIC_TO_EVERYONE' : (opts[0] || 'SELF_ONLY');
+    init = await call('/v2/post/publish/video/init/', { post_info: { title: String(b.text || b.title || '').slice(0, 2200), privacy_level: privacy, disable_comment: false, disable_duet: false, disable_stitch: false, video_cover_timestamp_ms: 1000 }, source_info });
+  }
   for (let i = 0; i < count; i++) {
     const a = i * chunk, z = i === count - 1 ? size - 1 : a + chunk - 1, n = z - a + 1;
     const part = await fetch(v.url, { headers: { range: `bytes=${a}-${z}` } }); if (!part.ok) throw new Error('تعذر قراءة جزء الفيديو');
     const up = await fetch(init.upload_url, { method: 'PUT', headers: { 'content-type': 'video/mp4', 'content-length': String(n), 'content-range': `bytes ${a}-${z}/${size}` }, body: fixed(part, n) });
     if (!up.ok && up.status !== 206 && up.status !== 201) throw new Error('TikTok: تعذر رفع الفيديو (' + up.status + ')');
   }
-  let s = {}; for (let i = 0; i < 40; i++) { await sleep(4000); s = await tkApi(t, '/v2/post/publish/status/fetch/', { publish_id: init.publish_id }); if (s.status === 'PUBLISH_COMPLETE' || s.status === 'FAILED') break; }
-  if (s.status === 'FAILED') throw new Error('TikTok: ' + clean(s.fail_reason || 'فشل النشر'));
-  const id = (s.publicaly_available_post_id || [])[0]; const user = ci.creator_username || 'cesaralcham';
+  const done = draft ? ['SEND_TO_USER_INBOX', 'PUBLISH_COMPLETE'] : ['PUBLISH_COMPLETE'];
+  let s = {}; for (let i = 0; i < 40; i++) { await sleep(4000); s = await call('/v2/post/publish/status/fetch/', { publish_id: init.publish_id }); if (done.includes(s.status) || s.status === 'FAILED') break; }
+  if (s.status === 'FAILED') throw new Error('TikTok: ' + clean(s.fail_reason || 'فشل الرفع'));
+  const user = ci.creator_username || (t.name && !/\s/.test(t.name) ? t.name : 'cesaralcham');
+  if (draft) return { id: init.publish_id, link: `https://www.tiktok.com/@${user}`, draft: true, note: s.status === 'SEND_TO_USER_INBOX' ? 'أُرسل كمسودة — افتح إشعار تيك توك، اختر موسيقى ترند، الصق النص وانشر خلال 24 ساعة' : 'قيد الإرسال إلى صندوق تيك توك — سيصلك إشعار في التطبيق' };
+  const id = (s.publicaly_available_post_id || [])[0];
   const note = privacy !== 'PUBLIC_TO_EVERYONE' ? 'نُشر خاصاً (' + privacy + ') لأن تطبيق تيك توك لم يجتز المراجعة بعد' : (s.status !== 'PUBLISH_COMPLETE' ? 'قيد المعالجة في تيك توك' : '');
   return { id: id || init.publish_id, link: id ? `https://www.tiktok.com/@${user}/video/${id}` : `https://www.tiktok.com/@${user}`, privacy, note };
 }
@@ -210,6 +231,12 @@ export async function onRequest({ request, env, params }) {
       if (!configured(env, b)) return json({ ok: false, error: PF[b].name + ' غير مُعدّ بعد في Cloudflare' });
       const state = crypto.randomUUID(); await env.SOCIAL_KV.put('st:' + b + ':' + state, '1', { expirationTtl: 900 });
       return json({ ok: true, url: PF[b].auth(env, state) });
+    }
+    if (a === 'ytcheck') { // هل الفيديو ما زال موجوداً على القناة؟ (لفحص التكرار)
+      const ids = String(url.searchParams.get('id') || '').split(',').filter(x => /^[\w-]{6,20}$/.test(x)).slice(0, 50); if (!ids.length) return json({ ok: true, exists: {} });
+      const tk = await getTok(env, 'youtube'); const r = await fetch('https://www.googleapis.com/youtube/v3/videos?part=id&id=' + ids.join(','), { headers: { authorization: 'Bearer ' + tk.access } });
+      const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error('YouTube: ' + clean((d.error && d.error.message) || r.status));
+      const have = new Set((d.items || []).map(x => x.id)); return json({ ok: true, exists: Object.fromEntries(ids.map(x => [x, have.has(x)])) });
     }
     if (a === 'boards') {
       const t = await getTok(env, 'pinterest'); const d = await pinApi(env, t, '/v5/boards?page_size=100');
