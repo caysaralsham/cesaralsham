@@ -91,7 +91,7 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
 <header><b>المنشورات</b><span>ارفع صورة أو فيديو، اكتب المنشور، اختر المنصات، ثم انشر وتابع النتيجة</span></header>
 <form id="login"><b style="font-size:17px">تسجيل الدخول</b><label>البريد الإلكتروني</label><input id="em" type="email" autocomplete="username" required><label>كلمة السر</label><input id="pw" type="password" autocomplete="current-password" required><button>دخول</button><div id="lerr"></div></form>
 <div id="app">
-<div class="tabs" id="tabs"><button data-t="image" class="on">🖼️ منشور صور</button><button data-t="video">🎬 منشور فيديو</button><button data-t="log">🕓 سجل النشر</button></div>
+<div class="tabs" id="tabs"><button data-t="image" class="on">🖼️ منشور صور</button><button data-t="video">🎬 منشور فيديو</button><button data-t="siyagha">✍️ صياغة المنشورات</button><button data-t="log">🕓 سجل النشر</button></div>
 <div class="wrap" id="compose">
   <div>
     <div class="card"><h3><span class="n">1</span><span id="mTitle">الصور</span></h3>
@@ -135,6 +135,7 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
     </div>
   </div>
 </div>
+<div class="wrap" id="siyView" hidden style="grid-template-columns:minmax(0,1fr)"><iframe id="siyFrame" title="صياغة المنشورات" style="width:100%;height:calc(100vh - 140px);min-height:720px;border:1px solid var(--line);border-radius:14px;background:#fff;display:block"></iframe></div>
 <div class="wrap" id="logView" hidden style="grid-template-columns:minmax(0,1fr)"><div class="card"><h3>سجل النشر</h3><div class="log" id="log"><div class="empty">جارٍ التحميل…</div></div></div></div>
 <a class="back" href="/my/">← رجوع إلى أدواتي</a>
 </div>
@@ -196,7 +197,16 @@ function setKind(k){kind=k;files.forEach(x=>URL.revokeObjectURL(x.url));files=[]
   $('vidBox').hidden=k!=='video';$('wmRow').hidden=k!=='image';
   for(const p of [...sel])if(!P[p].kinds.includes(k))sel.delete(p);render()}
 $('tabs').onclick=e=>{const b=e.target.closest('button');if(!b||busy)return;[...$('tabs').children].forEach(x=>x.classList.toggle('on',x===b));
-  const t=b.dataset.t;$('compose').hidden=t==='log';$('logView').hidden=t!=='log';if(t==='log')loadLog().then(renderLog);else if(t!==kind)setKind(t)};
+  const t=b.dataset.t;$('compose').hidden=t==='log'||t==='siyagha';$('logView').hidden=t!=='log';$('siyView').hidden=t!=='siyagha';
+  if(t==='siyagha'){if(!$('siyFrame').src)$('siyFrame').src='/my/tasweeq/?embed=1';return}
+  if(t==='log')loadLog().then(renderLog);else if(t!==kind)setKind(t)};
+// «صياغة المنشورات» (داخل المنشورات): زر «استخدم في النشر» بيعبّي النصوص هون وبيرجع لتبويب النشر
+window.addEventListener('message',e=>{if(e.origin!==location.origin)return;const d=e.data||{};if(d.type!=='siyagha')return;
+  const k=d.kind==='video'?'video':(d.kind==='image'?'image':kind);
+  const tb=[...$('tabs').children].find(x=>x.dataset.t===k);if(tb)tb.click();
+  $('text').value=d.fb||d.ig||'';custom={};if(d.ig)custom.ig=d.ig;if(d.tt)custom.tk=d.tt;if(d.yt&&d.yt.desc)custom.yt=d.yt.desc;
+  if(d.yt&&d.yt.title)$('vTitle').value=d.yt.title;
+  render();counts();window.scrollTo({top:0,behavior:'smooth'});toast('تم وضع النصوص — اختر الملفات والمنصات ثم انشر')});
 function renderPf(){$('pf').innerHTML=ORDER.map(k=>{const p=P[k],fits=p.kinds.includes(kind),on=sel.has(k);
   const sub=!fits?(kind==='image'?'للفيديو فقط':'—'):p.ready?(k==='site'?'تحديد القسم بالخطوة 4':(k==='fb'?(prof.fb.name||'مربوط'):k==='ig'?(prof.ig.user?'@'+prof.ig.user:'مربوط'):(p.who||'مربوط'))):(p.conf?'جاهز للربط':p.need?'يحتاج ربط':(p.err||'غير متاح'));
   const off=!fits||!p.ready;return `<label class="pfc ${on?'on':''} ${off?'off':''}" title="${esc(p.name+' — '+sub)}"><input type="checkbox" data-p="${k}" ${on?'checked':''} ${off?'disabled':''}><span class="ic ${p.cls}">${p.ic}</span><span class="tx"><b>${p.name}</b><small><bdi>${esc(sub)}</bdi>${!p.ready&&p.conf&&fits?`<button type="button" class="q" data-conn="${k}">ربط الآن</button>`:!p.ready&&p.need&&fits?`<button type="button" class="q" data-need="${k}">ما المطلوب؟</button>`:''}</small></span></label>`}).join('')}
