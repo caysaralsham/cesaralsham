@@ -148,7 +148,11 @@ dialog::backdrop{background:rgba(0,0,0,.35)}
 
 <script>
 /* ======================= بيانات الأنواع ======================= */
-const PHONE='0541737888', SITE='cesar-alcham.com', WA='https://wa.me/213541737888';
+const PHONE='0541737888', SITE='https://cesar-alcham.com', WA='https://wa.me/213541737888';
+// الرقم بين علامتي اتجاه من اليسار لليمين حتى ما يبين مقلوب جوّا النص العربي
+const PHL='\u200E'+PHONE+'\u200E';
+const EMBED=new URLSearchParams(location.search).has('embed')&&window.parent!==window;
+if(EMBED){const st=document.createElement('style');st.textContent='body>header{display:none!important}#pubBox{display:none!important}';document.head.appendChild(st)}
 const CATS={
  cheminee:{ar:'شمينة رخام',fr:'Cheminée en marbre',em:'🔥',
   kw:/شمين|شمينه|مدفأ|مدفئ|cheminée|cheminee|chemin[ée]e/i,
@@ -351,8 +355,8 @@ function detectCat(t){t=String(t||'');let best='general',bi=1e9;for(const k of C
 function noHand(s){return s.replace(/نقش يدوي|نحت يدوي|يدوي/g,'CNC')}
 function placeLines(o,c){
   const F=o.lang==='fr';
-  if(c.factory||o.place==='factory')return[F?'🏭 Atelier : Blida':'🏭 المعمل: البليدة','📞 '+PHONE+'  🟢 واتساب','🌐 '+SITE];
-  const l=[F?'📍 Dely Ibrahim – Alger':'📍 دالي إبراهيم – الجزائر العاصمة','📞 '+PHONE+'  🟢 واتساب','🌐 '+SITE];
+  if(c.factory||o.place==='factory')return[F?'🏭 Atelier : Blida':'🏭 المعمل: البليدة',(F?'📞 WhatsApp : ':'📞 هاتف وواتساب: ')+PHL,'🌐 '+SITE];
+  const l=[F?'📍 Dely Ibrahim – Alger':'📍 دالي إبراهيم – الجزائر العاصمة',(F?'📞 WhatsApp : ':'📞 هاتف وواتساب: ')+PHL,'🌐 '+SITE];
   if(o.place==='project'&&o.wilaya)l.unshift((F?'📍 Projet réalisé à : ':'📍 مشروع منفّذ في: ')+o.wilaya);
   return l;
 }
@@ -390,7 +394,7 @@ function build(o){
   // تيك توك (قصير)
   {const h=hashtags(c,'tt',r);
    const first=AR?arTop[0]:c.em+' '+c.fr;
-   out.tt=[first,(FR&&AR?c.fr:'')+'', '📞 '+PHONE+(c.factory||o.place==='factory'?' | البليدة':' | دالي إبراهيم'), h.join(' ')].filter(Boolean).join('\n')}
+   out.tt=[first,(FR&&AR?c.fr:'')+'', (AR?'📞 هاتف وواتساب: ':'📞 WhatsApp : ')+PHL, (AR?'📍 '+(c.factory||o.place==='factory'?'البليدة':'دالي إبراهيم – الجزائر'):'📍 '+(c.factory||o.place==='factory'?'Blida':'Dely Ibrahim – Alger')), '🌐 '+SITE, h.join(' ')].filter(Boolean).join('\n')}
   // يوتيوب
   {const h=hashtags(c,'yt',r);
    let title=(AR?`${c.ar}${det?' '+det:''}`:c.fr)+(AR&&FR?` | ${c.fr}`:'')+' – '+(c.factory||o.place==='factory'?(AR?'البليدة':'Blida'):(AR?'الجزائر':'Algérie'));
@@ -447,11 +451,15 @@ function gen(){
    <label>الوصف</label><textarea class="tx" style="min-height:220px">${esc(r.yt.desc)}</textarea><div class="row" style="margin:6px 0"><button class="btn s cp">📋 نسخ الوصف</button></div>
    <label>الوسوم (Tags)</label><textarea class="tg" style="min-height:60px">${esc(r.yt.tags)}</textarea>
    <div class="row" style="margin-top:8px"><button class="btn s cp2">📋 نسخ الوسوم</button><a class="btn s l" href="${PF.yt[2]}" target="_blank" rel="noopener" style="text-decoration:none">↗ فتح يوتيوب ستوديو</a></div></div>`;
-  $('#outs').innerHTML=card('ig',r.ig)+card('fb',r.fb)+card('tt',r.tt)+yt;
+  $('#outs').innerHTML=(EMBED?'<div class="box" style="text-align:center"><button class="btn" id="useAll">⬅️ استخدم هذه النصوص في النشر</button><p class="meta" style="margin:6px 0 0">تنتقل النصوص لتبويب النشر (فيسبوك، إنستغرام، تيك توك، يوتيوب) وتقدر تعدّلها هناك</p></div>':'')+card('ig',r.ig)+card('fb',r.fb)+card('tt',r.tt)+yt;
   $('#ideas').innerHTML=[...c.ideas,'الفيديو العمودي 9:16 يناسب ريلز وتيك توك وشورتس معاً، صوّره مرة وانشره في الأربعة.','اجعل أول سطر جملة تشدّ الانتباه، فهو الوحيد الظاهر قبل «المزيد».','إنستغرام صار يسمح بـ 5 هاشتاغات فقط لكل منشور، والأداة تلتزم بذلك.'].map(x=>'<li>'+esc(x)+'</li>').join('');
   $('#ideasBox').style.display='block';$('#pubBox').style.display='block';pubCheck();
   $('#outs').scrollIntoView({behavior:'smooth',block:'start'});
 }
+// داخل «المنشورات»: زر واحد بيبعت كل النصوص لصفحة النشر
+document.addEventListener('click',e=>{if(!e.target.closest||!e.target.closest('#useAll'))return;const v=pf=>{const o=document.querySelector('.out[data-pf="'+pf+'"]');return o?o.querySelector('.tx').value:''};
+  const yo=document.querySelector('.out[data-pf="yt"]');const kind=files.some(f=>f.type.startsWith('video'))?'video':(files.length?'image':'');
+  parent.postMessage({type:'siyagha',kind,fb:v('fb'),ig:v('ig'),tt:v('tt'),yt:{title:yo?yo.querySelector('.ti').value:'',desc:v('yt')}},location.origin)});
 $('#gen').onclick=()=>{seed=String(Date.now());gen()};$('#regen').onclick=()=>{seed=String(Date.now()+Math.random());gen()};
 $('#outs').addEventListener('input',e=>{const o=e.target.closest('.out');if(!o||!e.target.classList.contains('tx'))return;const t=e.target.value,l=o.querySelector('.len'),h=o.querySelector('.ht');if(l)l.textContent=t.length;if(h)h.textContent=countTags(t)});
 $('#outs').addEventListener('click',async e=>{const o=e.target.closest('.out');if(!o)return;
