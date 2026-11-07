@@ -16,7 +16,7 @@ async function _keys(force) {
   if (!r.ok) throw new Error('jwks');
   _jwks = (await r.json()).keys || []; _jwksAt = Date.now(); return _jwks;
 }
-async function verifyUser(request, env) {
+export async function verifyUser(request, env) {
   const m = /^Bearer\s+(.+)$/i.exec(request.headers.get('authorization') || '');
   if (!m) return null;
   try {
@@ -38,7 +38,7 @@ async function verifyUser(request, env) {
   } catch (e) { return null; }
 }
 
-async function gget(path, token) {
+export async function gget(path, token) {
   const r = await fetch(`${G}/${path}${path.includes('?') ? '&' : '?'}access_token=${encodeURIComponent(token)}`);
   const d = await r.json().catch(() => ({}));
   if (d.error) throw new Error(d.error.message || 'graph');
@@ -53,7 +53,7 @@ async function gpost(path, params, token) {
 }
 const PAGE_ID = '112512051459689'; // قيصر الشام للحجر والرخام 2
 // المفتاح المحفوظ قد يكون مفتاح صفحة أو مفتاح مستخدم؛ في الحالة الثانية نأخذ منه مفتاح الصفحة
-async function ids(token, env) {
+export async function ids(token, env) {
   let acc = null;
   try { acc = await gget('me/accounts?fields=id,name,access_token,instagram_business_account{id,username}&limit=100', token); } catch (e) {}
   const p = acc && (acc.data || []).find(x => x.id === (env.META_PAGE_ID || PAGE_ID));
@@ -82,6 +82,18 @@ export async function onRequest({ request, env }) {
   if (!token) return json({ ok: false, error: 'no-token' });
   try {
     const I = await ids(token, env);
+    // ملف صورة/فيديو بالمعرّف (روابط فيسبوك بتنتهي صلاحيتها، فمكتبة «صور فيسبوك» بتجيب رابط جديد وقت الحاجة)
+    const pid = u.searchParams.get('pid'), vid = u.searchParams.get('vid');
+    if (pid || vid) {
+      if (!/^\d+$/.test(pid || vid)) return json({ ok: false, error: 'bad-id' }, 400);
+      let src = '';
+      if (pid) { const d = await gget(`${pid}?fields=images`, I.token); const im = (d.images || []).slice().sort((a, b) => b.width - a.width); src = ((im.find(x => x.width <= 2048) || im[0]) || {}).source || ''; }
+      else { const d = await gget(`${vid}?fields=source,picture`, I.token); src = u.searchParams.get('thumb') ? d.picture : d.source; }
+      if (!src || !FBCDN.test(src)) return json({ ok: false, error: 'no-src' }, 404);
+      const r = await fetch(src);
+      if (!r.ok) return json({ ok: false, error: 'img-' + r.status }, 404);
+      return new Response(r.body, { headers: { 'content-type': r.headers.get('content-type') || 'application/octet-stream', 'cache-control': 'private, max-age=3600' } });
+    }
     const after = u.searchParams.get('after');
     if (u.searchParams.get('videos')) {
       const v = await gget(`${I.pageId}/videos?fields=id,created_time,title,description,length,source,permalink_url,picture&limit=50${after ? '&after=' + encodeURIComponent(after) : ''}`, I.token);
