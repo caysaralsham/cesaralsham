@@ -43,13 +43,20 @@ select,input[type=text],input[type=email],input[type=password]{font:inherit;padd
 </style>
 <style id="sb-right">/* شريط التمرير على اليمين (كمبيوتر بس) */@media (min-width:900px) and (hover:hover){html{direction:ltr}body{direction:rtl}}</style>
 </head><body>
-<header><b>📘 صور فيسبوك</b><small>سحب صور الصفحة، تصنيفها بالأقسام، الباركود، ملف مضغوط، وإضافة الناقص للموقع</small></header>
+<header><b>📘 صور فيسبوك</b><small>صور وفيديوهات الصفحة تنضاف لحالها كل أسبوع بدون تكرار — تصنيف، باركود، ملف مضغوط، وإضافة الناقص للموقع</small></header>
 
 <form id="login"><b style="font-size:17px">تسجيل الدخول</b><label>البريد الإلكتروني</label><input id="em" type="email" autocomplete="username" required><label>كلمة السر</label><input id="pw" type="password" autocomplete="current-password" required><button class="btn" style="margin-top:12px;width:100%">دخول</button><div id="err"></div></form>
 
 <div id="app"><main>
+<div class="box" id="libBox">
+  <div class="row" style="justify-content:space-between"><b>📚 مكتبة فيسبوك</b><button class="btn l s" id="syncNow">🔄 حدّث الآن</button></div>
+  <div class="hint" id="libSt">جارٍ تحميل المكتبة…</div>
+  <div class="row" style="margin-top:8px"><button class="chip on" data-v="ph">🖼️ الصور</button><button class="chip" data-v="vd">🎬 الفيديوهات</button></div>
+</div>
+<div id="vdView" style="display:none"><div class="grid" id="vgrid"></div></div>
+<div id="phView">
 <div class="box">
-  <div class="row"><button class="btn" id="go">1) اسحب صور فيسبوك وصنّفها</button><button class="btn l" id="stop" style="display:none">وقّف</button></div>
+  <div class="row"><button class="btn" id="go">1) صنّف صور المكتبة</button><button class="btn l" id="stop" style="display:none">وقّف</button></div>
   <div class="hint">بيجيب كل صور صفحتك (قراءة فقط — ما بيغيّر شي على فيسبوك)، بيشيل المكرر، بيعرف الصور الموجودة بالموقع وبياخد قسمها، والباقي بيصنّفه بالذكاء الاصطناعي. فيك تصحّح القسم من كل صورة.</div>
   <div id="st"></div><div class="bar"><i id="pb"></i></div>
 </div>
@@ -65,6 +72,7 @@ select,input[type=text],input[type=email],input[type=password]{font:inherit;padd
   </div>
 </div>
 <div class="grid" id="grid"></div>
+</div>
 </main></div>
 <div id="toast"></div>
 
@@ -117,7 +125,33 @@ function dh(im,sx=0,sy=0,sw,sh){sw=sw||im.naturalWidth;sh=sh||im.naturalHeight;c
 const ham=(a,b)=>{let n=0;for(let i=0;i<64;i++)if(a[i]!==b[i])n++;return n};
 const loadUrl=u=>new Promise((res,rej)=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>res(i);i.onerror=()=>rej(new Error('img'));i.src=u});
 // النت بيقطع أحياناً: منعيد المحاولة كم مرة قبل ما نتخطّى الصورة
-async function fbBlob(p){for(let t=0;t<4;t++){try{const r=await fetch('/api/meta-photos?img='+encodeURIComponent(p.src),{headers:{authorization:'Bearer '+await tok()}});if(r.ok)return r.blob()}catch(e){}await sleep(2000*(t+1))}throw new Error('img')}
+// رابط فيسبوك القديم ممكن تنتهي صلاحيته: إذا فشل منجيب الملف بالمعرّف (رابط جديد)
+async function fbBlob(p){for(let t=0;t<4;t++){try{const q=(t===0&&p.src)?'img='+encodeURIComponent(p.src):(p.vid?'vid=':'pid=')+encodeURIComponent(p.id);const r=await fetch('/api/meta-photos?'+q,{headers:{authorization:'Bearer '+await tok()}});if(r.ok)return r.blob()}catch(e){}await sleep(1500*(t+1))}throw new Error('img')}
+// ---------- المكتبة (بتتحدّث لحالها كل أسبوع من GitHub، أو بزر «حدّث الآن») ----------
+let LIB=null,VIEW='ph';
+const fmtD=t=>t?new Date(t).toLocaleDateString('ar-DZ-u-nu-latn',{day:'numeric',month:'long',year:'numeric'}):'—';
+function libStat(extra){if(!LIB)return;const last=(LIB.log||[])[0]||{};const wk=Date.now()-7*864e5;
+  const nP=LIB.photos.filter(x=>x.add>wk).length,nV=LIB.videos.filter(x=>x.add>wk).length;
+  const back=LIB.back&&!(LIB.back.pDone&&LIB.back.vDone)?' — ⏳ لسا عم نكمّل سحب القديم':'';
+  $('#libSt').innerHTML=`${LIB.photos.length} صورة و ${LIB.videos.length} فيديو · آخر تحديث: ${fmtD(LIB.syncedAt)}${nP||nV?` · <b>جديد هذا الأسبوع: ${nP} صورة، ${nV} فيديو</b>`:''}${back}${extra?'<br>'+extra:''}`}
+async function apiLib(sync){const r=await fetch('/api/fb-lib'+(sync?'?sync=1':''),{headers:{authorization:'Bearer '+await tok()}});const d=await r.json();if(!d.ok)throw new Error(d.error||'fb-lib');LIB=d.lib;return d}
+async function loadLib(){try{await apiLib(false);libStat();
+  const stale=!LIB.syncedAt||Date.now()-LIB.syncedAt>7*864e5||!(LIB.back&&LIB.back.pDone&&LIB.back.vDone);if(stale)await syncLib(true)}catch(e){$('#libSt').textContent='تعذّر تحميل المكتبة: '+e.message}
+  renderV()}
+async function syncLib(auto){const b=$('#syncNow');b.disabled=true;let tot={photos:0,videos:0};
+  try{for(let i=0;i<12;i++){libStat('🔄 جارٍ السحب من فيسبوك…');const d=await apiLib(true);tot.photos+=d.added.photos;tot.videos+=d.added.videos;if(LIB.back&&LIB.back.pDone&&LIB.back.vDone)break}
+    libStat(`✓ انضاف ${tot.photos} صورة و ${tot.videos} فيديو جديد (المكرر ما بينضاف)`);if(!auto||tot.photos||tot.videos)toast('تم التحديث ✓')}
+  catch(e){libStat('صار خطأ بالسحب: '+e.message)}b.disabled=false;renderV()}
+function renderV(){if(!LIB)return;const wk=Date.now()-7*864e5;
+  $('#vgrid').innerHTML=LIB.videos.length?LIB.videos.map(v=>`<div class="card" data-v="${esc(v.id)}"><img loading="lazy" src="${esc(v.thumb)}" alt="" onerror="this.style.visibility='hidden'">
+   <div class="b">${v.add>wk?'<span class="tag new">جديد</span>':''}<b style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(v.title||v.text)}">${esc(v.title||v.text.slice(0,60)||'فيديو')}</b>
+   <span class="hint">${fmtD(v.at)} · ${Math.round(v.len||0)} ث</span>
+   <div class="row"><button class="btn s" data-a="dl">⬇️ تنزيل</button>${v.link?`<a class="btn s l" style="text-decoration:none" href="${esc(v.link)}" target="_blank" rel="noopener">↗ فيسبوك</a>`:''}</div></div></div>`).join(''):'<div class="hint">لا يوجد فيديوهات بعد</div>'}
+$('#syncNow').onclick=()=>syncLib(false);
+document.addEventListener('click',e=>{const c=e.target.closest('.chip[data-v]');if(!c)return;VIEW=c.dataset.v;document.querySelectorAll('.chip[data-v]').forEach(x=>x.classList.toggle('on',x===c));$('#phView').style.display=VIEW==='ph'?'':'none';$('#vdView').style.display=VIEW==='vd'?'':'none'});
+$('#vgrid').addEventListener('click',async e=>{const b=e.target.closest('[data-a=dl]');if(!b)return;const id=b.closest('.card').dataset.v;const v=LIB.videos.find(x=>x.id===id);b.disabled=true;b.textContent='جارٍ…';
+  try{const bl=await fbBlob({...v,vid:true});const a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download=(v.title||'فيديو-فيسبوك')+'-'+String(v.at||'').slice(0,10)+'.mp4';document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),3000)}catch(x){toast('تعذّر التنزيل')}
+  b.disabled=false;b.textContent='⬇️ تنزيل'});
 // الصورة الكاملة بتنحمّل وقت الحاجة بس (فحص، مجلد مضغوط، رفع) وبعدين بتنترك — بيضل معنا صورة صغيرة للعرض
 async function fbImg(p){const b=await fbBlob(p);const u=URL.createObjectURL(b);try{return await loadUrl(u)}finally{setTimeout(()=>URL.revokeObjectURL(u),60000)}}
 function small(im,max=512){const s=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));const c=document.createElement('canvas');c.width=Math.round(im.naturalWidth*s);c.height=Math.round(im.naturalHeight*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.8)}
@@ -131,8 +165,7 @@ async function run(){STOP=false;$('#go').disabled=true;$('#stop').style.display=
   let k=0;for(const it of items){if(STOP)break;k++;setSt(`بصمات صور الموقع ${k} من ${items.length}`,k/items.length*.2);
     const orig='https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/'+encodeURIComponent('gallery/'+it.id+'.jpg')+'?alt=media';
     for(const u of [it.img,it.oldImg,orig].filter((u,i,a)=>u&&/^https:/.test(u)&&a.indexOf(u)===i)){try{SITE.push({h:dh3(await loadUrl(u)),cat:(it.category||'').trim(),id:it.id})}catch(e){}}}
-  setSt('جارٍ جلب قائمة صور فيسبوك…',.2);PH=[];let after=null,g=0;
-  do{let d;for(let t=0;t<5;t++){try{const r=await fetch('/api/meta-photos'+(after?'?after='+encodeURIComponent(after):''),{headers:{authorization:'Bearer '+await tok()}});d=await r.json();break}catch(e){await sleep(3000*(t+1))}}if(!d)throw new Error('انقطع النت — اكبس الزر مرة تانية');if(!d.ok)throw new Error(d.error||'meta');PH.push(...d.photos);after=d.next;g++;setSt(`صور فيسبوك: ${PH.length}`,.2)}while(after&&g<60&&!STOP);
+  setSt('جارٍ تحميل صور المكتبة…',.2);if(!LIB)await loadLib();PH=(LIB?LIB.photos:[]).map(p=>({...p}));
   const seen=[];let n=0;
   for(const p of PH){if(STOP)break;n++;setSt(`فحص صورة ${n} من ${PH.length}`,.2+.5*n/PH.length);
     try{const im=await fbImg(p);p.h=dh3(im);p.thumb=small(im,400);
@@ -159,7 +192,7 @@ function render(){
   $('#chips').innerHTML=`<button class="chip${CF?'':' on'}" data-c="">كل الأقسام</button>`+CATS.filter(c=>cnt[c]).map(c=>`<button class="chip${CF===c?' on':''}" data-c="${esc(c)}">${esc(fr(c))} (${cnt[c]})</button>`).join('');
   const L=list();const opts=[...CATS,X];
   $('#grid').innerHTML=L.map(p=>`<div class="card${p.cat===X?' x':''}" data-id="${p.id}"><img loading="lazy" src="${p.thumb||''}">
-   <div class="b">${p.onSite?'<span class="tag on">✓ موجودة بالموقع</span>':'<span class="tag new">مش بالموقع</span>'}
+   <div class="b">${p.add>Date.now()-7*864e5?'<span class="tag new">🆕 جديد هذا الأسبوع</span>':''}${p.onSite?'<span class="tag on">✓ موجودة بالموقع</span>':'<span class="tag new">مش بالموقع</span>'}
    <select data-a="cat">${opts.map(c=>`<option${c===p.cat?' selected':''} value="${esc(c)}">${esc(c===X?c:fr(c)+' — '+ar(c))}</option>`).join('')}</select>
    ${!p.onSite&&p.cat!==X?`<label><input type="checkbox" data-a="sel"${p.sel?' checked':''}> أضفها للموقع</label>`:''}</div></div>`).join('');
   $('#selN').textContent=PH.filter(p=>p.sel).length?`محدّد للموقع: ${PH.filter(p=>p.sel).length}`:''}
@@ -197,7 +230,7 @@ $('#add').onclick=async()=>{const L=PH.filter(p=>p.sel&&!p.onSite&&p.cat!==X);if
 window.addEventListener('DOMContentLoaded',()=>{
   firebase.initializeApp({apiKey:"AIzaSyDi1Pn7guMnyc0CetV8Z9IUC-k0gtav2_8",authDomain:"basel-7b29b.firebaseapp.com",projectId:"basel-7b29b",storageBucket:"basel-7b29b.firebasestorage.app",messagingSenderId:"1025769465563",appId:"1:1025769465563:web:53b5c9949dbb26364d8efe"});
   A=firebase.auth();db=firebase.firestore();st=firebase.storage();A.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
-  A.onAuthStateChanged(u=>{$('#login').style.display=u?'none':'block';$('#app').style.display=u?'block':'none'});
+  A.onAuthStateChanged(u=>{$('#login').style.display=u?'none':'block';$('#app').style.display=u?'block':'none';if(u&&!LIB)loadLib()});
   $('#login').addEventListener('submit',async e=>{e.preventDefault();$('#err').textContent='';try{await A.signInWithEmailAndPassword($('#em').value.trim(),$('#pw').value)}catch(x){$('#err').textContent='البريد الإلكتروني أو كلمة السر غير صحيحة'}});
 });
 </script>
