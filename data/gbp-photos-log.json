@@ -1,115 +1,150 @@
 {
- "note": "صور رُفعت على ملف Google التجاري — لا تُعاد",
- "uploaded": [
-  {
-   "id": "fbmvvbut4tw4fx",
-   "cat": "Décoration de mosquées",
-   "date": "2026-10-30"
-  },
-  {
-   "id": "fbmvvbuu90nt2c",
-   "cat": "Murs en marbre sculpté",
-   "date": "2026-10-30"
-  },
-  {
-   "id": "fbmvvbut0eflgb",
-   "cat": "Fenêtres en marbre",
-   "date": "2026-10-30"
-  },
-  {
-   "id": "fbmvvburig75cx",
-   "cat": "Cheminées en marbre",
-   "date": "2026-10-30"
-  },
-  {
-   "id": "fbmvvbur34e3ct",
-   "cat": "Fontaines en marbre",
-   "date": "2026-10-30"
-  },
-  {
-   "id": "fbmvvbur16gyqj",
-   "cat": "Tableaux de sol en marbre",
-   "date": "2026-10-30"
-  },
-  {
-   "id": "fbmvvbunbz8uqi",
-   "cat": "Façades de maisons en pierre",
-   "date": "2026-10-30"
-  },
-  {
-   "id": "post-collage-2026-10-30",
-   "note": "صورة المنشور: واجهة + درج + نافورة (mskqrq3iwqt28p, mslmtpjzqtzyvb, mskrvpfx2rv3or)",
-   "date": "2026-10-30"
-  },
-  {
-   "id": "fbmvvbukmgd19q",
-   "cat": "Salles de bains en marbre",
-   "date": "2026-10-30"
-  },
-  {
-   "id": "fbmvvbuix3gz3f",
-   "cat": "Sabils en marbre",
-   "date": "2026-10-30"
-  },
-  {
-   "id": "fbmvvbuin441nf",
-   "cat": "bassin en bloc de marbre",
-   "date": "2026-10-30"
-  },
-  {
-   "id": "fbmvvbu09zpg03",
-   "cat": "Colonnes et balustrades en marbre",
-   "date": "2026-10-30"
-  },
-  {
-   "id": "fbmvvbu53rfz1e",
-   "cat": "Lavabo en marbre naturel",
-   "date": "2026-10-30"
-  },
-  {
-   "id": "fbmvvbtpfmji6h",
-   "cat": "Tables en marbre",
-   "date": "2026-10-30"
-  },
-  {
-   "id": "fbmvvbs8e9gbbo",
-   "cat": "Cascades murales",
-   "date": "2026-10-30"
-  },
-  {
-   "id": "fbmvvbtalx84m8",
-   "cat": "Façades de maisons en pierre",
-   "date": "2026-11-06"
-  },
-  {
-   "id": "fbmvvbus11wbfc",
-   "cat": "Murs en marbre sculpté",
-   "date": "2026-11-06"
-  },
-  {
-   "id": "fbmvvbupmf5jml",
-   "cat": "Tableaux de sol en marbre",
-   "date": "2026-11-06"
-  },
-  {
-   "id": "fbmvvbtdbsu7ig",
-   "cat": "Cheminées en marbre",
-   "date": "2026-11-06"
-  },
-  {
-   "id": "fbmvvbuo7thfgo",
-   "cat": "Fontaines en marbre",
-   "date": "2026-11-06"
-  },
-  {
-   "id": "fbmvvbtrbyi4am",
-   "cat": "Lavabo en marbre naturel",
-   "date": "2026-11-06"
-  },
-  {
-   "id": "fbmvvbt0khenox",
-   "cat": "bassin en bloc de marbre",
-   "date": "2026-11-06"
-  }
- ]
+  "note": "صور رُفعت على ملف Google التجاري — لا تُعاد",
+  "uploaded": [
+    {
+      "id": "fbmvvbut4tw4fx",
+      "cat": "Décoration de mosquées",
+      "date": "2026-10-30"
+    },
+    {
+      "id": "fbmvvbuu90nt2c",
+      "cat": "Murs en marbre sculpté",
+      "date": "2026-10-30"
+    },
+    {
+      "id": "fbmvvbut0eflgb",
+      "cat": "Fenêtres en marbre",
+      "date": "2026-10-30"
+    },
+    {
+      "id": "fbmvvburig75cx",
+      "cat": "Cheminées en marbre",
+      "date": "2026-10-30"
+    },
+    {
+      "id": "fbmvvbur34e3ct",
+      "cat": "Fontaines en marbre",
+      "date": "2026-10-30"
+    },
+    {
+      "id": "fbmvvbur16gyqj",
+      "cat": "Tableaux de sol en marbre",
+      "date": "2026-10-30"
+    },
+    {
+      "id": "fbmvvbunbz8uqi",
+      "cat": "Façades de maisons en pierre",
+      "date": "2026-10-30"
+    },
+    {
+      "id": "post-collage-2026-10-30",
+      "note": "صورة المنشور: واجهة + درج + نافورة (mskqrq3iwqt28p, mslmtpjzqtzyvb, mskrvpfx2rv3or)",
+      "date": "2026-10-30"
+    },
+    {
+      "id": "fbmvvbukmgd19q",
+      "cat": "Salles de bains en marbre",
+      "date": "2026-10-30"
+    },
+    {
+      "id": "fbmvvbuix3gz3f",
+      "cat": "Sabils en marbre",
+      "date": "2026-10-30"
+    },
+    {
+      "id": "fbmvvbuin441nf",
+      "cat": "bassin en bloc de marbre",
+      "date": "2026-10-30"
+    },
+    {
+      "id": "fbmvvbu09zpg03",
+      "cat": "Colonnes et balustrades en marbre",
+      "date": "2026-10-30"
+    },
+    {
+      "id": "fbmvvbu53rfz1e",
+      "cat": "Lavabo en marbre naturel",
+      "date": "2026-10-30"
+    },
+    {
+      "id": "fbmvvbtpfmji6h",
+      "cat": "Tables en marbre",
+      "date": "2026-10-30"
+    },
+    {
+      "id": "fbmvvbs8e9gbbo",
+      "cat": "Cascades murales",
+      "date": "2026-10-30"
+    },
+    {
+      "id": "fbmvvbtalx84m8",
+      "cat": "Façades de maisons en pierre",
+      "date": "2026-11-06"
+    },
+    {
+      "id": "fbmvvbus11wbfc",
+      "cat": "Murs en marbre sculpté",
+      "date": "2026-11-06"
+    },
+    {
+      "id": "fbmvvbupmf5jml",
+      "cat": "Tableaux de sol en marbre",
+      "date": "2026-11-06"
+    },
+    {
+      "id": "fbmvvbtdbsu7ig",
+      "cat": "Cheminées en marbre",
+      "date": "2026-11-06"
+    },
+    {
+      "id": "fbmvvbuo7thfgo",
+      "cat": "Fontaines en marbre",
+      "date": "2026-11-06"
+    },
+    {
+      "id": "fbmvvbtrbyi4am",
+      "cat": "Lavabo en marbre naturel",
+      "date": "2026-11-06"
+    },
+    {
+      "id": "fbmvvbt0khenox",
+      "cat": "bassin en bloc de marbre",
+      "date": "2026-11-06"
+    },
+    {
+      "id": "fbmvvbugxvyfgv",
+      "cat": "Décoration de mosquées",
+      "date": "2026-11-09"
+    },
+    {
+      "id": "fbmvvbuh94ozp8",
+      "cat": "Sabils en marbre",
+      "date": "2026-11-09"
+    },
+    {
+      "id": "fbmvvbr2ore24a",
+      "cat": "Tables en marbre",
+      "date": "2026-11-09"
+    },
+    {
+      "id": "fbmvvbs83sj3uw",
+      "cat": "Cascades murales",
+      "date": "2026-11-09"
+    },
+    {
+      "id": "mst0lstky4wsax",
+      "cat": "Fenêtres en marbre",
+      "date": "2026-11-09"
+    },
+    {
+      "id": "fbmvvbujmv6ca1",
+      "cat": "Salles de bains en marbre",
+      "date": "2026-11-09"
+    },
+    {
+      "id": "fbmvvbtxjlbj57",
+      "cat": "Colonnes et balustrades en marbre",
+      "date": "2026-11-09"
+    }
+  ]
 }
