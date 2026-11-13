@@ -34,7 +34,7 @@ textarea{min-height:120px;resize:vertical;line-height:1.6}
 .out .hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
 .out .hd b{font-size:15px}.meta{font-size:12px;color:var(--deep)}.warn{color:var(--bad);font-weight:800}
 .pf{display:inline-flex;align-items:center;gap:5px;font-weight:800;font-size:12px;padding:2px 9px;border-radius:999px;color:#fff}
-.pf.ig{background:#C13584}.pf.fb{background:#1877F2}.pf.tt{background:#111}.pf.yt{background:#E62117}
+.pf.ig{background:#C13584}.pf.fb{background:#1877F2}.pf.tt{background:#111}.pf.yt{background:#E62117}.pf.pin{background:#BD081C}
 .ideas li{margin:4px 0}
 .post{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
 .post.sel{border-color:var(--br);box-shadow:0 0 0 2px rgba(154,106,58,.25)}
@@ -408,7 +408,14 @@ function build(o){
      h.join(' ')].filter(Boolean).join('\n\n');
    let tags=[...c.tags,'قيصر الشام','الجزائر','دالي إبراهيم','رخام طبيعي'];
    while(tags.join(',').length>480)tags.pop();
-   out.yt={title,desc,tags:tags.join(', ')}}
+   out.yt={title,desc,tags:tags.join(', ')}
+   // Pinterest (وصف ≤ 500 حرف، يناسب البحث بالعربية والفرنسية)
+   const ph=hashtags(c,'pin',r);
+   let pin=[AR?arTop[0]:c.em+' '+c.fr, AR&&FR?fr:'', placeLines(o,c).join('\n'), ph.join(' ')].filter(Boolean).join('\n');
+   if([...pin].length>500)pin=[AR?arTop[0]:c.em+' '+c.fr, placeLines(o,c).join('\n'), ph.join(' ')].join('\n');
+   out.pin=[...pin].slice(0,500).join('');
+   // الموقع الرسمي: عنوان قصير بالفصحى
+   out.site=AR?`${c.ar}${det?' '+det:''}`:c.fr}
   return out;
 }
 
@@ -438,7 +445,7 @@ let files=[], style=0, seed=String(Date.now());
 $('#drop').onclick=()=>$('#files').click();
 $('#files').onchange=e=>{files=[...e.target.files];$('#prev').innerHTML='';files.forEach(f=>{const u=URL.createObjectURL(f);const el=f.type.startsWith('video')?Object.assign(document.createElement('video'),{src:u,muted:true,controls:true}):Object.assign(document.createElement('img'),{src:u});$('#prev').appendChild(el)})};
 $$('#styles .chip').forEach(b=>b.onclick=()=>{$$('#styles .chip').forEach(x=>x.classList.toggle('on',x===b));style=+b.dataset.s;if($('#outs').innerHTML)gen()});
-const PF={ig:['إنستغرام','ig','https://www.instagram.com/'],fb:['فيسبوك','fb','https://business.facebook.com/latest/composer'],tt:['تيك توك','tt','https://www.tiktok.com/tiktokstudio/upload'],yt:['يوتيوب','yt','https://studio.youtube.com/channel/UC3ErMPUSjReq-mG8GQ-7lKw/videos/upload?d=ud']};
+const PF={ig:['إنستغرام','ig','https://www.instagram.com/'],fb:['فيسبوك','fb','https://business.facebook.com/latest/composer'],tt:['تيك توك','tt','https://www.tiktok.com/tiktokstudio/upload'],pin:['Pinterest','pin','https://www.pinterest.com/pin-creation-tool/'],yt:['يوتيوب','yt','https://studio.youtube.com/channel/UC3ErMPUSjReq-mG8GQ-7lKw/videos/upload?d=ud']};
 function opts(){return{cat:$('#cat').value,stone:$('#stone').value.trim(),detail:$('#detail').value.trim(),place:$('#place').value,wilaya:$('#wilaya').value.trim(),lang:$('#lang').value,style,seed}}
 function card(pf,txt){
   const [name,cls,url]=PF[pf];
@@ -454,7 +461,7 @@ function gen(){
    <label>الوصف</label><textarea class="tx" style="min-height:220px">${esc(r.yt.desc)}</textarea><div class="row" style="margin:6px 0"><button class="btn s cp">📋 نسخ الوصف</button></div>
    <label>الوسوم (Tags)</label><textarea class="tg" style="min-height:60px">${esc(r.yt.tags)}</textarea>
    <div class="row" style="margin-top:8px"><button class="btn s cp2">📋 نسخ الوسوم</button><a class="btn s l" href="${PF.yt[2]}" target="_blank" rel="noopener" style="text-decoration:none">↗ فتح يوتيوب ستوديو</a></div></div>`;
-  $('#outs').innerHTML=(EMBED?'<div class="box" style="text-align:center"><button class="btn" id="useAll">'+(PICK?'✅ استخدم هذا النص':'⬅️ استخدم هذه النصوص في النشر')+'</button><p class="meta" style="margin:6px 0 0">تنتقل النصوص لتبويب النشر (فيسبوك، إنستغرام، تيك توك، يوتيوب) وتقدر تعدّلها هناك</p></div>':'')+card('ig',r.ig)+card('fb',r.fb)+card('tt',r.tt)+yt;
+  $('#outs').innerHTML=(EMBED?'<div class="box" style="text-align:center"><button class="btn" id="useAll">'+(PICK?'✅ استخدم هذا النص':'⬅️ استخدم هذه النصوص في النشر')+'</button><p class="meta" style="margin:6px 0 0">تنتقل النصوص لكل المنصات في تبويب النشر (فيسبوك، إنستغرام، Pinterest، تيك توك، يوتيوب، والموقع) وتقدر تعدّلها هناك</p></div>':'')+card('ig',r.ig)+card('fb',r.fb)+card('pin',r.pin)+card('tt',r.tt)+yt+`<div class="out" data-pf="site"><div class="hd"><b><span class="pf" style="background:#8A5A1E">الموقع الرسمي</span></b><span class="meta">عنوان العمل على الموقع</span></div><input type="text" class="ti" maxlength="120" value="${esc(r.site)}"></div>`;
   $('#ideas').innerHTML=[...c.ideas,'الفيديو العمودي 9:16 يناسب ريلز وتيك توك وشورتس معاً، صوّره مرة وانشره في الأربعة.','اجعل أول سطر جملة تشدّ الانتباه، فهو الوحيد الظاهر قبل «المزيد».','إنستغرام صار يسمح بـ 5 هاشتاغات فقط لكل منشور، والأداة تلتزم بذلك.'].map(x=>'<li>'+esc(x)+'</li>').join('');
   $('#ideasBox').style.display='block';$('#pubBox').style.display='block';pubCheck();
   $('#outs').scrollIntoView({behavior:'smooth',block:'start'});
@@ -462,7 +469,8 @@ function gen(){
 // داخل «المنشورات»: زر واحد بيبعت كل النصوص لصفحة النشر
 document.addEventListener('click',e=>{if(!e.target.closest||!e.target.closest('#useAll'))return;const v=pf=>{const o=document.querySelector('.out[data-pf="'+pf+'"]');return o?o.querySelector('.tx').value:''};
   const yo=document.querySelector('.out[data-pf="yt"]');const kind=files.some(f=>f.type.startsWith('video'))?'video':(files.length?'image':'');const pick=PICK;
-  parent.postMessage({type:'siyagha',pick,kind,fb:v('fb'),ig:v('ig'),tt:v('tt'),yt:{title:yo?yo.querySelector('.ti').value:'',desc:v('yt')}},location.origin)});
+  const so=document.querySelector('.out[data-pf="site"]'),cc=CATS[$('#cat').value]||{};
+  parent.postMessage({type:'siyagha',pick,kind,fb:v('fb'),ig:v('ig'),tt:v('tt'),pin:v('pin'),site:so?so.querySelector('.ti').value:'',catAr:cc.ar||'',catFr:cc.fr||'',yt:{title:yo?yo.querySelector('.ti').value:'',desc:v('yt')}},location.origin)});
 $('#gen').onclick=()=>{seed=String(Date.now());gen()};$('#regen').onclick=()=>{seed=String(Date.now()+Math.random());gen()};
 $('#outs').addEventListener('input',e=>{const o=e.target.closest('.out');if(!o||!e.target.classList.contains('tx'))return;const t=e.target.value,l=o.querySelector('.len'),h=o.querySelector('.ht');if(l)l.textContent=t.length;if(h)h.textContent=countTags(t)});
 $('#outs').addEventListener('click',async e=>{const o=e.target.closest('.out');if(!o)return;

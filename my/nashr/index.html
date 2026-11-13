@@ -237,9 +237,12 @@ window.addEventListener('message',e=>{if(e.origin!==location.origin)return;const
   if(d.pick)siyHide();
   const k=d.pick?kind:(d.kind==='video'?'video':(d.kind==='image'?'image':kind));
   const tb=[...$('tabs').children].find(x=>x.dataset.t===k);if(tb&&!d.pick)tb.click();
-  $('text').value=d.fb||d.ig||'';custom={};if(d.ig)custom.ig=d.ig;if(d.tt)custom.tk=d.tt;if(d.yt&&d.yt.desc)custom.yt=d.yt.desc;
+  $('text').value=d.fb||d.ig||'';custom={};if(d.ig)custom.ig=d.ig;if(d.tt)custom.tk=d.tt;if(d.pin)custom.pin=d.pin;if(d.yt&&d.yt.desc)custom.yt=d.yt.desc;
+  if(d.site)$('siteTitle').value=d.site;
+  // القسم: نختاره تلقائياً إن طابق نوع العمل قسماً موجوداً في الموقع ولم تختر قسماً بعد
+  if(!$('cat').value&&(d.catAr||d.catFr)){const nm=x=>String(x||'').normalize('NFD').replace(/[\u0300-\u036f\u064b-\u0652]/g,'').toLowerCase().replace(/\s+/g,' ').trim();const fr=nm(d.catFr),ar=nm(d.catAr);const o=[...$('cat').options].find(x=>{if(!x.value||x.value==='__new__')return false;const p=x.value.split('|').map(nm);return (p[1]&&fr&&(p[1]===fr||fr.includes(p[1])||p[1].includes(fr)))||(p[0]&&ar&&p[0]===ar)});if(o){$('cat').value=o.value;pinAutoBoard()}}
   if(d.yt&&d.yt.title)$('vTitle').value=d.yt.title;
-  render();counts();window.scrollTo({top:0,behavior:'smooth'});toast('تم وضع النصوص — اختر الملفات والمنصات ثم انشر')});
+  render();counts();window.scrollTo({top:0,behavior:'smooth'});toast('تم وضع النصوص لكل المنصات — اختر الملفات والمنصات ثم انشر')});
 function renderPf(){$('pf').innerHTML=ORDER.map(k=>{const p=P[k],fits=p.kinds.includes(kind),on=sel.has(k);
   const sub=!fits?(kind==='image'?'للفيديو فقط':'—'):p.ready?(k==='site'?'تحديد القسم بالخطوة 4':(k==='fb'?(prof.fb.name||'مربوط'):k==='ig'?(prof.ig.user?'@'+prof.ig.user:'مربوط'):(p.who||'مربوط'))):(p.conf?'جاهز للربط':p.need?'يحتاج ربط':(p.err||'غير متاح'));
   const off=!fits||!p.ready;return `<label class="pfc ${on?'on':''} ${off?'off':''}" title="${esc(p.name+' — '+sub)}"><input type="checkbox" data-p="${k}" ${on?'checked':''} ${off?'disabled':''}><span class="ic ${p.cls}">${p.ic}</span><span class="tx"><b>${p.name}</b><small><bdi>${esc(sub)}</bdi>${!p.ready&&p.conf&&fits?`<button type="button" class="q" data-conn="${k}">ربط الآن</button>`:!p.ready&&p.need&&fits?`<button type="button" class="q" data-need="${k}">ما المطلوب؟</button>`:''}</small></span></label>`}).join('')}
