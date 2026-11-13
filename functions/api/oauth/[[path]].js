@@ -66,7 +66,7 @@ const PF = {
     id: env => env.PINTEREST_APP_ID,
     secret: env => env.PINTEREST_APP_SECRET,
     api: env => env.PINTEREST_API || 'https://api.pinterest.com',
-    auth: (env, state) => 'https://www.pinterest.com/oauth/?' + new URLSearchParams({ client_id: PF.pinterest.id(env), redirect_uri: redirect('pinterest'), response_type: 'code', scope: 'boards:read,pins:read,pins:write,user_accounts:read', state }),
+    auth: (env, state) => 'https://www.pinterest.com/oauth/?' + new URLSearchParams({ client_id: PF.pinterest.id(env), redirect_uri: redirect('pinterest'), response_type: 'code', scope: 'boards:read,boards:write,pins:read,pins:write,user_accounts:read', state }),
     token: async (env, params) => {
       const r = await fetch(PF.pinterest.api(env) + '/v5/oauth/token', { method: 'POST', headers: { authorization: 'Basic ' + btoa(PF.pinterest.id(env) + ':' + PF.pinterest.secret(env)), 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(params) });
       const d = await r.json().catch(() => ({})); if (!r.ok || !d.access_token) throw new Error('Pinterest token: ' + clean(d.message || r.status)); return d;
@@ -131,7 +131,9 @@ async function pubYouTube(env, b) {
 // ---------- Pinterest ----------
 async function pinApi(env, t, path, opt = {}) {
   const r = await fetch(PF.pinterest.api(env) + path, { ...opt, headers: { authorization: 'Bearer ' + t.access, 'content-type': 'application/json', ...(opt.headers || {}) } });
-  const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error('Pinterest: ' + clean(d.message || r.status)); return d;
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok && (d.code === 29 || /Trial access/i.test(d.message || ''))) throw new Error('Pinterest: التطبيق ما زال بصلاحية تجريبية (Trial) — اطلب Standard access من صفحة التطبيق في developers.pinterest.com ثم أعد المحاولة');
+  if (!r.ok) throw new Error('Pinterest: ' + clean(d.message || r.status)); return d;
 }
 async function pubPinterest(env, b) {
   const t = await getTok(env, 'pinterest');

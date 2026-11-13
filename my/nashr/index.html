@@ -117,7 +117,7 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
       <input type="file" id="file" hidden>
       <div class="thumbs" id="thumbs"></div>
       <div id="vidBox" hidden>
-        <label class="l" for="vTitle">عنوان الفيديو</label><input type="text" id="vTitle" maxlength="100" placeholder="مثلاً: نافورة رخام طبيعي — قيصر الشام"><div class="cnt" data-for="vTitle"></div>
+        <label class="l" for="vTitle">عنوان الفيديو</label><input type="text" id="vTitle" maxlength="100" placeholder="اختياري — يُؤخذ من أول سطر في النص إن تركته فارغاً"><div class="cnt" data-for="vTitle"></div>
         <label class="l">صورة الغلاف</label>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><div class="th" style="width:92px" id="coverTh"><img id="coverImg" alt="الغلاف"></div>
           <div style="display:flex;flex-direction:column;gap:6px"><button type="button" class="btn ghost" id="coverPick">اختيار صورة غلاف</button><button type="button" class="btn ghost" id="coverAuto">لقطة من الفيديو</button></div></div>
@@ -182,7 +182,7 @@ const P={
  fb:{name:'فيسبوك',cls:'c-fb',kinds:['image','video'],max:63206,ic:SV('<path d="M14 8h3V4h-3c-2.8 0-4.5 1.9-4.5 4.6V11H7v4h2.5v9h4v-9H17l.5-4h-4V8.9c0-.6.4-.9 1-.9z"/>'),ready:false},
  ig:{name:'إنستغرام',cls:'c-ig',kinds:['image','video'],max:2200,ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>',ready:false},
  pin:{name:'Pinterest',cls:'c-pin',kinds:['image','video'],max:500,ic:SV('<path d="M12 2a10 10 0 00-3.6 19.3c-.1-.8-.2-2 0-2.9l1.3-5.4s-.3-.7-.3-1.6c0-1.5.9-2.6 2-2.6.9 0 1.4.7 1.4 1.5 0 .9-.6 2.3-.9 3.6-.3 1.1.5 2 1.6 2 1.9 0 3.4-2 3.4-4.9 0-2.6-1.9-4.4-4.5-4.4-3 0-4.8 2.3-4.8 4.6 0 .9.4 1.9.8 2.5l.1.4-.3 1.2c0 .2-.2.3-.4.2-1.4-.6-2.2-2.6-2.2-4.2 0-3.4 2.5-6.6 7.2-6.6 3.8 0 6.7 2.7 6.7 6.3 0 3.7-2.4 6.8-5.7 6.8-1.1 0-2.2-.6-2.5-1.3l-.7 2.6c-.2 1-.9 2.2-1.4 2.9A10 10 0 1012 2z"/>'),ready:false,
-   need:'<h4>ربط Pinterest</h4><p>Pinterest يسمح بالنشر عبر واجهته الرسمية (API v5)، لكن يلزم:</p><ol><li>إنشاء تطبيق على developers.pinterest.com من حساب الشركة (يجب أن يكون حساب أعمال).</li><li>Pinterest يعطي التطبيق الجديد صلاحية تجريبية محدودة أولاً؛ النشر العادي يحتاج طلب Standard access ومراجعة من Pinterest.</li><li>تسجيل الدخول بموافقتك (OAuth) بصلاحيتي boards:read و pins:write، واختيار اللوحة (Board) التي تُنشر فيها الصور.</li></ol><p>بعدها يُحفظ المفتاح مخفياً في Cloudflare وأكمل الربط هنا.</p>'},
+   need:'<h4>ربط Pinterest</h4><p>الكود جاهز هنا. يبقى إنشاء تطبيق باسمك عند Pinterest (مرة واحدة):</p><ol><li>حساب Pinterest يكون <b>حساب أعمال</b> (Business) — مجاني.</li><li>افتح <bdi>developers.pinterest.com</bdi> ← My apps ← Connect app، واملأ: الاسم «Cesar Alcham»، الموقع <bdi>https://cesar-alcham.com</bdi>، سياسة الخصوصية <bdi>https://cesar-alcham.com/privacy</bdi>.</li><li>في خانة Redirect URIs ضع بالضبط:<br><bdi style="user-select:all;font-weight:700">https://cesar-alcham.com/api/oauth/pinterest</bdi></li><li>بعد قبول التطبيق انسخ App ID و App secret وضعهما في Cloudflare ← مشروع الموقع ← Settings ← Variables and Secrets باسمَي <bdi>PINTEREST_APP_ID</bdi> و <bdi>PINTEREST_APP_SECRET</bdi> (النوع Secret) ثم أعد النشر.</li><li>ارجع إلى هنا: يظهر زر «ربط الآن» على Pinterest — اضغطه ووافق.</li></ol><p>ملاحظة: Pinterest يعطي التطبيق الجديد صلاحية تجريبية (Trial) أولاً، وفيها الدبابيس تظهر لك وحدك. ليراها الجميع اضغط Upgrade في صفحة التطبيق واطلب Standard access (يطلبون فيديو قصيراً يُظهر الربط والنشر من هذه الأداة).</p>'},
  tk:{name:'TikTok',cls:'c-tk',kinds:['video'],max:2200,ic:SV('<path d="M16.6 5.8A4.3 4.3 0 0115.5 3h-3.4v12.4a2.6 2.6 0 11-2.6-2.6c.3 0 .5 0 .8.1V9.4a6 6 0 105.2 6V9a7.7 7.7 0 004.5 1.4V7a4.3 4.3 0 01-3.4-1.2z"/>'),ready:false,
    need:'<h4>ربط TikTok</h4><p>يُرسل الفيديو <b>كمسودة</b> إلى تطبيق تيك توك عبر Content Posting API الرسمي (يعمل بدون مراجعة Audit):</p><ol><li>إنشاء تطبيق على developers.tiktok.com وإضافة منتج Content Posting API.</li><li>تسجيل الدخول بموافقتك (OAuth) بصلاحية video.upload.</li><li>بعد كل رفع يصلك إشعار في تيك توك: افتحه، اختر موسيقى ترند، الصق النص (يُنسخ تلقائياً) وانشر خلال 24 ساعة.</li><li>الحد: 5 مسودات معلّقة خلال 24 ساعة.</li></ol>'},
  yt:{name:'YouTube',cls:'c-yt',kinds:['video'],max:5000,ic:SV('<path d="M23 7.2a3 3 0 00-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 001 7.2 31 31 0 00.5 12 31 31 0 001 16.8a3 3 0 002.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 002.1-2.1 31 31 0 00.5-4.8 31 31 0 00-.5-4.8zM9.8 15.1V8.9L15.2 12z"/>'),ready:false,
@@ -267,7 +267,7 @@ function renderPreview(){const ks=ORDER.filter(k=>sel.has(k));if(!ks.includes(pv
   const t=txt(pvK);let h='';
   if(pvK==='site'){const cat=catVal();h=`<div class="pv site"><div class="md">${m[0]}</div><div class="bd"><b>${esc($('siteTitle').value.trim()||(kind==='video'?$('vTitle').value.trim():'')||cat.split('|')[0].trim()||'اختر القسم')}</b><small>${esc(cat.split('|')[0].trim()||'—')}</small></div></div>`}
   else if(pvK==='ig'){const cap=t.length>125?esc([...t].slice(0,125).join(''))+'… <b>المزيد</b>':esc(t);h=`<div class="pv ig"><div class="hd"><img src="${esc(prof.ig.pic||'/my/icon-192.png')}" alt=""><div><b>${esc(prof.ig.user||'cesar_du_sham2')}</b></div></div><div class="md">${m[0]}</div>${m.length>1?`<div class="dots">${m.map(()=>'<i></i>').join('')}</div>`:''}<div class="tx"><b>${esc(prof.ig.user||'cesar_du_sham2')}</b> ${cap}</div></div>`}
-  else if(pvK==='yt'||pvK==='tk'){h=`<div class="pv"><div class="md">${m[0]}</div><div class="hd"><div><b>${esc($('vTitle').value.trim()||'عنوان الفيديو')}</b><small>${esc(t).slice(0,300)}</small></div></div></div>`}
+  else if(pvK==='yt'||pvK==='tk'){h=`<div class="pv"><div class="md">${m[0]}</div><div class="hd"><div><b>${esc(vTitleEff())}</b><small>${esc(t).slice(0,300)}</small></div></div></div>`}
   else{const cols=m.length>1?'grid-template-columns:1fr 1fr':'';h=`<div class="pv"><div class="hd"><img src="${esc(prof.fb.pic||'/my/icon-192.png')}" alt=""><div><b>${esc(prof.fb.name||'قيصر الشام للحجر والرخام 2')}</b><small>الآن · 🌐</small></div></div><div class="tx">${esc(t)}</div><div class="md" style="${cols}">${m.slice(0,4).join('')}</div></div>`}
   $('pv').innerHTML=h}
 $('pvt').onclick=e=>{const b=e.target.closest('button');if(!b)return;pvK=b.dataset.k;renderPreview()};
@@ -290,10 +290,16 @@ function problems(ks){const out=[];const add=(k,m,bad=true)=>out.push({k,m,bad})
       if(kind==='video'&&files[0]&&files[0].d&&(files[0].d<3||files[0].d>900))add(k,'ريلز إنستغرام: المدة بين 3 ثوانٍ و 15 دقيقة')}
     if(k==='site'&&!catVal())add(k,'اختر قسم الموقع في الخطوة 4');
     if(k==='pin'&&!$('board').value&&!pinBoardName())add(k,'اختر لوحة Pinterest أو قسم الموقع في الخطوة 4');
-    if((k==='yt')&&!$('vTitle').value.trim())add(k,'اكتب عنوان الفيديو (يوتيوب يشترطه)')}
-  if(kind==='video'&&files[0]&&!/mp4$/i.test(files[0].f.type)&&!/\.mp4$/i.test(files[0].f.name))add('',`صيغة الفيديو (${files[0].f.type||'غير معروفة'}): الأفضل MP4. فيديوهات الآيفون (MOV) قد لا تعمل في الموقع أو إنستغرام — ارفعها من «لوحة الموقع» التي تحوّلها تلقائياً`,false);
+    if((k==='yt')&&!$('vTitle').value.trim())add(k,'لم تكتب عنواناً — سيُنشر بعنوان: «'+vTitleEff()+'»',false)}
+  if(kind==='video'&&files[0]&&!/mp4$/i.test(files[0].f.type)&&!/\.mp4$/i.test(files[0].f.name))add('',files[0].f.size>MP4MAX?'فيديو آيفون (MOV) أكبر من 600 ميغا: يُرفع كما هو بدون تحويل — قد لا يعمل في الموقع أو إنستغرام':'فيديو آيفون (MOV): يُحوَّل تلقائياً إلى MP4 قبل النشر — لا حاجة لأي شيء منك',false);
   if(!$('text').value.trim()&&ks.some(k=>k!=='site'))add('','نص المنشور فارغ',false);
   return out}
+// عنوان الفيديو الفعلي: المكتوب، وإلا أول سطر من النص، وإلا اسم القسم، وإلا اسم الشركة
+function vTitleEff(){const v=$('vTitle').value.trim();if(v)return v;
+  const line=String(txt('yt')||'').split('\n').map(x=>x.replace(/#[^\s#]+/g,'').replace(/https?:\/\/\S+/g,'').replace(/[<>]/g,'').replace(/\s+/g,' ').trim()).find(x=>len(x)>=4)||'';
+  const cat=catVal().split('|')[0].trim();
+  return [...(line||(cat?cat+' — قيصر الشام للحجر والرخام':'قيصر الشام للحجر والرخام'))].slice(0,100).join('').trim()}
+const MP4MAX=600e6, isMp4=f=>/mp4$/i.test(f.type)||/\.mp4$/i.test(f.name);
 function renderChecks(){$('checks').innerHTML=''}
 $('check').onclick=()=>{const ps=problems([...sel]);$('checks').innerHTML=ps.length?ps.map(p=>`<div class="warn ${p.bad?'bad':''}">${p.k?'<b>'+P[p.k].name+':</b> ':''}${esc(p.m)}</div>`).join(''):'<div class="warn" style="background:#E7F4EC;border-color:#B5DCC4">✓ كل شيء جاهز للنشر على: '+[...sel].map(k=>P[k].name).join('، ')+'</div>'};
 // ---------- السجل + منع التكرار ----------
@@ -343,7 +349,7 @@ let FF=null;
 async function blobURL(url,type,onP){const r=await fetch(url);if(!r.ok)throw new Error('تعذر تحميل محرك الدمج ('+r.status+')');const tot=Number(r.headers.get('content-length')||0);const rd=r.body.getReader();const parts=[];let got=0;
   for(;;){const {done,value}=await rd.read();if(done)break;parts.push(value);got+=value.length;if(onP&&tot)onP(Math.round(got/tot*100))}return URL.createObjectURL(new Blob(parts,{type}))}
 async function getFF(need){if(FF)return FF;const {FFmpeg}=await import('/js/ffmpeg/index.js');const ff=new FFmpeg();const B='https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/';
-  need('تحميل محرك دمج الموسيقى…');const coreURL=await blobURL(B+'ffmpeg-core.js','text/javascript');const wasmURL=await blobURL(B+'ffmpeg-core.wasm','application/wasm',p=>need('تحميل محرك دمج الموسيقى… '+p+'%'));
+  need('تحميل محرك الفيديو (مرة واحدة)…');const coreURL=await blobURL(B+'ffmpeg-core.js','text/javascript');const wasmURL=await blobURL(B+'ffmpeg-core.wasm','application/wasm',p=>need('تحميل محرك الفيديو (مرة واحدة)… '+p+'%'));
   await ff.load({coreURL,wasmURL});FF=ff;return ff}
 async function mixMusic(file,key,need){const ff=await getFF(need);need('دمج الموسيقى مع الفيديو…');
   const ext=((file.name.split('.').pop()||'mp4').toLowerCase().replace(/[^a-z0-9]/g,''))||'mp4',inp='in.'+ext;
@@ -362,10 +368,24 @@ async function mixMusic(file,key,need){const ff=await getFF(need);need('دمج �
     const data=await ff.readFile('out.mp4');if(!data||!data.length)throw new Error('فشل دمج الموسيقى');
     return new File([data],file.name.replace(/\.[^.]+$/,'')+'-music.mp4',{type:'video/mp4'})}
   finally{ff.off('log',onLog);ff.off('progress',onProg);for(const f of [inp,'m.mp3','out.mp4']){try{await ff.deleteFile(f)}catch(e){}}}}
+// فيديو الآيفون (MOV) → MP4 بدون إعادة ضغط (نفس الجودة، ثوانٍ قليلة)
+async function toMp4(file,need){const ff=await getFF(need);need('تحويل الفيديو إلى MP4…');
+  const ext=((file.name.split('.').pop()||'mov').toLowerCase().replace(/[^a-z0-9]/g,''))||'mov',inp='in.'+ext;
+  let log='';const onLog=({message})=>{log+=message+'\n'};ff.on('log',onLog);
+  try{await ff.writeFile(inp,new Uint8Array(await file.arrayBuffer()));
+    await ff.exec(['-hide_banner','-i',inp]);
+    const hasA=/Stream #0:\d+.*: Audio:/.test(log),aac=/Audio: aac/.test(log),hevc=/Video: hevc/.test(log);
+    const rc=await ff.exec(['-i',inp,'-map','0:v:0',...(hasA?['-map','0:a:0']:[]),'-c:v','copy',...(hevc?['-tag:v','hvc1']:[]),...(hasA?(aac?['-c:a','copy']:['-c:a','aac','-b:a','160k']):[]),'-movflags','+faststart','out.mp4']);
+    if(rc!==0)throw new Error('فشل التحويل');
+    const data=await ff.readFile('out.mp4');if(!data||!data.length)throw new Error('فشل التحويل');
+    return new File([data],file.name.replace(/\.[^.]+$/,'')+'.mp4',{type:'video/mp4'})}
+  finally{ff.off('log',onLog);for(const f of [inp,'out.mp4']){try{await ff.deleteFile(f)}catch(e){}}}}
 async function prepare(id,need,run){const out={media:[],cover:''};
   if(kind==='image'){const wm=$('wm').checked;for(let i=0;i<files.length;i++){need(`تجهيز الصورة ${i+1} من ${files.length}…`);const b=await processImage(files[i],wm);out.media.push({type:'image',url:await upload(`gallery/nashr/${id}-${i+1}.jpg`,b,'image/jpeg')})}out.wm=wm}
-  else{const f=files[0].f,ext=((f.name.split('.').pop()||'mp4').toLowerCase().replace(/[^a-z0-9]/g,''))||'mp4';
-    if(music&&(run||[]).some(k=>k!=='tk')){
+  else{let f=files[0].f;const mix=music&&(run||[]).some(k=>k!=='tk');
+    if(!isMp4(f)&&f.size<=MP4MAX&&(!mix||(run||[]).includes('tk'))){try{f=await toMp4(f,need)}catch(e){console.warn('mp4',e);need('تعذر التحويل — يُرفع الفيديو كما هو…')}}
+    const ext=((f.name.split('.').pop()||'mp4').toLowerCase().replace(/[^a-z0-9]/g,''))||'mp4';
+    if(mix){
       const mixed=await mixMusic(f,music,need);
       out.media.push({type:'video',url:await upload(`gallery/nashr/${id}-m.mp4`,mixed,'video/mp4',p=>need(`رفع الفيديو مع الموسيقى… ${p}%`)),ext:'mp4'});out.music=music;
       if((run||[]).includes('tk'))out.mediaTk=[{type:'video',url:await upload(`gallery/nashr/${id}.${ext}`,f,f.type||'video/mp4',p=>need(`رفع النسخة الأصلية لتيك توك… ${p}%`)),ext}]}
@@ -381,7 +401,7 @@ async function siteAdd(prefix,objs){const snap=await db.collection(FS).get();let
 async function publishSite(id,prep){const cat=catVal(),title=$('siteTitle').value.trim();
   if(kind==='image'){const objs=prep.media.map((m,i)=>({id:id+(i?'-'+i:''),createdAt:Date.now()+i,title,category:cat,size:'',color:'',type:'',price:'',img:m.url,...(prep.wm?{qrV1:true,wmV2:true}:{}),src:'nashr'}));
     await siteAdd('items_',objs);return {link:'https://cesar-alcham.com/works?category='+encodeURIComponent(cat),msg:objs.length+' صورة في قسم «'+cat.split('|')[0].trim()+'» — تظهر في صفحة الأعمال فوراً، وصفحة القسم تتحدّث خلال 3 ساعات'}}
-  const m=prep.media[0];const v={poster:prep.cover||'',id,createdAt:Date.now(),title:title||$('vTitle').value.trim(),category:cat,ext:m.ext,url:m.url,src:'nashr'};
+  const m=prep.media[0];const v={poster:prep.cover||'',id,createdAt:Date.now(),title:title||$('vTitle').value.trim()||vTitleEff(),category:cat,ext:m.ext,url:m.url,src:'nashr'};
   await siteAdd('videos_',[v]);return {link:'https://cesar-alcham.com/videos?category='+encodeURIComponent(cat),msg:'الفيديو في قسم «'+cat.split('|')[0].trim()+'» — يظهر في معرض الفيديو'}}
 // ---------- النشر ----------
 const idTok=()=>A.currentUser.getIdToken();
@@ -400,7 +420,7 @@ async function publish(ks){
     ks.forEach(k=>row(k,skip.includes(k)?'skip':'wait',skip.includes(k)?'منشور سابقاً — فتح المنشور الموجود':'',skip.includes(k)?(prev[k].link||''):''));
     if(!run.length){toast('لم يُنشر شيء');return}
     const id=uidF(),ref=db.collection(LOGCOL).doc(id),results={};skip.forEach(k=>results[k]={status:'skip',error:'مكرر'});run.forEach(k=>results[k]={status:'run'});
-    const rec={createdAt:Date.now(),kind,text:$('text').value,title:kind==='video'?$('vTitle').value.trim():'',custom:Object.fromEntries(run.filter(k=>custom[k]&&custom[k].trim()).map(k=>[k,custom[k]])),category:sel.has('site')?catVal():'',fps,results,files:files.map(x=>({name:x.f.name,size:x.f.size,hash:x.hash}))};
+    const rec={createdAt:Date.now(),kind,text:$('text').value,title:kind==='video'?vTitleEff():'',custom:Object.fromEntries(run.filter(k=>custom[k]&&custom[k].trim()).map(k=>[k,custom[k]])),category:sel.has('site')?catVal():'',fps,results,files:files.map(x=>({name:x.f.name,size:x.f.size,hash:x.hash}))};
     saveLocalLog(id,rec);try{await ref.set(rec)}catch(e){console.warn('log write',e)}
     const saveRes=async()=>{rec.results=results;saveLocalLog(id,rec);try{await ref.update({results})}catch(e){}};
     run.forEach(k=>row(k,'run','تجهيز الملفات…'));
@@ -417,7 +437,7 @@ async function publish(ks){
       }catch(e){for(const k of meta){results[k]={status:'fail',error:'انقطع الاتصال: '+(e.message||e)};row(k,'fail',results[k].error)}}
       await saveRes()})())}
     for(const k of run.filter(x=>SKEY[x])){row(k,'run','جارٍ الرفع والنشر…');jobs.push((async()=>{
-      try{const r=await fetch('/api/oauth/publish/'+SKEY[k],{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+await idTok()},body:JSON.stringify({items:(k==='tk'&&prep.mediaTk?prep.mediaTk:prep.media).map(m=>({url:m.url,type:m.type})),text:txt(k),title:kind==='video'?$('vTitle').value.trim():'',cover:prep.cover||'',board:$('board').value,boardName:$('board').value?'':pinBoardName(),link:'https://cesar-alcham.com'})});
+      try{const r=await fetch('/api/oauth/publish/'+SKEY[k],{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+await idTok()},body:JSON.stringify({items:(k==='tk'&&prep.mediaTk?prep.mediaTk:prep.media).map(m=>({url:m.url,type:m.type})),text:txt(k),title:kind==='video'?vTitleEff():'',cover:prep.cover||'',board:$('board').value,boardName:$('board').value?'':pinBoardName(),link:'https://cesar-alcham.com'})});
         const d=await r.json().catch(()=>({}));
         if(d.ok&&(d.id||d.link)){results[k]={status:'ok',link:d.link||'',id:d.id||'',note:d.note||'',draft:!!d.draft};row(k,'ok',d.note?d.note:'تم النشر',d.link||'')}
         else{results[k]={status:'fail',error:d.error||('HTTP '+r.status)};row(k,'fail',results[k].error)}
