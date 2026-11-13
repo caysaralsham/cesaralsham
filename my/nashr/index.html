@@ -160,6 +160,8 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
       <div id="checks"></div>
       <div class="acts"><button class="btn big" id="pubAll">🚀 نشر على الجميع</button></div>
       <div class="acts" style="margin-top:8px"><button class="btn" id="pubSel">نشر على المحدد فقط</button><button class="btn ghost" id="check">فحص قبل النشر</button></div>
+      <div class="acts" style="margin-top:8px"><button class="btn ghost" id="waShare" style="width:100%">واتساب: مشاركة إلى الحالة أو الكتالوج</button></div>
+      <p class="note" style="margin:6px 0 0">واتساب لا يسمح بالنشر الآلي في الحالة ولا في كتالوج التطبيق. هذا الزر يجهّز الملف بالباركود وينسخ النص، ثم يفتح قائمة المشاركة: اختر واتساب ← «حالتي». للكتالوج اختر «حفظ الصورة» ثم أضفها من واتساب للأعمال ← الكتالوج والصق النص.</p>
       <div class="st" id="status" style="margin-top:12px"></div>
     </div>
   </div>
@@ -451,6 +453,20 @@ async function publish(ks){
     const okN=run.filter(k=>results[k].status==='ok').length;toast(okN===run.length?'✓ تم النشر على كل المنصات المحددة':okN?`نُشر على ${okN} من ${run.length} — راجع الحالة`:'فشل النشر — راجع الحالة');
     loadLog();
   }finally{busy=false;['pubAll','pubSel','check'].forEach(b=>$(b).disabled=false)}}
+// ---------- واتساب (حالة / كتالوج): مشاركة يدوية بضغطة — لا توجد واجهة رسمية للنشر الآلي ----------
+let waCache={key:'',fl:null};
+$('waShare').onclick=async()=>{if(!files.length){toast(kind==='image'?'اختر الصور أولاً':'اختر الفيديو أولاً');return}
+  const key=kind+'|'+files.map(x=>x.hash).join(',')+'|'+(kind==='image'&&$('wm').checked?1:0);
+  const t=[...($('text').value.trim()||vTitleEff())].slice(0,700).join('');
+  try{navigator.clipboard.writeText(t).catch(()=>{})}catch(e){}
+  try{
+    if(waCache.key!==key){let fl=[];
+      if(kind==='image'){const wm=$('wm').checked;for(let i=0;i<files.length;i++)fl.push(new File([await processImage(files[i],wm)],'cesar-alcham-'+(i+1)+'.jpg',{type:'image/jpeg'}))}
+      else fl=[files[0].f];
+      waCache={key,fl}}
+    if(!navigator.canShare||!navigator.canShare({files:waCache.fl})){toast('هذا المتصفح لا يدعم المشاركة المباشرة — افتح «المنشورات» من الهاتف',6000);return}
+    await navigator.share({files:waCache.fl});toast('النص منسوخ — الصقه في الحالة أو في وصف منتج الكتالوج',6000)
+  }catch(e){if(e&&e.name==='AbortError')return;toast(e&&e.name==='NotAllowedError'?'الملف جاهز — اضغط الزر مرة ثانية للمشاركة':'تعذرت المشاركة',5000)}};
 $('pubSel').onclick=()=>publish([...sel]);
 $('pubAll').onclick=()=>{const ks=ORDER.filter(k=>P[k].ready&&P[k].kinds.includes(kind));
   if(ks.includes('pin')&&!$('board').value&&!pinBoardName()){ks.splice(ks.indexOf('pin'),1);toast('Pinterest: اختر اللوحة أو القسم في الخطوة 4',5000)}
