@@ -116,6 +116,9 @@ export async function onRequest({ request, env }) {
   let b; try { b = await request.json(); } catch (e) { return json({ ok: false, error: 'bad-json' }, 400); }
   const items = (Array.isArray(b.items) ? b.items : []).filter(x => x && ALLOW.test(String(x.url)) && /^(image|video)$/.test(x.type));
   if (!items.length) return json({ ok: false, error: 'no-media' }, 400);
+  // نسخة إنستغرام المصحّحة المقاس (إن وُجدت) — وإلا نفس الملفات
+  const igF = (Array.isArray(b.itemsIg) ? b.itemsIg : []).filter(x => x && ALLOW.test(String(x.url)) && /^(image|video)$/.test(x.type));
+  const itemsIg = igF.length === items.length ? igF : items;
   const pf = Array.isArray(b.platforms) ? b.platforms : [];
   const out = {};
   let I; try { I = await ids(token, env); } catch (e) { return json({ ok: false, error: String(e.message || e) }); }
@@ -125,7 +128,7 @@ export async function onRequest({ request, env }) {
       const r = await gpost(`${I.igId}/media_publish`, { creation_id: cid }, I.token); return json({ ok: true, out: { ig: { ok: true, id: r.id } } });
     } catch (e) { return json({ ok: false, error: String(e.message || e) }); }
   }
-  if (pf.includes('ig')) { try { if (!I.igId) throw new Error('حساب إنستغرام غير مربوط بالصفحة'); out.ig = { ok: true, ...(await publishIG(I.igId, I.token, items, String(b.captionIg || '').slice(0, 2200))) }; } catch (e) { out.ig = { ok: false, error: String(e.message || e) }; } }
+  if (pf.includes('ig')) { try { if (!I.igId) throw new Error('حساب إنستغرام غير مربوط بالصفحة'); out.ig = { ok: true, ...(await publishIG(I.igId, I.token, itemsIg, String(b.captionIg || '').slice(0, 2200))) }; } catch (e) { out.ig = { ok: false, error: String(e.message || e) }; } }
   if (pf.includes('fb')) { try { out.fb = { ok: true, ...(await publishFB(I.pageId, I.token, items, String(b.captionFb || '').slice(0, 60000))) }; } catch (e) { out.fb = { ok: false, error: String(e.message || e) }; } }
   return json({ ok: true, out });
 }
