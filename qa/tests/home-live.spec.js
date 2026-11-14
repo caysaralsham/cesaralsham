@@ -3,8 +3,9 @@ const { test, expect } = require('@playwright/test');
 const STUB = `(function(){const now=Date.now();
  const docs=[{id:'main',data:()=>({settings:{}})},{id:'items_0',data:()=>({items:[
    {id:'old1',category:'نوافير رخام',img:'/favicon.ico',title:'نافورة قديمة',createdAt:now-90*864e5,cover:true},
-   {id:'new1',category:'نوافير رخام',img:'/favicon.ico',title:'نافورة جديدة',createdAt:now-1*864e5},
-   {id:'new2',category:'قسم جديد تماماً',img:'/favicon.ico',title:'شمينة',createdAt:now-2*864e5}]})}];
+   {id:'new1',category:'نوافير رخام',img:'/favicon-32x32.png',title:'نافورة جديدة',createdAt:now-1*864e5},
+   {id:'dup1',category:'نوافير رخام',img:'/favicon-32x32.png?v=2',title:'نافورة مكررة',createdAt:now-3*864e5},
+   {id:'new2',category:'قسم جديد تماماً',img:'/og-image.jpg',title:'شمينة',createdAt:now-2*864e5}]})}];
  const snap={forEach:f=>docs.forEach(f),docs};
  const col={get:()=>Promise.resolve(snap),onSnapshot:f=>f(snap),doc:()=>({get:()=>Promise.resolve({exists:false,data:()=>({})}),set:()=>Promise.resolve(),onSnapshot:()=>{}})};
  const fs=()=>({collection:()=>col,terminate:()=>Promise.resolve(),enablePersistence:()=>Promise.resolve()});fs.FieldValue={delete:()=>0,increment:()=>0,arrayUnion:()=>0};
@@ -16,7 +17,7 @@ test('«أحدث أعمالنا»: آخر الأعمال الحقيقية أول
   await page.goto('/');
   await expect(page.locator('#homeShowcase .sc-item')).toHaveCount(3, { timeout: 15000 });
   const shown = await page.locator('#homeShowcase .sc-item').evaluateAll(a => a.map(x => [x.querySelector('b').textContent.trim(), decodeURIComponent(x.getAttribute('href'))]));
-  // الأحدث أولاً، والضغط بيفتح معرض صور القسم
+  // الأحدث أولاً، والضغط بيفتح معرض صور القسم — ونفس الصورة المحفوظة مرتين (dup1) بتبين مرة وحدة بس
   expect(shown).toEqual([['نافورة جديدة', '/works?category=نوافير رخام'], ['شمينة', '/works?category=قسم جديد تماماً'], ['نافورة قديمة', '/works?category=نوافير رخام']]);
   expect(await page.locator('.sc-cats a', { hasText: 'قسم جديد تماماً' }).count()).toBe(1);
   // «أحدث الإضافات» اندمجت بـ«أحدث أعمالنا»
