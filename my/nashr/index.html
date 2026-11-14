@@ -105,6 +105,12 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
 .vols input[type=range]{width:100%;accent-color:var(--br)}.vols output{text-align:left;color:var(--deep);font-variant-numeric:tabular-nums}
 .mu-note{font-size:11.5px;color:var(--deep);margin:8px 0 0;line-height:1.6}
 .mu:focus-within{outline:2px solid var(--br);outline-offset:2px}
+/* نص تيك توك الجاهز */
+.tkbox{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+.tkbox .hd{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13.5px;margin-bottom:6px}
+.tkbox .hd .ic{width:24px;height:24px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0}.tkbox .hd .ic svg{width:14px;height:14px}
+.tkbox textarea{min-height:168px}
+.tkbox .acts .btn{padding:9px 14px;font-size:13px;text-decoration:none}
 </style></head><body>
 <header><b>المنشورات</b><span>ارفع صورة أو فيديو، اكتب المنشور، اختر المنصات، ثم انشر وتابع النتيجة</span></header>
 <form id="login"><b style="font-size:17px">تسجيل الدخول</b><label>البريد الإلكتروني</label><input id="em" type="email" autocomplete="username" required><label>كلمة السر</label><input id="pw" type="password" autocomplete="current-password" required><button>دخول</button><div id="lerr"></div></form>
@@ -130,7 +136,7 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
             <label for="vMus">الموسيقى</label><input type="range" id="vMus" min="0" max="100" value="80"><output id="oMus">80%</output>
             <label for="vOrig">صوت الفيديو</label><input type="range" id="vOrig" min="0" max="100" value="20"><output id="oOrig">20%</output>
           </div>
-          <p class="mu-note">تُدمج الموسيقى في الفيديو قبل النشر على فيسبوك وإنستغرام ويوتيوب والموقع. تيك توك يأخذ الفيديو الأصلي لتختار موسيقى ترند في التطبيق. أول مرة يُحمَّل محرك الدمج (حوالي 32 ميغا) ثم يبقى محفوظاً.</p>
+          <p class="mu-note">تُدمج الموسيقى في الفيديو قبل النشر على فيسبوك وإنستغرام ويوتيوب والموقع، وقبل المشاركة إلى واتساب. تيك توك يأخذ الفيديو الأصلي لتختار موسيقى ترند في التطبيق. أول مرة يُحمَّل محرك الدمج (حوالي 32 ميغا) ثم يبقى محفوظاً.</p>
         </div>
       </div>
       <label class="chk" id="wmRow"><input type="checkbox" id="wm" checked> إضافة باركود الشركة على الصور (يسار تحت)</label>
@@ -138,6 +144,12 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
     <div class="card"><h3><span class="n">2</span>نص المنشور</h3>
       <button type="button" class="btn ghost" id="siyBtn" style="width:100%;margin-bottom:10px">✍️ صياغة النص تلقائياً — اختر نوع العمل والأسلوب</button>
       <textarea id="text" placeholder="اكتب نص المنشور هنا… (يمكنك تخصيصه لكل منصة في الخطوة 4)"></textarea><div class="cnt" data-for="text"></div>
+      <div class="tkbox" id="tkBox">
+        <label class="hd" for="tkText"><span class="ic c-tk" id="tkIc"></span>نص تيك توك</label>
+        <textarea id="tkText" placeholder="نص قصير لتيك توك: جملة بالعربية، جملة بالفرنسية، الهاتف، الموقع والهاشتاغات. اضغط «تجهيز النص» ليُكتب تلقائياً."></textarea><div class="cnt" data-cc="tk"></div>
+        <div class="acts"><button type="button" class="btn ghost" id="tkMake">تجهيز النص</button><button type="button" class="btn ghost" id="tkCopy">نسخ النص</button><a class="btn ghost" id="tkOpen" href="https://www.tiktok.com/tiktokstudio/upload" target="_blank" rel="noopener">فتح تيك توك</a></div>
+        <p class="note">انسخ النص والصقه في تيك توك عند رفع الفيديو. «صياغة النص تلقائياً» تملأ هذه الخانة أيضاً.</p>
+      </div>
     </div>
     <div class="card"><h3><span class="n">3</span>المنصات</h3>
       <div class="pf" id="pf"></div>
@@ -161,7 +173,7 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
       <div class="acts"><button class="btn big" id="pubAll">🚀 نشر على الجميع</button></div>
       <div class="acts" style="margin-top:8px"><button class="btn" id="pubSel">نشر على المحدد فقط</button><button class="btn ghost" id="check">فحص قبل النشر</button></div>
       <div class="acts" style="margin-top:8px"><button class="btn ghost" id="waShare" style="width:100%">واتساب: مشاركة إلى الحالة أو الكتالوج</button></div>
-      <p class="note" style="margin:6px 0 0">واتساب لا يسمح بالنشر الآلي في الحالة ولا في كتالوج التطبيق. هذا الزر يجهّز الملف بالباركود وينسخ النص، ثم يفتح قائمة المشاركة: اختر واتساب ← «حالتي». للكتالوج اختر «حفظ الصورة» ثم أضفها من واتساب للأعمال ← الكتالوج والصق النص.</p>
+      <p class="note" style="margin:6px 0 0">واتساب لا يسمح بالنشر الآلي في الحالة ولا في كتالوج التطبيق. هذا الزر يجهّز الملف (الصور بالباركود، والفيديو مع الموسيقى المختارة) وينسخ النص، ثم يفتح قائمة المشاركة: اختر واتساب ← «حالتي». للكتالوج اختر «حفظ الصورة» ثم أضفها من واتساب للأعمال ← الكتالوج والصق النص.</p>
       <div class="st" id="status" style="margin-top:12px"></div>
     </div>
   </div>
@@ -254,7 +266,7 @@ $('pf').addEventListener('click',async e=>{const c=e.target.closest('[data-conn]
 $('pf').addEventListener('click',e=>{const b=e.target.closest('[data-need]');if(!b)return;e.preventDefault();showModal(P[b.dataset.need].need)});
 function showModal(h){$('mBody').innerHTML=h;$('modal').classList.add('show')}$('mClose').onclick=()=>$('modal').classList.remove('show');
 function txt(k){const c=custom[k];return (c!=null&&String(c).trim()!=='')?String(c):$('text').value}
-function renderCust(){const ks=ORDER.filter(k=>sel.has(k)&&k!=='site');
+function renderCust(){const ks=ORDER.filter(k=>sel.has(k)&&k!=='site'&&k!=='tk');
   $('cust').innerHTML=ks.length?ks.map(k=>`<details class="cust" ${custom[k]?'open':''}><summary><span class="ic ${P[k].cls}" style="width:22px;height:22px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;color:#fff">${P[k].ic.replace('<svg','<svg width="13" height="13"')}</span>${P[k].name}<small>${custom[k]?'نص خاص':'يستخدم النص الرئيسي'}</small></summary><textarea data-c="${k}" style="margin-top:8px;min-height:90px" placeholder="اتركه فارغاً لاستخدام النص الرئيسي">${esc(custom[k]||'')}</textarea><div class="cnt" data-cc="${k}"></div></details>`).join(''):'<p class="note" style="margin:0">اختر منصة في الخطوة 3 لتخصيص نصها.</p>';
   $('siteBox').hidden=!sel.has('site');$('pinBox').hidden=!sel.has('pin');counts()}
 $('cust').addEventListener('input',e=>{const k=e.target.dataset.c;if(!k)return;custom[k]=e.target.value;counts();renderPreview()});
@@ -276,7 +288,23 @@ function renderPreview(){const ks=ORDER.filter(k=>sel.has(k));if(!ks.includes(pv
   else{const cols=m.length>1?'grid-template-columns:1fr 1fr':'';h=`<div class="pv"><div class="hd"><img src="${esc(prof.fb.pic||'/my/icon-192.png')}" alt=""><div><b>${esc(prof.fb.name||'قيصر الشام للحجر والرخام 2')}</b><small>الآن · 🌐</small></div></div><div class="tx">${esc(t)}</div><div class="md" style="${cols}">${m.slice(0,4).join('')}</div></div>`}
   $('pv').innerHTML=h}
 $('pvt').onclick=e=>{const b=e.target.closest('button');if(!b)return;pvK=b.dataset.k;renderPreview()};
-function render(){renderThumbs();renderPf();renderCust();renderPreview();renderChecks()}
+function render(){renderThumbs();renderPf();renderCust();if(document.activeElement!==$('tkText'))$('tkText').value=custom.tk||'';renderPreview();renderChecks()}
+// ---------- نص تيك توك الجاهز (قصير: عربي + فرنسي + الهاتف + الموقع + هاشتاغات) ----------
+$('tkIc').innerHTML=P.tk.ic;
+$('tkText').addEventListener('input',()=>{custom.tk=$('tkText').value;counts();renderPreview()});
+function tkFromMain(){const src=$('text').value.trim()||vTitleEff()||'';
+  const L=src.split('\n').map(x=>x.trim()).filter(Boolean);
+  const meta=x=>/^(#|📞|📍|🌐|🔗|🏭|✔|━)/u.test(x)||/https?:\/\/|wa\.me|cesar-alcham|\d{9,}/.test(x);
+  const body=L.filter(x=>!meta(x));
+  const ar=body.find(x=>/[\u0600-\u06FF]/.test(x))||'';
+  const fr=body.find(x=>!/[\u0600-\u06FF]/.test(x)&&/[A-Za-zÀ-ÿ]{3,}/.test(x))||'Marbre et pierre naturelle sur mesure';
+  const mach=/0554974470|Blida|البليدة/.test(src);
+  const tags=[...new Set([...(src.match(/#[^\s#]+/g)||[]),'#marbre','#Algérie','#رخام_طبيعي','#قيصر_الشام','#dz'])].slice(0,7);
+  return [ar,fr,'📞 WhatsApp : \u200E'+(mach?'0554974470':'0541737888')+'\u200E','📍 '+(mach?'Blida':'Dely Ibrahim – Alger'),'🌐 https://cesar-alcham.com',tags.join(' ')].filter(Boolean).join('\n')}
+$('tkMake').onclick=()=>{if(!$('text').value.trim()&&!$('vTitle').value.trim()){toast('اكتب النص الرئيسي أولاً، أو استعمل «صياغة النص تلقائياً»',5000);return}
+  custom.tk=tkFromMain();$('tkText').value=custom.tk;counts();renderPreview();toast('نص تيك توك جاهز — راجعه ثم انسخه')};
+$('tkCopy').onclick=async()=>{const t=txt('tk').trim();if(!t){toast('لا يوجد نص للنسخ بعد');return}
+  try{await navigator.clipboard.writeText(t);toast('تم نسخ نص تيك توك')}catch(e){$('tkText').focus();$('tkText').select();toast('حدّد النص وانسخه يدوياً')}};
 // ---------- قسم الموقع ----------
 // لوحة Pinterest تلقائياً حسب القسم: الاسم الفرنسي من «عربي | Français» (تُنشأ إن لم توجد)
 function pinBoardName(){const c=catVal();if(!c)return '';const pr=c.split('|').map(x=>x.trim()).filter(Boolean);return (pr[1]||pr[0]||'').slice(0,50)}
@@ -456,12 +484,15 @@ async function publish(ks){
 // ---------- واتساب (حالة / كتالوج): مشاركة يدوية بضغطة — لا توجد واجهة رسمية للنشر الآلي ----------
 let waCache={key:'',fl:null};
 $('waShare').onclick=async()=>{if(!files.length){toast(kind==='image'?'اختر الصور أولاً':'اختر الفيديو أولاً');return}
-  const key=kind+'|'+files.map(x=>x.hash).join(',')+'|'+(kind==='image'&&$('wm').checked?1:0);
+  const mus=kind==='video'&&music?music+':'+$('vMus').value+':'+$('vOrig').value:'';
+  const key=kind+'|'+files.map(x=>x.hash).join(',')+'|'+(kind==='image'&&$('wm').checked?1:0)+'|'+mus;
+  const wb=$('waShare');if(wb.disabled)return;
   const t=[...($('text').value.trim()||vTitleEff())].slice(0,700).join('');
   try{navigator.clipboard.writeText(t).catch(()=>{})}catch(e){}
   try{
     if(waCache.key!==key){let fl=[];
       if(kind==='image'){const wm=$('wm').checked;for(let i=0;i<files.length;i++)fl.push(new File([await processImage(files[i],wm)],'cesar-alcham-'+(i+1)+'.jpg',{type:'image/jpeg'}))}
+      else if(mus){wb.disabled=true;stopMus();try{fl=[await mixMusic(files[0].f,music,m=>toast(m,120000))]}catch(x){toast((x&&x.message)||'فشل دمج الموسيقى',6000);return}finally{wb.disabled=false}}
       else fl=[files[0].f];
       waCache={key,fl}}
     if(!navigator.canShare||!navigator.canShare({files:waCache.fl})){toast('هذا المتصفح لا يدعم المشاركة المباشرة — افتح «المنشورات» من الهاتف',6000);return}
