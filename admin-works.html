@@ -109,6 +109,18 @@
 .acard .sel{position:absolute;top:6px;right:6px;z-index:2;background:rgba(255,255,255,.92);border-radius:6px;padding:2px 4px;line-height:0}
 .acard .sel input{width:18px;height:18px;margin:0;cursor:pointer}
 .cover-badge{position:absolute;top:6px;left:6px;z-index:2;background:#B88A2A;color:#fff;font-size:11px;font-weight:800;border-radius:6px;padding:2px 7px}
+/* ألبوم العمل: صور نفس القطعة متلاصقة وعليها نفس العلامة */
+.acard.in-alb{border-color:#9A6A3A;box-shadow:inset 0 3px 0 #9A6A3A}
+.alb-tag{position:absolute;bottom:6px;left:6px;z-index:2;background:rgba(59,36,20,.9);color:#F5ECDD;font-size:11px;font-weight:800;border-radius:6px;padding:2px 7px;white-space:nowrap;direction:rtl}
+.alb-tag.c{background:#9A6A3A}
+/* إضافة عدة صور لنفس العمل */
+.up-strip{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 8px;margin-bottom:8px}
+.up-th{position:relative;flex:0 0 auto;width:86px;height:86px;border-radius:10px;overflow:hidden;border:2px solid var(--line);background:#f4efe6;cursor:pointer;padding:0}
+.up-th.on{border-color:#9A6A3A;box-shadow:0 0 0 2px rgba(154,106,58,.25)}
+.up-th img{width:100%;height:100%;object-fit:cover;display:block}
+.up-th .x{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(0,0,0,.65);color:#fff;font-size:14px;line-height:1;cursor:pointer;padding:0}
+.up-th .c{position:absolute;bottom:0;left:0;right:0;background:#9A6A3A;color:#fff;font-size:10.5px;font-weight:800;text-align:center;padding:1px 0}
+.up-note{font-size:12.5px;color:var(--text-dim);margin:0 0 8px}
 .acard .row-actions{display:flex;flex-wrap:wrap;gap:4px}.acard .row-actions .btn{padding:4px 8px;min-width:0}
 #bulkBar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:200;background:#111;color:#fff;border-radius:14px;padding:10px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;box-shadow:0 10px 30px rgba(0,0,0,.35);max-width:96vw}
 #bulkBar select{padding:6px 8px;border-radius:8px;font:inherit}
@@ -323,14 +335,19 @@ td img{border-radius:10px;}
 
     <div class="panel">
       <h2>إضافة صورة جديدة</h2>
-      <div class="field"><label>الصورة</label><input type="file" id="upFile" accept="image/*"></div>
+      <div class="field"><label>الصورة — اختر عدة صور معاً إذا كانت لنفس العمل (واجهة منزل، جرن، مغسلة، شمينه...)</label><input type="file" id="upFile" accept="image/*" multiple></div>
       <div id="previewWrap" style="display:none; margin-bottom:14px;">
+        <div id="upAlbum" style="display:none">
+          <p class="up-note" id="upAlbumNote"></p>
+          <div class="up-strip" id="upStrip"></div>
+        </div>
         <div style="background:var(--cream-2); border-radius:10px; padding:10px; text-align:center; overflow:hidden;">
           <img id="previewImg" style="max-width:100%; max-height:260px; object-fit:contain;">
         </div>
         <div style="display:flex; gap:8px; margin-top:8px; justify-content:center;">
           <button type="button" class="btn btn-ghost btn-sm" id="btnRotateLeft">↺ استدارة يسار</button>
           <button type="button" class="btn btn-ghost btn-sm" id="btnRotateRight">↻ استدارة يمين</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="btnUpCover" style="display:none">🖼 اجعلها الغلاف</button>
         </div>
       </div>
       <div class="grid2">
@@ -494,6 +511,7 @@ td img{border-radius:10px;}
     <button class="btn btn-ghost btn-sm" style="width:100%; justify-content:center; display:flex; margin-bottom:6px;" id="btnAddWatermark">إضافة شعار الجزائر / قيصر الشام على هذه الصورة</button>
     <div style="font-size:11px; color:var(--text-dim); margin-bottom:14px;">بيطلب منك اختيار نفس الصورة من جهازك، وبيرفعها بدل القديمة مع الشعار عليها.</div>
 
+    <div id="editAlbumNote" style="display:none;font-size:12.5px;font-weight:700;color:#6E4524;background:#F5ECDD;border-radius:8px;padding:8px 10px;margin-bottom:12px"></div>
     <div class="field"><label>عنوان الصورة</label><input type="text" id="editTitle"></div>
     <div class="field">
       <label>القسم / التصنيف *</label>
@@ -942,7 +960,7 @@ let hiddenMap = {};
 const pendingDel = new Set();   // صور عم تنحذف هلأ — ما منرجّعها عالشاشة لحتى يخلص الحذف
 // بصمة القائمة: إذا السحابة رجّعت نفس القائمة (صدى حذف عملناه هون) ما منعيد رسمها
 var lastItemsSig = '';
-function itemsSig(list){ try{ return JSON.stringify([list.map(it=>[it.id,it.img,it.title,it.category,it.cover,it.order,it.size,it.color,it.type]), Object.keys(hiddenMap).sort()]); }catch(e){ return String(Math.random()); } }
+function itemsSig(list){ try{ return JSON.stringify([list.map(it=>[it.id,it.img,it.title,it.category,it.cover,it.order,it.size,it.color,it.type,it.grp,it.gi]), Object.keys(hiddenMap).sort()]); }catch(e){ return String(Math.random()); } }
 async function unhideItem(id){
   try{
     const ref = db.collection(FS_COLLECTION).doc('site_hidden');
@@ -1271,12 +1289,55 @@ async function setCover(id){
   items.filter(x=>(x.category||'').trim()===cat).forEach(x=>{ const want=x.id===id; if(!!x.cover!==want) map[x.id]={...x, cover:want}; });
   applyLocal(map); await saveItemsBatch(map); toast('صارت صورة القسم ⭐');
 }
+// ---------- ألبوم العمل: عدة صور لنفس القطعة = بطاقة وحدة بالموقع (نفس منطق js/album.js) ----------
+// الصور اللي إلها نفس grp (أو grp تبعها = رقم صورة تانية) بنفس القسم = عمل واحد. الغلاف = الأصغر gi ثم الأقدم.
+const workKey = it => (it.grp||it.id)+'|'+(it.category||'').trim();
+function groupWorks(list){
+  const out=[], at=new Map();
+  for(const it of list){ const k=workKey(it); if(at.has(k)) at.get(k).pics.push(it); else { const e={it,pics:[it]}; at.set(k,e); out.push(e); } }
+  for(const e of out) if(e.pics.length>1){ e.pics.sort((a,b)=>((a.gi??1e9)-(b.gi??1e9))||((a.createdAt||0)-(b.createdAt||0))); e.it=e.pics[0]; }
+  return out;
+}
+const albumOf = it => { const k=workKey(it); return groupWorks(items.filter(x=>workKey(x)===k))[0].pics; };
+const picsAr = n => n===2 ? 'صورتان' : n<=10 ? n+' صور' : n+' صورة';
+async function setAlbumCover(id){
+  const it=items.find(x=>x.id===id); if(!it) return;
+  const pics=albumOf(it); if(pics.length<2) return;
+  const arr=[it, ...pics.filter(x=>x.id!==id)], g=it.grp||pics.find(x=>x.grp)?.grp||it.id, map={};
+  arr.forEach((x,k)=>{ if(x.gi!==k || x.grp!==g) map[x.id]={...x, grp:g, gi:k}; });
+  applyLocal(map); await saveItemsBatch(map); toast('صارت غلاف العمل 🖼');
+}
+// ضمّ الصور المحددة كعمل واحد (ألبوم): بتنضاف لعمل أول صورة محددة، وبيضل ترتيبها متل ما هو
+async function joinSelected(){
+  const sel=items.filter(x=>selected.has(x.id));
+  if(sel.length<2){ toast('حدّد صورتين أو أكثر لنفس العمل'); return; }
+  const cats=new Set(sel.map(x=>(x.category||'').trim()));
+  if(cats.size>1){ toast('الصور المحددة من أقسام مختلفة — انقلها لنفس القسم أولاً'); return; }
+  const cat=[...cats][0];
+  const ordered=groupWorks(sortCat(items.filter(x=>(x.category||'').trim()===cat))).flatMap(e=>e.pics);
+  const anchor=ordered.find(x=>selected.has(x.id)), g=anchor.grp||anchor.id;
+  const base=albumOf(anchor), inBase=new Set(base.map(x=>x.id));
+  const all=[...base, ...ordered.filter(x=>selected.has(x.id)&&!inBase.has(x.id))], map={};
+  all.forEach((x,k)=>{ if(x.grp!==g || x.gi!==k) map[x.id]={...x, grp:g, gi:k}; });
+  selected.clear(); applyLocal(map); await saveItemsBatch(map);
+  toast('صارت '+picsAr(all.length)+' عملاً واحداً — تظهر في الموقع بطاقة واحدة 🗂');
+}
+// فكّ صور من عملها: بترجع كل وحدة بطاقة لحالها
+async function ungroupItems(ids){
+  const set=new Set(ids), map={};
+  items.filter(x=>set.has(x.id)).forEach(x=>{ if(x.grp==null && x.gi==null) return; const u={...x}; delete u.grp; delete u.gi; map[x.id]=u; });
+  // صور كان رقم عملها هو رقم صورة انفكّت: بتاخد رقم عمل جديد حتى ما ترجع تنضم إلها
+  ids.forEach(id=>{ const rest=items.filter(y=>y.grp===id && !set.has(y.id)); if(rest.length){ const g=uid(); rest.forEach(y=>{ map[y.id]={...y, grp:g}; }); } });
+  if(!Object.keys(map).length) return;
+  ids.forEach(id=>selected.delete(id)); applyLocal(map); await saveItemsBatch(map); toast('انفكّت من العمل ✓');
+}
+// ▲▼ بتحرّك العمل كله (بكل صوره) مكان واحد
 async function moveItem(id, dir){
   const it=items.find(x=>x.id===id); if(!it) return;
-  const cat=(it.category||'').trim(), arr=sortCat(items.filter(x=>(x.category||'').trim()===cat));
-  const i=arr.findIndex(x=>x.id===id), j=i+dir; if(j<0||j>=arr.length) return;
-  [arr[i],arr[j]]=[arr[j],arr[i]];
-  const map={}; arr.forEach((x,k)=>{ if(x.order!==k) map[x.id]={...x, order:k}; });
+  const cat=(it.category||'').trim(), ws=groupWorks(sortCat(items.filter(x=>(x.category||'').trim()===cat)));
+  const i=ws.findIndex(e=>e.pics.some(x=>x.id===id)), j=i+dir; if(i<0||j<0||j>=ws.length) return;
+  [ws[i],ws[j]]=[ws[j],ws[i]];
+  const map={}; ws.flatMap(e=>e.pics).forEach((x,k)=>{ if(x.order!==k) map[x.id]={...x, order:k}; });
   applyLocal(map); await saveItemsBatch(map);
 }
 const selected = new Set();
@@ -1288,9 +1349,13 @@ function renderBulkBar(){
   bar.innerHTML=`<b>${selected.size} صورة محددة</b>
     <select id="bulkCat"><option value="">— اختار القسم —</option>${cats.map(c=>`<option value="${c.replace(/"/g,'&quot;')}">${c.split('|')[0].trim()}</option>`).join('')}<option value="__new__">➕ قسم جديد...</option></select>
     <button class="btn btn-sm" id="bulkMove">نقل للقسم</button>
+    ${selected.size>1?'<button class="btn btn-sm" id="bulkJoin" title="الصور المحددة لنفس القطعة: تظهر في الموقع بطاقة واحدة تتقلّب صورها">🗂 ضمّ كعمل واحد</button>':''}
+    ${items.some(x=>selected.has(x.id)&&albumOf(x).length>1)?'<button class="btn btn-ghost btn-sm" id="bulkSplit" style="color:#fff;border-color:#777">✂ فكّ من العمل</button>':''}
     <button class="btn btn-danger btn-sm" id="bulkDel">🗑 حذف</button>
     <button class="btn btn-ghost btn-sm" id="bulkClear">إلغاء التحديد</button>`;
   document.getElementById('bulkClear').onclick=()=>{selected.clear();renderItemsTable();};
+  { const j=document.getElementById('bulkJoin'); if(j) j.onclick=joinSelected;
+    const sp=document.getElementById('bulkSplit'); if(sp) sp.onclick=()=>ungroupItems([...selected]); }
   document.getElementById('bulkMove').onclick=async()=>{
     let c=document.getElementById('bulkCat').value;
     if(c==='__new__'){ c=(prompt('اكتب اسم القسم الجديد:')||'').trim(); }
@@ -1321,20 +1386,23 @@ function groupHTML(list, kind){
   const groups = new Map();
   list.forEach(x=>{ const c=(x.category||'').trim()||'__none__'; if(!groups.has(c)) groups.set(c,[]); groups.get(c).push(x); });
   const keys=[...groups.keys()].sort((a,b)=> a==='__none__'?-1:b==='__none__'?1:a.localeCompare(b,'ar'));
-  const titleCount = {}; list.forEach(x=>{ const t=(x.title||'').trim(); if(t) titleCount[t]=(titleCount[t]||0)+1; });
+  // صور نفس العمل (ألبوم) إلها نفس العنوان عن قصد: ما بتنحسب «عنوان مكرر»
+  const titleCount = {}, seenWT = new Set(); list.forEach(x=>{ const t=(x.title||'').trim(); if(!t) return; if(kind==='img'){ const k=workKey(x)+'|'+t; if(seenWT.has(k)) return; seenWT.add(k); } titleCount[t]=(titleCount[t]||0)+1; });
   return keys.map(c=>{
-    const arr=kind==='img'?sortCat(groups.get(c)):groups.get(c), name=c==='__none__'?'<span style="color:var(--danger);">بدون قسم</span>':c.split('|')[0].trim();
+    const works=kind==='img'?groupWorks(sortCat(groups.get(c))):null, al={};
+    if(works) works.forEach((e,wi)=>e.pics.forEach((x,i)=>al[x.id]={n:e.pics.length,i,wi}));
+    const arr=works?works.flatMap(e=>e.pics):groups.get(c), name=c==='__none__'?'<span style="color:var(--danger);">بدون قسم</span>':c.split('|')[0].trim();
     const fr=c.includes('|')?`<small style="color:var(--text-dim); font-weight:500;"> ${c.split('|')[1].trim()}</small>`:'';
     const key=kind+':'+c, open=openCats.has(key)||!!adminSearch;
     const noTitle=arr.filter(x=>!(x.title||'').trim()).length, dup=arr.filter(x=>titleCount[(x.title||'').trim()]>1).length;
     const warn=(noTitle?`<span class="tag warn">${noTitle} بلا عنوان</span>`:'')+(dup?`<span class="tag warn">${dup} عنوان مكرر</span>`:'');
     const cards=arr.map((x,k)=>`
-      <div class="acard${selected.has(x.id)?' picked':''}" data-card="${x.id}">
-        ${kind==='img'?`<label class="sel"><input type="checkbox" class="sel-cb" data-id="${x.id}"${selected.has(x.id)?' checked':''}></label>${x.cover?'<span class="cover-badge">⭐ صورة القسم</span>':''}${hiddenMap[x.id]?`<span class="cover-badge" style="background:#7a1f1f;color:#fff">🙈 مخفية (مكررة)</span>`:''}<div class="img-box"><img src="${x.img}" loading="lazy" decoding="async" alt=""${hiddenMap[x.id]?' data-dim="1"':''}></div>`:`<video src="${x.url}" muted preload="none"${x.poster?` poster="${x.poster}"`:''}></video>${x.poster?'':'<span class="cover-badge" style="background:#FCEBD9;color:#A0640C">بلا غلاف</span>'}`}
+      <div class="acard${selected.has(x.id)?' picked':''}${al[x.id]&&al[x.id].n>1?' in-alb':''}" data-card="${x.id}">
+        ${kind==='img'?`<label class="sel"><input type="checkbox" class="sel-cb" data-id="${x.id}"${selected.has(x.id)?' checked':''}></label>${x.cover?'<span class="cover-badge">⭐ صورة القسم</span>':''}${hiddenMap[x.id]?`<span class="cover-badge" style="background:#7a1f1f;color:#fff">🙈 مخفية (مكررة)</span>`:''}<div class="img-box"><img src="${x.img}" loading="lazy" decoding="async" alt=""${hiddenMap[x.id]?' data-dim="1"':''}>${al[x.id].n>1?`<span class="alb-tag${al[x.id].i?'':' c'}">${al[x.id].i?'🗂 '+(al[x.id].i+1)+' من '+al[x.id].n:'🖼 غلاف عمل · '+picsAr(al[x.id].n)}</span>`:''}</div>`:`<video src="${x.url}" muted preload="none"${x.poster?` poster="${x.poster}"`:''}></video>${x.poster?'':'<span class="cover-badge" style="background:#FCEBD9;color:#A0640C">بلا غلاف</span>'}`}
         <div class="acard-b">
           <div class="acard-t">${(x.title||'').trim()||'<span style="color:var(--danger);">بلا عنوان</span>'}${(x.title||'').trim()&&titleCount[(x.title||'').trim()]>1?' <span class="tag warn">مكرر</span>':''}</div>
           <div class="row-actions">
-            ${kind==='img'?`${hiddenMap[x.id]?`<button class="btn btn-ghost btn-sm" onclick="unhideItem('${x.id}')" title="رجّعها تبين بالموقع">👁 إظهار</button>`:''}<button class="btn btn-ghost btn-sm" onclick="openEditItem('${x.id}')" title="تعديل">✎</button>${x.cover?'':`<button class="btn btn-ghost btn-sm" onclick="setCover('${x.id}')" title="خليها صورة القسم">⭐</button>`}<button class="btn btn-ghost btn-sm" onclick="moveItem('${x.id}',-1)" title="لقدّام"${k===0?' disabled':''}>▲</button><button class="btn btn-ghost btn-sm" onclick="moveItem('${x.id}',1)" title="لورا"${k===arr.length-1?' disabled':''}>▼</button><button class="btn btn-danger btn-sm" onclick="deleteItem('${x.id}')" title="حذف">🗑</button>`
+            ${kind==='img'?`${hiddenMap[x.id]?`<button class="btn btn-ghost btn-sm" onclick="unhideItem('${x.id}')" title="رجّعها تبين بالموقع">👁 إظهار</button>`:''}<button class="btn btn-ghost btn-sm" onclick="openEditItem('${x.id}')" title="تعديل">✎</button>${x.cover?'':`<button class="btn btn-ghost btn-sm" onclick="setCover('${x.id}')" title="خليها صورة القسم">⭐</button>`}${al[x.id].n>1&&al[x.id].i?`<button class="btn btn-ghost btn-sm" onclick="setAlbumCover('${x.id}')" title="خليها غلاف العمل">🖼</button>`:''}${al[x.id].n>1?`<button class="btn btn-ghost btn-sm" onclick="ungroupItems(['${x.id}'])" title="فكّها من العمل (بترجع بطاقة لحالها)">✂</button>`:''}<button class="btn btn-ghost btn-sm" onclick="moveItem('${x.id}',-1)" title="لقدّام"${al[x.id].wi===0?' disabled':''}>▲</button><button class="btn btn-ghost btn-sm" onclick="moveItem('${x.id}',1)" title="لورا"${al[x.id].wi===works.length-1?' disabled':''}>▼</button><button class="btn btn-danger btn-sm" onclick="deleteItem('${x.id}')" title="حذف">🗑</button>`
               :`<button class="btn btn-sm btn-edit-video" data-video-id="${x.id}" title="تعديل">✎ تعديل</button><button class="btn btn-danger btn-sm btn-delete-video" data-video-id="${x.id}" title="حذف">🗑</button>`}
           </div>
         </div>
@@ -1366,7 +1434,7 @@ function renderItemsTable(){
   if(!items.length){ wrap.innerHTML = '<div class="empty-state">لا توجد صور بعد.</div>'; return; }
   const list=filterList(items);
   renderBulkBar();
-  wrap.innerHTML = `<div style="font-size:12px;color:var(--text-dim);margin-bottom:8px">⭐ = الصورة اللي بتطلع للقسم بالموقع · ▲▼ = ترتيب الصور · علّم على كذا صورة لتنقلهن أو تحذفهن مرة وحدة</div><div class="admin-tools"><input type="search" id="adminSearchImg" placeholder="🔍 دوّر على صورة بالعنوان أو القسم أو اللون..." value="${adminSearch.replace(/"/g,'&quot;')}">
+  wrap.innerHTML = `<div style="font-size:12px;color:var(--text-dim);margin-bottom:8px">⭐ = الصورة اللي بتطلع للقسم بالموقع · ▲▼ = ترتيب الصور · علّم على كذا صورة لتنقلهن أو تحذفهن مرة وحدة · 🗂 علّم على صور نفس القطعة واكبس «ضمّ كعمل واحد» لتظهر في الموقع بطاقة واحدة تتقلّب صورها</div><div class="admin-tools"><input type="search" id="adminSearchImg" placeholder="🔍 دوّر على صورة بالعنوان أو القسم أو اللون..." value="${adminSearch.replace(/"/g,'&quot;')}">
     <button class="btn btn-ghost btn-sm" id="btnOpenAll">فتح الكل</button><button class="btn btn-ghost btn-sm" id="btnCloseAll">سكّر الكل</button></div>`
     + (list.length?groupHTML(list,'img'):'<div class="empty-state">ما في نتائج.</div>');
   const si=document.getElementById('adminSearchImg');
@@ -1400,7 +1468,7 @@ function removeCardInPlace(id){
 // بيحدّث علامات «بلا عنوان» و«عنوان مكرر» بعد الحذف، بلا إعادة رسم
 function refreshWarnsInPlace(){
   const byId = {}; items.forEach(x=>byId[x.id]=x);
-  const titleCount = {}; filterList(items).forEach(x=>{ const t=(x.title||'').trim(); if(t) titleCount[t]=(titleCount[t]||0)+1; });
+  const titleCount = {}, seenWT = new Set(); filterList(items).forEach(x=>{ const t=(x.title||'').trim(); if(!t) return; const k=workKey(x)+'|'+t; if(seenWT.has(k)) return; seenWT.add(k); titleCount[t]=(titleCount[t]||0)+1; });
   document.querySelectorAll('#itemsTableWrap .cat-group').forEach(g=>{
     const arr = [...g.querySelectorAll('.acard[data-card]')].map(c=>byId[c.dataset.card]).filter(Boolean);
     const noTitle = arr.filter(x=>!(x.title||'').trim()).length, dup = arr.filter(x=>titleCount[(x.title||'').trim()]>1).length;
@@ -1593,6 +1661,7 @@ function openEditItem(id){
   document.getElementById('editColor').value = it.color || '';
   document.getElementById('editType').value = it.type || '';
   document.getElementById('editPrice').value = it.price || '';
+  { const n=albumOf(it).length, el=document.getElementById('editAlbumNote'); el.style.display=n>1?'':'none'; el.textContent=n>1?'🗂 هذه الصورة ضمن عمل من '+picsAr(n)+' — التعديل يُطبّق على كل صور العمل.':''; }
   document.getElementById('editItemOverlay').classList.add('show');
 }
 document.getElementById('btnSaveEditItem').addEventListener('click', async ()=>{
@@ -1610,6 +1679,16 @@ document.getElementById('btnSaveEditItem').addEventListener('click', async ()=>{
     price: document.getElementById('editPrice').value.trim(),
   };
   if ((updated.color || '') !== (it.color || '')) updated.colorAuto = false; // لون كتبته بإيدك ما بيتغيّر أوتوماتيك
+  // الصورة ضمن عمل (ألبوم): نفس البيانات لكل صور العمل، وبيضلوا مع بعض حتى لو تغيّر القسم
+  const mates = albumOf(it).filter(x => x.id !== it.id);
+  if(mates.length){
+    const g = it.grp || mates.find(x => x.grp)?.grp || it.id, map = {[it.id]: {...updated, grp: g}};
+    mates.forEach(x => { const u = {...x, grp: g, title: updated.title, category: updated.category, size: updated.size, color: updated.color, type: updated.type, price: updated.price};
+      if(updated.category !== x.category){ u.cover = false; delete u.order; } if((u.color||'') !== (x.color||'')) u.colorAuto = false; map[x.id] = u; });
+    document.getElementById('editItemOverlay').classList.remove('show');
+    applyLocal(map); await saveItemsBatch(map); toast('تم حفظ التعديلات على كل صور العمل');
+    return;
+  }
   items = items.map(x => x.id === editingItemId ? updated : x);
   renderItemsTable();
   document.getElementById('editItemOverlay').classList.remove('show');
@@ -1967,49 +2046,64 @@ async function processFbQueue(){
 })();
 
 // ---------- upload ----------
-let loadedImage = null;
-let rotation = 0;
-document.getElementById('upFile').addEventListener('change', async (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  const isHeic = /\.heic$/i.test(file.name) || /\.heif$/i.test(file.name) ||
-    file.type === 'image/heic' || file.type === 'image/heif';
+// صورة وحدة = بطاقة عادية. عدة صور مع بعض = عمل واحد (ألبوم): نفس القسم والبيانات، وأول صورة هي الغلاف.
+let upList = [];   // [{img, rotation}]
+let upSel = 0;
+async function fileToImage(file){
+  const isHeic = /\.hei[cf]$/i.test(file.name) || file.type === 'image/heic' || file.type === 'image/heif';
   let workingFile = file;
   if(isHeic){
-    toast('جاري تحويل صورة الآيفون...');
-    try{
-      const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
-      workingFile = new File([convertedBlob], file.name.replace(/\.hei[cf]$/i, '.jpg'), { type: 'image/jpeg' });
-    }catch(err){
-      console.error('HEIC conversion failed', err);
-      toast('تعذر تحويل صورة الآيفون — جرب صورة أخرى');
-      return;
-    }
+    const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
+    workingFile = new File([convertedBlob], file.name.replace(/\.hei[cf]$/i, '.jpg'), { type: 'image/jpeg' });
   }
-  const img = new Image();
-  img.onload = ()=>{
-    loadedImage = img; rotation = 0;
-    document.getElementById('upWm').checked=true;document.getElementById('upWmHint').textContent='';
-    document.getElementById('previewImg').src = img.src;
-    document.getElementById('previewWrap').style.display = '';
-  };
-  img.src = URL.createObjectURL(workingFile);
+  return await new Promise((res, rej)=>{ const img = new Image(); img.onload = ()=>res(img); img.onerror = ()=>rej(new Error('img')); img.src = URL.createObjectURL(workingFile); });
+}
+function renderUpPreview(){
+  const wrap = document.getElementById('previewWrap'), n = upList.length;
+  if(!n){ wrap.style.display = 'none'; document.getElementById('btnUpload').textContent = 'رفع الصورة'; return; }
+  upSel = Math.max(0, Math.min(n-1, upSel));
+  const cur = upList[upSel], pv = document.getElementById('previewImg');
+  pv.src = cur.img.src; pv.style.transform = `rotate(${cur.rotation}deg)`;
+  document.getElementById('upAlbum').style.display = n>1 ? '' : 'none';
+  document.getElementById('btnUpCover').style.display = (n>1 && upSel>0) ? '' : 'none';
+  if(n>1){
+    document.getElementById('upAlbumNote').textContent = picsAr(n) + ' لعمل واحد: تظهر في الموقع بطاقة واحدة تتقلّب صورها. الصورة الأولى هي الغلاف. اضغط صورة لتدويرها أو لجعلها الغلاف.';
+    document.getElementById('upStrip').innerHTML = upList.map((u,i)=>`<div class="up-th${i===upSel?' on':''}" data-up="${i}" role="button" tabindex="0" aria-label="الصورة ${i+1}"><img src="${u.img.src}" alt="" style="transform:rotate(${u.rotation}deg)">${i===0?'<span class="c">الغلاف</span>':''}<button type="button" class="x" data-upx="${i}" title="إزالة من القائمة" aria-label="إزالة الصورة ${i+1}">×</button></div>`).join('');
+  }
+  document.getElementById('btnUpload').textContent = n>1 ? `رفع ${picsAr(n)} كعمل واحد` : 'رفع الصورة';
+  wrap.style.display = '';
+}
+document.getElementById('upStrip').addEventListener('click', e=>{
+  const x = e.target.closest('[data-upx]');
+  if(x){ upList.splice(+x.dataset.upx, 1); if(upSel >= +x.dataset.upx && upSel > 0) upSel--; if(!upList.length) document.getElementById('upFile').value = ''; renderUpPreview(); return; }
+  const t = e.target.closest('[data-up]'); if(t){ upSel = +t.dataset.up; renderUpPreview(); }
 });
-document.getElementById('btnRotateLeft').addEventListener('click', ()=>{ rotation = (rotation - 90 + 360) % 360; document.getElementById('previewImg').style.transform = `rotate(${rotation}deg)`; });
-document.getElementById('btnRotateRight').addEventListener('click', ()=>{ rotation = (rotation + 90) % 360; document.getElementById('previewImg').style.transform = `rotate(${rotation}deg)`; });
+document.getElementById('upStrip').addEventListener('keydown', e=>{ if(e.key!=='Enter' && e.key!==' ') return; const t = e.target.closest('[data-up]'); if(t && e.target===t){ e.preventDefault(); upSel = +t.dataset.up; renderUpPreview(); } });
+document.getElementById('btnUpCover').addEventListener('click', ()=>{ if(upSel>0){ upList.unshift(upList.splice(upSel,1)[0]); upSel = 0; renderUpPreview(); } });
+document.getElementById('upFile').addEventListener('change', async (e)=>{
+  const files = [...e.target.files];
+  if(!files.length) return;
+  if(files.some(f=>/\.hei[cf]$/i.test(f.name) || /hei[cf]/.test(f.type))) toast('جاري تحويل صور الآيفون...');
+  const list = []; let bad = 0;
+  for(const f of files){ try{ list.push({img: await fileToImage(f), rotation: 0}); }catch(err){ console.error('image load failed', err); bad++; } }
+  if(bad) toast(list.length ? `تعذّر فتح ${bad} من الصور — الباقي جاهز` : 'تعذّر فتح الصورة — جرّب صورة أخرى');
+  if(!list.length) return;
+  upList = list; upSel = 0;
+  document.getElementById('upWm').checked=true;document.getElementById('upWmHint').textContent='';
+  renderUpPreview();
+});
+const rotateUp = d => { const u = upList[upSel]; if(!u) return; u.rotation = (u.rotation + d + 360) % 360; renderUpPreview(); };
+document.getElementById('btnRotateLeft').addEventListener('click', ()=>rotateUp(-90));
+document.getElementById('btnRotateRight').addEventListener('click', ()=>rotateUp(90));
 
-document.getElementById('btnUpload').addEventListener('click', async ()=>{
-  if(!loadedImage){ toast('يرجى اختيار صورة'); return; }
-  const chosenCategory = document.getElementById('upCategory').value.trim();
-  if(!chosenCategory){ toast('يرجى اختيار أو كتابة القسم قبل الرفع'); return; }
-
+async function upRender(u, wm){ // الصورة جاهزة للرفع: تدوير + تصغير + الباركود
+  const loadedImage = u.img, rotation = u.rotation;
   const swapped = (rotation === 90 || rotation === 270);
   const srcW = loadedImage.width, srcH = loadedImage.height;
   const rotW = swapped ? srcH : srcW, rotH = swapped ? srcW : srcH;
   const maxW = 1600;
   const scale = Math.min(1, maxW / rotW);
   const w = Math.round(rotW * scale), h = Math.round(rotH * scale);
-
   const canvas = document.createElement('canvas');
   canvas.width = w; canvas.height = h;
   const ctx = canvas.getContext('2d');
@@ -2019,48 +2113,59 @@ document.getElementById('btnUpload').addEventListener('click', async ()=>{
   ctx.scale(scale, scale);
   ctx.drawImage(loadedImage, -srcW/2, -srcH/2, srcW, srcH);
   ctx.restore();
-  if(document.getElementById('upWm').checked) await drawWatermark(ctx, w, h);
-
-  const itemId = uid();
+  if(wm) await drawWatermark(ctx, w, h);
+  return await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.82));
+}
+document.getElementById('btnUpload').addEventListener('click', async ()=>{
+  if(!upList.length){ toast('يرجى اختيار صورة'); return; }
+  const chosenCategory = document.getElementById('upCategory').value.trim();
+  if(!chosenCategory){ toast('يرجى اختيار أو كتابة القسم قبل الرفع'); return; }
+  const list = upList.slice(), n = list.length, wm = document.getElementById('upWm').checked;
+  const grp = n>1 ? uid() : '', t0 = Date.now();
   const uploadBtn = document.getElementById('btnUpload');
-  uploadBtn.disabled = true; uploadBtn.textContent = 'جاري الرفع...';
-
-  canvas.toBlob(async (blob)=>{
-    try{
+  uploadBtn.disabled = true;
+  const meta = { title: document.getElementById('upTitle').value.trim(), category: chosenCategory,
+    size: document.getElementById('upSize').value.trim(), color: document.getElementById('upColor').value.trim(),
+    type: document.getElementById('upType').value.trim(), price: document.getElementById('upPrice').value.trim() };
+  const done = [];
+  try{
+    for(let i=0;i<n;i++){
+      uploadBtn.textContent = n>1 ? `جاري الرفع... ${i+1} من ${n}` : 'جاري الرفع...';
+      const blob = await upRender(list[i], wm);
+      if(!blob) throw new Error('blob');
+      const itemId = uid();
       const storageRef = storage.ref('gallery/' + itemId + '.jpg');
       await storageRef.put(blob, { contentType: 'image/jpeg' });
-      const imgUrl = await storageRef.getDownloadURL();
-      const newItem = {
-        id: itemId,
-        createdAt: Date.now(),
-        title: document.getElementById('upTitle').value.trim(),
-        category: chosenCategory,
-        size: document.getElementById('upSize').value.trim(),
-        color: document.getElementById('upColor').value.trim(),
-        type: document.getElementById('upType').value.trim(),
-        price: document.getElementById('upPrice').value.trim(),
-        img: imgUrl
-      };
-      if(!newItem.title&&window.aiAnalyze){try{toast('عم يحلّل الصورة بالذكاء الاصطناعي...');Object.assign(newItem,await Promise.race([window.aiAnalyze(newItem),new Promise((_,r)=>setTimeout(()=>r(new Error('t')),25000))]))}catch(e){}}
-      if(!newItem.title){try{const cat=(newItem.category||'').trim(),t=TT.make([...items.filter(x=>(x.category||'').trim()===cat),newItem],false)[newItem.id];if(t){newItem.title=t.title;newItem.titleV2=true}}catch(e){}}
+      const newItem = { id: itemId, createdAt: t0 + i, ...meta, img: await storageRef.getDownloadURL(), ...(grp ? {grp, gi: i} : {}) };
+      if(i === 0){ // العنوان التلقائي بينحسب للغلاف، وباقي صور العمل بتاخد نفس العنوان
+        if(!newItem.title&&window.aiAnalyze){try{toast('عم يحلّل الصورة بالذكاء الاصطناعي...');Object.assign(newItem,await Promise.race([window.aiAnalyze(newItem),new Promise((_,r)=>setTimeout(()=>r(new Error('t')),25000))]))}catch(e){}}
+        if(!newItem.title){try{const cat=(newItem.category||'').trim(),t=TT.make([...items.filter(x=>(x.category||'').trim()===cat),newItem],false)[newItem.id];if(t){newItem.title=t.title;newItem.titleV2=true}}catch(e){}}
+        if(grp){ newItem.grp = grp; newItem.gi = 0; }
+        meta.title = newItem.title; if(newItem.titleV2) meta.titleV2 = true;
+      }
+      await saveNewItem(newItem);
+      done.push(newItem);
       items.unshift(newItem);
       renderItemsTable();
-      await saveNewItem(newItem);
-      toast('تم رفع الصورة بنجاح');
-      document.getElementById('upFile').value = '';
-      document.getElementById('previewWrap').style.display = 'none';
-      loadedImage = null; rotation = 0;
-      document.getElementById('upTitle').value = '';
-      document.getElementById('upCategory').value = '';
-      document.getElementById('upCategory').style.display = '';
-      document.getElementById('upCategorySelect').value = '__new__';
-      document.getElementById('upSize').value = '';
-      document.getElementById('upColor').value = '';
-      document.getElementById('upType').value = '';
-      document.getElementById('upPrice').value = '';
-    }catch(e){ console.error(e); toast('تعذر رفع الصورة — حاول من جديد'); }
-    finally{ uploadBtn.disabled = false; uploadBtn.textContent = 'رفع الصورة'; }
-  }, 'image/jpeg', 0.82);
+    }
+    toast(n>1 ? `تم رفع ${picsAr(n)} كعمل واحد ✓` : 'تم رفع الصورة بنجاح');
+    document.getElementById('upFile').value = '';
+    upList = []; upSel = 0; renderUpPreview();
+    document.getElementById('upTitle').value = '';
+    document.getElementById('upCategory').value = '';
+    document.getElementById('upCategory').style.display = '';
+    document.getElementById('upCategorySelect').value = '__new__';
+    document.getElementById('upSize').value = '';
+    document.getElementById('upColor').value = '';
+    document.getElementById('upType').value = '';
+    document.getElementById('upPrice').value = '';
+  }catch(e){
+    console.error(e);
+    // اللي انرفع بيضل محفوظ، والباقي بيضل بالقائمة لتعيد المحاولة
+    if(done.length){ upList = list.slice(done.length); upSel = 0; toast(`انرفعت ${done.length} من ${n} — تعذّر رفع الباقي، اكبس الرفع مرة تانية لإكماله ثم ضمّها كعمل واحد`); }
+    else toast('تعذر رفع الصورة — حاول من جديد');
+  }
+  finally{ uploadBtn.disabled = false; renderUpPreview(); }
 });
 
 // ---------- video compatibility check + auto-conversion (لفيديوهات الآيفون HEVC) ----------

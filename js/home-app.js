@@ -653,10 +653,14 @@ function renderHomeShowcase(){
   const e = t=>String(t||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const short = c => String(c||'').replace(/\*\*/g,'').split('|')[0].trim();
   // نفس العمل ممكن يكون محفوظ مرتين (نفس ملف الصورة أو نفس العنوان والقسم) — بيبين مرة وحدة بس
+  // صور نفس العمل (ألبوم: نفس grp) بتبين مرة وحدة وبصورة الغلاف — نفس منطق js/album.js
+  const workKey=it=>(it.grp||it.id)+'|'+(it.category||'').trim();
+  const coverOfWork=it=>{ if(!it.grp && !items.some(x=>x.grp===it.id)) return it;
+    const k=workKey(it); return items.filter(x=>x.img && workKey(x)===k && !hiddenIds.has(x.id)).sort((a,b)=>((a.gi??1e9)-(b.gi??1e9))||((a.createdAt||0)-(b.createdAt||0)))[0] || it; };
   const seen=new Set();
   const latest = items.filter(it=>it.img && (it.category||'').trim() && !hiddenIds.has(it.id))
     .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))
-    .filter(it=>{const k1=String(it.img).split('?')[0], k2=short(it.title)+'|'+(it.category||'').trim();if(seen.has(k1)||(short(it.title)&&seen.has(k2)))return false;seen.add(k1);seen.add(k2);return true}).slice(0,6);
+    .map(coverOfWork).filter(it=>{const k0='w:'+workKey(it), k1=String(it.img).split('?')[0], k2=short(it.title)+'|'+(it.category||'').trim();if(seen.has(k0)||seen.has(k1)||(short(it.title)&&seen.has(k2)))return false;seen.add(k0);seen.add(k1);seen.add(k2);return true}).slice(0,6);
   if(!latest.length) return;
   wrap.innerHTML = latest.map(it => { const cat=(it.category||'').trim(), t=short(it.title)||short(cat); return `
     <a class="sc-item" href="/works?category=${encodeURIComponent(cat)}">

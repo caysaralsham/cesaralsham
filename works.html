@@ -87,6 +87,11 @@
   .card .body{padding:14px 16px;}
   .card .title{font-weight:700; font-size:14.5px; margin-bottom:4px;}
   .card .meta{font-size:12px; color:var(--text-dim);}
+  /* ألبوم: عدة صور لنفس العمل ببطاقة وحدة */
+  .card .img-wrap{position:relative;}
+  .card.alb{box-shadow:0 6px 0 -3px #fff,0 6px 0 -2px var(--line),0 12px 0 -6px #fff,0 12px 0 -5px var(--line),var(--shadow); margin-bottom:12px;}
+  .alb-badge{position:absolute; top:10px; inset-inline-start:10px; display:inline-flex; align-items:center; gap:6px; background:rgba(59,36,20,.88); color:#F5ECDD; border:1px solid rgba(217,185,140,.7); font-weight:800; font-size:12.5px; line-height:1; padding:6px 10px; border-radius:8px; pointer-events:none; z-index:1;}
+  .alb-badge svg{width:14px; height:14px; flex-shrink:0;}
 
   .empty-state{grid-column:1/-1; text-align:center; padding:60px 20px; color:var(--text-dim); font-size:14px;}
 
@@ -95,10 +100,6 @@
   footer{background:#2A190D; color:#C9B08F; text-align:center; padding:26px; font-size:12.5px; margin-top:40px;}
   footer b{color:var(--gold);}
 
-  .lightbox-overlay{position:fixed; inset:0; background:rgba(20,17,13,.92); z-index:300; display:none; align-items:center; justify-content:center; padding:20px; cursor:zoom-out;}
-  .lightbox-overlay.show{display:flex;}
-  .lightbox-close{position:absolute; top:18px; left:24px; color:#fff; font-size:34px; cursor:pointer; z-index:2;}
-  .lightbox-overlay img{max-width:92%; max-height:88vh; border-radius:8px; box-shadow:0 10px 40px rgba(0,0,0,.5);}
 
   @media (max-width:960px){
     .works-layout{grid-template-columns:1fr; gap:16px;}
@@ -111,8 +112,6 @@
   }
   .price-btn{display:inline-flex;align-items:center;gap:6px;margin-top:10px;background:#1F8F55;color:#fff !important;font-weight:800;font-size:13px;padding:7px 14px;border-radius:10px;text-decoration:none}
   .price-btn:hover{background:#18744A}
-  .lightbox-overlay{flex-direction:column;gap:14px}
-  .lightbox-overlay .price-btn{font-size:15px;padding:10px 20px;margin:0}
 
   /* شاشة الكمبيوتر: عرض أكبر، 3-4 أعمدة، الأقسام قائمة وحدة على اليمين */
   @media (min-width:961px){
@@ -127,8 +126,6 @@
     .seo-text{font-size:15.5px}
   }
   @media (min-width:1400px){ .gallery-grid{grid-template-columns:repeat(4,1fr)} }
-  .lightbox-overlay img{max-height:80vh}
-  .lightbox-cap{color:#F5ECDD; font-weight:800; font-size:17px; text-align:center}
   /* الجوال: أيقونات التواصل بسطر، والهاتف وزر القائمة بسطر تحته، حتى لا يخرج شيء عن الشاشة */
   @media (max-width:520px){
     .header-left{flex-wrap:wrap; row-gap:10px;}
@@ -209,13 +206,7 @@
   <b>قيصر الشام للحجر والرخام</b> — جميع الحقوق محفوظة © 2026
 </footer>
 
-<div class="lightbox-overlay" id="lightboxOverlay">
-  <span class="lightbox-close" id="lightboxClose">×</span>
-  <img id="lightboxImg" src="">
-  <div class="lightbox-cap" id="lightboxCap"></div>
-  <a class="price-btn" id="lightboxPrice" href="#" target="_blank" rel="noopener">💬 اطلب السعر</a>
-</div>
-
+<script src="/js/album.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
@@ -346,34 +337,32 @@ function renderGallery(){
     grid.innerHTML = '<div class="empty-state">لا توجد صور بهذا القسم بعد.</div>';
     return;
   }
-  shown=filtered.map(it=>({src:it.img,name:short(it.title)||short(it.category)||'قطعة رخام وحجر'}));
-  grid.innerHTML = filtered.map((it,i) => `
-    <div class="card" data-lb="${i}">
-      <div class="img-wrap"><img src="${it.img}" loading="lazy" alt="${(it.aiAltAr||short(it.title)||short(it.category)||'رخام وحجر طبيعي')} - قيصر الشام"></div>
+  // صور نفس العمل (ألبوم) = بطاقة وحدة بصورة الغلاف وعدد الصور
+  const works=Album.group(filtered);
+  const nameOf=it=>short(it.title)||short(it.category)||'قطعة رخام وحجر';
+  shown=works.map(({it,pics})=>({src:it.img,name:nameOf(it),pics:pics.map(p=>({src:p.img,alt:(p.aiAltAr||nameOf(p))+' - قيصر الشام'}))}));
+  grid.innerHTML = works.map(({it,pics},i) => `
+    <div class="card${pics.length>1?' alb':''}" data-lb="${i}">
+      <div class="img-wrap"><img src="${it.img}" loading="lazy" alt="${(it.aiAltAr||short(it.title)||short(it.category)||'رخام وحجر طبيعي')} - قيصر الشام">${pics.length>1?`<span class="alb-badge">${ALB_IC}${picsAr(pics.length)}</span>`:''}</div>
       <div class="body">
-        <div class="title">${short(it.title) || short(it.category) || 'قطعة رخام وحجر'}</div>
+        <div class="title">${nameOf(it)}</div>
         <div class="meta">${[short(it.category), it.size, it.color].filter(Boolean).join(' · ')}</div>
-        ${priceBtn(i,short(it.title)||short(it.category)||'قطعة رخام وحجر')}
+        ${priceBtn(i,nameOf(it))}
       </div>
     </div>
   `).join('');
   grid.querySelectorAll('[data-lb]').forEach(el=>el.addEventListener('click',()=>openLightbox(+el.dataset.lb)));
   wirePrices(grid);
 }
+const picsAr=n=>n===2?'صورتان':n<=10?n+' صور':n+' صورة';
+const ALB_IC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="14" height="14" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v12"/></svg>';
 
 function openLightbox(i){
   const x=shown[i];if(!x)return;
-  document.getElementById('lightboxImg').src = x.src;{const c=document.getElementById('lightboxCap');if(c)c.textContent=x.cat||x.category||x.name||'';}
-  const pb=document.getElementById('lightboxPrice');pb.href=waHref(x.name,'');pb.onclick=e=>{if(window.askPrice){e.preventDefault();imgLink(x.src).then(l=>askPrice(x.name,l)).catch(()=>askPrice(x.name,''))}};imgLink(x.src).then(l=>{if(l)pb.href=waHref(x.name,l)}).catch(()=>{});
-  document.getElementById('lightboxOverlay').classList.add('show');
+  Album.open({pics:x.pics||[{src:x.src,alt:x.name}],cap:x.name,price:{label:'💬 اطلب السعر',base:waHref(x.name,''),
+    href:src=>imgLink(src).then(l=>l?waHref(x.name,l):''),
+    click:(src,e)=>{if(window.askPrice){e.preventDefault();imgLink(src).then(l=>askPrice(x.name,l)).catch(()=>askPrice(x.name,''))}}}});
 }
-function closeLightbox(){
-  document.getElementById('lightboxOverlay').classList.remove('show');
-}
-document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
-document.getElementById('lightboxOverlay').addEventListener('click', (e)=>{
-  if(e.target.id === 'lightboxOverlay') closeLightbox();
-});
 
 db.collection(FS_COLLECTION).onSnapshot((snap)=>{
   let combined = [];

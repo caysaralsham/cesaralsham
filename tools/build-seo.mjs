@@ -106,9 +106,10 @@ function catPage(cat, slug, list, cats, slugs, settings){
       {'@type':'ListItem',position:3,name:ar,item:`${SITE}/${slug}`}]
   }];
   const others = cats.filter(c => c !== cat).map(c => `<a href="/${slugs[c]}">${esc(splitName(c).ar)}</a>`).join('');
-  const cards = imgs.map(({it, src}) => `
-      <figure class="card"><a href="${esc(src)}" class="lb"><img src="${esc(src)}" loading="lazy" decoding="async" width="600" height="450" alt="${esc(altOf(it, cat))}"></a>
-        <figcaption><b>${esc((it.title && splitName(it.title).ar) || ar)}</b>${[it.size, it.color, it.type].filter(Boolean).length ? `<span>${esc([it.size, it.color, it.type].filter(Boolean).join(' · '))}</span>` : ''}<a class="pb" href="${esc(waPrice((it.title && splitName(it.title).ar) || ar, abs(src)))}" target="_blank" rel="nofollow noopener">💬 اطلب السعر</a></figcaption></figure>`).join('');
+  // عمل بعدة صور (ألبوم) = بطاقة وحدة بصورة الغلاف وعدد الصور، والضغط بيفتح كل صوره
+  const cards = albums(list).map(e => e.pics.map(it => ({it, src: imgUrl(it)})).filter(x => x.src)).filter(p => p.length).map(pics => { const {it, src} = pics[0], n = pics.length, name = (it.title && splitName(it.title).ar) || ar; return `
+      <figure class="card${n > 1 ? ' alb' : ''}" data-work="${esc(name)}"${n > 1 ? ` data-al="${esc(JSON.stringify(pics.map(p => [p.src, altOf(p.it, cat)])))}"` : ''}><a href="${esc(src)}" class="lb"><img src="${esc(src)}" loading="lazy" decoding="async" width="600" height="450" alt="${esc(altOf(it, cat))}">${n > 1 ? `<span class="alb-badge">${ALB_IC}${picsAr(n)}</span>` : ''}</a>
+        <figcaption><b>${esc(name)}</b>${[it.size, it.color, it.type].filter(Boolean).length ? `<span>${esc([it.size, it.color, it.type].filter(Boolean).join(' · '))}</span>` : ''}<a class="pb" href="${esc(waPrice(name, abs(src)))}" target="_blank" rel="nofollow noopener">💬 اطلب السعر</a></figcaption></figure>`; }).join('');
   return `<!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
@@ -150,8 +151,8 @@ h1{font-size:clamp(24px,4vw,36px);font-weight:900;margin:8px 0 6px}h1 small{disp
 .others{margin:34px 0;padding:18px;background:var(--bg2);border-radius:16px}.others h2{font-size:17px;margin:0 0 10px}
 .others div{display:flex;flex-wrap:wrap;gap:8px}.others a{border:1.5px solid var(--line);background:#fff;padding:7px 14px;border-radius:10px;font-weight:700;font-size:13px}.others a:hover{border-color:var(--gold)}
 footer{background:#2A190D;color:#C9B08F;text-align:center;padding:24px;font-size:12.5px;margin-top:30px}footer b{color:var(--gold)}
-.lbx{position:fixed;inset:0;background:rgba(20,17,13,.92);display:none;flex-direction:column;gap:14px;align-items:center;justify-content:center;z-index:99;padding:20px}.lbx.on{display:flex}.lbx img{max-height:82vh;border-radius:8px}
-.pb{display:inline-flex;margin-top:8px;background:#16774A;color:#fff;font-weight:800;font-size:13px;padding:7px 14px;border-radius:10px}.pb:hover{background:#18744A}.lbx .pb{font-size:15px;padding:10px 20px}
+${ALB_CSS}
+.pb{display:inline-flex;margin-top:8px;background:#16774A;color:#fff;font-weight:800;font-size:13px;padding:7px 14px;border-radius:10px}.pb:hover{background:#18744A}
 @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -170,9 +171,8 @@ footer{background:#2A190D;color:#C9B08F;text-align:center;padding:24px;font-size
   <section class="others"><h2>أقسام أخرى من أعمالنا</h2><div><a href="/works">جميع الأعمال</a>${others}</div></section>
 </main>
 <footer><style>.gr-box{max-width:620px;margin:0 auto 16px;text-align:center}.gr-msg{margin:0 0 12px;font-size:13.5px;line-height:1.85;opacity:.92}.gr-btn{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#8A5A30,#5E3A1E);color:#fff!important;border:1px solid #C9A06A;padding:6px 8px;padding-inline-end:18px;border-radius:999px;font-weight:800;font-size:14.5px;line-height:1.2;text-decoration:none!important;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.22);transition:transform .2s,box-shadow .2s,border-color .2s}.gr-btn:hover,.gr-btn:focus-visible{transform:translateY(-1px);border-color:#E6C48F;box-shadow:0 8px 20px rgba(0,0,0,.3)}.gr-btn:focus-visible{outline:2px solid #E6C48F;outline-offset:3px}.gr-g{width:30px;height:30px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}.gr-g svg{display:block}.gr-star{color:#F4C152;font-size:16px;line-height:1}@media(max-width:380px){.gr-btn{font-size:13.5px;white-space:normal}}</style><div class="gr-box" data-gr lang="ar" dir="rtl"><p class="gr-msg" data-gr-msg>يسعدنا معرفة رأيكم في تجربتكم مع قيصر الشام للحجر والرخام. تقييمكم يساعدنا على تطوير خدماتنا. شكراً لثقتكم بنا.</p><a class="gr-btn" href="https://g.page/r/CfglXtcD3yGBEBM/review" target="_blank" rel="noopener" data-gr-btn lang="ar" dir="rtl" aria-label="قيّم تجربتك معنا على Google — يفتح في نافذة جديدة"><span class="gr-g"><svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg></span><span class="gr-t">قيّم تجربتك معنا على Google</span><span class="gr-star" aria-hidden="true">★</span></a></div><b>قيصر الشام للحجر والرخام</b> — دالي إبراهيم، الجزائر — 0541.73.78.88</footer>
-<div class="lbx" id="lbx"><img alt=""><a class="pb" target="_blank" rel="nofollow noopener" href="#">💬 اطلب السعر على واتساب</a></div>
-<script>document.querySelectorAll('a.lb').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const l=document.getElementById('lbx');l.querySelector('img').src=a.href;const p=a.closest('figure').querySelector('.pb');l.querySelector('.pb').href=p?p.href:'#';l.classList.add('on')}));document.getElementById('lbx').addEventListener('click',e=>{if(!e.target.closest('.pb'))e.currentTarget.classList.remove('on')});</script>
-<script src="/js/my-back.js" defer></script><script src="/js/wa-count.js" defer></script><script src="/js/review-cta.js" defer></script>
+${lbScript('💬 اطلب السعر على واتساب', 'السلام عليكم، أريد معرفة سعر هذا العمل: ')}
+<script src="/js/album.js" defer></script><script src="/js/my-back.js" defer></script><script src="/js/wa-count.js" defer></script><script src="/js/review-cta.js" defer></script>
 </body>
 </html>
 `;
@@ -189,6 +189,20 @@ const byCat = new Map();
 for (const it of items) { const c = String(it.category || '').trim(); if (!c) continue; if (!byCat.has(c)) byCat.set(c, []); byCat.get(c).push(it); }
 const sortCat = arr => arr.slice().sort((a, b) => (b.cover ? 1 : 0) - (a.cover ? 1 : 0) || ((a.order ?? 1e9) - (b.order ?? 1e9)) || ((b.createdAt || 0) - (a.createdAt || 0)));
 for (const [c, l] of byCat) byCat.set(c, sortCat(l));
+// ألبوم العمل: صور نفس القطعة (نفس grp، أو grp = id صورة تانية) بنفس القسم = بطاقة وحدة — نفس منطق js/album.js
+const workKey = it => (it.grp || it.id) + '|' + String(it.category || '').trim();
+const albums = list => { const out = [], at = new Map();
+  for (const it of list) { const k = workKey(it); if (at.has(k)) at.get(k).pics.push(it); else { const e = {it, pics: [it]}; at.set(k, e); out.push(e); } }
+  for (const e of out) if (e.pics.length > 1) { e.pics.sort((a, b) => ((a.gi ?? 1e9) - (b.gi ?? 1e9)) || ((a.createdAt || 0) - (b.createdAt || 0))); e.it = e.pics[0]; }
+  return out; };
+const coverOfWork = it => { const k = workKey(it); return albums(items.filter(x => workKey(x) === k && imgUrl(x)))[0]?.it || it; };
+const picsAr = n => n === 2 ? 'صورتان' : n <= 10 ? n + ' صور' : n + ' صورة';
+const ALB_IC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="14" height="14" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v12"/></svg>';
+const ALB_CSS = '.card a.lb{display:block;position:relative}.card.alb{box-shadow:0 6px 0 -3px #fff,0 6px 0 -2px var(--line),0 12px 0 -6px #fff,0 12px 0 -5px var(--line),0 10px 30px rgba(59,36,20,.06);margin-bottom:12px}.alb-badge{position:absolute;top:10px;inset-inline-start:10px;display:inline-flex;align-items:center;gap:6px;background:rgba(59,36,20,.88);color:#F5ECDD;border:1px solid rgba(217,185,140,.7);font-weight:800;font-size:12.5px;line-height:1;padding:6px 10px;border-radius:8px;pointer-events:none}.alb-badge svg{width:14px;height:14px;flex-shrink:0}';
+// كود فتح الصور بصفحات الأقسام: ألبوم العمل بيتقلّب بالأسهم أو بالسحب (js/album.js)، وزر السعر بيبعت رابط الصورة المعروضة
+const lbScript = (label, waText) => `<script>document.querySelectorAll('a.lb').forEach(a=>a.addEventListener('click',e=>{if(!window.Album)return;e.preventDefault();const f=a.closest('figure');let al=null;try{al=JSON.parse(f.dataset.al||'null')}catch(_){}
+const pics=(al||[[a.getAttribute('href'),a.querySelector('img').alt]]).map(p=>({src:p[0],alt:p[1]})),name=f.dataset.work||'',wa=s=>'https://wa.me/${WA}?text='+encodeURIComponent(${JSON.stringify(waText)}+name+'\\n'+new URL(s,location.href).href);
+Album.open({pics,cap:name,price:{label:${JSON.stringify(label)},base:wa(pics[0].src),href:wa}})}));</script>`;
 const cats = [...byCat.keys()].sort((a, b) => a.localeCompare(b, 'ar'));
 
 // روابط ثابتة: الاسم بيضل نفسه حتى لو تغيّر ترتيب الأقسام
@@ -271,7 +285,7 @@ if (faq.length) {
 const shortT = t => String(t || '').replace(/\*\*/g, '').split('|')[0].trim();
 // نفس العمل ممكن يكون محفوظ مرتين (نفس ملف الصورة) — بيبين مرة وحدة بس
 const _seen6 = new Set(), imgKey = u => String(u || '').split('?')[0];
-const latest6 = items.filter(it => { if (!String(it.category || '').trim() || !imgUrl(it)) return false; const k = imgKey(imgUrl(it)); if (_seen6.has(k)) return false; _seen6.add(k); return true; }).slice(0, 6);
+const latest6 = items.filter(it => String(it.category || '').trim() && imgUrl(it)).map(coverOfWork).filter(it => { const k = imgKey(imgUrl(it)), w = 'w:' + workKey(it); if (_seen6.has(k) || _seen6.has(w)) return false; _seen6.add(k); _seen6.add(w); return true; }).slice(0, 6);
 h = inject(h, 'SHOWCASE', latest6.map(it => { const c = String(it.category || '').trim(), src = imgUrl(it), t = shortT(it.title) || splitName(c).ar;
   return `<a href="/${slugs[c]}" class="sc-item"><img src="${esc(src)}" loading="lazy" decoding="async" width="600" height="450" alt="${esc(altOf(it, c))}"><span><b>${esc(t)}</b>${t !== splitName(c).ar ? `<small>${esc(splitName(c).ar)}</small>` : ''}</span></a>`; }).join(''));
 // نص الواجهة نفسه الموجود في الإعدادات: حتى ما يعيد الكود كتابته بعد تحميل Firebase
@@ -364,7 +378,7 @@ a.card:hover{transform:translateY(-4px);box-shadow:0 18px 36px rgba(59,36,20,.1)
 .faq details{border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin:10px 0;background:#fff}.faq summary{cursor:pointer;font-weight:800}
 .others{margin:34px 0;padding:18px;background:var(--bg2);border-radius:16px}.others div{display:flex;flex-wrap:wrap;gap:8px}.others a{border:1.5px solid var(--line);background:#fff;padding:7px 14px;border-radius:10px;font-weight:700;font-size:13px}
 footer{background:#2A190D;color:#C9B08F;text-align:center;padding:24px;font-size:12.5px;margin-top:30px}footer b{color:var(--bronze-lt)}
-.lbx{position:fixed;inset:0;background:rgba(20,17,13,.92);display:none;flex-direction:column;gap:14px;align-items:center;justify-content:center;z-index:99;padding:20px}.lbx.on{display:flex}.lbx img{max-height:82vh;border-radius:8px}
+${ALB_CSS}
 .hidden{display:none !important}
 /* accueil */
 .hero{margin:0 -20px;border-radius:0 0 28px 28px;padding:80px 24px 60px;text-align:center;background-color:#FBF8F3;background-image:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,.9),transparent 60%),${MARBLE_BG},linear-gradient(160deg,#fff 0%,#F7F1E8 55%,#F3EADD 100%);background-size:auto,cover,auto;background-repeat:no-repeat}
@@ -430,9 +444,9 @@ ${withVideos ? '<script src="/js/vplayer.js" defer></script>' : ''}
 </div></header>
 <main class="wrap">${body}</main>
 <footer><style>.gr-box{max-width:620px;margin:0 auto 16px;text-align:center}.gr-msg{margin:0 0 12px;font-size:13.5px;line-height:1.85;opacity:.92}.gr-btn{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#8A5A30,#5E3A1E);color:#fff!important;border:1px solid #C9A06A;padding:6px 8px;padding-inline-end:18px;border-radius:999px;font-weight:800;font-size:14.5px;line-height:1.2;text-decoration:none!important;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.22);transition:transform .2s,box-shadow .2s,border-color .2s}.gr-btn:hover,.gr-btn:focus-visible{transform:translateY(-1px);border-color:#E6C48F;box-shadow:0 8px 20px rgba(0,0,0,.3)}.gr-btn:focus-visible{outline:2px solid #E6C48F;outline-offset:3px}.gr-g{width:30px;height:30px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}.gr-g svg{display:block}.gr-star{color:#F4C152;font-size:16px;line-height:1}@media(max-width:380px){.gr-btn{font-size:13.5px;white-space:normal}}</style>${/rv-cta/.test(body)?'':`<div class="gr-box" data-gr lang="fr" dir="ltr"><p class="gr-msg" data-gr-msg>Votre avis compte pour nous ! Partagez votre expérience avec César Alcham sur Google. Votre évaluation nous aide à améliorer nos services. Merci pour votre confiance.</p><a class="gr-btn" href="https://g.page/r/CfglXtcD3yGBEBM/review" target="_blank" rel="noopener" data-gr-btn lang="fr" dir="ltr" aria-label="Donnez votre avis sur Google — s’ouvre dans un nouvel onglet"><span class="gr-g"><svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg></span><span class="gr-t">Donnez votre avis sur Google</span><span class="gr-star" aria-hidden="true">★</span></a></div>`}<b>Cesar Al Cham — Marbre et Pierre</b> — 36, Route Nationale, Dely Ibrahim, Alger — <span dir="ltr">0541 73 78 88</span></footer>
-<div class="lbx" id="lbx"><img alt=""><a class="pb" target="_blank" rel="nofollow noopener" href="#">💬 Demander le prix sur WhatsApp</a></div>
-<script>document.querySelectorAll('a.lb').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const l=document.getElementById('lbx');l.querySelector('img').src=a.href;const p=a.closest('figure').querySelector('.pb');l.querySelector('.pb').href=p?p.href:'#';l.classList.add('on')}));document.getElementById('lbx').addEventListener('click',e=>{if(!e.target.closest('.pb'))e.currentTarget.classList.remove('on')});
-const mb=document.getElementById('more');if(mb)mb.onclick=()=>{const h=[...document.querySelectorAll('.hidden')].slice(0,8);h.forEach(x=>x.classList.remove('hidden'));if(window.__vpScan)__vpScan();if(!document.querySelector('.hidden'))mb.remove()};
+${lbScript('💬 Demander le prix sur WhatsApp', 'Bonjour, je voudrais connaître le prix de ce travail : ')}
+<script src="/js/album.js" defer></script>
+<script>const mb=document.getElementById('more');if(mb)mb.onclick=()=>{const h=[...document.querySelectorAll('.hidden')].slice(0,8);h.forEach(x=>x.classList.remove('hidden'));if(window.__vpScan)__vpScan();if(!document.querySelector('.hidden'))mb.remove()};
 (function(){const h=document.querySelector('header'),b=document.getElementById('burgerBtn'),n=document.getElementById('frNav');const hh=()=>document.documentElement.style.setProperty('--hh',h.offsetHeight+'px');
 addEventListener('scroll',()=>{if(scrollY>80)h.classList.add('scrolled');else if(scrollY<20)h.classList.remove('scrolled')},{passive:true});addEventListener('resize',hh,{passive:true});hh();
 b.addEventListener('click',()=>{const o=n.classList.toggle('open');b.setAttribute('aria-expanded',o);hh()});n.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{n.classList.remove('open');b.setAttribute('aria-expanded','false')}));
@@ -458,7 +472,9 @@ const reviewsHtml = () => `<section class="sec" id="avis"><h2>Avis de nos client
 for (const c of cats) {
   const list = byCat.get(c), fr = frOf(c), slug = slugs[c];
   const imgs = list.map(it => ({it, src: imgUrl(it)})).filter(x => x.src);
-  const cards = imgs.map(({it, src}) => `<figure class="card"><a href="${esc(src)}" class="lb"><img src="${esc(src)}" loading="lazy" alt="${esc((it.aiAltFr || frTitle(it, c)) + ' - Cesar Al Cham, marbre Algérie')}"></a><figcaption><b>${esc(frTitle(it, c))}</b>${[it.size].filter(Boolean).length ? `<span>${esc(it.size)}</span>` : ''}<a class="pb" target="_blank" rel="nofollow noopener" href="${esc(waFr('Bonjour, je voudrais connaître le prix de ce travail : ' + frTitle(it, c) + '\n' + abs(src)))}">💬 Demander le prix</a></figcaption></figure>`).join('');
+  const altFr = it => (it.aiAltFr || frTitle(it, c)) + ' - Cesar Al Cham, marbre Algérie';
+  const cards = albums(list).map(e => e.pics.map(it => ({it, src: imgUrl(it)})).filter(x => x.src)).filter(p => p.length).map(pics => { const {it, src} = pics[0], n = pics.length, name = frTitle(it, c);
+    return `<figure class="card${n > 1 ? ' alb' : ''}" data-work="${esc(name)}"${n > 1 ? ` data-al="${esc(JSON.stringify(pics.map(p => [p.src, altFr(p.it)])))}"` : ''}><a href="${esc(src)}" class="lb"><img src="${esc(src)}" loading="lazy" alt="${esc(altFr(it))}">${n > 1 ? `<span class="alb-badge">${ALB_IC}${n} photos</span>` : ''}</a><figcaption><b>${esc(name)}</b>${[it.size].filter(Boolean).length ? `<span>${esc(it.size)}</span>` : ''}<a class="pb" target="_blank" rel="nofollow noopener" href="${esc(waFr('Bonjour, je voudrais connaître le prix de ce travail : ' + name + '\n' + abs(src)))}">💬 Demander le prix</a></figcaption></figure>`; }).join('');
   const others = cats.filter(x => x !== c).map(x => `<a href="/fr/${slugs[x]}">${esc(frOf(x))}</a>`).join('');
   wr(`fr/${slug}.html`, frLayout({title: `${fr} en Algérie | Cesar Al Cham`, desc: `${fr} sur mesure : conception, fabrication et pose par Cesar Al Cham, Dely Ibrahim (Alger). Devis gratuit : 0541 73 78 88.`, path: `/fr/${slug}`, arPath: `/${slug}`, og: imgs[0] ? abs(imgs[0].src) : '',
     body: `<div class="crumbs"><a href="/fr/">Accueil</a> › <a href="/fr/works">Nos réalisations</a> › ${esc(fr)}</div><h1>${esc(fr)}</h1>

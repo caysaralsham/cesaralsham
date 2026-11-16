@@ -111,6 +111,9 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
 .tkbox .hd .ic{width:24px;height:24px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0}.tkbox .hd .ic svg{width:14px;height:14px}
 .tkbox textarea{min-height:168px}
 .tkbox .acts .btn{padding:9px 14px;font-size:13px;text-decoration:none}
+.tkafter{margin-top:12px;padding:14px;border:2px solid var(--br);border-radius:14px;background:#FFF8EC}
+.tkafter b{display:block;font-size:15px;margin-bottom:4px}.tkafter p{margin:0 0 8px;font-size:13px;line-height:1.8}
+.tkafter textarea{min-height:150px;background:#fff}.tkafter .acts{margin-top:8px}.tkafter .acts .btn{text-decoration:none}
 </style></head><body>
 <header><b>المنشورات</b><span>ارفع صورة أو فيديو، اكتب المنشور، اختر المنصات، ثم انشر وتابع النتيجة</span></header>
 <form id="login"><b style="font-size:17px">تسجيل الدخول</b><label>البريد الإلكتروني</label><input id="em" type="email" autocomplete="username" required><label>كلمة السر</label><input id="pw" type="password" autocomplete="current-password" required><button>دخول</button><div id="lerr"></div></form>
@@ -163,6 +166,9 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
         <select id="cat"><option value="">— اختر القسم —</option></select>
         <input type="text" id="catNew" placeholder="اسم القسم الجديد (عربي | Français)" hidden style="margin-top:8px">
         <label class="l" for="siteTitle">العنوان على الموقع (اختياري)</label><input type="text" id="siteTitle" maxlength="120" placeholder="يُترك فارغاً ليظهر اسم القسم">
+        <div id="workRow" hidden><label class="l" for="siteWork">الصور في الموقع</label>
+          <select id="siteWork"><option value="">عمل جديد</option></select>
+          <p class="note" id="workNote"></p></div>
       </div>
     </div>
   </div>
@@ -175,6 +181,12 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
       <div class="acts" style="margin-top:8px"><button class="btn ghost" id="waShare" style="width:100%">واتساب: مشاركة إلى الحالة أو الكتالوج</button></div>
       <p class="note" style="margin:6px 0 0">واتساب لا يسمح بالنشر الآلي في الحالة ولا في كتالوج التطبيق. هذا الزر يجهّز الملف (الصور بالباركود، والفيديو مع الموسيقى المختارة) وينسخ النص، ثم يفتح قائمة المشاركة: اختر واتساب ← «حالتي». للكتالوج اختر «حفظ الصورة» ثم أضفها من واتساب للأعمال ← الكتالوج والصق النص.</p>
       <div class="st" id="status" style="margin-top:12px"></div>
+      <div class="tkafter" id="tkAfter" hidden role="status">
+        <b>تيك توك: الفيديو وصل مسودةً بدون نص</b>
+        <p>تيك توك لا يستقبل النص مع المسودة. افتح إشعار تيك توك في الهاتف، والصق هذا النص في خانة الوصف قبل النشر.</p>
+        <textarea id="tkAfterTx" readonly aria-label="نص تيك توك"></textarea>
+        <div class="acts"><button type="button" class="btn" id="tkAfterCopy">📋 نسخ نص تيك توك</button><a class="btn ghost" id="tkAfterWa" href="#" target="_blank" rel="noopener">📲 إرسال النص إلى واتساب</a></div>
+      </div>
     </div>
   </div>
 </div>
@@ -204,7 +216,7 @@ const P={
  site:{name:'الموقع الرسمي',cls:'c-site',kinds:['image','video'],max:120,ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></svg>',ready:false}
 };
 const ORDER=['fb','ig','pin','tk','yt','site'];
-let kind='image', files=[], cover=null, custom={}, sel=new Set(), busy=false, LOG=[], CATS=[], prof={fb:{},ig:{}}, db, st, A;
+let kind='image', files=[], cover=null, custom={}, sel=new Set(), busy=false, LOG=[], CATS=[], SITE_ITEMS=[], prof={fb:{},ig:{}}, db, st, A;
 // ---------- الملفات ----------
 const MAXIMG=10;
 async function hashFile(f){const part=f.size>8e6?await f.slice(0,8e6).arrayBuffer():await f.arrayBuffer();const h=await crypto.subtle.digest('SHA-256',part);return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,24)+'-'+f.size}
@@ -275,7 +287,7 @@ function counts(){const set=(el,n,max)=>{el.textContent=n+' / '+max;el.classList
   if(kind==='video')set(document.querySelector('[data-for=vTitle]'),len($('vTitle').value),100);
   document.querySelectorAll('[data-cc]').forEach(el=>{const k=el.dataset.cc;set(el,len(txt(k)),P[k].max)})}
 $('text').addEventListener('input',()=>{counts();renderPreview()});$('vTitle').addEventListener('input',()=>{counts();renderPreview()});
-function renderThumbs(){$('thumbs').innerHTML=files.map((x,i)=>`<div class="th">${kind==='image'?`<img src="${x.url}" alt="">`:`<video src="${x.url}" muted playsinline></video>`}<button class="x" data-i="${i}" title="إزالة">×</button>${kind==='image'&&files.length>1?`<div class="mv"><button data-i="${i}" data-m="-1" title="قبل">→</button><button data-i="${i}" data-m="1" title="بعد">←</button></div>`:''}<span class="i">${kind==='image'?(i+1):(x.d?Math.round(x.d)+' ث':'')}</span></div>`).join('');renderCover()}
+function renderThumbs(){$('thumbs').innerHTML=files.map((x,i)=>`<div class="th">${kind==='image'?`<img src="${x.url}" alt="">`:`<video src="${x.url}" muted playsinline></video>`}<button class="x" data-i="${i}" title="إزالة">×</button>${kind==='image'&&files.length>1?`<div class="mv"><button data-i="${i}" data-m="-1" title="قبل">→</button><button data-i="${i}" data-m="1" title="بعد">←</button></div>`:''}<span class="i">${kind==='image'?(i+1):(x.d?Math.round(x.d)+' ث':'')}</span></div>`).join('');renderCover();renderWork()}
 let pvK='';
 function renderPreview(){const ks=ORDER.filter(k=>sel.has(k));if(!ks.includes(pvK))pvK=ks[0]||'';
   $('pvt').innerHTML=ks.map(k=>`<button data-k="${k}" class="${k===pvK?'on':''}">${P[k].name}</button>`).join('');
@@ -311,7 +323,19 @@ function pinBoardName(){const c=catVal();if(!c)return '';const pr=c.split('|').m
 function pinAutoBoard(){const n=pinBoardName();if(!n)return;const norm=x=>String(x).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();const o=[...$('board').options].find(x=>x.value&&norm(x.textContent)===norm(n));if(o)$('board').value=o.value}
 function catVal(){const v=$('cat').value;return v==='__new__'?$('catNew').value.trim().replace(/\s*\|\s*/g,' | '):v}
 $('board').onchange=async()=>{try{await fetch('/api/oauth/board',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+await idTok()},body:JSON.stringify({board:$('board').value})})}catch(e){}};
-$('cat').onchange=()=>{$('catNew').hidden=$('cat').value!=='__new__';pinAutoBoard();renderPreview();renderChecks()};$('catNew').oninput=()=>{renderPreview();renderChecks()};$('siteTitle').oninput=renderPreview;
+$('cat').onchange=()=>{$('catNew').hidden=$('cat').value!=='__new__';pinAutoBoard();renderWork();renderPreview();renderChecks()};$('siteWork').onchange=renderWork;$('catNew').oninput=()=>{renderPreview();renderChecks()};$('siteTitle').oninput=renderPreview;
+// ---------- ألبوم العمل على الموقع: صور المنشور = عمل واحد (بطاقة واحدة تتقلّب صورها) — نفس منطق js/album.js ----------
+const picsAr=n=>n===2?'صورتان':n<=10?n+' صور':n+' صورة';
+function siteWorks(cat){const at=new Map();
+  SITE_ITEMS.filter(it=>String(it.category||'').trim()===cat).forEach(it=>{const k=it.grp||it.id;if(!at.has(k))at.set(k,{g:k,pics:[]});at.get(k).pics.push(it)});
+  return [...at.values()].map(w=>{w.pics.sort((a,b)=>((a.gi??1e9)-(b.gi??1e9))||((a.createdAt||0)-(b.createdAt||0)));w.it=w.pics[0];w.last=Math.max(...w.pics.map(x=>x.createdAt||0));return w}).sort((a,b)=>b.last-a.last)}
+function renderWork(){const row=$('workRow');if(!row)return;row.hidden=kind!=='image';if(row.hidden)return;
+  const cat=catVal(),sw=$('siteWork'),keep=sw.value,ws=cat?siteWorks(cat).slice(0,80):[];
+  sw.innerHTML='<option value="">عمل جديد</option>'+ws.map(w=>`<option value="${esc(w.g)}">إضافة إلى: ${esc(String(w.it.title||'').replace(/\*\*/g,'').split('|')[0].trim()||cat.split('|')[0].trim())} (${picsAr(w.pics.length).replace('صورتان','2 صور')})</option>`).join('');
+  if(keep&&ws.some(w=>w.g===keep))sw.value=keep;
+  const n=files.length;
+  $('workNote').textContent=sw.value?'الصور الجديدة تنضمّ إلى صور هذا العمل الموجود في الموقع، بعد صوره الحالية.'
+    :n>1?picsAr(n)+' = عمل واحد في الموقع: بطاقة واحدة تتقلّب صورها، والصورة الأولى هي الغلاف.':'صورة واحدة = بطاقة واحدة. أضف صوراً أخرى لنفس القطعة لتظهر معاً كعمل واحد.'}
 // ---------- الفحص ----------
 function problems(ks){const out=[];const add=(k,m,bad=true)=>out.push({k,m,bad});
   if(!files.length)add('',kind==='image'?'لم تختر أي صورة':'لم تختر الفيديو');
@@ -352,6 +376,10 @@ $('log').addEventListener('click',e=>{const t=e.target.closest('.t');if(t)t.clas
 const S={};function row(k,status,msg,link){S[k]={status,msg,link};const lab={wait:'بانتظار',run:'قيد التنفيذ',ok:'تم النشر',fail:'فشل النشر',skip:'تم التخطي'}[status];
   $('status').innerHTML=Object.keys(S).map(k=>{const x=S[k],p=P[k];return `<div class="sr"><span class="ic ${p.cls}">${p.ic}</span><b>${p.name}</b><span class="pill p-${x.status}">${x.status==='ok'&&/مسودة/.test(x.msg||'')?'مسودة جاهزة':({wait:'بانتظار',run:'قيد التنفيذ',ok:'تم النشر',fail:'فشل النشر',skip:'تم التخطي'})[x.status]}</span><span class="m" title="${esc(x.msg||'')}">${esc(x.msg||'')}</span>${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">فتح المنشور ↗</a>`:''}</div>`}).join('')}
 $('status').addEventListener('click',e=>{const m=e.target.closest('.m');if(m)m.classList.toggle('open')});
+// بعد وصول مسودة تيك توك: النص ظاهر مع زر نسخ وزر إرساله للهاتف عبر واتساب (المسودة بتنفتح بتطبيق الهاتف)
+function tkAfterShow(t){if(!t)return;$('tkAfterTx').value=t;$('tkAfterWa').href='https://wa.me/?text='+encodeURIComponent(t);$('tkAfter').hidden=false;
+  try{$('tkAfter').scrollIntoView({behavior:'smooth',block:'nearest'})}catch(e){}}
+$('tkAfterCopy').onclick=async()=>{const t=$('tkAfterTx').value;try{await navigator.clipboard.writeText(t);toast('تم نسخ نص تيك توك — الصقه في المسودة')}catch(e){$('tkAfterTx').focus();$('tkAfterTx').select();toast('حدّد النص وانسخه يدوياً')}};
 // ---------- تجهيز الملفات ----------
 let qrImgP=null;function getQr(){if(!qrImgP)qrImgP=new Promise(r=>{const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);im.src='/img/site/qr-links.png?v=1'});return qrImgP}
 async function drawQrMark(ctx,W,H){const qr=await getQr();if(!qr)return;const S=Math.min(W,H),side=Math.round(Math.max(110,S*0.16)),mx=Math.round(S*0.045),my=mx;const fs=Math.max(12,Math.round(side*0.12)),pad=Math.round(side*0.08);
@@ -449,15 +477,23 @@ async function siteAdd(prefix,objs){const snap=await db.collection(FS).get();let
   let idx=Math.max(0,maxI);for(const o of objs){const b=JSON.stringify(o).length;if(maxI>=0&&size+b>CHUNK_MAX){idx++;size=0;maxI=idx}
     await db.collection(FS).doc(prefix+idx).set({items:firebase.firestore.FieldValue.arrayUnion(o)},{merge:true});size+=b}}
 async function publishSite(id,prep){const cat=catVal(),title=$('siteTitle').value.trim();
-  if(kind==='image'){const objs=prep.media.map((m,i)=>({id:id+(i?'-'+i:''),createdAt:Date.now()+i,title,category:cat,size:'',color:'',type:'',price:'',img:m.url,...(prep.wm?{qrV1:true,wmV2:true}:{}),src:'nashr'}));
-    await siteAdd('items_',objs);return {link:'https://cesar-alcham.com/works?category='+encodeURIComponent(cat),msg:objs.length+' صورة في قسم «'+cat.split('|')[0].trim()+'» — تظهر في صفحة الأعمال فوراً، وصفحة القسم تتحدّث خلال 3 ساعات'}}
+  if(kind==='image'){
+    // عدة صور = عمل واحد (ألبوم) بنفس grp والأولى غلاف. «إضافة إلى عمل موجود»: الصور بتاخد رقم ذلك العمل وبتنضاف بعد صوره (إضافة فقط، بلا تعديل القديم)
+    const join=siteWorks(cat).find(w=>w.g===$('siteWork').value),grp=join?join.g:(prep.media.length>1?id:''),t=title||(join?String(join.it.title||''):'');
+    const objs=prep.media.map((m,i)=>({id:id+(i?'-'+i:''),createdAt:Date.now()+i,title:t,category:cat,size:'',color:'',type:'',price:'',img:m.url,...(prep.wm?{qrV1:true,wmV2:true}:{}),...(grp?{grp}:{}),...(grp&&!join?{gi:i}:{}),src:'nashr'}));
+    await siteAdd('items_',objs);SITE_ITEMS.push(...objs.map(o=>({id:o.id,grp:o.grp,gi:o.gi,category:o.category,title:o.title,createdAt:o.createdAt})));renderWork();
+    const cn=cat.split('|')[0].trim();
+    return {link:'https://cesar-alcham.com/works?category='+encodeURIComponent(cat),msg:(join?picsAr(objs.length)+' أُضيفت إلى عمل موجود في قسم «'+cn+'»':objs.length>1?picsAr(objs.length)+' كعمل واحد في قسم «'+cn+'»':'صورة في قسم «'+cn+'»')+' — تظهر في صفحة الأعمال فوراً، وصفحة القسم تتحدّث خلال 3 ساعات'}}
   const m=prep.media[0];const v={poster:prep.cover||'',id,createdAt:Date.now(),title:title||$('vTitle').value.trim()||vTitleEff(),category:cat,ext:m.ext,url:m.url,src:'nashr'};
   await siteAdd('videos_',[v]);return {link:'https://cesar-alcham.com/videos?category='+encodeURIComponent(cat),msg:'الفيديو في قسم «'+cat.split('|')[0].trim()+'» — يظهر في معرض الفيديو'}}
 // ---------- النشر ----------
 const idTok=()=>A.currentUser.getIdToken();
 async function publish(ks){
   if(busy)return;const ps=problems(ks).filter(p=>p.bad);if(ps.length){$('check').click();toast('صحّح الملاحظات أولاً');return}
-  if(ks.includes('tk')&&txt('tk').trim()){try{navigator.clipboard.writeText(txt('tk'))}catch(e){}}
+  // تيك توك بياخد الفيديو مسودة بلا نص: منجهّز النص (المكتوب أو المشتق من النص الرئيسي) لينسخه بعد الرفع
+  const tkTxt=ks.includes('tk')?((custom.tk&&String(custom.tk).trim())?String(custom.tk).trim():tkFromMain()):'';
+  if(tkTxt){try{navigator.clipboard.writeText(tkTxt).catch(()=>{})}catch(e){}}
+  $('tkAfter').hidden=true;
   busy=true;['pubAll','pubSel','check'].forEach(b=>$(b).disabled=true);for(const k in S)delete S[k];
   try{
     await loadLog();const fps={};for(const k of ks)fps[k]=await fp(k);
@@ -489,7 +525,7 @@ async function publish(ks){
     for(const k of run.filter(x=>SKEY[x])){row(k,'run','جارٍ الرفع والنشر…');jobs.push((async()=>{
       try{const r=await fetch('/api/oauth/publish/'+SKEY[k],{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+await idTok()},body:JSON.stringify({items:(k==='tk'&&prep.mediaTk?prep.mediaTk:prep.media).map(m=>({url:m.url,type:m.type})),text:txt(k),title:kind==='video'?vTitleEff():'',cover:prep.cover||'',board:$('board').value,boardName:$('board').value?'':pinBoardName(),link:'https://cesar-alcham.com'})});
         const d=await r.json().catch(()=>({}));
-        if(d.ok&&(d.id||d.link)){results[k]={status:'ok',link:d.link||'',id:d.id||'',note:d.note||'',draft:!!d.draft};row(k,'ok',d.note?d.note:'تم النشر',d.link||'')}
+        if(d.ok&&(d.id||d.link)){results[k]={status:'ok',link:d.link||'',id:d.id||'',note:d.note||'',draft:!!d.draft};row(k,'ok',d.note?d.note:'تم النشر',d.link||'');if(k==='tk'&&d.draft)tkAfterShow(tkTxt)}
         else{results[k]={status:'fail',error:d.error||('HTTP '+r.status)};row(k,'fail',results[k].error)}
       }catch(e){results[k]={status:'fail',error:'انقطع الاتصال: '+(e.message||e)};row(k,'fail',results[k].error)}
       await saveRes()})())}
@@ -531,8 +567,8 @@ async function checkConn(){const msgs=[];
       if(d.expiresAt){const days=Math.round((d.expiresAt*1000-Date.now())/864e5);if(days<15)msgs.push('⚠️ مفتاح Meta ينتهي خلال '+days+' يوم')}}
     else{P.fb.err=P.ig.err='Meta: '+(d.error||'غير مربوط');msgs.push('فيسبوك/إنستغرام: '+(d.error||'غير مربوط'))}}catch(e){P.fb.err=P.ig.err='تعذر الفحص';msgs.push('تعذر فحص ربط Meta')}
   try{const r=await fetch('/api/social-feed');const d=await r.json();if(d.fb)prof.fb.pic=d.fb.picture;if(d.ig)prof.ig.pic=d.ig.picture}catch(e){}
-  try{const s=await db.collection(FS).get();const c=new Set();s.docs.forEach(d=>{if(/^(items_|videos_)/.test(d.id))(d.data().items||[]).forEach(it=>{const x=String(it.category||'').trim();if(x)c.add(x)})});
-    CATS=[...c].sort((a,b)=>a.localeCompare(b,'ar'));$('cat').innerHTML='<option value="">— اختر القسم —</option>'+CATS.map(x=>`<option value="${esc(x)}">${esc(x.split('|')[0].trim())}</option>`).join('')+'<option value="__new__">➕ قسم جديد…</option>';P.site.ready=true}
+  try{const s=await db.collection(FS).get();const c=new Set();SITE_ITEMS=[];s.docs.forEach(d=>{if(/^(items_|videos_)/.test(d.id))(d.data().items||[]).forEach(it=>{const x=String(it.category||'').trim();if(x)c.add(x);if(d.id.startsWith('items_')&&it&&it.id)SITE_ITEMS.push({id:it.id,grp:it.grp,gi:it.gi,category:it.category,title:it.title,createdAt:it.createdAt})})});
+    CATS=[...c].sort((a,b)=>a.localeCompare(b,'ar'));$('cat').innerHTML='<option value="">— اختر القسم —</option>'+CATS.map(x=>`<option value="${esc(x)}">${esc(x.split('|')[0].trim())}</option>`).join('')+'<option value="__new__">➕ قسم جديد…</option>';P.site.ready=true;renderWork()}
   catch(e){P.site.err='تعذر قراءة الأقسام';msgs.push('تعذر قراءة أقسام الموقع')}
   try{const r=await fetch('/api/oauth/status',{headers:{authorization:'Bearer '+await idTok()}});const d=await r.json();
     if(d.ok)for(const [k,s] of Object.entries(SKEY)){const x=d[s]||{};P[k].conf=!!x.configured;P[k].ready=!!(x.configured&&x.connected);if(x.name)P[k].who=x.name}

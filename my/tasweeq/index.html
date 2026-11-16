@@ -155,6 +155,7 @@ const EMBED=new URLSearchParams(location.search).has('embed')&&window.parent!==w
 if(EMBED){const st=document.createElement('style');st.textContent='html{overflow:hidden;height:100%}body{height:100%;overflow-y:auto;direction:ltr!important;margin:0}body>*{direction:rtl}body>header{display:none!important}#pubBox{display:none!important}';document.head.appendChild(st)}
 // من داخل منشور الصور/الفيديو: الملفات مختارة هناك، فمنخبّي خطوة الملفات وتبويب القديم
 const PICK=EMBED&&new URLSearchParams(location.search).has('pick');
+if(EMBED){const st=document.createElement('style');st.textContent='#mainBox .out{border:0;padding:0;margin:0 0 12px;background:none}#mainBox .out>.row,#mainBox .out>.pubOne{display:none}#mainBox .out .tx{min-height:260px}#mainBox #useAll{font-size:16px;padding:12px 22px}.out .hd .follow{margin-inline-start:auto}';document.head.appendChild(st)}
 if(PICK){const st=document.createElement('style');st.textContent='nav.tabs{display:none!important}#new>.box:first-child{display:none!important}#useAll{font-size:16px;padding:12px 22px}';document.head.appendChild(st)}
 const CATS={
  cheminee:{ar:'شمينة رخام',fr:'Cheminée en marbre',em:'🔥',
@@ -461,7 +462,9 @@ function gen(){
    <label>الوصف</label><textarea class="tx" style="min-height:220px">${esc(r.yt.desc)}</textarea><div class="row" style="margin:6px 0"><button class="btn s cp">📋 نسخ الوصف</button></div>
    <label>الوسوم (Tags)</label><textarea class="tg" style="min-height:60px">${esc(r.yt.tags)}</textarea>
    <div class="row" style="margin-top:8px"><button class="btn s cp2">📋 نسخ الوسوم</button><a class="btn s l" href="${PF.yt[2]}" target="_blank" rel="noopener" style="text-decoration:none">↗ فتح يوتيوب ستوديو</a></div></div>`;
-  $('#outs').innerHTML=(EMBED?'<div class="box" style="text-align:center"><button class="btn" id="useAll">'+(PICK?'✅ استخدم هذا النص':'⬅️ استخدم هذه النصوص في النشر')+'</button><p class="meta" style="margin:6px 0 0">تنتقل النصوص لكل المنصات في تبويب النشر (فيسبوك، إنستغرام، Pinterest، تيك توك، يوتيوب، والموقع) وتقدر تعدّلها هناك</p></div>':'')+card('ig',r.ig)+card('fb',r.fb)+card('pin',r.pin)+card('tt',r.tt)+yt+`<div class="out" data-pf="site"><div class="hd"><b><span class="pf" style="background:#8A5A1E">الموقع الرسمي</span></b><span class="meta">عنوان العمل على الموقع</span></div><input type="text" class="ti" maxlength="120" value="${esc(r.site)}"></div>`;
+  // داخل «المنشورات»: النص المقترح بخانة وحدة للتعديل فوق، وتعديلها بينطبق على باقي المنصات، وبعدها «اعتمد» بيضيفه للمنشور
+  SUG={fb:r.fb,ig:r.ig,pin:r.pin,tt:r.tt,yt:r.yt.desc};
+  $('#outs').innerHTML=(EMBED?'<div class="box" id="mainBox"><b style="font-size:16px">النص المقترح — عدّله كما تريد</b><p class="meta" style="margin:4px 0 10px">اكتب تعديلك في الخانة الأولى: يُطبَّق تلقائياً على نصوص إنستغرام وPinterest وتيك توك ويوتيوب في الأسفل. لتخصيص منصة وحدها اكتب في خانتها.</p>'+card('fb',r.fb)+'<div class="row"><button class="btn" id="useAll">'+(PICK?'✅ اعتمد النص وأضفه للمنشور':'⬅️ اعتمد النصوص وأضفها للنشر')+'</button><button class="btn l" id="mainReset" type="button" hidden>↺ رجوع للنص المقترح</button></div><p class="meta" id="mainState" style="margin:8px 0 0">النص كما اقتُرح. بعد «اعتمد» يُضاف إلى المنشور لكل المنصات.</p></div><p class="meta" style="margin:14px 2px 8px;font-weight:800">نص كل منصة</p>':'')+card('ig',r.ig)+(EMBED?'':card('fb',r.fb))+card('pin',r.pin)+card('tt',r.tt)+yt+`<div class="out" data-pf="site"><div class="hd"><b><span class="pf" style="background:#8A5A1E">الموقع الرسمي</span></b><span class="meta">عنوان العمل على الموقع</span></div><input type="text" class="ti" maxlength="120" value="${esc(r.site)}"></div>`;
   $('#ideas').innerHTML=[...c.ideas,'الفيديو العمودي 9:16 يناسب ريلز وتيك توك وشورتس معاً، صوّره مرة وانشره في الأربعة.','اجعل أول سطر جملة تشدّ الانتباه، فهو الوحيد الظاهر قبل «المزيد».','إنستغرام صار يسمح بـ 5 هاشتاغات فقط لكل منشور، والأداة تلتزم بذلك.'].map(x=>'<li>'+esc(x)+'</li>').join('');
   $('#ideasBox').style.display='block';$('#pubBox').style.display='block';pubCheck();
   $('#outs').scrollIntoView({behavior:'smooth',block:'start'});
@@ -472,7 +475,38 @@ document.addEventListener('click',e=>{if(!e.target.closest||!e.target.closest('#
   const so=document.querySelector('.out[data-pf="site"]'),cc=CATS[$('#cat').value]||{};
   parent.postMessage({type:'siyagha',pick,kind,fb:v('fb'),ig:v('ig'),tt:v('tt'),pin:v('pin'),site:so?so.querySelector('.ti').value:'',catAr:cc.ar||'',catFr:cc.fr||'',yt:{title:yo?yo.querySelector('.ti').value:'',desc:v('yt')}},location.origin)});
 $('#gen').onclick=()=>{seed=String(Date.now());gen()};$('#regen').onclick=()=>{seed=String(Date.now()+Math.random());gen()};
-$('#outs').addEventListener('input',e=>{const o=e.target.closest('.out');if(!o||!e.target.classList.contains('tx'))return;const t=e.target.value,l=o.querySelector('.len'),h=o.querySelector('.ht');if(l)l.textContent=t.length;if(h)h.textContent=countTags(t)});
+$('#outs').addEventListener('input',e=>{const o=e.target.closest('.out');if(!o||!e.target.classList.contains('tx'))return;const t=e.target.value,l=o.querySelector('.len'),h=o.querySelector('.ht');if(l)l.textContent=t.length;if(h)h.textContent=countTags(t);
+  if(EMBED&&!syncing){if(o.dataset.pf==='fb')applyMain();else markOwn(o)}});
+// ---------- تعديل النص المقترح: تعديل الخانة الأولى بيمشي على باقي المنصات (إلا الخانة اللي خصّصتها بإيدك) ----------
+let SUG=null, syncing=false;
+const capTags=(t,n)=>{let k=0;return t.replace(/#[^\s#]+/g,m=>(++k>n?'':m)).replace(/[ \t]+\n/g,'\n').replace(/[ \t]{2,}/g,' ').replace(/\s+$/,'')};
+const isMeta=x=>/^(#|📞|📍|🌐|🔗|🏭|━)/u.test(x.trim())||/https?:\/\/|wa\.me|cesar-alcham|\d{9,}/.test(x);
+// يقصّر النص لحدّ المنصة: بيشيل أسطر ✔️ أولاً ثم آخر أسطر الوصف، وبيخلّي الهاتف والموقع والهاشتاغات
+function fitLen(t,max){if(t.length<=max)return t;const L=t.split('\n');
+  const drop=ok=>{for(let i=L.length-1;i>=0&&L.join('\n').length>max;i--)if(ok(L[i]))L.splice(i,1)};
+  drop(x=>/^✔/.test(x.trim()));drop(x=>x.trim()&&!isMeta(x)&&L.filter(y=>y.trim()&&!isMeta(y)).length>1);
+  const out=L.join('\n').replace(/\n{3,}/g,'\n\n').trim();return out.length>max?out.slice(0,max-1).trimEnd()+'…':out}
+// نص تيك توك القصير من النص الرئيسي (نفس «تجهيز النص» بصفحة النشر)
+function ttFromMain(src){const L=src.split('\n').map(x=>x.trim()).filter(Boolean),body=L.filter(x=>!isMeta(x)&&!/^✔/.test(x));
+  const ar=body.find(x=>/[\u0600-\u06FF]/.test(x))||'',fr=body.find(x=>!/[\u0600-\u06FF]/.test(x)&&/[A-Za-zÀ-ÿ]{3,}/.test(x))||'';
+  const mach=/0554974470|Blida|البليدة/.test(src);
+  const tags=[...new Set([...(src.match(/#[^\s#]+/g)||[]),...((SUG&&SUG.tt.match(/#[^\s#]+/g))||[])])].slice(0,7);
+  return [ar,fr,'📞 WhatsApp : \u200E'+(mach?'0554974470':'0541737888')+'\u200E','📍 '+(mach?'Blida':'Dely Ibrahim – Alger'),'🌐 '+SITE,tags.join(' ')].filter(Boolean).join('\n')}
+function setOut(pf,val){const o=document.querySelector('.out[data-pf="'+pf+'"]');if(!o)return;const t=o.querySelector('.tx');if(!t||t.value===val)return;
+  syncing=true;t.value=val;const l=o.querySelector('.len'),h=o.querySelector('.ht');if(l)l.textContent=val.length;if(h)h.textContent=countTags(val);syncing=false}
+function markOwn(o){if(o.dataset.ed)return;o.dataset.ed='1';const hd=o.querySelector('.hd');
+  if(hd&&!hd.querySelector('.follow'))hd.insertAdjacentHTML('beforeend','<button type="button" class="btn s l follow" title="ترجع هذه الخانة تتبع النص الرئيسي">↺ مطابقة النص الرئيسي</button>')}
+function applyMain(){if(!SUG)return;const m=document.querySelector('.out[data-pf="fb"] .tx');if(!m)return;const v=m.value,same=v===SUG.fb;
+  const free=pf=>{const o=document.querySelector('.out[data-pf="'+pf+'"]');return o&&!o.dataset.ed};
+  if(free('ig'))setOut('ig',same?SUG.ig:fitLen(capTags(v,5),2200));
+  if(free('pin'))setOut('pin',same?SUG.pin:fitLen(v,500));
+  if(free('tt'))setOut('tt',same?SUG.tt:ttFromMain(v));
+  if(free('yt')){const links=SUG.yt.split('\n').filter(x=>/^🔗/.test(x.trim())&&!v.includes(x.trim())).join('\n');setOut('yt',same?SUG.yt:fitLen(v+(links?'\n\n'+links:''),5000))}
+  const st=$('#mainState'),rs=$('#mainReset');if(rs)rs.hidden=same;
+  if(st)st.textContent=same?'النص كما اقتُرح. بعد «اعتمد» يُضاف إلى المنشور لكل المنصات.':'✓ تعديلك مطبَّق على كل المنصات. اكبس «اعتمد» ليُضاف إلى المنشور.'}
+document.addEventListener('click',e=>{if(!e.target.closest)return;
+  if(e.target.closest('#mainReset')){if(!SUG)return;document.querySelectorAll('#outs .out[data-ed]').forEach(o=>{delete o.dataset.ed;const f=o.querySelector('.follow');if(f)f.remove()});setOut('fb',SUG.fb);applyMain();return}
+  const f=e.target.closest('.follow');if(f){const o=f.closest('.out');delete o.dataset.ed;f.remove();applyMain()}});
 $('#outs').addEventListener('click',async e=>{const o=e.target.closest('.out');if(!o)return;
   if(e.target.classList.contains('cp'))copy(o.querySelector('.tx').value);
   if(e.target.classList.contains('cp1'))copy(o.querySelector('.ti').value);
