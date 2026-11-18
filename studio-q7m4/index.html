@@ -1659,6 +1659,17 @@ function drawJurnCorner(s){
   const insets=[{svg:q,box:[-10,Rr+fs*2.4,-H-fs*1.4,8],label:'مقطع من النص'}];if(seatOn)insets.push(seatInset(sp,M(s.smat)));
   return{svg:o,insets,stats,lines,tables:[{title:'قائمة القطع للمعمل',head:['القطعة','القياس','العدد'],rows}],box:[-Wf/2-S*.14,xR+S*(seatOn?.25:.2),pc-FS*2.5,S*.15],note:''};
 }
+/* عدد الجرون: الرسمة لجرن واحد، والعدد بينضرب بقائمة القطع وبعرض السعر. السعة (كمية الماء) بتبقى للجرن الواحد */
+function drawJurnQty(s){
+  const r=drawJurn(s),n=Math.max(1,Math.round(+s.qty||1));
+  if(n>1&&r){
+    (r.lines||[]).forEach(l=>{l.qty=(+l.qty||1)*n});
+    (r.tables||(r.table?[r.table]:[])).forEach(t=>{if(!/قائمة القطع/.test(t.title))return;const qi=t.head.length-1;
+      t.rows.forEach(rw=>{const v=rw.cells&&rw.cells[qi];if(/^\d+$/.test(String(v)))rw.cells[qi]=String(+v*n)})});
+  }
+  if(r&&r.stats)r.stats.unshift(['العدد',n+(n===1?' جرن':' جرون')]);
+  return r;
+}
 function drawJurn(s){
   if(s.shape==='corner')return drawJurnCorner(s);
   if(s.shape==='cone')return drawJurnCone(s);
@@ -2365,7 +2376,8 @@ bathCtrls.push(
     {id:'cmat',label:'رخام الكورنيش',type:'mat',val:'black'});
 const SCHEMAS={
   fountain:{title:'نافورة',draw:drawFountain,controls:fountainCtrls},
-  jurn:{title:'جرن',draw:drawJurn,controls:[
+  jurn:{title:'جرن',draw:drawJurnQty,controls:[
+    {id:'qty',label:'عدد الجرون',type:'range',min:1,max:50,step:1,val:1,unit:''},
     {id:'shape',label:'شكل الجرن',type:'seg',options:[['half','نص دائرة'],['oval','بيضوي (أوفال)'],['round','مدور'],['cone','مدور كونيك (أعرض من فوق)'],['corner','زاوية (ربع دائرة)'],['cornerSlab','زاوية بلوح (مضلّع)']],val:'oval'},
     {id:'L',label:'الطول',type:'range',min:30,max:100,step:1,val:50,show:s=>s.shape==='half'||s.shape==='oval'},
     {id:'L',label:'القطر',type:'range',min:30,max:100,step:1,val:50,show:s=>s.shape==='round'},
