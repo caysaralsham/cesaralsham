@@ -144,7 +144,7 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
           <div style="display:flex;flex-direction:column;gap:6px"><button type="button" class="btn ghost" id="coverPick">اختيار صورة غلاف</button><button type="button" class="btn ghost" id="coverAuto">لقطة من الفيديو</button></div></div>
         <input type="file" id="coverFile" accept="image/jpeg,image/png,image/webp" hidden>
         <label class="chk" style="margin-top:12px"><input type="checkbox" id="vqr" checked> إضافة باركود الشركة على الفيديو (يسار تحت)</label>
-        <p class="mu-note" id="vqrNote">يُرسم الباركود والرقم على الفيديو قبل النشر على كل المنصات وقبل المشاركة إلى واتساب. هذا يعيد تجهيز الفيديو على الهاتف، فيأخذ من دقيقة إلى بضع دقائق حسب طول الفيديو، ويصير المقاس الأكبر 1280. أبقِ الشاشة مفتوحة.</p>
+        <p class="mu-note" id="vqrNote">يُرسم الباركود والرقم على الفيديو قبل النشر على كل المنصات وقبل المشاركة إلى واتساب. هذا يعيد تجهيز الفيديو على الهاتف، بنفس مقاس الفيديو الأصلي وبجودة عالية جداً لا يظهر فرقها للعين. يأخذ بضع دقائق حسب طول الفيديو (فيديو 4K أبطأ بكثير)، فأبقِ الشاشة مفتوحة.</p>
         <label class="l">موسيقى الفيديو</label>
         <div class="mus" id="mus" role="radiogroup" aria-label="موسيقى الفيديو"></div>
         <label class="mu-none"><input type="radio" name="mus" value="" id="musNone" checked> بدون موسيقى (الصوت الأصلي كما هو)</label>
@@ -560,14 +560,14 @@ async function toMp4(file,need){const ff=await getFF(need);need('تحويل ال
 const QRMAX=350e6;
 const vqrOn=()=>kind==='video'&&$('vqr').checked&&files[0]&&files[0].f.size<=QRMAX;
 async function addQr(file,need){const x=files[0];let W=x&&x.w||0,H=x&&x.h||0;if(!W||!H)throw new Error('تعذر قراءة مقاس الفيديو');
-  const sc=Math.min(1,1280/Math.max(W,H));W=Math.max(2,Math.round(W*sc/2)*2);H=Math.max(2,Math.round(H*sc/2)*2);
+  W=Math.max(2,Math.round(W/2)*2);H=Math.max(2,Math.round(H/2)*2); // نفس مقاس الفيديو الأصلي بالضبط
   const c=document.createElement('canvas');c.width=W;c.height=H;await drawQrMark(c.getContext('2d'),W,H);
   const png=await new Promise(r=>c.toBlob(r,'image/png'));if(!png)throw new Error('تعذر تجهيز صورة الباركود');
   const ff=await getFF(need);need('إضافة الباركود على الفيديو…');
   const ext=((file.name.split('.').pop()||'mp4').toLowerCase().replace(/[^a-z0-9]/g,''))||'mp4',inp='q.'+ext;
   const onProg=({progress})=>{if(progress>0&&progress<=1)need('إضافة الباركود على الفيديو… '+Math.round(progress*100)+'%')};ff.on('progress',onProg);
   try{await ff.writeFile(inp,new Uint8Array(await file.arrayBuffer()));await ff.writeFile('qr.png',new Uint8Array(await png.arrayBuffer()));
-    const rc=await ff.exec(['-i',inp,'-i','qr.png','-filter_complex',`[0:v]scale=${W}:${H},setsar=1[b];[b][1:v]overlay=0:0,format=yuv420p[v]`,'-map','[v]','-map','0:a?','-c:v','libx264','-preset','veryfast','-crf','23','-c:a','aac','-b:a','160k','-movflags','+faststart','qout.mp4']);
+    const rc=await ff.exec(['-i',inp,'-i','qr.png','-filter_complex',`[0:v]scale=${W}:${H},setsar=1[b];[b][1:v]overlay=0:0,format=yuv420p[v]`,'-map','[v]','-map','0:a?','-c:v','libx264','-preset','veryfast','-crf','17','-c:a','aac','-b:a','160k','-movflags','+faststart','qout.mp4']);
     if(rc!==0)throw new Error('فشل إضافة الباركود على الفيديو');
     const data=await ff.readFile('qout.mp4');if(!data||!data.length)throw new Error('فشل إضافة الباركود على الفيديو');
     return new File([data],file.name.replace(/\.[^.]+$/,'')+'-qr.mp4',{type:'video/mp4'})}
