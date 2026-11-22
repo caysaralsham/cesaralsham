@@ -143,6 +143,8 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><div class="th" style="width:92px" id="coverTh"><img id="coverImg" alt="الغلاف"></div>
           <div style="display:flex;flex-direction:column;gap:6px"><button type="button" class="btn ghost" id="coverPick">اختيار صورة غلاف</button><button type="button" class="btn ghost" id="coverAuto">لقطة من الفيديو</button></div></div>
         <input type="file" id="coverFile" accept="image/jpeg,image/png,image/webp" hidden>
+        <label class="chk" style="margin-top:12px"><input type="checkbox" id="vqr" checked> إضافة باركود الشركة على الفيديو (يسار تحت)</label>
+        <p class="mu-note" id="vqrNote">يُرسم الباركود والرقم على الفيديو قبل النشر على كل المنصات وقبل المشاركة إلى واتساب. هذا يعيد تجهيز الفيديو على الهاتف، فيأخذ من دقيقة إلى بضع دقائق حسب طول الفيديو، ويصير المقاس الأكبر 1280. أبقِ الشاشة مفتوحة.</p>
         <label class="l">موسيقى الفيديو</label>
         <div class="mus" id="mus" role="radiogroup" aria-label="موسيقى الفيديو"></div>
         <label class="mu-none"><input type="radio" name="mus" value="" id="musNone" checked> بدون موسيقى (الصوت الأصلي كما هو)</label>
@@ -431,7 +433,7 @@ let logCloud=false;const LLOG='nashr_log';
 function locLog(){try{return JSON.parse(localStorage.getItem(LLOG)||'[]')}catch(e){return []}}
 function saveLocalLog(id,rec){try{const a=locLog();const r={id,...rec};const i=a.findIndex(x=>x.id===id);if(i>=0)a[i]=r;else a.unshift(r);localStorage.setItem(LLOG,JSON.stringify(a.slice(0,300)))}catch(e){}}
 async function loadLog(){const loc=locLog();try{const s=await db.collection(LOGCOL).orderBy('createdAt','desc').limit(150).get();const cl=s.docs.map(d=>({id:d.id,...d.data()}));const ids=new Set(cl.map(x=>x.id));LOG=[...cl,...loc.filter(x=>!ids.has(x.id))].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));logCloud=true}catch(e){LOG=loc;logCloud=false}return LOG}
-async function fp(k){const s=k+'|'+kind+'|'+txt(k).trim()+'|'+(k==='site'?catVal():'')+'|'+files.map(x=>x.hash).join(',')+(kind==='video'&&music&&k!=='tk'?'|m:'+music:'');const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(h)].slice(0,12).map(b=>b.toString(16).padStart(2,'0')).join('')}
+async function fp(k){const s=k+'|'+kind+'|'+txt(k).trim()+'|'+(k==='site'?catVal():'')+'|'+files.map(x=>x.hash).join(',')+(kind==='video'&&music&&k!=='tk'?'|m:'+music:'')+(kind==='video'&&$('vqr').checked?'|q':'');const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(h)].slice(0,12).map(b=>b.toString(16).padStart(2,'0')).join('')}
 function renderLog(){const L=$('log');const note=logCloud?'':'<div class="warn">السجل محفوظ على هذا الجهاز فقط — حفظه في حسابك (السحابة) ينتظر تفعيل قاعدة الحماية في Firebase.</div>';
   if(!LOG||!LOG.length){L.innerHTML=note+'<div class="empty">لا توجد عمليات نشر بعد</div>';return}
   L.innerHTML=note+LOG.map(r=>{const res=r.results||{};return `<div class="lr"><span class="tm">${fmt(r.createdAt)}</span><span class="t" title="${esc(r.text||'')}">${r.kind==='video'?'🎬':'🖼️'} ${esc((r.text||r.title||'(بدون نص)').replace(/\s+/g,' '))}</span><div class="bs">${Object.keys(res).map(k=>{const x=res[k],n=(P[k]||{}).name||k,cl=x.status==='ok'?'p-ok':x.status==='fail'?'p-bad':x.status==='skip'?'p-skip':'p-run';
@@ -554,6 +556,22 @@ async function toMp4(file,need){const ff=await getFF(need);need('تحويل ال
     const data=await ff.readFile('out.mp4');if(!data||!data.length)throw new Error('فشل التحويل');
     return new File([data],file.name.replace(/\.[^.]+$/,'')+'.mp4',{type:'video/mp4'})}
   finally{ff.off('log',onLog);for(const f of [inp,'out.mp4']){try{await ff.deleteFile(f)}catch(e){}}}}
+// باركود الشركة على الفيديو: نفس شكل باركود الصور (يسار تحت)، يُرسم مرة واحدة كصورة شفافة ويُركّب فوق الفيديو
+const QRMAX=350e6;
+const vqrOn=()=>kind==='video'&&$('vqr').checked&&files[0]&&files[0].f.size<=QRMAX;
+async function addQr(file,need){const x=files[0];let W=x&&x.w||0,H=x&&x.h||0;if(!W||!H)throw new Error('تعذر قراءة مقاس الفيديو');
+  const sc=Math.min(1,1280/Math.max(W,H));W=Math.max(2,Math.round(W*sc/2)*2);H=Math.max(2,Math.round(H*sc/2)*2);
+  const c=document.createElement('canvas');c.width=W;c.height=H;await drawQrMark(c.getContext('2d'),W,H);
+  const png=await new Promise(r=>c.toBlob(r,'image/png'));if(!png)throw new Error('تعذر تجهيز صورة الباركود');
+  const ff=await getFF(need);need('إضافة الباركود على الفيديو…');
+  const ext=((file.name.split('.').pop()||'mp4').toLowerCase().replace(/[^a-z0-9]/g,''))||'mp4',inp='q.'+ext;
+  const onProg=({progress})=>{if(progress>0&&progress<=1)need('إضافة الباركود على الفيديو… '+Math.round(progress*100)+'%')};ff.on('progress',onProg);
+  try{await ff.writeFile(inp,new Uint8Array(await file.arrayBuffer()));await ff.writeFile('qr.png',new Uint8Array(await png.arrayBuffer()));
+    const rc=await ff.exec(['-i',inp,'-i','qr.png','-filter_complex',`[0:v]scale=${W}:${H},setsar=1[b];[b][1:v]overlay=0:0,format=yuv420p[v]`,'-map','[v]','-map','0:a?','-c:v','libx264','-preset','veryfast','-crf','23','-c:a','aac','-b:a','160k','-movflags','+faststart','qout.mp4']);
+    if(rc!==0)throw new Error('فشل إضافة الباركود على الفيديو');
+    const data=await ff.readFile('qout.mp4');if(!data||!data.length)throw new Error('فشل إضافة الباركود على الفيديو');
+    return new File([data],file.name.replace(/\.[^.]+$/,'')+'-qr.mp4',{type:'video/mp4'})}
+  finally{ff.off('progress',onProg);for(const f of [inp,'qr.png','qout.mp4']){try{await ff.deleteFile(f)}catch(e){}}}}
 async function prepare(id,need,run){const out={media:[],cover:''};NEED=need;
   if(kind==='image'){const wm=$('wm').checked;for(let i=0;i<files.length;i++){const ck='img|'+files[i].hash+'|'+(wm?1:0);let u=upGet(ck);
       if(!u){need(`تجهيز الصورة ${i+1} من ${files.length}…`);const b=await processImage(files[i],wm);u=await upload(`gallery/nashr/${id}-${i+1}.jpg`,b,'image/jpeg',p=>need(`رفع الصورة ${i+1} من ${files.length}… ${p}%`),ck)}
@@ -563,17 +581,21 @@ async function prepare(id,need,run){const out={media:[],cover:''};NEED=need;
       const ck='ig|'+files[i].hash+'|'+(wm?1:0)+'|'+R.toFixed(3);let u=upGet(ck);
       if(!u){need(`تصحيح مقاس الصورة ${i+1} لإنستغرام…`);const b=await processImage(files[i],wm,R);u=await upload(`gallery/nashr/${id}-${i+1}-ig.jpg`,b,'image/jpeg',null,ck)}
       out.mediaIg.push({type:'image',url:u})}}}
-  else{const h=files[0].hash;let f=files[0].f;const mix=music&&(run||[]).some(k=>k!=='tk'),needTk=(run||[]).includes('tk');
-    const ckM='vm|'+h+'|'+music+'|'+$('vMus').value+'|'+$('vOrig').value,ckO='vo|'+h;
+  else{const h=files[0].hash;let f=files[0].f;const mix=music&&(run||[]).some(k=>k!=='tk'),needTk=(run||[]).includes('tk'),q=vqrOn();
+    if(kind==='video'&&$('vqr').checked&&!q)need('الفيديو أكبر من 350 ميغا — يُنشر بدون باركود…');
+    const Q=q?'|q':'',ckM='vm|'+h+'|'+music+'|'+$('vMus').value+'|'+$('vOrig').value+Q,ckO='vo|'+h+Q;
     let uM=mix?upGet(ckM):'',uO=upGet(ckO),ext=upGet(ckO+'|ext')||'mp4';
     const needO=!mix||needTk;
-    if(needO&&!uO&&!isMp4(f)&&f.size<=MP4MAX&&(!mix||needTk)){try{f=await toMp4(f,need)}catch(e){console.warn('mp4',e);need('تعذر التحويل — يُرفع الفيديو كما هو…')}}
+    // الباركود: ترميز واحد للفيديو، وبعدها الموسيقى بتندمج بدون إعادة ترميز
+    if(q&&((mix&&!uM)||(needO&&!uO))){f=await addQr(f,need);chk()}
+    else if(needO&&!uO&&!isMp4(f)&&f.size<=MP4MAX){try{f=await toMp4(f,need)}catch(e){console.warn('mp4',e);need('تعذر التحويل — يُرفع الفيديو كما هو…')}}
     if(!uO)ext=((f.name.split('.').pop()||'mp4').toLowerCase().replace(/[^a-z0-9]/g,''))||'mp4';
     if(mix){
       if(!uM){const mixed=await mixMusic(f,music,need);chk();uM=await upload(`gallery/nashr/${id}-m.mp4`,mixed,'video/mp4',p=>need(`رفع الفيديو مع الموسيقى (فيسبوك وإنستغرام ويوتيوب والموقع)… ${p}%`),ckM)}
       out.media.push({type:'video',url:uM,ext:'mp4'});out.music=music;
       if(needTk){if(!uO){uO=await upload(`gallery/nashr/${id}.${ext}`,f,f.type||'video/mp4',p=>need(`رفع نسخة تيك توك (بدون موسيقى)… ${p}%`),ckO);upSet(ckO+'|ext',ext)}out.mediaTk=[{type:'video',url:uO,ext}]}}
     else{if(!uO){uO=await upload(`gallery/nashr/${id}.${ext}`,f,f.type||'video/mp4',p=>need(`رفع الفيديو… ${p}%`),ckO);upSet(ckO+'|ext',ext)}out.media.push({type:'video',url:uO,ext})}
+    out.qr=q;
     if(cover){const ck='cv|'+h+'|'+(cover.auto?'a':(cover.blob.size||0));need('رفع صورة الغلاف…');try{out.cover=await upload(`gallery/posters/${id}.jpg`,cover.blob,'image/jpeg',null,ck)}catch(e){console.warn('cover',e);out.cover=''}}}
   need('تم الرفع ✓ — جارٍ النشر…');return out}
 // ---------- الموقع الرسمي (نفس طريقة «لوحة الموقع»: إضافة فقط، بدون تعديل أو حذف) ----------
@@ -659,14 +681,14 @@ document.addEventListener('visibilitychange',()=>{if(busy&&document.visibilitySt
 let waCache={key:'',fl:null};
 $('waShare').onclick=async()=>{if(!files.length){toast(kind==='image'?'اختر الصور أولاً':'اختر الفيديو أولاً');return}
   const mus=kind==='video'&&music?music+':'+$('vMus').value+':'+$('vOrig').value:'';
-  const key=kind+'|'+files.map(x=>x.hash).join(',')+'|'+(kind==='image'&&$('wm').checked?1:0)+'|'+mus;
+  const vq=vqrOn();const key=kind+'|'+files.map(x=>x.hash).join(',')+'|'+(kind==='image'&&$('wm').checked?1:0)+'|'+mus+'|'+(vq?1:0);
   const wb=$('waShare');if(wb.disabled)return;
   const t=[...($('text').value.trim()||vTitleEff())].slice(0,700).join('');
   try{navigator.clipboard.writeText(t).catch(()=>{})}catch(e){}
   try{
     if(waCache.key!==key){let fl=[];
       if(kind==='image'){const wm=$('wm').checked;for(let i=0;i<files.length;i++)fl.push(new File([await processImage(files[i],wm)],'cesar-alcham-'+(i+1)+'.jpg',{type:'image/jpeg'}))}
-      else if(mus){wb.disabled=true;stopMus();try{fl=[await mixMusic(files[0].f,music,m=>toast(m,120000))]}catch(x){toast((x&&x.message)||'فشل دمج الموسيقى',6000);return}finally{wb.disabled=false}}
+      else if(mus||vq){wb.disabled=true;stopMus();try{let v=files[0].f;const tm=m=>toast(m,120000);if(vq)v=await addQr(v,tm);if(mus)v=await mixMusic(v,music,tm);fl=[v]}catch(x){toast((x&&x.message)||'فشل تجهيز الفيديو',6000);return}finally{wb.disabled=false}}
       else fl=[files[0].f];
       waCache={key,fl}}
     if(!navigator.canShare||!navigator.canShare({files:waCache.fl})){toast('هذا المتصفح لا يدعم المشاركة المباشرة — افتح «المنشورات» من الهاتف',6000);return}
