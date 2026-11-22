@@ -58,7 +58,7 @@ export async function onRequest({ request, env }) {
   const prompt = `أنت كاتب تسويق لشركة «قيصر الشام للحجر والرخام» بالجزائر (دالي إبراهيم). المنشور ${kind}.
 انظر إلى الصورة وصف الشغل الظاهر فيها بدقة، بلا اختراع.
 - cat: اختر مفتاح نوع العمل (k) من هذه القائمة بالضبط:
-${cats.map(c => c.k + ' = ' + c.ar + ' / ' + c.fr).join('\n')}
+${cats.filter(c => c.k !== 'machine').map(c => c.k + ' = ' + c.ar + ' / ' + c.fr).join('\n')}
   إذا ما في نوع مناسب اكتب general.
 - stoneAr: اللون أو نوع الحجر بكلمتين أو ثلاث (مثال: رخام أبيض كرارا، حجر بيج). فاضي إذا مش واضح.
 - detailAr: تفصيلة مميزة بـ 2 لـ 6 كلمات (مثال: بزخارف نباتية منحوتة). فاضي إذا ما في.
@@ -66,7 +66,7 @@ ${cats.map(c => c.k + ' = ' + c.ar + ' / ' + c.fr).join('\n')}
 - fr: جملة أو جملتان بالفرنسية القوية الطبيعية (أغلب الجزائريين بيقروا فرنسي) تصف نفس القطعة.
 - siteTitle: عنوان قصير بالفصحى لموقع الشركة (3 لـ 7 كلمات).
 - ok: false إذا الصورة مش شغل رخام أو حجر.
-ممنوع: كلمة «المعرض»، أي رقم هاتف أو رابط أو هاشتاغ (بتنضاف لحالها)، وكلمة «يدوي» (النحت عندنا CNC)، والمبالغة الكاذبة.${hint ? '\nملاحظة صاحب الشغل: ' + hint : ''}`;
+ممنوع: ذكر البليدة أو المعمل أو أي مكان غير دالي إبراهيم، وكلمة «المعرض»، أي رقم هاتف أو رابط أو هاشتاغ (بتنضاف لحالها)، وكلمة «يدوي» (النحت عندنا CNC)، والمبالغة الكاذبة.${hint ? '\nملاحظة صاحب الشغل: ' + hint : ''}`;
   const parts = [{ text: prompt }];
   imgs.forEach(d => parts.push({ inline_data: { mime_type: 'image/jpeg', data: d } }));
   const req = { contents: [{ parts }], generationConfig: { responseMimeType: 'application/json', responseSchema: SCHEMA, temperature: Math.min(1, Math.max(0.2, Number(b.temp) || 0.7)) } };
@@ -78,7 +78,7 @@ ${cats.map(c => c.k + ' = ' + c.ar + ' / ' + c.fr).join('\n')}
     if (!g.ok) return json({ ok: false, error: 'gemini-' + g.status }, 502);
     try {
       const o = JSON.parse(d.candidates[0].content.parts.map(p => p.text || '').join(''));
-      const clean = s => String(s || '').replace(/https?:\/\/\S+|#[^\s#]+|\+?\d[\d\s]{7,}\d/g, '').replace(/المعرض/g, 'محلّنا').replace(/\s*يدوي(ة)?/g, '').replace(/[ \t]{2,}/g, ' ').trim();
+      const clean = s => String(s || '').replace(/https?:\/\/\S+|#[^\s#]+|\+?\d[\d\s]{7,}\d/g, '').replace(/المعرض/g, 'محلّنا').replace(/[^.!؟\n]*(البليدة|Blida|المعمل|معملنا|atelier)[^.!؟\n]*[.!؟]?/gi, '').replace(/\s*يدوي(ة)?/g, '').replace(/[ \t]{2,}/g, ' ').trim();
       const cat = cats.some(c => c.k === o.cat) ? o.cat : 'general';
       return json({ ok: true, cat, stoneAr: clean(o.stoneAr).slice(0, 60), detailAr: clean(o.detailAr).slice(0, 80), ar: (o.ar || []).map(clean).filter(Boolean).slice(0, 3), fr: clean(o.fr).slice(0, 400), siteTitle: clean(o.siteTitle).slice(0, 100), fits: o.ok !== false, model: m });
     } catch (e) { return json({ ok: false, error: 'parse' }, 502); }

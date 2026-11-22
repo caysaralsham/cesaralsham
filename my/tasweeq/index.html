@@ -371,8 +371,12 @@ function hashtags(c,pf,r){
   if(pf==='tt')return[ar[0],ar[1],fr[0],GEN_AR[0],BRAND,'#dz'];
   return[ar[0],fr[0],GEN_AR[1]];                                          // يوتيوب: أول 3 تظهر فوق العنوان
 }
+// o.dly: نص لدالي إبراهيم فقط (من «المنشورات»): بلا البليدة ولا المعمل
+const BLIDA=/البليدة|بالبليدة|Blida|معمل|المعمل|atelier/i;
+function dlyCat(c0){const f=a=>{const x=(a||[]).filter(t=>!BLIDA.test(t));return x.length?x:null};const g=CATS.general;
+  return {...c0,factory:false,open:f(c0.open)||f(g.open),body:f(c0.body)||f(g.body),pts:f(c0.pts)||f(g.pts),frl:f(c0.frl)||f(g.frl),hAr:f(c0.hAr)||g.hAr,hFr:f(c0.hFr)||g.hFr,tags:f(c0.tags)||g.tags}}
 function build(o){
-  const c=CATS[o.cat]||CATS.general, r=rng(o.seed+'|'+o.cat+'|'+o.style);
+  const c=o.dly?dlyCat(CATS[o.cat]||CATS.general):(CATS[o.cat]||CATS.general), r=rng(o.seed+'|'+o.cat+'|'+o.style);
   const op=pick(r,c.open), bd=shuffle(r,c.body), pts=shuffle(r,c.pts).slice(0,3), fr0=pick(r,c.frl), fr=(o.ai&&o.ai.fr)?String(o.ai.fr).replace(/à la main|fait main|artisanal(e)?/gi,'en CNC'):fr0, cta=CTA[Math.floor(r()*CTA.length)];
   const det=[o.stone?'('+o.stone+')':'',o.detail].filter(Boolean).join(' ');
   let arTop;
@@ -646,10 +650,11 @@ $('#exp').onclick=()=>{const b=new Blob([JSON.stringify(Object.values(POSTS),nul
 /* ---------- الدخول ---------- */
 // «المنشورات» بتطلب اقتراح نص بدون ما تفتح الصياغة: نفس القوالب (build) وبترجع النصوص جاهزة
 window.addEventListener('message',e=>{if(e.origin!==location.origin||!EMBED)return;const q=e.data||{};
-  if(q.type==='siy-cats'){parent.postMessage({type:'siy-cats',cats:catKeys().map(k=>({k,ar:CATS[k].ar,fr:CATS[k].fr,em:CATS[k].em}))},location.origin);return}
-  if(q.type!=='siy-build')return;const k=CATS[q.cat]?q.cat:'general',c=CATS[k];
-  const o={cat:k,stone:String(q.stone||'').slice(0,60),detail:String(q.detail||'').slice(0,80),place:c.factory?'factory':'showroom',wilaya:'',lang:'arfr',style:+q.style||0,seed:String(q.seed||Date.now()),ai:q.ai||null};
+  if(q.type==='siy-cats'){parent.postMessage({type:'siy-cats',cats:catKeys().filter(k=>k!=='machine').map(k=>({k,ar:CATS[k].ar,fr:CATS[k].fr,em:CATS[k].em}))},location.origin);return}
+  if(q.type!=='siy-build')return;const k=CATS[q.cat]&&q.cat!=='machine'?q.cat:'general',c=CATS[k];
+  const o={cat:k,stone:String(q.stone||'').slice(0,60),detail:String(q.detail||'').slice(0,80),place:'showroom',wilaya:'',lang:'arfr',style:+q.style||0,seed:String(q.seed||Date.now()),ai:q.ai||null,dly:true};
   let r;try{r=build(o)}catch(x){parent.postMessage({type:'siy-built',id:q.id,error:String(x&&x.message||x)},location.origin);return}
+  const cl=t=>String(t||'').split('\n').filter(x=>!BLIDA.test(x)).join('\n').replace(/\n{3,}/g,'\n\n');['fb','ig','pin','tt','site'].forEach(x=>r[x]=cl(r[x]));r.yt.desc=cl(r.yt.desc);
   parent.postMessage({type:'siy-built',id:q.id,cat:k,catAr:c.ar,catFr:c.fr,em:c.em,fb:r.fb,ig:r.ig,pin:r.pin,tt:r.tt,site:r.site,yt:{title:r.yt.title,desc:r.yt.desc}},location.origin)});
 window.addEventListener('DOMContentLoaded',()=>{
   firebase.initializeApp({apiKey:"AIzaSyDi1Pn7guMnyc0CetV8Z9IUC-k0gtav2_8",authDomain:"basel-7b29b.firebaseapp.com",projectId:"basel-7b29b",storageBucket:"basel-7b29b.firebasestorage.app",messagingSenderId:"1025769465563",appId:"1:1025769465563:web:53b5c9949dbb26364d8efe"});
