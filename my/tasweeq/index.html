@@ -84,7 +84,7 @@ dialog::backdrop{background:rgba(0,0,0,.35)}
       <div><label>تفصيلة مميزة (اختياري)</label><input id="detail" type="text" placeholder="مثال: بزخارف نباتية منحوتة"></div>
     </div>
     <div class="grid3">
-      <div><label>المكان</label><select id="place"><option value="showroom">دالي إبراهيم — الجزائر العاصمة</option><option value="factory">المعمل — البليدة</option><option value="project">مشروع منفّذ عند زبون</option></select></div>
+      <div><label>المكان</label><select id="place"><option value="showroom">دالي إبراهيم — الجزائر العاصمة</option><option value="project">مشروع منفّذ عند زبون</option></select></div>
       <div><label>ولاية المشروع</label><input id="wilaya" type="text" placeholder="مثال: وهران"></div>
       <div><label>اللغة</label><select id="lang"><option value="arfr">عربي + فرنسي</option><option value="ar">عربي فقط</option><option value="fr">فرنسي فقط</option></select></div>
     </div>
@@ -376,6 +376,8 @@ const BLIDA=/البليدة|بالبليدة|Blida|معمل|المعمل|atelier
 function dlyCat(c0){const f=a=>{const x=(a||[]).filter(t=>!BLIDA.test(t));return x.length?x:null};const g=CATS.general;
   return {...c0,factory:false,open:f(c0.open)||f(g.open),body:f(c0.body)||f(g.body),pts:f(c0.pts)||f(g.pts),frl:f(c0.frl)||f(g.frl),hAr:f(c0.hAr)||g.hAr,hFr:f(c0.hFr)||g.hFr,tags:f(c0.tags)||g.tags}}
 function build(o){
+  // كل المنشورات لدالي إبراهيم فقط — ما عدا «آلات الرخام» (البليدة ورقمها الخاص)
+  if(o.cat!=='machine')o={...o,dly:true,place:o.place==='factory'?'showroom':o.place};
   const c=o.dly?dlyCat(CATS[o.cat]||CATS.general):(CATS[o.cat]||CATS.general), r=rng(o.seed+'|'+o.cat+'|'+o.style);
   const op=pick(r,c.open), bd=shuffle(r,c.body), pts=shuffle(r,c.pts).slice(0,3), fr0=pick(r,c.frl), fr=(o.ai&&o.ai.fr)?String(o.ai.fr).replace(/à la main|fait main|artisanal(e)?/gi,'en CNC'):fr0, cta=CTA[Math.floor(r()*CTA.length)];
   const det=[o.stone?'('+o.stone+')':'',o.detail].filter(Boolean).join(' ');
