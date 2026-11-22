@@ -71,6 +71,7 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
 .sug .ai{background:linear-gradient(135deg,#2F4F4A,#1F3632)}
 .sug .src{font-size:11px;color:var(--deep);padding:0 12px 10px}
 .retry{margin-top:10px;width:100%}
+.upp{margin-top:12px;padding:10px 12px;border-radius:12px;background:#FDF0D5;color:var(--run);font-weight:800;font-size:13.5px;border:1px solid #F0D9A8}
 .p-wait{background:#EEE6D9;color:#6E4524}.p-run{background:#FDF0D5;color:var(--run)}.p-ok{background:#DDF1E5;color:var(--ok)}.p-bad{background:#F8DEDA;color:var(--bad)}.p-skip{background:#EAEAEA;color:#555}
 .p-run::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;margin-inline-end:5px;vertical-align:-1px;animation:sp .8s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
@@ -198,7 +199,7 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
       <div class="acts" style="margin-top:8px"><button class="btn" id="pubSel">نشر على المحدد فقط</button><button class="btn ghost" id="check">فحص قبل النشر</button></div>
       <div class="acts" style="margin-top:8px"><button class="btn ghost" id="waShare" style="width:100%">واتساب: مشاركة إلى الحالة أو الكتالوج</button></div>
       <p class="note" style="margin:6px 0 0">واتساب لا يسمح بالنشر الآلي في الحالة ولا في كتالوج التطبيق. هذا الزر يجهّز الملف (الصور بالباركود، والفيديو مع الموسيقى المختارة) وينسخ النص، ثم يفتح قائمة المشاركة: اختر واتساب ← «حالتي». للكتالوج اختر «حفظ الصورة» ثم أضفها من واتساب للأعمال ← الكتالوج والصق النص.</p>
-      <div class="st" id="status" style="margin-top:12px"></div><button type="button" class="btn retry" id="retry" hidden>🔁 أعِد المحاولة على المنصات التي فشلت فقط</button>
+      <div class="upp" id="upProg" hidden role="status"></div><div class="st" id="status" style="margin-top:12px"></div><button type="button" class="btn ghost retry" id="cancelPub" hidden>⛔ إلغاء النشر</button><button type="button" class="btn retry" id="retry" hidden>🔁 أعِد المحاولة على المنصات التي فشلت فقط</button>
       <div class="tkafter" id="tkAfter" hidden role="status">
         <b>تيك توك: الفيديو وصل مسودةً بدون نص</b>
         <p>تيك توك لا يستقبل النص مع المسودة. افتح إشعار تيك توك في الهاتف، والصق هذا النص في خانة الوصف قبل النشر.</p>
@@ -479,8 +480,9 @@ function upSet(k,u){try{const o=JSON.parse(localStorage.getItem(UPC)||'{}');dele
 function errTxt(e){if(!e)return 'خطأ غير معروف';let sr=e.serverResponse||(e.customData&&e.customData.serverResponse)||'';try{const j=JSON.parse(sr);sr=(j.error&&(j.error.message||j.error.code))||sr}catch(x){}
   const st=e.status||e.httpStatus||'';const why=!navigator.onLine?'لا يوجد اتصال بالإنترنت':st===0||st===''&&/network|unknown/i.test(e.code||e.message||'')?'انقطع الاتصال أثناء الرفع (النت ضعيف أو قُفلت الشاشة)':st==402?'تخزين Firebase: انتهت الحصة أو مشكلة في الفوترة':st==403?'تخزين Firebase رفض الإذن (قواعد الحماية)':st==412?'تخزين Firebase: صلاحيات حساب الخدمة ناقصة':'';
   return (why?why+' — ':'')+(e.code||e.name||'')+(st!==''?' ['+st+']':'')+(sr?' — '+String(sr).slice(0,160):(!why&&e.message?' — '+String(e.message).slice(0,160):''))}
-function upSdk(path,blob,type,onp){return new Promise((res,rej)=>{const ref=st.ref(path);const task=ref.put(blob,{contentType:type});let last=Date.now(),stall=null;
-  const watch=()=>{clearTimeout(stall);stall=setTimeout(()=>{try{task.cancel()}catch(e){}rej(Object.assign(new Error('توقف الرفع 60 ثانية بلا تقدّم'),{code:'stalled',status:0}))},60000)};watch();
+let CANCEL=false,CUR=null;const cancelErr=()=>Object.assign(new Error('تم الإلغاء'),{code:'cancel'});function chk(){if(CANCEL)throw cancelErr()}
+function upSdk(path,blob,type,onp){return new Promise((res,rej)=>{const ref=st.ref(path);const task=ref.put(blob,{contentType:type});let last=Date.now(),stall=null;CUR={abort:()=>{clearTimeout(stall);try{task.cancel()}catch(e){}rej(cancelErr())}};
+  const watch=()=>{clearTimeout(stall);stall=setTimeout(()=>{try{task.cancel()}catch(e){}rej(Object.assign(new Error('توقف الرفع دقيقتين بلا تقدّم'),{code:'stalled',status:0}))},120000)};watch();
   task.on('state_changed',s=>{watch();if(onp&&s.totalBytes)onp(Math.round(100*s.bytesTransferred/s.totalBytes))},e=>{clearTimeout(stall);rej(e)},async()=>{clearTimeout(stall);try{res(await ref.getDownloadURL())}catch(e){rej(e)}})})}
 async function upRest(path,blob,type,onp){const tok=await A.currentUser.getIdToken(true);const enc=encodeURIComponent(path);
   return await new Promise((res,rej)=>{const x=new XMLHttpRequest();x.open('POST',`https://firebasestorage.googleapis.com/v0/b/${BUCKET}/o?uploadType=media&name=${enc}`);
@@ -488,17 +490,20 @@ async function upRest(path,blob,type,onp){const tok=await A.currentUser.getIdTok
     if(onp)x.upload.onprogress=ev=>{if(ev.lengthComputable)onp(Math.round(100*ev.loaded/ev.total))};
     x.onload=()=>{let j={};try{j=JSON.parse(x.responseText)}catch(e){}if(x.status>=200&&x.status<300&&j.downloadTokens)res(`https://firebasestorage.googleapis.com/v0/b/${BUCKET}/o/${enc}?alt=media&token=${String(j.downloadTokens).split(',')[0]}`);
       else rej(Object.assign(new Error('HTTP '+x.status),{code:'rest',status:x.status,serverResponse:x.responseText}))};
-    x.onerror=()=>rej(Object.assign(new Error('network'),{code:'network',status:0}));x.send(blob)})}
+    let stall=null;const watch=()=>{clearTimeout(stall);stall=setTimeout(()=>{try{x.abort()}catch(e){}rej(Object.assign(new Error('توقف الرفع دقيقتين بلا تقدّم'),{code:'stalled',status:0}))},120000)};
+    x.upload.addEventListener('progress',watch);x.addEventListener('loadend',()=>clearTimeout(stall));
+    CUR={abort:()=>{clearTimeout(stall);try{x.abort()}catch(e){}rej(cancelErr())}};
+    x.onerror=()=>rej(Object.assign(new Error('network'),{code:'network',status:0}));watch();x.send(blob)})}
 async function upload(path,blob,type,onp,ck){
   if(ck){const u=upGet(ck);if(u)return u}
   // ملف الهاتف → نسخة بالذاكرة (ملفات الصور/الفيديو المؤقتة على الآيفون ممكن تنقطع قراءتها أثناء الرفع)
-  if(blob instanceof File&&blob.size<400e6){try{blob=new Blob([await blob.arrayBuffer()],{type})}catch(e){throw new Error('تعذر قراءة الملف من الهاتف — احذفه واختره مرة ثانية ('+(e.name||e.message||'')+')')}}
+  if(blob instanceof File&&blob.size<30e6){try{blob=new Blob([await blob.arrayBuffer()],{type})}catch(e){throw new Error('تعذر قراءة الملف من الهاتف — احذفه واختره مرة ثانية ('+(e.name||e.message||'')+')')}}
   let last;const N=4;
-  for(let a=1;a<=N;a++){
+  for(let a=1;a<=N;a++){chk();
     if(!navigator.onLine){NEED&&NEED('لا يوجد إنترنت — بانتظار عودة الاتصال…');for(let w=0;w<60&&!navigator.onLine;w++)await sleep(1000)}
     try{const u=(a%2)?await upSdk(path,blob,type,onp):await upRest(path,blob,type,onp);if(ck)upSet(ck,u);return u}
-    catch(e){last=e;console.warn('upload try',a,e);if(e&&(e.status==403||e.code==='storage/unauthorized')&&a>=2)break;
-      if(a<N){NEED&&NEED(`تعثّر الرفع — محاولة ${a+1} من ${N} بعد ثوانٍ…`);await sleep(1500*a)}}}
+    catch(e){last=e;console.warn('upload try',a,e);if(CANCEL||(e&&e.code==='cancel'))throw cancelErr();if(e&&(e.status==403||e.code==='storage/unauthorized')&&a>=2)break;
+      if(a<N){NEED&&NEED(`تعثّر الرفع — محاولة ${a+1} من ${N} بعد ثوانٍ…`);await sleep(1500*a);chk()}}}
   throw new Error(errTxt(last))}
 // ---------- موسيقى الفيديو (مقاطع أصلية لقيصر الشام — بدون حقوق) ----------
 const MUS=[{k:'calme',ar:'هادئ',fr:'Calme · بيانو ناعم',st:'#D8C7A6'},{k:'luxe',ar:'فاخر',fr:'Luxe · وتريات وأجراس',st:'#3B2414'},{k:'energique',ar:'حماسي',fr:'Énergique · إيقاع سريع',st:'#B5651D'},{k:'oriental',ar:'شرقي',fr:'Oriental · عود ودربوكة',st:'#1F5C55'}];
@@ -565,9 +570,9 @@ async function prepare(id,need,run){const out={media:[],cover:''};NEED=need;
     if(needO&&!uO&&!isMp4(f)&&f.size<=MP4MAX&&(!mix||needTk)){try{f=await toMp4(f,need)}catch(e){console.warn('mp4',e);need('تعذر التحويل — يُرفع الفيديو كما هو…')}}
     if(!uO)ext=((f.name.split('.').pop()||'mp4').toLowerCase().replace(/[^a-z0-9]/g,''))||'mp4';
     if(mix){
-      if(!uM){const mixed=await mixMusic(f,music,need);uM=await upload(`gallery/nashr/${id}-m.mp4`,mixed,'video/mp4',p=>need(`رفع الفيديو مع الموسيقى… ${p}%`),ckM)}
+      if(!uM){const mixed=await mixMusic(f,music,need);chk();uM=await upload(`gallery/nashr/${id}-m.mp4`,mixed,'video/mp4',p=>need(`رفع الفيديو مع الموسيقى (فيسبوك وإنستغرام ويوتيوب والموقع)… ${p}%`),ckM)}
       out.media.push({type:'video',url:uM,ext:'mp4'});out.music=music;
-      if(needTk){if(!uO){uO=await upload(`gallery/nashr/${id}.${ext}`,f,f.type||'video/mp4',p=>need(`رفع النسخة الأصلية لتيك توك… ${p}%`),ckO);upSet(ckO+'|ext',ext)}out.mediaTk=[{type:'video',url:uO,ext}]}}
+      if(needTk){if(!uO){uO=await upload(`gallery/nashr/${id}.${ext}`,f,f.type||'video/mp4',p=>need(`رفع نسخة تيك توك (بدون موسيقى)… ${p}%`),ckO);upSet(ckO+'|ext',ext)}out.mediaTk=[{type:'video',url:uO,ext}]}}
     else{if(!uO){uO=await upload(`gallery/nashr/${id}.${ext}`,f,f.type||'video/mp4',p=>need(`رفع الفيديو… ${p}%`),ckO);upSet(ckO+'|ext',ext)}out.media.push({type:'video',url:uO,ext})}
     if(cover){const ck='cv|'+h+'|'+(cover.auto?'a':(cover.blob.size||0));need('رفع صورة الغلاف…');try{out.cover=await upload(`gallery/posters/${id}.jpg`,cover.blob,'image/jpeg',null,ck)}catch(e){console.warn('cover',e);out.cover=''}}}
   need('تم الرفع ✓ — جارٍ النشر…');return out}
@@ -613,8 +618,11 @@ async function publish(ks){
     const rec={createdAt:Date.now(),kind,text:$('text').value,title:kind==='video'?vTitleEff():'',custom:Object.fromEntries(run.filter(k=>custom[k]&&custom[k].trim()).map(k=>[k,custom[k]])),category:sel.has('site')?catVal():'',fps,results,files:files.map(x=>({name:x.f.name,size:x.f.size,hash:x.hash}))};
     saveLocalLog(id,rec);try{await ref.set(rec)}catch(e){console.warn('log write',e)}
     const saveRes=async()=>{rec.results=results;saveLocalLog(id,rec);try{await ref.update({results})}catch(e){}};
-    run.forEach(k=>row(k,'run','تجهيز الملفات…'));
-    let prep;try{prep=await prepare(id,m=>run.forEach(k=>row(k,'run',m)),run)}catch(e){run.forEach(k=>{results[k]={status:'fail',error:'تعذر رفع الملفات: '+(e.message||e)};row(k,'fail',results[k].error)});await saveRes();RETRY=run.slice();$('retry').hidden=false;return}
+    CANCEL=false;$('cancelPub').hidden=false;$('cancelPub').disabled=false;
+    run.forEach(k=>row(k,'wait','بانتظار انتهاء رفع الملفات'));$('upProg').hidden=false;$('upProg').textContent='⬆️ تجهيز الملفات…';
+    let prep;try{prep=await prepare(id,m=>{if(!CANCEL)$('upProg').textContent='⬆️ '+m},run)}catch(e){if(CANCEL||(e&&e.code==='cancel')){run.forEach(k=>{results[k]={status:'skip',error:'ألغيته قبل النشر'};row(k,'skip','تم الإلغاء — لم يُنشر شيء')});await saveRes();toast('تم إلغاء النشر');return}run.forEach(k=>{results[k]={status:'fail',error:'تعذر رفع الملفات: '+(e.message||e)};row(k,'fail',results[k].error)});await saveRes();RETRY=run.slice();$('retry').hidden=false;return}
+    $('cancelPub').hidden=true;$('upProg').hidden=true;
+    if(CANCEL){run.forEach(k=>{results[k]={status:'skip',error:'ألغيته قبل النشر'};row(k,'skip','تم الإلغاء — لم يُنشر شيء')});await saveRes();toast('تم إلغاء النشر');return}
     rec.media=prep.media;rec.cover=prep.cover||'';rec.music=prep.music||'';saveLocalLog(id,rec);try{await ref.update({media:prep.media,cover:prep.cover||'',music:prep.music||''})}catch(e){}
     const meta=run.filter(k=>k==='fb'||k==='ig');
     const jobs=[];
@@ -639,7 +647,10 @@ async function publish(ks){
     await loadLog();
     const bad=run.filter(k=>results[k].status!=='ok');if(bad.length){RETRY=bad;$('retry').hidden=false}
     render();
-  }finally{busy=false;['pubAll','pubSel','check'].forEach(b=>$(b).disabled=false);try{wl&&wl.release()}catch(e){}NEED=null}}
+  }finally{busy=false;['pubAll','pubSel','check'].forEach(b=>$(b).disabled=false);try{wl&&wl.release()}catch(e){}NEED=null;CUR=null;$('cancelPub').hidden=true;$('upProg').hidden=true}}
+$('cancelPub').onclick=()=>{if(!busy||CANCEL)return;CANCEL=true;$('cancelPub').disabled=true;toast('جارٍ الإلغاء…');try{CUR&&CUR.abort()}catch(e){}
+  // إيقاف دمج الموسيقى/التحويل إن كان شغّالاً
+  if(FF){try{FF.terminate()}catch(e){}FF=null}};
 let RETRY=[];
 $('retry').onclick=()=>{const ks=RETRY.filter(k=>P[k].ready&&P[k].kinds.includes(kind));if(!ks.length||!files.length){toast('اختر نفس الملفات أولاً');return}
   ks.forEach(k=>sel.add(k));render();toast('إعادة المحاولة على: '+ks.map(k=>P[k].name).join('، ')+' — الملفات المرفوعة سابقاً لن تُرفع من جديد',5000);publish(ks)};
