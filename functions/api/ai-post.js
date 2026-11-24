@@ -45,7 +45,13 @@ const SCHEMA = { type: 'OBJECT', properties: {
   ar: { type: 'ARRAY', items: { type: 'STRING' } }, fr: { type: 'STRING' }, siteTitle: { type: 'STRING' }, ok: { type: 'BOOLEAN' } },
   required: ['cat', 'stoneAr', 'detailAr', 'ar', 'fr', 'siteTitle', 'ok'] };
 
-export async function onRequest({ request, env }) {
+export async function onRequest(ctx) {
+  // أي خطأ غير متوقع بيرجع كـ JSON واضح بدل صفحة 502 من Cloudflare
+  try { return await handle(ctx); }
+  catch (e) { return json({ ok: false, error: 'server: ' + String((e && e.message) || e).slice(0, 120) }, 500); }
+}
+
+async function handle({ request, env }) {
   if (request.method !== 'POST') return json({ ok: false, error: 'post-only' }, 405);
   if (!(await verifyUser(request, env))) return json({ ok: false, error: 'login' }, 401);
   const key = env.GEMINI_API_KEY; if (!key) return json({ ok: false, error: 'no-key' }, 503);
@@ -70,18 +76,24 @@ ${cats.filter(c => c.k !== 'machine').map(c => c.k + ' = ' + c.ar + ' / ' + c.fr
   const parts = [{ text: prompt }];
   imgs.forEach(d => parts.push({ inline_data: { mime_type: 'image/jpeg', data: d } }));
   const req = { contents: [{ parts }], generationConfig: { responseMimeType: 'application/json', responseSchema: SCHEMA, temperature: Math.min(1, Math.max(0.2, Number(b.temp) || 0.7)) } };
-  for (const m of (env.GEMINI_MODEL ? [env.GEMINI_MODEL] : MODELS)) {
-    const g = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': key }, body: JSON.stringify(req) });
-    const d = await g.json().catch(() => ({}));
+  // نجرب كل موديل: إذا واحد مش موجود أو مضغوط/معطّل (5xx) أو علّق، منروح للي بعده بدل ما نوقف
+  const list = env.GEMINI_MODEL ? [env.GEMINI_MODEL, ...MODELS.filter(x => x !== env.GEMINI_MODEL)] : MODELS;
+  let last = 'no-model', rate = false;
+  for (const m of list) {
+    let g, d;
+    try {
+      g = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': key }, body: JSON.stringify(req), signal: AbortSignal.timeout(30000) });
+      d = await g.json().catch(() => ({}));
+    } catch (e) { last = 'gemini-timeout'; continue; }
     if (g.status === 404) continue;
-    if (g.status === 429) return json({ ok: false, error: 'rate' }, 429);
-    if (!g.ok) return json({ ok: false, error: 'gemini-' + g.status }, 502);
+    if (g.status === 429) { rate = true; last = 'rate'; continue; }
+    if (!g.ok) { last = 'gemini-' + g.status + (d && d.error && d.error.message ? ': ' + String(d.error.message).slice(0, 100) : ''); continue; }
     try {
       const o = JSON.parse(d.candidates[0].content.parts.map(p => p.text || '').join(''));
       const clean = s => String(s || '').replace(/https?:\/\/\S+|#[^\s#]+|\+?\d[\d\s]{7,}\d/g, '').replace(/المعرض/g, 'محلّنا').replace(/[^.!؟\n]*(البليدة|Blida|المعمل|معملنا|atelier)[^.!؟\n]*[.!؟]?/gi, '').replace(/\s*يدوي(ة)?/g, '').replace(/[ \t]{2,}/g, ' ').trim();
       const cat = cats.some(c => c.k === o.cat) ? o.cat : 'general';
       return json({ ok: true, cat, stoneAr: clean(o.stoneAr).slice(0, 60), detailAr: clean(o.detailAr).slice(0, 80), ar: (o.ar || []).map(clean).filter(Boolean).slice(0, 3), fr: clean(o.fr).slice(0, 400), siteTitle: clean(o.siteTitle).slice(0, 100), fits: o.ok !== false, model: m });
-    } catch (e) { return json({ ok: false, error: 'parse' }, 502); }
+    } catch (e) { last = 'parse'; continue; }
   }
-  return json({ ok: false, error: 'no-model' }, 502);
+  return json({ ok: false, error: rate ? 'rate' : last }, rate ? 429 : 502);
 }

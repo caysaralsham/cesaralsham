@@ -320,12 +320,15 @@ $('sugAi').onclick=async()=>{if(!files.length){toast(kind==='image'?'اختر ا
   try{await hid();if(!SUGC){for(let w=0;w<20&&!SUGC;w++)await sleep(250)}if(!SUGC)throw new Error('تعذر تحميل أنواع الأعمال');
     const imgs=[];if(kind==='image'){for(const x of files.slice(0,3))imgs.push(await smallJpeg(x.f))}else{if(!cover)await autoCover();if(cover)imgs.push(await smallJpeg(cover.blob))}
     if(!imgs.length)throw new Error('تعذر أخذ لقطة من الفيديو');
-    const r=await fetch('/api/ai-post',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+await idTok()},body:JSON.stringify({images:imgs,cats:SUGC.map(c=>({k:c.k,ar:c.ar,fr:c.fr})),kind,temp:sugAi?0.95:0.7})});
-    const j=await r.json().catch(()=>({}));
-    if(!j.ok)throw new Error({login:'سجّل الدخول من جديد','no-key':'مفتاح Gemini غير موجود في Cloudflare',rate:'تجاوزت حد الطلبات — حاول بعد دقيقة','bad-image':'الصورة كبيرة جداً'}[j.error]||j.error||('HTTP '+r.status));
+    const body=JSON.stringify({images:imgs,cats:SUGC.map(c=>({k:c.k,ar:c.ar,fr:c.fr})),kind,temp:sugAi?0.95:0.7});
+    let r,j={};for(let t=0;t<2;t++){try{r=await fetch('/api/ai-post',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+await idTok()},body});j=await r.json().catch(()=>({}))}catch(x){r=null;j={}}
+      if(j.ok||(r&&r.status<500&&r.status!==0))break;if(t===0){sugShow('✨ الخدمة مشغولة — محاولة ثانية…','',true);await sleep(1500)}}
+    if(!j.ok){const em=j.error||'';throw new Error({login:'سجّل الدخول من جديد','no-key':'مفتاح Gemini غير موجود في Cloudflare',rate:'تجاوزت حد الطلبات — حاول بعد دقيقة','bad-image':'الصورة كبيرة جداً'}[em]||(/^gemini-5|timeout|^HTTP 5|^server/.test(em||('HTTP '+(r?r.status:0)))?'خدمة Gemini مشغولة الآن':'')||em||('HTTP '+(r?r.status:'—')))}
     sugAi=j;sugStyle=0;$('sugCat').value=j.cat;await sugMake('✨ كُتب بالذكاء الاصطناعي من الصورة'+(j.fits===false?' — تنبيه: لا يبدو أنها صورة رخام أو حجر':''));
     if(!$('cat').value&&sugCur){const o=[...$('cat').options].find(x=>{if(!x.value||x.value==='__new__')return false;const p=x.value.split('|').map(nmz);const fr=nmz(sugCur.catFr),ar=nmz(sugCur.catAr);return (p[1]&&fr&&(p[1]===fr||fr.includes(p[1])||p[1].includes(fr)))||(p[0]&&ar&&p[0]===ar)});if(o){$('cat').value=o.value;pinAutoBoard();renderWork()}}}
-  catch(e){sugShow('تعذر الاقتراح بالذكاء الاصطناعي: '+(e.message||e),'',false);if(sugCur)$('sugUse').disabled=false}
+  catch(e){const msg=(e.message||e);sugAi=null;sugStyle=0;
+    // بدل ما تبقى الخانة فاضية: اقتراح جاهز من القوالب حسب النوع المختار
+    await sugMake('⚠️ تعذر الذكاء الاصطناعي ('+msg+') — هذا اقتراح من القوالب، غيّر النوع من القائمة أو جرّب ✨ بعد قليل')}
   finally{b.disabled=false}};
 // ---------- «تم النشر» جنب كل منصة: نفس الملفات سبق نشرها عليها بنجاح (من السجل) — حتى ما تكرر ----------
 function filesKey(){return files.length?kind+'|'+files.map(x=>x.hash).join(','):''}
