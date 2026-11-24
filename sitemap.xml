@@ -2,13 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://cesar-alcham.com/</loc>
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://cesar-alcham.com/works</loc>
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <priority>0.9</priority>
+    <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Fnashr%2Fmwuoykpji2adc3-3.jpg?alt=media&amp;token=13a8669c-0305-4b8c-a661-ed4ea78bcf64</image:loc><image:title>ديكورات الحجر والرخام - قيصر الشام للحجر والرخام</image:title></image:image>
+    <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Fnashr%2Fmwuoykpji2adc3-2.jpg?alt=media&amp;token=50531905-8e56-4dda-9b3c-de9552fbd518</image:loc><image:title>ديكورات الحجر والرخام - قيصر الشام للحجر والرخام</image:title></image:image>
     <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Fnashr%2Fmws141p3ptb4fm-4.jpg?alt=media&amp;token=c4c7cf68-ffda-4622-99f9-a7aedcca8560</image:loc><image:title>نافورة رخام - قيصر الشام للحجر والرخام - Fontaines en marbre</image:title></image:image>
     <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Fnashr%2Fmws141p3ptb4fm-3.jpg?alt=media&amp;token=35d683c9-3490-4c00-b221-305e98cbd43f</image:loc><image:title>نافورة رخام - قيصر الشام للحجر والرخام - Fontaines en marbre</image:title></image:image>
     <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Fnashr%2Fmws141p3ptb4fm-2.jpg?alt=media&amp;token=1fb96029-b76f-4999-b356-06958284e527</image:loc><image:title>نافورة رخام - قيصر الشام للحجر والرخام - Fontaines en marbre</image:title></image:image>
@@ -57,12 +59,10 @@
     <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Ffbmvvbumwsle5s.jpg?alt=media&amp;token=ee922739-7165-4fc5-b87a-b3a5f6228634</image:loc><image:title>واجهات منازل حجر بتنفيذ دقيق — موديل 45 - قيصر الشام للحجر والرخام - Façades de maisons en pierre</image:title></image:image>
     <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Ffbmvvbumwsle5s.jpg?alt=media&amp;token=ee922739-7165-4fc5-b87a-b3a5f6228634</image:loc><image:title>واجهات منازل حجر بتنفيذ دقيق — موديل 45 - قيصر الشام للحجر والرخام - Façades de maisons en pierre</image:title></image:image>
     <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Ffbmvvbulzypn50.jpg?alt=media&amp;token=6460d4a1-2700-44ca-a4a4-987086798e86</image:loc><image:title>حوائط رخام منحوتة بقص وتشطيب احترافي — موديل 45 - قيصر الشام للحجر والرخام - Murs en marbre sculpté</image:title></image:image>
-    <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Ffbmvvbulzypn50.jpg?alt=media&amp;token=6460d4a1-2700-44ca-a4a4-987086798e86</image:loc><image:title>حوائط رخام منحوتة بقص وتشطيب احترافي — موديل 45 - قيصر الشام للحجر والرخام - Murs en marbre sculpté</image:title></image:image>
-    <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Ffbmvvbumblq0pv.jpg?alt=media&amp;token=68dadb20-8f13-40d9-a0c8-f2353d63facf</image:loc><image:title>واجهات منازل حجر حسب الطلب — موديل 44 - قيصر الشام للحجر والرخام - Façades de maisons en pierre</image:title></image:image>
   </url>
   <url>
     <loc>https://cesar-alcham.com/videos</loc>
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
@@ -463,6 +463,13 @@
     <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Fmskq9yv9pnreb0-qr-mvpkhhsg.jpg?alt=media&amp;token=13a60099-0b52-4251-ba39-7eacf00bf6bd</image:loc><image:title>مغسلة حمام عصرية من الرخام الأسود الطبيعي بحوض مستطيل وقاع مائل مع ظهرية جدارية - قيصر الشام للحجر والرخام</image:title></image:image>
   </url>
   <url>
+    <loc>https://cesar-alcham.com/a3mal-mnwa</loc>
+    <lastmod>2026-11-24</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Fnashr%2Fmwuoykpji2adc3-3.jpg?alt=media&amp;token=13a8669c-0305-4b8c-a661-ed4ea78bcf64</image:loc><image:title>ديكورات الحجر والرخام - قيصر الشام للحجر والرخام</image:title></image:image>
+    <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Fnashr%2Fmwuoykpji2adc3-2.jpg?alt=media&amp;token=50531905-8e56-4dda-9b3c-de9552fbd518</image:loc><image:title>ديكورات الحجر والرخام - قيصر الشام للحجر والرخام</image:title></image:image>
+  </url>
+  <url>
     <loc>https://cesar-alcham.com/a3mal-fenetres-en-marbre</loc>
     <lastmod>2026-10-30</lastmod>
     <priority>0.8</priority>
@@ -579,17 +586,17 @@
   </url>
   <url>
     <loc>https://cesar-alcham.com/fr/</loc>
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://cesar-alcham.com/fr/works</loc>
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://cesar-alcham.com/fr/videos</loc>
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
@@ -963,6 +970,13 @@
     <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Fmskqbhatl7acsq-qr-mvpkg2bo.jpg?alt=media&amp;token=f20ea82b-bd90-4933-8b23-fa24ced48933</image:loc><image:title>مغسلة رخام طبيعي دائرية مع قاعدة متناسقة تتميز بملمس خشن وعرق أبيض طبيعي ممتد - قيصر الشام للحجر والرخام</image:title></image:image>
     <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Fmskqaya24mnnx0-qr-mvpkgldh.jpg?alt=media&amp;token=3953789e-225d-4759-af70-a6c276a1cd61</image:loc><image:title>مغسلة رخام طبيعي بتصميم مدمج داخل جدار الحمام مع رف سفلي وخلاط جداري أنيق - قيصر الشام للحجر والرخام</image:title></image:image>
     <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Fmskq9yv9pnreb0-qr-mvpkhhsg.jpg?alt=media&amp;token=13a60099-0b52-4251-ba39-7eacf00bf6bd</image:loc><image:title>مغسلة حمام عصرية من الرخام الأسود الطبيعي بحوض مستطيل وقاع مائل مع ظهرية جدارية - قيصر الشام للحجر والرخام</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://cesar-alcham.com/fr/a3mal-mnwa</loc>
+    <lastmod>2026-11-24</lastmod>
+    <priority>0.7</priority>
+    <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Fnashr%2Fmwuoykpji2adc3-3.jpg?alt=media&amp;token=13a8669c-0305-4b8c-a661-ed4ea78bcf64</image:loc><image:title>ديكورات الحجر والرخام - قيصر الشام للحجر والرخام</image:title></image:image>
+    <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/gallery%2Fnashr%2Fmwuoykpji2adc3-2.jpg?alt=media&amp;token=50531905-8e56-4dda-9b3c-de9552fbd518</image:loc><image:title>ديكورات الحجر والرخام - قيصر الشام للحجر والرخام</image:title></image:image>
   </url>
   <url>
     <loc>https://cesar-alcham.com/fr/a3mal-fenetres-en-marbre</loc>
