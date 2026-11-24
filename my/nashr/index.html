@@ -70,6 +70,7 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
 .sug .sa{display:flex;gap:6px;flex-wrap:wrap;padding:0 12px 12px}.sug .sa .btn{padding:8px 12px;font-size:13px}
 .sug .ai{background:linear-gradient(135deg,#2F4F4A,#1F3632)}
 .sug .src{font-size:11px;color:var(--deep);padding:0 12px 10px}
+.ai-cost{font-size:11px;color:#8a7a66;padding:6px 12px 10px;border-top:1px dashed #e6dccb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
 .retry{margin-top:10px;width:100%}
 .upp{margin-top:12px;padding:10px 12px;border-radius:12px;background:#FDF0D5;color:var(--run);font-weight:800;font-size:13.5px;border:1px solid #F0D9A8}
 .p-wait{background:#EEE6D9;color:#6E4524}.p-run{background:#FDF0D5;color:var(--run)}.p-ok{background:#DDF1E5;color:var(--ok)}.p-bad{background:#F8DEDA;color:var(--bad)}.p-skip{background:#EAEAEA;color:#555}
@@ -165,6 +166,7 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
         <div class="sb ld" id="sugBody">جارٍ تجهيز الاقتراح…</div>
         <div class="src" id="sugSrc"></div>
         <div class="sa"><button type="button" class="btn" id="sugUse">✅ استخدم هذا النص</button><button type="button" class="btn ghost" id="sugNext">🔄 اقتراح آخر</button><button type="button" class="btn ai" id="sugAi">✨ اقتراح بالذكاء الاصطناعي</button></div>
+        <div class="ai-cost" id="aiCost" dir="rtl"></div>
       </div>
       <iframe id="siyHid" title="" aria-hidden="true" tabindex="-1" style="position:absolute;width:1px;height:1px;border:0;opacity:0;pointer-events:none;inset-inline-start:-9999px"></iframe>
       <textarea id="text" placeholder="اكتب نص المنشور هنا… (يمكنك تخصيصه لكل منصة في الخطوة 4)"></textarea><div class="cnt" data-for="text"></div>
@@ -315,6 +317,17 @@ $('sugUse').onclick=()=>{if(!sugCur)return;const d=sugCur;try{localStorage.setIt
   applySiy({type:'siyagha',pick:true,stay:true,kind,fb:d.fb,ig:d.ig,tt:d.tt,pin:d.pin,site:d.site,catAr:d.catAr,catFr:d.catFr,yt:d.yt});
   $('sug').hidden=true;toast('تم وضع النص لكل المنصات — عدّله في الخانة إن أردت');try{$('text').focus({preventScroll:true})}catch(e){}};
 async function smallJpeg(src){const bmp=await createImageBitmap(src);const s=Math.min(1,640/Math.max(bmp.width,bmp.height));const c=document.createElement('canvas');c.width=Math.round(bmp.width*s);c.height=Math.round(bmp.height*s);c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.78).split(',')[1]}
+// ---------- كلفة الذكاء الاصطناعي باليورو (تقريبية، من عدد الوحدات اللي بترجعها Google) ----------
+// Gemini 3.8 Flash: سعر تعريفي حتى 31-12-2026 ثم السعر العادي. الدولار → اليورو بسعر ثابت تقريبي.
+const AI_USD_EUR=0.86;
+function aiPrice(m){const late=Date.now()>=Date.UTC(2027,0,1);if(/2\.5-flash/.test(m||''))return {i:0.30,o:2.50};return late?{i:1.5,o:7.5}:{i:0.75,o:3.75}}
+function aiCostEur(u,m){if(!u)return 0;const p=aiPrice(m);return ((u.inT||0)*p.i+(u.outT||0)*p.o)/1e6*AI_USD_EUR}
+const eur=v=>(v<0.01?v.toFixed(4):v.toFixed(3))+' €';
+function aiCostShow(last){const k='nashr_aicost_'+new Date().toISOString().slice(0,7);let t={sum:0,n:0};try{t=JSON.parse(localStorage.getItem(k)||'{"sum":0,"n":0}')}catch(e){}
+  if(last!=null){t.sum+=last;t.n++;try{localStorage.setItem(k,JSON.stringify(t))}catch(e){}}
+  const el=$('aiCost');if(!el)return;const parts=[];if(last!=null)parts.push('كلفة هذا الاقتراح: '+eur(last));
+  if(t.n)parts.push('مجموع هذا الشهر: '+eur(t.sum)+' ('+t.n+' اقتراح)');el.textContent=parts.join(' · ');el.hidden=!parts.length}
+aiCostShow(null);
 $('sugAi').onclick=async()=>{if(!files.length){toast(kind==='image'?'اختر الصور أولاً':'اختر الفيديو أولاً');return}const b=$('sugAi');if(b.disabled)return;b.disabled=true;
   sugShow('✨ الذكاء الاصطناعي يشاهد '+(kind==='image'?'الصورة':'لقطة الفيديو')+' ويكتب النص…','',true);
   try{await hid();if(!SUGC){for(let w=0;w<20&&!SUGC;w++)await sleep(250)}if(!SUGC)throw new Error('تعذر تحميل أنواع الأعمال');
@@ -324,6 +337,7 @@ $('sugAi').onclick=async()=>{if(!files.length){toast(kind==='image'?'اختر ا
     let r,j={};for(let t=0;t<2;t++){try{r=await fetch('/api/ai-post',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+await idTok()},body});j=await r.json().catch(()=>({}))}catch(x){r=null;j={}}
       if(j.ok||(r&&r.status<500&&r.status!==0))break;if(t===0){sugShow('✨ الخدمة مشغولة — محاولة ثانية…','',true);await sleep(1500)}}
     if(!j.ok){const em=j.error||'';throw new Error({login:'سجّل الدخول من جديد','no-key':'مفتاح Gemini غير موجود في Cloudflare',rate:'تجاوزت حد الطلبات — حاول بعد دقيقة',credits:'رصيد Gemini خلص — اشحنه من AI Studio','bad-image':'الصورة كبيرة جداً'}[em]||(/^gemini-5|timeout|^HTTP 5|^server/.test(em||('HTTP '+(r?r.status:0)))?'خدمة Gemini مشغولة الآن':'')||em||('HTTP '+(r?r.status:'—')))}
+    try{aiCostShow(aiCostEur(j.usage,j.model))}catch(e){}
     sugAi=j;sugStyle=0;$('sugCat').value=j.cat;await sugMake('✨ كُتب بالذكاء الاصطناعي من الصورة'+(j.fits===false?' — تنبيه: لا يبدو أنها صورة رخام أو حجر':''));
     if(!$('cat').value&&sugCur){const o=[...$('cat').options].find(x=>{if(!x.value||x.value==='__new__')return false;const p=x.value.split('|').map(nmz);const fr=nmz(sugCur.catFr),ar=nmz(sugCur.catAr);return (p[1]&&fr&&(p[1]===fr||fr.includes(p[1])||p[1].includes(fr)))||(p[0]&&ar&&p[0]===ar)});if(o){$('cat').value=o.value;pinAutoBoard();renderWork()}}}
   catch(e){const msg=(e.message||e);sugAi=null;sugStyle=0;

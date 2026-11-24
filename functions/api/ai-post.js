@@ -93,7 +93,7 @@ ${cats.filter(c => c.k !== 'machine').map(c => c.k + ' = ' + c.ar + ' / ' + c.fr
       const o = JSON.parse(d.candidates[0].content.parts.map(p => p.text || '').join(''));
       const clean = s => String(s || '').replace(/https?:\/\/\S+|#[^\s#]+|\+?\d[\d\s]{7,}\d/g, '').replace(/المعرض/g, 'محلّنا').replace(/[^.!؟\n]*(البليدة|Blida|المعمل|معملنا|atelier)[^.!؟\n]*[.!؟]?/gi, '').replace(/\s*يدوي(ة)?/g, '').replace(/[ \t]{2,}/g, ' ').trim();
       const cat = cats.some(c => c.k === o.cat) ? o.cat : 'general';
-      return json({ ok: true, cat, stoneAr: clean(o.stoneAr).slice(0, 60), detailAr: clean(o.detailAr).slice(0, 80), ar: (o.ar || []).map(clean).filter(Boolean).slice(0, 3), fr: clean(o.fr).slice(0, 400), siteTitle: clean(o.siteTitle).slice(0, 100), fits: o.ok !== false, model: m });
+      return json({ ok: true, cat, stoneAr: clean(o.stoneAr).slice(0, 60), detailAr: clean(o.detailAr).slice(0, 80), ar: (o.ar || []).map(clean).filter(Boolean).slice(0, 3), fr: clean(o.fr).slice(0, 400), siteTitle: clean(o.siteTitle).slice(0, 100), fits: o.ok !== false, model: m, usage: { inT: (d.usageMetadata && d.usageMetadata.promptTokenCount) || 0, outT: ((d.usageMetadata && d.usageMetadata.candidatesTokenCount) || 0) + ((d.usageMetadata && d.usageMetadata.thoughtsTokenCount) || 0) } });
     } catch (e) { last = 'parse'; continue; }
   }
   return json({ ok: false, error: rate ? 'rate' : last }, rate ? 429 : 502);
