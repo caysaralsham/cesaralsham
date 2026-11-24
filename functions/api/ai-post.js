@@ -52,20 +52,6 @@ export async function onRequest(ctx) {
 }
 
 async function handle({ request, env }) {
-  // فحص سريع: /api/ai-post?diag=1 — بيجرب كل موديل بطلب صغير جداً وبيرجع النتيجة (بدون المفتاح)
-  if (request.method === 'GET' && new URL(request.url).searchParams.get('diag') === '1') {
-    const key = env.GEMINI_API_KEY; if (!key) return json({ ok: false, error: 'no-key' });
-    const out = [];
-    for (const m of (env.GEMINI_MODEL ? [env.GEMINI_MODEL, ...MODELS] : MODELS)) {
-      const t0 = Date.now();
-      try {
-        const g = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': key }, body: JSON.stringify({ contents: [{ parts: [{ text: 'قل: نعم' }] }], generationConfig: { maxOutputTokens: 5 } }), signal: AbortSignal.timeout(20000) });
-        const d = await g.json().catch(() => ({}));
-        out.push({ m, st: g.status, ms: Date.now() - t0, err: d.error ? String(d.error.status || '') + ' ' + String(d.error.message || '').slice(0, 160) : '' });
-      } catch (e) { out.push({ m, st: 0, ms: Date.now() - t0, err: String(e && e.message || e).slice(0, 100) }); }
-    }
-    return json({ ok: true, envModel: env.GEMINI_MODEL || '', out });
-  }
   if (request.method !== 'POST') return json({ ok: false, error: 'post-only' }, 405);
   if (!(await verifyUser(request, env))) return json({ ok: false, error: 'login' }, 401);
   const key = env.GEMINI_API_KEY; if (!key) return json({ ok: false, error: 'no-key' }, 503);
@@ -100,6 +86,7 @@ ${cats.filter(c => c.k !== 'machine').map(c => c.k + ' = ' + c.ar + ' / ' + c.fr
       d = await g.json().catch(() => ({}));
     } catch (e) { last = 'gemini-timeout'; continue; }
     if (g.status === 404) continue;
+    if (g.status === 402) return json({ ok: false, error: 'credits' }, 402);   // رصيد Gemini المدفوع مسبقاً خلص
     if (g.status === 429) { rate = true; last = 'rate'; continue; }
     if (!g.ok) { last = 'gemini-' + g.status + (d && d.error && d.error.message ? ': ' + String(d.error.message).slice(0, 100) : ''); continue; }
     try {
