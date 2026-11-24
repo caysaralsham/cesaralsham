@@ -17,7 +17,8 @@ main{max-width:960px;margin:0 auto;padding:6px 16px 14px}.grp{margin-top:14px}.g
 .lead .card{background:#FFFBF4;border-color:#DCC39E}.lead h2{color:var(--ink);font-size:15px}
 .find{display:flex;align-items:center;gap:8px;max-width:420px;margin:10px auto 0;background:#FBF6EE;border:1.5px solid var(--line);border-radius:999px;padding:0 14px;color:var(--deep)}.find:focus-within{border-color:var(--br)}.find svg{width:17px;height:17px;flex:none}
 .find input{flex:1;min-width:0;font:inherit;font-weight:600;font-size:14px;border:0;background:transparent;padding:9px 0;color:var(--ink);outline:none}.find input::placeholder{color:#A88B6A}
-#none{text-align:center;color:var(--deep);font-weight:600;margin:24px 0}.grp[hidden],.card[hidden]{display:none}
+#none{text-align:center;color:var(--deep);font-weight:600;margin:24px 0}
+#aiUse{text-align:center;color:var(--deep);opacity:.75;font-size:12px;margin:18px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}.grp[hidden],.card[hidden]{display:none}
 @media(max-width:340px){.grid{grid-template-columns:1fr}}
 #login{max-width:360px;margin:30px auto;padding:20px 16px;background:#FBF6EE;border:1.5px solid var(--line);border-radius:16px;display:none}
 #login label{display:block;font-weight:800;font-size:13px;margin:10px 0 4px}#login input{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#F5ECDD}
@@ -47,6 +48,7 @@ main{max-width:960px;margin:0 auto;padding:6px 16px 14px}.grp{margin-top:14px}.g
 <a class="card" href="/my/maamal/" data-k="المعمل البليدة محاسبة"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21V10l6 4V10l6 4V6h6v15z"/><path d="M7 17h2M12 17h2M17 17h2"/></svg></i><b>محاسبة المعمل</b><small>حسابات المعمل</small></a>
 </div></section>
 <p id="none" hidden>ما في أداة بهالاسم</p>
+<p id="aiUse" hidden></p>
 </main><button id="out">تسجيل خروج</button>
 <script>
 // السرعة: إذا كنت داخل من قبل، القائمة بتبين فوراً بدون ما تستنى Firebase يحمّل (التأكد بيصير بالخلفية)
@@ -63,6 +65,11 @@ A.onAuthStateChanged(u=>{L.style.display=u?'none':'block';M.style.display=u?'blo
 L.addEventListener('submit',async e=>{e.preventDefault();const er=document.getElementById('err');er.textContent='';
   try{await A.signInWithEmailAndPassword(document.getElementById('em').value.trim(),document.getElementById('pw').value)}catch(x){er.textContent='البريد الإلكتروني أو كلمة السر غير صحيحة'}});
 O.onclick=()=>A.signOut();
+// سطر صغير تحت: عدد اقتراحات الذكاء الاصطناعي هذا الشهر وكلفتها (من كل الأجهزة)
+A.onAuthStateChanged(async u=>{const el=document.getElementById('aiUse');if(!u){el.hidden=true;return}
+  try{const r=await fetch('/api/ai-post?stats=1',{headers:{authorization:'Bearer '+await u.getIdToken()}});const d=await r.json();if(!d.ok)return;
+    const e=d.eur<0.01?d.eur.toFixed(4):d.eur.toFixed(3);
+    el.textContent='الذكاء الاصطناعي هذا الشهر: '+d.n+' اقتراح، الكلفة '+e+' €';el.hidden=false}catch(x){}});
 });
 </script><script src="/js/my-back.js" defer></script>
 <script id="hub-extra">

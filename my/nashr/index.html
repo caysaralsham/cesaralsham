@@ -322,8 +322,8 @@ const AI_USD_EUR=0.86;
 function aiPrice(m){const late=Date.now()>=Date.UTC(2027,0,1);if(/2\.5-flash/.test(m||''))return {i:0.30,o:2.50};return late?{i:1.5,o:7.5}:{i:0.75,o:3.75}}
 function aiCostEur(u,m){if(!u)return 0;const p=aiPrice(m);return ((u.inT||0)*p.i+(u.outT||0)*p.o)/1e6*AI_USD_EUR}
 const eur=v=>(v<0.01?v.toFixed(4):v.toFixed(3))+' €';
-function aiCostShow(last){const k='nashr_aicost_'+new Date().toISOString().slice(0,7);let t={sum:0,n:0};try{t=JSON.parse(localStorage.getItem(k)||'{"sum":0,"n":0}')}catch(e){}
-  if(last!=null){t.sum+=last;t.n++;try{localStorage.setItem(k,JSON.stringify(t))}catch(e){}}
+function aiCostShow(last,srv){const k='nashr_aicost_'+new Date().toISOString().slice(0,7);let t={sum:0,n:0};try{t=JSON.parse(localStorage.getItem(k)||'{"sum":0,"n":0}')}catch(e){}
+  if(srv&&srv.n){t={sum:srv.eur,n:srv.n};try{localStorage.setItem(k,JSON.stringify(t))}catch(e){}}else if(last!=null){t.sum+=last;t.n++;try{localStorage.setItem(k,JSON.stringify(t))}catch(e){}}
   const el=$('aiCost');if(!el)return;const parts=[];if(last!=null)parts.push('كلفة هذا الاقتراح: '+eur(last));
   if(t.n)parts.push('مجموع هذا الشهر: '+eur(t.sum)+' ('+t.n+' اقتراح)');el.textContent=parts.join(' · ');el.hidden=!parts.length}
 aiCostShow(null);
@@ -336,7 +336,7 @@ $('sugAi').onclick=async()=>{if(!files.length){toast(kind==='image'?'اختر ا
     let r,j={};for(let t=0;t<2;t++){try{r=await fetch('/api/ai-post',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+await idTok()},body});j=await r.json().catch(()=>({}))}catch(x){r=null;j={}}
       if(j.ok||(r&&r.status<500&&r.status!==0))break;if(t===0){sugShow('✨ الخدمة مشغولة — محاولة ثانية…','',true);await sleep(1500)}}
     if(!j.ok){const em=j.error||'';throw new Error({login:'سجّل الدخول من جديد','no-key':'مفتاح Gemini غير موجود في Cloudflare',rate:'تجاوزت حد الطلبات — حاول بعد دقيقة',credits:'رصيد Gemini خلص — اشحنه من AI Studio','bad-image':'الصورة كبيرة جداً'}[em]||(/^gemini-5|timeout|^HTTP 5|^server/.test(em||('HTTP '+(r?r.status:0)))?'خدمة Gemini مشغولة الآن':'')||em||('HTTP '+(r?r.status:'—')))}
-    try{aiCostShow(aiCostEur(j.usage,j.model))}catch(e){}
+    try{aiCostShow(j.cost?j.cost.eur:aiCostEur(j.usage,j.model),j.cost&&j.cost.month)}catch(e){}
     sugAi=j;sugStyle=0;$('sugCat').value=j.cat;await sugMake('✨ كُتب بالذكاء الاصطناعي من الصورة'+(j.fits===false?' — تنبيه: لا يبدو أنها صورة رخام أو حجر':''));
     if(!$('cat').value&&sugCur){const o=[...$('cat').options].find(x=>{if(!x.value||x.value==='__new__')return false;const p=x.value.split('|').map(nmz);const fr=nmz(sugCur.catFr),ar=nmz(sugCur.catAr);return (p[1]&&fr&&(p[1]===fr||fr.includes(p[1])||p[1].includes(fr)))||(p[0]&&ar&&p[0]===ar)});if(o){$('cat').value=o.value;pinAutoBoard();renderWork()}}}
   catch(e){const msg=(e.message||e);sugAi=null;sugStyle=0;

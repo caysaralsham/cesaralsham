@@ -40,6 +40,13 @@ function b64(buf) { const u = new Uint8Array(buf); let s = ''; for (let i = 0; i
 
 
 
+// ---- عدّاد الكلفة الشهري (كل الأجهزة) بمخزن SOCIAL_KV: عدد الاقتراحات وكلفتها التقريبية باليورو ----
+const USD_EUR = 0.86;
+function priceOf(m) { if (/2\.5-flash/.test(m || '')) return { i: 0.30, o: 2.50 }; return Date.now() >= Date.UTC(2027, 0, 1) ? { i: 1.5, o: 7.5 } : { i: 0.75, o: 3.75 }; }
+const monthKey = () => 'aicost:' + new Date(Date.now() + 3600e3).toISOString().slice(0, 7);   // توقيت الجزائر
+async function readStats(env) { try { return JSON.parse(await env.SOCIAL_KV.get(monthKey()) || 'null') || { n: 0, eur: 0 }; } catch (e) { return { n: 0, eur: 0 }; } }
+async function addCost(env, eur) { if (!env.SOCIAL_KV) return null; const st = await readStats(env); st.n++; st.eur = Math.round((st.eur + eur) * 1e6) / 1e6; try { await env.SOCIAL_KV.put(monthKey(), JSON.stringify(st)); } catch (e) {} return st; }
+
 const SCHEMA = { type: 'OBJECT', properties: {
   cat: { type: 'STRING' }, stoneAr: { type: 'STRING' }, detailAr: { type: 'STRING' },
   ar: { type: 'ARRAY', items: { type: 'STRING' } }, fr: { type: 'STRING' }, siteTitle: { type: 'STRING' }, ok: { type: 'BOOLEAN' } },
@@ -52,6 +59,12 @@ export async function onRequest(ctx) {
 }
 
 async function handle({ request, env }) {
+  // GET /api/ai-post?stats=1 — عدد اقتراحات الشهر وكلفتها (لأدواتي)
+  if (request.method === 'GET' && new URL(request.url).searchParams.get('stats') === '1') {
+    if (!(await verifyUser(request, env))) return json({ ok: false, error: 'login' }, 401);
+    const st = env.SOCIAL_KV ? await readStats(env) : { n: 0, eur: 0 };
+    return json({ ok: true, month: monthKey().slice(7), n: st.n, eur: st.eur });
+  }
   if (request.method !== 'POST') return json({ ok: false, error: 'post-only' }, 405);
   if (!(await verifyUser(request, env))) return json({ ok: false, error: 'login' }, 401);
   const key = env.GEMINI_API_KEY; if (!key) return json({ ok: false, error: 'no-key' }, 503);
@@ -93,7 +106,10 @@ ${cats.filter(c => c.k !== 'machine').map(c => c.k + ' = ' + c.ar + ' / ' + c.fr
       const o = JSON.parse(d.candidates[0].content.parts.map(p => p.text || '').join(''));
       const clean = s => String(s || '').replace(/https?:\/\/\S+|#[^\s#]+|\+?\d[\d\s]{7,}\d/g, '').replace(/المعرض/g, 'محلّنا').replace(/[^.!؟\n]*(البليدة|Blida|المعمل|معملنا|atelier)[^.!؟\n]*[.!؟]?/gi, '').replace(/\s*يدوي(ة)?/g, '').replace(/[ \t]{2,}/g, ' ').trim();
       const cat = cats.some(c => c.k === o.cat) ? o.cat : 'general';
-      return json({ ok: true, cat, stoneAr: clean(o.stoneAr).slice(0, 60), detailAr: clean(o.detailAr).slice(0, 80), ar: (o.ar || []).map(clean).filter(Boolean).slice(0, 3), fr: clean(o.fr).slice(0, 400), siteTitle: clean(o.siteTitle).slice(0, 100), fits: o.ok !== false, model: m, usage: { inT: (d.usageMetadata && d.usageMetadata.promptTokenCount) || 0, outT: ((d.usageMetadata && d.usageMetadata.candidatesTokenCount) || 0) + ((d.usageMetadata && d.usageMetadata.thoughtsTokenCount) || 0) } });
+      const um = d.usageMetadata || {}, inT = um.promptTokenCount || 0, outT = (um.candidatesTokenCount || 0) + (um.thoughtsTokenCount || 0);
+      const pr = priceOf(m), eur = (inT * pr.i + outT * pr.o) / 1e6 * USD_EUR;
+      const month = await addCost(env, eur);
+      return json({ ok: true, cost: { eur, month }, cat, stoneAr: clean(o.stoneAr).slice(0, 60), detailAr: clean(o.detailAr).slice(0, 80), ar: (o.ar || []).map(clean).filter(Boolean).slice(0, 3), fr: clean(o.fr).slice(0, 400), siteTitle: clean(o.siteTitle).slice(0, 100), fits: o.ok !== false, model: m, usage: { inT: (d.usageMetadata && d.usageMetadata.promptTokenCount) || 0, outT: ((d.usageMetadata && d.usageMetadata.candidatesTokenCount) || 0) + ((d.usageMetadata && d.usageMetadata.thoughtsTokenCount) || 0) } });
     } catch (e) { last = 'parse'; continue; }
   }
   return json({ ok: false, error: rate ? 'rate' : last }, rate ? 429 : 502);
