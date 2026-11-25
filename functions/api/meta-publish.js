@@ -129,6 +129,20 @@ export async function onRequest({ request, env }) {
     }
     return json({ ok: true, res });
   }
+  if (Array.isArray(b.deleteVideos)) { // حذف فيديوهات/ريلز الصفحة بمعرّف الفيديو (للصفحة فقط)
+    let I; try { I = await ids(token, env); } catch (e) { return json({ ok: false, error: String(e.message || e) }); }
+    const res = {};
+    for (const vid of b.deleteVideos.slice(0, 10)) {
+      try { if (!/^\d+$/.test(String(vid))) throw new Error('bad-id');
+        const v = await gget(`${vid}?fields=from,created_time,length`, I.token);
+        if (!v.from || String(v.from.id) !== String(I.pageId)) throw new Error('not-page');
+        if (b.dry) { res[vid] = { ok: true, dry: true, created: v.created_time, len: v.length }; continue; }
+        const r = await fetch(`https://graph.facebook.com/v21.0/${vid}?access_token=${encodeURIComponent(I.token)}`, { method: 'DELETE' });
+        const d = await r.json().catch(() => ({})); res[vid] = { ok: !!d.success, error: d.error ? d.error.message : undefined };
+      } catch (e) { res[vid] = { ok: false, error: String(e.message || e) }; }
+    }
+    return json({ ok: true, res });
+  }
   const items = (Array.isArray(b.items) ? b.items : []).filter(x => x && ALLOW.test(String(x.url)) && /^(image|video)$/.test(x.type));
   if (!items.length) return json({ ok: false, error: 'no-media' }, 400);
   // نسخة إنستغرام المصحّحة المقاس (إن وُجدت) — وإلا نفس الملفات
