@@ -76,6 +76,6 @@ footer{background:#2A190D;color:#C9B08F;text-align:center;padding:24px;font-size
 <script>document.querySelectorAll('a.lb').forEach(a=>a.addEventListener('click',e=>{if(!window.Album)return;e.preventDefault();const f=a.closest('figure');let al=null;try{al=JSON.parse(f.dataset.al||'null')}catch(_){}
 const pics=(al||[[a.getAttribute('href'),a.querySelector('img').alt]]).map(p=>({src:p[0],alt:p[1]})),name=f.dataset.work||'',wa=s=>'https://wa.me/213541737888?text='+encodeURIComponent("السلام عليكم، أريد معرفة سعر هذا العمل: "+name+'\n'+new URL(s,location.href).href);
 Album.open({pics,cap:name,price:{label:"💬 اطلب السعر على واتساب",base:wa(pics[0].src),href:wa}})}));</script>
-<script src="/js/album.js" defer></script><script src="/js/my-back.js" defer></script><script src="/js/wa-count.js" defer></script><script src="/js/review-cta.js" defer></script>
-<script src="/js/gads.js" defer></script></body>
+<script src="/js/album.js" defer></script><script src="/js/my-back.js" defer></script><script src="/js/wa-count.js" defer></script><script src="/js/gads.js" defer></script><script src="/js/review-cta.js" defer></script>
+</body>
 </html>
