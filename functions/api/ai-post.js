@@ -73,12 +73,13 @@ async function handle({ request, env }) {
   if (!imgs.length || imgs.some(x => x.length > 400000)) return json({ ok: false, error: 'bad-image' }, 400);
   const cats = (Array.isArray(b.cats) ? b.cats : []).slice(0, 40).map(c => ({ k: String(c.k || '').slice(0, 30), ar: String(c.ar || '').slice(0, 60), fr: String(c.fr || '').slice(0, 60) })).filter(c => c.k);
   if (!cats.length) return json({ ok: false, error: 'no-cats' }, 400);
+  const force = cats.find(c => c.k === String(b.cat || '') && c.k !== 'general');
   const hint = String(b.hint || '').slice(0, 300), kind = b.kind === 'video' ? 'فيديو (هذه لقطات من بدايته ووسطه ونهايته — صف العمل كما يظهر في الفيديو، ولو فيه ماء يجري اذكر حركة الماء)' : 'صور';
   const prompt = `أنت كاتب تسويق لشركة «قيصر الشام للحجر والرخام» بالجزائر (دالي إبراهيم). المنشور ${kind}.
 انظر إلى الصورة وصف الشغل الظاهر فيها بدقة، بلا اختراع.
-- cat: اختر مفتاح نوع العمل (k) من هذه القائمة بالضبط:
+${force ? `- نوع العمل محدد من صاحب الشغل: «${force.ar} / ${force.fr}». اكتب cat = ${force.k} بالضبط، واكتب كل النص عن هذا النوع بالاسم (${force.ar})، ولا تسمّيه باسم نوع آخر.` : `- cat: اختر مفتاح نوع العمل (k) من هذه القائمة بالضبط:
 ${cats.filter(c => c.k !== 'machine').map(c => c.k + ' = ' + c.ar + ' / ' + c.fr).join('\n')}
-  إذا ما في نوع مناسب اكتب general.
+  إذا ما في نوع مناسب اكتب general.`}
 - stoneAr: اللون أو نوع الحجر بكلمتين أو ثلاث (مثال: رخام أبيض كرارا، حجر بيج). فاضي إذا مش واضح.
 - detailAr: تفصيلة مميزة بـ 2 لـ 6 كلمات (مثال: بزخارف نباتية منحوتة). فاضي إذا ما في.
 - ar: من سطرين إلى ثلاثة أسطر بالعربية الفصحى البسيطة: الأول جملة تشدّ الانتباه مع إيموجي واحد، والباقي يصف القطعة الظاهرة وفائدتها للزبون.
@@ -105,7 +106,7 @@ ${cats.filter(c => c.k !== 'machine').map(c => c.k + ' = ' + c.ar + ' / ' + c.fr
     try {
       const o = JSON.parse(d.candidates[0].content.parts.map(p => p.text || '').join(''));
       const clean = s => String(s || '').replace(/https?:\/\/\S+|#[^\s#]+|\+?\d[\d\s]{7,}\d/g, '').replace(/المعرض/g, 'محلّنا').replace(/[^.!؟\n]*(البليدة|Blida|المعمل|معملنا|atelier)[^.!؟\n]*[.!؟]?/gi, '').replace(/\s*يدوي(ة)?/g, '').replace(/[ \t]{2,}/g, ' ').trim();
-      const cat = cats.some(c => c.k === o.cat) ? o.cat : 'general';
+      const cat = force ? force.k : (cats.some(c => c.k === o.cat) ? o.cat : 'general');
       const um = d.usageMetadata || {}, inT = um.promptTokenCount || 0, outT = (um.candidatesTokenCount || 0) + (um.thoughtsTokenCount || 0);
       const pr = priceOf(m), eur = (inT * pr.i + outT * pr.o) / 1e6 * USD_EUR;
       const month = await addCost(env, eur);

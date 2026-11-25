@@ -179,6 +179,7 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
       <button type="button" class="btn ghost" id="siyBtn" style="width:100%;margin-bottom:10px">✍️ صياغة النص تلقائياً — اختر نوع العمل والأسلوب</button>
       <div class="sug" id="sug" hidden aria-live="polite">
         <div class="sh"><b>💡 اقتراح نص</b><select id="sugCat" aria-label="نوع العمل"></select></div>
+        <div class="src" style="margin:0 0 6px">اختر نوع العمل من القائمة قبل ✨ ليكتب الذكاء الاصطناعي عنه بالضبط (شلال، تابلو…)</div>
         <div class="sb ld" id="sugBody">جارٍ تجهيز الاقتراح…</div>
         <div class="src" id="sugSrc"></div>
         <div class="sa"><button type="button" class="btn" id="sugUse">✅ استخدم هذا النص</button><button type="button" class="btn ghost" id="sugNext">🔄 اقتراح آخر</button><button type="button" class="btn ai" id="sugAi">✨ اقتراح بالذكاء الاصطناعي</button></div>
@@ -310,7 +311,7 @@ function applySiy(d){
   if(d.yt&&d.yt.title)$('vTitle').value=d.yt.title;
   render();counts();if(!d.stay){window.scrollTo({top:0,behavior:'smooth'});toast('تم وضع النصوص لكل المنصات — اختر الملفات والمنصات ثم انشر')}}
 // ---------- اقتراح نص تلقائي عند إضافة صورة أو فيديو (من قوالب الصياغة) + اختيارياً بالذكاء الاصطناعي (يشوف الصورة) ----------
-const siyHid=$('siyHid');let hidP=null,SUGC=null,sugSeq=0,sugCur=null,sugAi=null,sugStyle=0,sugFor='';const sugWait={};
+const siyHid=$('siyHid');let hidP=null,sugCatSet=false,SUGC=null,sugSeq=0,sugCur=null,sugAi=null,sugStyle=0,sugFor='';const sugWait={};
 function hid(){if(!hidP)hidP=new Promise(res=>{siyHid.onload=()=>{siyHid.contentWindow.postMessage({type:'siy-cats'},location.origin);res()};siyHid.src='/my/tasweeq/?embed=1&pick=1&hid=1'});return hidP}
 function sugMsg(d){if(d.type==='siy-cats'){SUGC=d.cats||[];fillSugCat();return}const w=sugWait[d.id];if(w){delete sugWait[d.id];w(d)}}
 async function sugBuild(q){await hid();const id=++sugSeq;return await new Promise((res,rej)=>{sugWait[id]=res;siyHid.contentWindow.postMessage({type:'siy-build',id,...q},location.origin);setTimeout(()=>{if(sugWait[id]){delete sugWait[id];rej(new Error('انتهت المهلة'))}},20000)})}
@@ -326,8 +327,8 @@ async function sugMake(src){sugCur=null;sugShow(sugAi?'✨ جارٍ الصياغ
     if(d.error)throw new Error(d.error);if(sugAi&&sugAi.siteTitle)d.site=sugAi.siteTitle;sugCur=d;$('sugCat').value=d.cat;
     sugShow(d.fb,src||(sugAi?'✨ كُتب بالذكاء الاصطناعي من '+(kind==='image'?'الصورة':'الفيديو')+' — النوع: '+d.catAr:'💡 اقتراح من القوالب — النوع: '+d.catAr+'. غيّر النوع من القائمة إن لم يكن صحيحاً'))}
   catch(e){sugShow('تعذر تجهيز الاقتراح: '+(e.message||e)+' — استعمل «صياغة النص تلقائياً» في الأعلى','',false)}}
-function sugAuto(){const fk=filesKey();if(!fk){$('sug').hidden=true;sugFor='';return}if(fk===sugFor)return;sugFor=fk;if($('text').value.trim()){sugCur=null;sugShow('عندك نص مكتوب — اضغط ✨ «اقتراح بالذكاء الاصطناعي» إن أردت نصاً جديداً من '+(kind==='image'?'الصور':'الفيديو'),'',false);return}sugAi=null;sugStyle=0;sugMake()}
-$('sugCat').onchange=()=>{try{localStorage.setItem('nashr_sugcat',$('sugCat').value)}catch(e){}sugMake()};
+function sugAuto(){const fk=filesKey();if(!fk){$('sug').hidden=true;sugFor='';return}if(fk===sugFor)return;sugFor=fk;sugCatSet=false;if($('text').value.trim()){sugCur=null;sugShow('عندك نص مكتوب — اضغط ✨ «اقتراح بالذكاء الاصطناعي» إن أردت نصاً جديداً من '+(kind==='image'?'الصور':'الفيديو'),'',false);return}sugAi=null;sugStyle=0;sugMake()}
+$('sugCat').onchange=()=>{sugCatSet=$('sugCat').value!=='general';try{localStorage.setItem('nashr_sugcat',$('sugCat').value)}catch(e){}if(sugAi&&sugCatSet&&sugAi.cat!==$('sugCat').value)sugAi=null;sugMake()};
 $('sugNext').onclick=()=>{sugStyle=(sugStyle+1)%4;sugMake()};
 $('sugUse').onclick=()=>{if(!sugCur)return;const d=sugCur;try{localStorage.setItem('nashr_sugcat',d.cat)}catch(e){}
   applySiy({type:'siyagha',pick:true,stay:true,kind,fb:d.fb,ig:d.ig,tt:d.tt,pin:d.pin,site:d.site,catAr:d.catAr,catFr:d.catFr,yt:d.yt});
@@ -356,12 +357,12 @@ $('sugAi').onclick=async()=>{if(!files.length){toast(kind==='image'?'اختر ا
   try{await hid();if(!SUGC){for(let w=0;w<20&&!SUGC;w++)await sleep(250)}if(!SUGC)throw new Error('تعذر تحميل أنواع الأعمال');
     const imgs=[];if(kind==='image'){for(const x of files.slice(0,3))imgs.push(await smallJpeg(x.f))}else{try{imgs.push(...await vidFrames(files[0]))}catch(e){}if(!imgs.length){if(!cover)await autoCover();if(cover)imgs.push(await smallJpeg(cover.blob))}}
     if(!imgs.length)throw new Error('تعذر أخذ لقطة من الفيديو');
-    const body=JSON.stringify({images:imgs,cats:SUGC.map(c=>({k:c.k,ar:c.ar,fr:c.fr})),kind,temp:sugAi?0.95:0.7});
+    const fc=sugCatSet?$('sugCat').value:'';const body=JSON.stringify({images:imgs,cats:SUGC.map(c=>({k:c.k,ar:c.ar,fr:c.fr})),kind,temp:sugAi?0.95:0.7,...(fc?{cat:fc}:{})});
     let r,j={};for(let t=0;t<2;t++){try{r=await fetch('/api/ai-post',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+await idTok()},body});j=await r.json().catch(()=>({}))}catch(x){r=null;j={}}
       if(j.ok||(r&&r.status<500&&r.status!==0))break;if(t===0){sugShow('✨ الخدمة مشغولة — محاولة ثانية…','',true);await sleep(1500)}}
     if(!j.ok){const em=j.error||'';throw new Error({login:'سجّل الدخول من جديد','no-key':'مفتاح Gemini غير موجود في Cloudflare',rate:'تجاوزت حد الطلبات — حاول بعد دقيقة',credits:'رصيد Gemini خلص — اشحنه من AI Studio','bad-image':'الصورة كبيرة جداً'}[em]||(/^gemini-5|timeout|^HTTP 5|^server/.test(em||('HTTP '+(r?r.status:0)))?'خدمة Gemini مشغولة الآن':'')||em||('HTTP '+(r?r.status:'—')))}
     try{aiCostShow(j.cost?j.cost.eur:aiCostEur(j.usage,j.model),j.cost&&j.cost.month)}catch(e){}
-    sugAi=j;sugStyle=0;$('sugCat').value=j.cat;await sugMake('✨ كُتب بالذكاء الاصطناعي من '+(kind==='image'?'الصورة':'لقطات الفيديو')+(j.fits===false?' — تنبيه: لا يبدو أنها '+(kind==='image'?'صورة':'فيديو')+' رخام أو حجر':''));
+    sugAi=j;sugStyle=0;$('sugCat').value=fc||j.cat;await sugMake('✨ كُتب بالذكاء الاصطناعي من '+(kind==='image'?'الصورة':'لقطات الفيديو')+(j.fits===false?' — تنبيه: لا يبدو أنها '+(kind==='image'?'صورة':'فيديو')+' رخام أو حجر':''));
     if(!$('cat').value&&sugCur){const o=[...$('cat').options].find(x=>{if(!x.value||x.value==='__new__')return false;const p=x.value.split('|').map(nmz);const fr=nmz(sugCur.catFr),ar=nmz(sugCur.catAr);return (p[1]&&fr&&(p[1]===fr||fr.includes(p[1])||p[1].includes(fr)))||(p[0]&&ar&&p[0]===ar)});if(o){$('cat').value=o.value;pinAutoBoard();renderWork()}}}
   catch(e){const msg=(e.message||e);sugAi=null;sugStyle=0;
     // بدل ما تبقى الخانة فاضية: اقتراح جاهز من القوالب حسب النوع المختار
