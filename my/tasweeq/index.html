@@ -364,12 +364,62 @@ function placeLines(o,c){
   if(o.place==='project'&&o.wilaya)l.unshift((F?'📍 Projet réalisé à : ':'📍 مشروع منفّذ في: ')+o.wilaya);
   return l;
 }
+/* ---- هاشتاغات قوية ومتجددة ----
+   كل منشور: نوع العمل (عربي + فرنسي) + كلمة واسعة البحث + المكان + اسم الشركة.
+   بنكون أكبر لكل نوع، وبنتجنّب الهاشتاغات اللي استُعملت بآخر المنشورات (محفوظة على الجهاز) حتى ما يتكرر نفس الطقم كل مرة.
+   إنستغرام: 5 كحد أقصى (حد إنستغرام من ديسمبر 2025). */
+const HT={
+ cheminee:{ar:['#شمينة','#شمينة_رخام','#مدفأة','#ديكور_صالون','#صالونات'],fr:['#cheminee','#cheminéeenmarbre','#cheminéedecorative','#fireplace','#salon']},
+ fontaine:{ar:['#نافورة','#نافورة_رخام','#نوافير','#ديكور_حدائق','#حدائق'],fr:['#fontaine','#fontainemarbre','#fontainejardin','#jardin','#fountain']},
+ sabil:{ar:['#سبالة','#سبالة_ماء','#ديكور_تراثي','#ديكور_مداخل'],fr:['#fontainemurale','#sabil','#fontaine','#patio']},
+ bassin:{ar:['#جرن','#جرن_رخام','#باسان','#حمام_تقليدي','#حمام_مغربي'],fr:['#hammam','#bassinmarbre','#vasque','#hammammarocain']},
+ lavabo:{ar:['#مغسلة','#مغسلة_رخام','#ديكور_حمامات','#حمامات'],fr:['#lavabo','#vasquemarbre','#salledebain','#salledebainmarbre','#bathroomdesign']},
+ sol:{ar:['#أرضيات','#أرضيات_رخام','#تابلو_رخام','#روزاس'],fr:['#solmarbre','#rosace','#carrelage','#marbresol']},
+ facade:{ar:['#واجهات','#واجهات_منازل','#تغليف_واجهات','#واجهات_حجر','#واجهات_فلل'],fr:['#facade','#façade','#revetementfacade','#facadepierre','#villa']},
+ colonne:{ar:['#أعمدة','#أعمدة_رخام','#درابزين','#ديكور_كلاسيكي'],fr:['#colonnes','#balustrade','#balustre','#classique']},
+ cnc:{ar:['#نحت','#نحت_رخام','#نقش_رخام','#CNC'],fr:['#sculpture','#gravure','#cnc','#marbresculpté']},
+ table:{ar:['#طاولة_رخام','#أثاث','#ديكور_مودرن','#طاولات'],fr:['#tablemarbre','#table','#mobilier','#travertin']},
+ mosquee:{ar:['#مسجد','#مساجد','#زخرفة_إسلامية','#محراب','#فن_إسلامي'],fr:['#mosquée','#artislamique','#mihrab','#calligraphie']},
+ mosaique:{ar:['#موزاييك','#موزاييك_رخام','#ديكور_جدران'],fr:['#mosaique','#mosaïque','#mosaic','#rosace']},
+ machine:{ar:['#آلات_رخام','#قص_الرخام','#معمل_رخام'],fr:['#machine','#machinemarbre','#scie','#pierre']},
+ entree:{ar:['#مدخل','#مداخل_فلل','#كادر_باب','#واجهات_حجر'],fr:['#entrée','#encadrementporte','#porte','#villa']},
+ fenetre:{ar:['#نوافذ','#نوافذ_رخام','#واجهات_حجر','#ديكور_خارجي'],fr:['#fenetre','#encadrementfenetre','#facadepierre']},
+ mur:{ar:['#حائط_رخام','#تابلو_رخام','#جدار','#ديكور_جدران'],fr:['#murmarbre','#panneaumural','#decorationmurale','#marbresculpté']},
+ tablo:{ar:['#لوحة_رخام','#كتابة_على_الرخام','#نقش_CNC','#لوحات'],fr:['#plaquemarbre','#gravure','#plaquegravee']},
+ bain:{ar:['#حمام','#حمام_رخام','#حمام_تركي','#ديكور_حمامات'],fr:['#hammam','#salledebain','#bathroom','#salledebainmarbre']},
+ corniche:{ar:['#كورنيش','#كورنيش_رخام','#ديكور_رخام','#واجهات_حجر'],fr:['#corniche','#moulure','#facade']},
+ general:{ar:['#رخام','#رخام_طبيعي','#حجر_طبيعي','#ديكور_رخام'],fr:['#marbre','#pierrenaturelle','#marble','#marbrenaturel']}
+};
+const HT_BIG_AR=['#ديكور','#ديكورات','#تصميم_داخلي','#ديكور_فخم','#ديكور_منزلي','#رخام','#رخام_طبيعي','#فلل'];
+const HT_BIG_FR=['#decoration','#decorationinterieure','#design','#architecture','#interieur','#maison','#luxe','#marbre','#interiordesign','#homedecor'];
+const HT_EXT=new Set(['facade','fontaine','sabil','colonne','entree','fenetre','corniche']);
+const HT_BIG_AR_EXT=['#ديكور_خارجي','#فلل','#ديكور','#تصميم_خارجي','#رخام_طبيعي'];
+const HT_BIG_FR_EXT=['#architecture','#design','#villa','#exterieur','#luxe','#landscapedesign'];
+const HT_LOC=['#algerie','#alger','#dz','#الجزائر','#algeria','#dzair','#algerie🇩🇿'];
+const HT_TT=['#pourtoi','#fyp','#viral','#dz','#algerie'];
+const HT_BRAND=['#قيصر_الشام','#cesaralcham'];
+const HT_KEY='ht_recent';
+function htRecent(){try{return JSON.parse(localStorage.getItem(HT_KEY)||'[]')}catch(e){return []}}
+function htRemember(a){try{const old=htRecent().filter(x=>!a.includes(x));localStorage.setItem(HT_KEY,JSON.stringify([...a,...old].slice(0,40)))}catch(e){}}
 function hashtags(c,pf,r){
-  const ar=shuffle(r,c.hAr), fr=shuffle(r,c.hFr);
-  if(pf==='ig')return[ar[0],ar[1],fr[0],BRAND,GEN_AR[1]];                // إنستغرام: 5 كحد أقصى
-  if(pf==='fb')return[ar[0],BRAND,GEN_AR[0]];
-  if(pf==='tt')return[ar[0],ar[1],fr[0],GEN_AR[0],BRAND,'#dz'];
-  return[ar[0],fr[0],GEN_AR[1]];                                          // يوتيوب: أول 3 تظهر فوق العنوان
+  const key=Object.keys(CATS).find(k=>CATS[k]===c)||Object.keys(CATS).find(k=>CATS[k].ar===c.ar)||'general';
+  const h=HT[key]||HT.general, recent=new Set(htRecent()), used=new Set();
+  // عشوائي حقيقي (مش من بذرة الصورة) حتى نفس الصورة تاخد طقم جديد، ونفضّل اللي ما استُعمل مؤخراً
+  const rr=()=>Math.random();
+  const take=(arr,n=1)=>{const fresh=shuffle(rr,arr.filter(x=>!recent.has(x)&&!used.has(x))),old=shuffle(rr,arr.filter(x=>recent.has(x)&&!used.has(x)));
+    const out=[...fresh,...old].slice(0,n);out.forEach(x=>used.add(x));return out};
+  const catAr=[...h.ar,...(c.hAr||[])], catFr=[...h.fr,...(c.hFr||[])];
+  const BAR=HT_EXT.has(key)?HT_BIG_AR_EXT:HT_BIG_AR, BFR=HT_EXT.has(key)?HT_BIG_FR_EXT:HT_BIG_FR;
+  const brand=rr()<0.75?HT_BRAND[0]:HT_BRAND[1];
+  let out;
+  if(pf==='ig')out=[...take(catAr),...take(catFr),...take(rr()<0.5?BFR:BAR),...take(HT_LOC),brand];            // 5 بالضبط
+  else if(pf==='fb')out=[...take(catAr),...take(catFr),...take(BAR),...take(HT_LOC),brand];                            // 5
+  else if(pf==='tt')out=[...take(catAr),...take(catFr),...take(BFR),...take(HT_TT.filter(x=>!used.has(x)),2),brand];   // 6
+  else if(pf==='pin')out=[...take(catFr,2),...take(catAr),...take(BFR),...take(HT_LOC)];                               // 5 (بحث Pinterest)
+  else out=[...take(catAr),...take(catFr),...take(HT_LOC)];                                                                  // يوتيوب: أول 3 فوق العنوان
+  out=[...new Set(out)].filter(Boolean);
+  htRemember(out);
+  return out;
 }
 // o.dly: نص لدالي إبراهيم فقط (من «المنشورات»): بلا البليدة ولا المعمل
 const BLIDA=/البليدة|بالبليدة|Blida|معمل|المعمل|atelier/i;

@@ -394,7 +394,7 @@ function tkFromMain(){const src=$('text').value.trim()||vTitleEff()||'';
   const ar=body.find(x=>/[\u0600-\u06FF]/.test(x))||'';
   const fr=body.find(x=>!/[\u0600-\u06FF]/.test(x)&&/[A-Za-zÀ-ÿ]{3,}/.test(x))||'Marbre et pierre naturelle sur mesure';
   const mach=/0554974470|Blida|البليدة/.test(src);
-  const tags=[...new Set([...(src.match(/#[^\s#]+/g)||[]),'#marbre','#Algérie','#رخام_طبيعي','#قيصر_الشام','#dz'])].slice(0,7);
+  const tags=[...new Set([...(src.match(/#[^\s#]+/g)||[]),'#decoration','#marbre','#algerie','#قيصر_الشام'])].slice(0,5);
   return [ar,fr,'📞 WhatsApp : \u200E'+(mach?'0554974470':'0541737888')+'\u200E','📍 '+(mach?'Blida':'Dely Ibrahim – Alger'),'🌐 https://cesar-alcham.com',tags.join(' ')].filter(Boolean).join('\n')}
 $('tkMake').onclick=()=>{if(!$('text').value.trim()&&!$('vTitle').value.trim()){toast('اكتب النص الرئيسي أولاً، أو استعمل «صياغة النص تلقائياً»',5000);return}
   custom.tk=tkFromMain();$('tkText').value=custom.tk;counts();renderPreview();toast('نص تيك توك جاهز — راجعه ثم انسخه')};
