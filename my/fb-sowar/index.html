@@ -55,7 +55,11 @@ select,input[type=text],input[type=email],input[type=password]{font:inherit;padd
   <div class="hint" id="libSt">جارٍ تحميل المكتبة…</div>
   <div class="row" style="margin-top:8px"><button class="chip on" data-v="ph">🖼️ الصور</button><button class="chip" data-v="vd">🎬 الفيديوهات</button></div>
 </div>
-<div id="vdView" style="display:none"><div class="grid" id="vgrid"></div></div>
+<div id="vdView" style="display:none">
+<div class="box"><div class="row"><button class="btn" id="vgo">صنّف الفيديوهات حسب النوع</button><button class="btn ok" id="vzip">⬇️ نزّل كل الفيديوهات (مجلد لكل نوع)</button></div>
+  <div class="hint">التصنيف بالذكاء الاصطناعي من صورة كل فيديو، وتقدر تغيّر النوع من القائمة تحت كل فيديو. الفيديوهات تنزل بدون باركود، مقسومة لملفات حوالي 300 ميغا.</div>
+  <div id="vst" class="hint"></div><div class="row" id="vchips" style="margin-top:8px"></div></div>
+<div class="grid" id="vgrid"></div></div>
 <div id="phView">
 <div class="box">
   <div class="row"><button class="btn" id="go">1) صنّف صور المكتبة</button><button class="btn l" id="stop" style="display:none">وقّف</button></div>
@@ -68,7 +72,8 @@ select,input[type=text],input[type=email],input[type=password]{font:inherit;padd
     <button class="chip on" data-f="all">الكل</button><button class="chip" data-f="new">مش بالموقع</button><button class="chip" data-f="site">بالموقع</button><button class="chip" data-f="x">مش شغل</button>
   </div>
   <div class="row" style="margin-top:10px">
-    <button class="btn ok" id="zip">⬇️ ملف مضغوط بالباركود (مجلد لكل قسم)</button>
+    <button class="btn ok" id="zipAll">⬇️ نزّل كل الصور بالباركود (مجلد لكل نوع)</button>
+    <button class="btn l" id="zip">⬇️ المعروض فقط</button>
     <button class="btn" id="add">➕ أضف المحدّدة للموقع</button>
     <span class="hint" id="selN"></span>
   </div>
@@ -137,19 +142,44 @@ function libStat(extra){if(!LIB)return;const last=(LIB.log||[])[0]||{};const wk=
   const back=LIB.back&&!(LIB.back.pDone&&LIB.back.vDone)?' — ⏳ لسا عم نكمّل سحب القديم':'';
   $('#libSt').innerHTML=`${LIB.photos.length} صورة و ${LIB.videos.length} فيديو · آخر تحديث: ${fmtD(LIB.syncedAt)}${nP||nV?` · <b>جديد هذا الأسبوع: ${nP} صورة، ${nV} فيديو</b>`:''}${back}${extra?'<br>'+extra:''}`}
 async function apiLib(sync){const r=await fetch('/api/fb-lib'+(sync?'?sync=1':''),{headers:{authorization:'Bearer '+await tok()}});const d=await r.json();if(!d.ok)throw new Error(d.error||'fb-lib');LIB=d.lib;return d}
-async function loadLib(){try{await apiLib(false);libStat();
+async function loadLib(){try{await apiLib(false);libStat();restore();
   const stale=!LIB.syncedAt||Date.now()-LIB.syncedAt>7*864e5||!(LIB.back&&LIB.back.pDone&&LIB.back.vDone);if(stale)await syncLib(true)}catch(e){$('#libSt').textContent='تعذّر تحميل المكتبة: '+e.message}
   renderV()}
 async function syncLib(auto){const b=$('#syncNow');b.disabled=true;let tot={photos:0,videos:0};
   try{for(let i=0;i<12;i++){libStat('🔄 جارٍ السحب من فيسبوك…');const d=await apiLib(true);tot.photos+=d.added.photos;tot.videos+=d.added.videos;if(LIB.back&&LIB.back.pDone&&LIB.back.vDone)break}
     libStat(`✓ انضاف ${tot.photos} صورة و ${tot.videos} فيديو جديد (المكرر ما بينضاف)`);if(!auto||tot.photos||tot.videos)toast('تم التحديث ✓')}
   catch(e){libStat('صار خطأ بالسحب: '+e.message)}b.disabled=false;renderV()}
-function renderV(){if(!LIB)return;const wk=Date.now()-7*864e5;
-  $('#vgrid').innerHTML=LIB.videos.length?LIB.videos.map(v=>`<div class="card" data-v="${esc(v.id)}"><img loading="lazy" src="${esc(v.thumb)}" alt="" onerror="this.style.visibility='hidden'">
+let VCF='';
+function renderV(){if(!LIB)return;const wk=Date.now()-7*864e5;const vc=v=>(v.cls&&v.cls.cat)||'';
+  const cnt={};LIB.videos.forEach(v=>{const c=vc(v)||'—';cnt[c]=(cnt[c]||0)+1});const nc=LIB.videos.filter(v=>!vc(v)).length;
+  $('#vst').innerHTML=LIB.videos.length?`${LIB.videos.length} فيديو${nc?` · <b>${nc} بدون نوع</b>`:' · ✓ كلها مصنّفة'}`:'';
+  $('#vchips').innerHTML=Object.keys(cnt).length>1||!cnt['—']?`<button class="chip${VCF?'':' on'}" data-vc="">الكل</button>`+Object.keys(cnt).filter(c=>c!=='—').sort((a,b)=>cnt[b]-cnt[a]).map(c=>`<button class="chip${VCF===c?' on':''}" data-vc="${esc(c)}">${esc(c===X?'غير ذلك':fr(c))} (${cnt[c]})</button>`).join(''):'';
+  const opts=[...CATS,X];
+  $('#vgrid').innerHTML=LIB.videos.length?LIB.videos.filter(v=>!VCF||vc(v)===VCF).map(v=>`<div class="card" data-v="${esc(v.id)}"><img loading="lazy" src="${esc(v.thumb)}" alt="" onerror="this.style.visibility='hidden'">
    <div class="b">${v.add>wk?'<span class="tag new">جديد</span>':''}<b style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(v.title||v.text)}">${esc(v.title||v.text.slice(0,60)||'فيديو')}</b>
    <span class="hint">${fmtD(v.at)} · ${Math.round(v.len||0)} ث</span>
+   ${CATS.length?`<select data-a="vcat"><option value="">— النوع —</option>${opts.map(c=>`<option${c===vc(v)?' selected':''} value="${esc(c)}">${esc(c===X?'غير ذلك (مش شغل)':fr(c)+' — '+ar(c))}</option>`).join('')}</select>`:''}
    <div class="row"><button class="btn s" data-a="dl">⬇️ تنزيل</button>${v.link?`<a class="btn s l" style="text-decoration:none" href="${esc(v.link)}" target="_blank" rel="noopener">↗ فيسبوك</a>`:''}</div></div></div>`).join(''):'<div class="hint">لا يوجد فيديوهات بعد</div>'}
 $('#syncNow').onclick=()=>syncLib(false);
+document.addEventListener('click',e=>{const b=e.target.closest('.chip[data-vc]');if(!b)return;VCF=b.dataset.vc;renderV()});
+$('#vgrid').addEventListener('change',e=>{if(e.target.dataset.a!=='vcat')return;const id=e.target.closest('.card').dataset.v;const v=LIB.videos.find(x=>x.id===id);if(!v)return;
+  v.cls={...(v.cls||{}),cat:e.target.value};saveSoon('videos',v.id,{cat:v.cls.cat});renderV()});
+$('#vgo').onclick=async()=>{const b=$('#vgo');if(b.disabled)return;b.disabled=true;try{if(!CATS.length)await loadSite();
+  const todo=LIB.videos.filter(v=>!(v.cls&&v.cls.cat));if(!todo.length){toast('كل الفيديوهات مصنّفة ✓');return}let n=0;
+  const imgOf=async v=>{if(!v.thumb)throw new Error('no-thumb');const r=await fetch('/api/meta-photos?img='+encodeURIComponent(v.thumb),{headers:{authorization:'Bearer '+await tok()}});if(!r.ok)throw new Error('thumb');const bl=await r.blob();const u=URL.createObjectURL(bl);try{return small(await loadUrl(u),512)}finally{URL.revokeObjectURL(u)}};
+  for(let i=0;i<todo.length;i+=8){const B=todo.slice(i,i+8),im=[],ok=[];for(const v of B){try{im.push(await imgOf(v));ok.push(v)}catch(e){}}
+    if(im.length){for(let t=0;t<4;t++){try{const r=await fetch('/api/ai-cat',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+await tok()},body:JSON.stringify({images:im,cats:CATS})});const d=await r.json();
+      if(d.ok){const m={};ok.forEach((v,j)=>{v.cls={...(v.cls||{}),cat:d.cats[j]||X};m[v.id]={cat:v.cls.cat}});await saveCls({videos:m});break}if(d.error==='rate'){await sleep(10000*(t+1));continue}}catch(e){}await sleep(2000)}}
+    n+=B.length;$('#vst').textContent=`تصنيف ${Math.min(n,todo.length)} من ${todo.length}…`}
+  toast('تم تصنيف الفيديوهات ✓')}finally{b.disabled=false;renderV()}};
+const VPART=300e6;
+$('#vzip').onclick=async()=>{const L=LIB.videos.slice().sort((a,b)=>fold((a.cls&&a.cls.cat)||X).localeCompare(fold((b.cls&&b.cls.cat)||X))||String(a.at).localeCompare(String(b.at)));if(!L.length)return toast('لا يوجد فيديوهات');if(typeof JSZip==='undefined')return toast('انتظر ثانية وأعد المحاولة');
+  if(!confirm(`تنزيل ${L.length} فيديو (بدون باركود) في ملفات مضغوطة، مجلد لكل نوع؟\nالحجم كبير (عدة غيغا) — الأفضل من الكمبيوتر، ولا تقفل الصفحة لحد ما يخلص.`))return;
+  const btn=$('#vzip');btn.disabled=true;const cnt={},day=new Date().toISOString().slice(0,10);let z=new JSZip(),size=0,part=1,i=0,fail=0;
+  const flush=async()=>{if(!size)return;btn.textContent=`تجهيز الملف ${part}…`;saveBlob(await z.generateAsync({type:'blob',compression:'STORE'}),`فيديوهات-فيسبوك-${day}-جزء${part}.zip`);part++;z=new JSZip();size=0};
+  for(const v of L){i++;btn.textContent=`جارٍ ${i} من ${L.length}…`;try{const bl=await fbBlob({...v,vid:true});const f=fold((v.cls&&v.cls.cat)||X);cnt[f]=(cnt[f]||0)+1;
+      if(size&&size+bl.size>VPART)await flush();z.folder(f).file(`${f} ${String(cnt[f]).padStart(3,'0')} ${String(v.at||'').slice(0,10)}.mp4`,bl);size+=bl.size}catch(e){fail++}}
+  await flush();btn.disabled=false;btn.textContent='⬇️ نزّل كل الفيديوهات (مجلد لكل نوع)';toast(`تم ✓ — ${L.length-fail} فيديو${fail?' · تعذّر '+fail:''}`)};
 document.addEventListener('click',e=>{const c=e.target.closest('.chip[data-v]');if(!c)return;VIEW=c.dataset.v;document.querySelectorAll('.chip[data-v]').forEach(x=>x.classList.toggle('on',x===c));$('#phView').style.display=VIEW==='ph'?'':'none';$('#vdView').style.display=VIEW==='vd'?'':'none'});
 $('#vgrid').addEventListener('click',async e=>{const b=e.target.closest('[data-a=dl]');if(!b)return;const id=b.closest('.card').dataset.v;const v=LIB.videos.find(x=>x.id===id);b.disabled=true;b.textContent='جارٍ…';
   try{const bl=await fbBlob({...v,vid:true});const a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download=(v.title||'فيديو-فيسبوك')+'-'+String(v.at||'').slice(0,10)+'.mp4';document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),3000)}catch(x){toast('تعذّر التنزيل')}
@@ -163,18 +193,19 @@ async function loadSite(){const s=await db.collection('cesar_website').get();con
 
 async function run(){STOP=false;$('#go').disabled=true;$('#stop').style.display='';
  try{
-  setSt('جارٍ تحميل صور الموقع…',0);const items=await loadSite();if(SITE.length)items.length=0;else SITE=[]; // بصمات الموقع محسوبة من قبل؟ ما منعيدها
+  if(!LIB)await loadLib();const NEWP=(LIB?LIB.photos:[]).filter(p=>!p.cls);const KNOWN=(LIB?LIB.photos:[]).filter(p=>p.cls&&!p.cls.dup&&!p.cls.bad);
+  setSt('جارٍ تحميل صور الموقع…',0);const items=await loadSite();if(!NEWP.length)items.length=0;if(SITE.length)items.length=0;else SITE=[]; // بصمات الموقع محسوبة من قبل؟ ما منعيدها
   let k=0;for(const it of items){if(STOP)break;k++;setSt(`بصمات صور الموقع ${k} من ${items.length}`,k/items.length*.2);
     const orig='https://firebasestorage.googleapis.com/v0/b/basel-7b29b.firebasestorage.app/o/'+encodeURIComponent('gallery/'+it.id+'.jpg')+'?alt=media';
     for(const u of [it.img,it.oldImg,orig].filter((u,i,a)=>u&&/^https:/.test(u)&&a.indexOf(u)===i)){try{SITE.push({h:dh3(await loadUrl(u)),cat:(it.category||'').trim(),id:it.id})}catch(e){}}}
-  setSt('جارٍ تحميل صور المكتبة…',.2);if(!LIB)await loadLib();PH=(LIB?LIB.photos:[]).map(p=>({...p}));
+  setSt('جارٍ تحميل صور المكتبة…',.2);PH=NEWP.map(p=>({...p}));
   const seen=[];let n=0;
   for(const p of PH){if(STOP)break;n++;setSt(`فحص صورة ${n} من ${PH.length}`,.2+.5*n/PH.length);
     try{const im=await fbImg(p);p.h=dh3(im);p.thumb=small(im,400);
       const dup=seen.find(q=>ham(q.h[0],p.h[0])<=4);if(dup){p.dup=true;continue}seen.push(p);
       let best=99,bc=null;for(const s of SITE){const d=ham3(s.h,p.h);if(d<best){best=d;bc=s}}
       if(best<=10){p.onSite=true;p.cat=bc.cat;p.siteId=bc.id}}catch(e){p.bad=true}}
-  PH=PH.filter(p=>!p.dup&&!p.bad);
+  const ALLN=PH.slice();PH=PH.filter(p=>!p.dup&&!p.bad);
   const need=PH.filter(p=>!p.onSite);let m=0;
   need.forEach(p=>{if(SAVED[p.id]!==undefined)p.cat=SAVED[p.id]});const todo=need.filter(p=>!p.cat);
   const batches=[];for(let i=0;i<todo.length;i+=8)batches.push(todo.slice(i,i+8));
@@ -183,23 +214,33 @@ async function run(){STOP=false;$('#go').disabled=true;$('#stop').style.display=
   let bi=0;const worker=async()=>{while(bi<batches.length&&!STOP){const B=batches[bi++];await one(B);m+=B.length;setSt(`تصنيف بالذكاء الاصطناعي ${Math.min(m,todo.length)} من ${todo.length}`,.7+.3*m/Math.max(1,todo.length))}};
   await Promise.all([worker(),worker()]);
   PH.forEach(p=>{if(!p.cat)p.cat=X;if(SAVED[p.id]&&p.onSite)delete SAVED[p.id]});
+  if(!STOP){const m={};ALLN.forEach(p=>m[p.id]=p.dup?{dup:true}:p.bad?{bad:true}:{cat:p.cat||X,onSite:!!p.onSite,siteId:p.siteId||''});await saveCls({photos:m});ALLN.forEach(p=>{const o=LIB.photos.find(x=>x.id===p.id);if(o)o.cls=m[p.id]})}
+  PH=[...KNOWN.map(fromCls),...PH];
   setSt(`✓ ${PH.length} صورة (بدون المكرر) — ${PH.filter(p=>p.onSite).length} موجودة بالموقع، ${PH.filter(p=>!p.onSite&&p.cat!==X).length} شغل مش بالموقع، ${PH.filter(p=>p.cat===X).length} مش شغل`,1);
   $('#tools').style.display='';render()
  }catch(e){setSt('صار خطأ: '+e.message)}
  $('#go').disabled=false;$('#stop').style.display='none'}
 
+function fromCls(p){return {...p,cat:p.cls.cat||X,onSite:!!p.cls.onSite,siteId:p.cls.siteId||''}}
+async function saveCls(body){try{const r=await fetch('/api/fb-lib?meta=1',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+await tok()},body:JSON.stringify(body)});return (await r.json()).ok}catch(e){return false}}
+let clsT=null,clsQ={photos:{},videos:{}};const saveSoon=(kind,id,o)=>{clsQ[kind][id]=o;clearTimeout(clsT);clsT=setTimeout(()=>{const b=clsQ;clsQ={photos:{},videos:{}};saveCls(b)},1500)};
+// التصنيف محفوظ بالسيرفر: الصفحة بتفتح جاهزة من أي جهاز، وزر «صنّف» بيشتغل على الجديد بس
+async function restore(){if(!LIB||PH.length)return;const k=LIB.photos.filter(p=>p.cls&&!p.cls.dup&&!p.cls.bad);if(!k.length)return;
+  if(!CATS.length){try{await loadSite()}catch(e){}}PH=k.map(fromCls);const nw=LIB.photos.filter(p=>!p.cls).length;
+  setSt(`✓ جاهزة: ${PH.length} صورة مصنّفة — ${PH.filter(p=>p.onSite).length} بالموقع، ${PH.filter(p=>!p.onSite&&p.cat!==X).length} مش بالموقع، ${PH.filter(p=>p.cat===X).length} مش شغل${nw?` · ${nw} صورة جديدة بدها تصنيف — اضغط «صنّف»`:''}`,1);
+  $('#go').textContent=nw?'1) صنّف الصور الجديدة':'1) أعد التصنيف';$('#tools').style.display='';render()}
 function list(){return PH.filter(p=>(F==='all'?p.cat!==X:F==='new'?(!p.onSite&&p.cat!==X):F==='site'?p.onSite:p.cat===X)&&(!CF||p.cat===CF))}
 function render(){
   const cnt={};PH.filter(p=>p.cat!==X).forEach(p=>cnt[p.cat]=(cnt[p.cat]||0)+1);
   $('#chips').innerHTML=`<button class="chip${CF?'':' on'}" data-c="">كل الأقسام</button>`+CATS.filter(c=>cnt[c]).map(c=>`<button class="chip${CF===c?' on':''}" data-c="${esc(c)}">${esc(fr(c))} (${cnt[c]})</button>`).join('');
   const L=list();const opts=[...CATS,X];
-  $('#grid').innerHTML=L.map(p=>`<div class="card${p.cat===X?' x':''}" data-id="${p.id}"><img loading="lazy" src="${p.thumb||''}">
+  $('#grid').innerHTML=L.map(p=>`<div class="card${p.cat===X?' x':''}" data-id="${p.id}"><img loading="lazy" referrerpolicy="no-referrer" src="${esc(p.thumb||p.src||'')}" onerror="this.style.visibility='hidden'">
    <div class="b">${p.add>Date.now()-7*864e5?'<span class="tag new">🆕 جديد هذا الأسبوع</span>':''}${p.onSite?'<span class="tag on">✓ موجودة بالموقع</span>':'<span class="tag new">مش بالموقع</span>'}
    <select data-a="cat">${opts.map(c=>`<option${c===p.cat?' selected':''} value="${esc(c)}">${esc(c===X?c:fr(c)+' — '+ar(c))}</option>`).join('')}</select>
    ${!p.onSite&&p.cat!==X?`<label><input type="checkbox" data-a="sel"${p.sel?' checked':''}> أضفها للموقع</label>`:''}</div></div>`).join('');
   $('#selN').textContent=PH.filter(p=>p.sel).length?`محدّد للموقع: ${PH.filter(p=>p.sel).length}`:''}
 $('#grid').addEventListener('change',e=>{const c=e.target.closest('.card');if(!c)return;const p=PH.find(x=>x.id===c.dataset.id);
-  if(e.target.dataset.a==='cat'){p.cat=e.target.value;if(!p.onSite){SAVED[p.id]=p.cat;saveCats()}if(p.cat===X)p.sel=false;render()}
+  if(e.target.dataset.a==='cat'){p.cat=e.target.value;saveSoon('photos',p.id,{cat:p.cat,onSite:!!p.onSite,siteId:p.siteId||''});if(!p.onSite){SAVED[p.id]=p.cat;saveCats()}if(p.cat===X)p.sel=false;render()}
   if(e.target.dataset.a==='sel'){p.sel=e.target.checked;render()}});
 document.addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;if(b.dataset.c!==undefined){CF=b.dataset.c;render()}else if(b.dataset.f){F=b.dataset.f;document.querySelectorAll('.chip[data-f]').forEach(x=>x.classList.toggle('on',x===b));render()}});
 $('#go').onclick=run;$('#stop').onclick=()=>{STOP=true};
@@ -215,7 +256,17 @@ $('#zip').onclick=async()=>{const L=list().filter(p=>p.cat!==X);if(!L.length)ret
     z.folder(f).file(`${f} ${String(cnt[f]).padStart(3,'0')}.jpg`,await toBlob(c))}catch(e){}}
   btn.textContent='جارٍ تجهيز الملف…';const b=await z.generateAsync({type:'blob'});
   const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='صور-فيسبوك-بالباركود-'+new Date().toISOString().slice(0,10)+'.zip';document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),4000);
-  btn.disabled=false;btn.textContent='⬇️ ملف مضغوط بالباركود (مجلد لكل قسم)';toast('تم ✓')};
+  btn.disabled=false;btn.textContent='⬇️ المعروض فقط';toast('تم ✓')};
+// كل صور الشغل (بدون «مش شغل»)، بالباركود، مجلد لكل نوع — مقسومة لملفات كل واحد 300 صورة حتى ما يعلّق الهاتف
+const PART=300,saveBlob=(b,name)=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(a.href)},60000)};
+const fold=c=>((c===X?'Autres':fr(c))||'Autres').replace(/[\\/:*?"<>|]/g,'-');
+$('#zipAll').onclick=async()=>{const L=PH.filter(p=>p.cat!==X).sort((a,b)=>fold(a.cat).localeCompare(fold(b.cat))||String(a.at).localeCompare(String(b.at)));if(!L.length)return toast('صنّف الصور أولاً');if(typeof JSZip==='undefined')return toast('انتظر ثانية وأعد المحاولة');
+  const parts=Math.ceil(L.length/PART);if(!confirm(`تنزيل ${L.length} صورة بالباركود في ${parts} ${parts>1?'ملفات':'ملف'} مضغوطة (مجلد لكل نوع)؟\nلا تقفل الصفحة لحد ما يخلص.`))return;
+  const btn=$('#zipAll');btn.disabled=true;const cnt={};let done=0;const day=new Date().toISOString().slice(0,10);
+  for(let k=0;k<parts;k++){const z=new JSZip();for(const p of L.slice(k*PART,(k+1)*PART)){done++;btn.textContent=`جارٍ ${done} من ${L.length}…`;
+      try{const c=await makeQr(await fbImg(p));const f=fold(p.cat);cnt[f]=(cnt[f]||0)+1;z.folder(f).file(`${f} ${String(cnt[f]).padStart(3,'0')}.jpg`,await toBlob(c))}catch(e){}}
+    btn.textContent=`تجهيز الملف ${k+1} من ${parts}…`;saveBlob(await z.generateAsync({type:'blob',compression:'STORE'}),`صور-فيسبوك-بالباركود-${day}${parts>1?'-جزء'+(k+1):''}.zip`)}
+  btn.disabled=false;btn.textContent='⬇️ نزّل كل الصور بالباركود (مجلد لكل نوع)';toast('تم ✓ — '+L.length+' صورة')};
 
 // الإضافة للموقع: الصورة بتنرفع بالباركود، وبتنحط بقائمة انتظار — لوحة الأعمال بتكمّلها (عنوان ووصف بالذكاء الاصطناعي) لحالها
 $('#add').onclick=async()=>{const L=PH.filter(p=>p.sel&&!p.onSite&&p.cat!==X);if(!L.length)return toast('حدّد صور «أضفها للموقع» أول');

@@ -71,6 +71,15 @@ export async function onRequest({ request, env }) {
       const { added } = await sync(env);
       return json({ ok: true, added });
     }
+    if (request.method === 'POST' && u.searchParams.get('meta')) { // حفظ التصنيف (النوع، بالموقع، مكرر) حتى يكون جاهز من أي جهاز بدون إعادة الفحص
+      if (!(await verifyUser(request, env))) return json({ ok: false, error: 'login' }, 401);
+      let b; try { b = await request.json(); } catch (e) { return json({ ok: false, error: 'bad-json' }, 400); }
+      const lib = (await load(env)) || emptyLib(); let n = 0;
+      for (const kind of ['photos', 'videos']) { const m = b[kind] || {}; for (const it of lib[kind]) { const c = m[it.id]; if (!c || typeof c !== 'object') continue;
+        it.cls = { cat: String(c.cat || '').slice(0, 120), onSite: !!c.onSite, siteId: String(c.siteId || '').slice(0, 60), dup: !!c.dup, bad: !!c.bad, at: Date.now() }; n++; } }
+      await env.SOCIAL_KV.put(KEY, JSON.stringify(lib));
+      return json({ ok: true, saved: n });
+    }
     if (request.method !== 'GET') return json({ ok: false, error: 'method' }, 405);
     if (!(await verifyUser(request, env))) return json({ ok: false, error: 'login' }, 401);
     if (u.searchParams.get('sync')) { const { lib, added } = await sync(env); return json({ ok: true, added, lib }); }
