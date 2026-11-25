@@ -102,6 +102,18 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
 [hidden]{display:none!important}
 /* موسيقى الفيديو */
 .mus{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.trend{margin:10px 0 4px;border:1.5px solid var(--line);border-radius:12px;background:#fff;overflow:hidden}
+.trend summary{cursor:pointer;padding:10px 12px;font-weight:800;color:var(--ink);list-style:none;display:flex;justify-content:space-between;gap:8px;white-space:nowrap}
+.trend summary::-webkit-details-marker{display:none}.trend summary small{font-weight:600;color:var(--deep);overflow:hidden;text-overflow:ellipsis}
+.trend .tl{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.trend label.ti{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid #F1E8DA;cursor:pointer;min-width:0}
+.trend label.ti:last-child{border-bottom:0}.trend label.ti.on{background:#FBF5EA}
+.trend .ti input{accent-color:var(--br);flex-shrink:0}.trend .ti .tx{min-width:0;flex:1;display:flex;flex-direction:column}
+.trend .ti b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:ltr;text-align:right}.trend .ti small{font-size:11.5px;color:var(--deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trend .ti a{font-size:12px;font-weight:700;color:var(--br);white-space:nowrap;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:3px 9px;flex-shrink:0}
+.trend .ti .up{font-size:11px;font-weight:800;color:#2F7D4F;white-space:nowrap;font-variant-numeric:tabular-nums;flex-shrink:0}
+.trend .tn{font-size:11.5px;color:var(--deep);padding:8px 12px;border-top:1px dashed var(--line)}
+.trend-pick{font-size:12.5px;font-weight:700;color:var(--ink);background:#FBF5EA;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:8px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mu{position:relative;display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:12px;padding:9px 10px;background:#fff;cursor:pointer;min-width:0;border-inline-start:6px solid var(--st)}
 .mu.on{border-color:var(--br);border-inline-start-color:var(--st);background:#F7EBD8}
 .mu input{position:absolute;opacity:0;pointer-events:none}
@@ -146,6 +158,10 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
         <input type="file" id="coverFile" accept="image/jpeg,image/png,image/webp" hidden>
         <label class="chk" style="margin-top:12px"><input type="checkbox" id="vqr" checked> إضافة باركود الشركة على الفيديو (يسار تحت)</label>
         <p class="mu-note" id="vqrNote">يُرسم الباركود والرقم على الفيديو قبل النشر على كل المنصات وقبل المشاركة إلى واتساب. هذا يعيد تجهيز الفيديو على الهاتف، بنفس مقاس الفيديو الأصلي وبجودة عالية جداً لا يظهر فرقها للعين. يأخذ بضع دقائق حسب طول الفيديو (فيديو 4K أبطأ بكثير)، فأبقِ الشاشة مفتوحة.</p>
+        <details class="trend" id="trend"><summary>🎵 موسيقى ترند هذا الأسبوع <small id="trendUp"></small></summary>
+          <div class="tl" id="trendList"><div class="tn">جارٍ التحميل…</div></div>
+          <div class="tn">هذه الأغاني تُضاف من داخل التطبيق: في تيك توك على المسودة، وفي إنستغرام عبر زر «إنستغرام بموسيقى ترند». لا تُدمج في الملف لأن فيسبوك وإنستغرام يكتمان الأغاني المحمية.</div>
+        </details>
         <label class="l">موسيقى الفيديو</label>
         <div class="mus" id="mus" role="radiogroup" aria-label="موسيقى الفيديو"></div>
         <label class="mu-none"><input type="radio" name="mus" value="" id="musNone" checked> بدون موسيقى (الصوت الأصلي كما هو)</label>
@@ -204,7 +220,7 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
       <div class="acts" style="margin-top:8px"><button class="btn ghost" id="waShare" style="width:100%">واتساب: مشاركة إلى الحالة</button></div>
       <div class="acts" style="margin-top:8px"><button class="btn ghost" id="igShare" style="width:100%">🎵 إنستغرام بموسيقى ترند (ريلز من التطبيق)</button></div>
       <div class="upp" id="upProg" hidden role="status"></div><div class="st" id="status" style="margin-top:12px"></div><button type="button" class="btn ghost retry" id="cancelPub" hidden>⛔ إلغاء النشر</button><button type="button" class="btn retry" id="retry" hidden>🔁 أعِد المحاولة على المنصات التي فشلت فقط</button>
-      <div class="tkafter" id="tkAfter" hidden role="status">
+      <div class="tkafter" id="tkAfter" hidden role="status"><div class="trend-pick" id="tkTrendPick" hidden></div>
         <b>تيك توك: الفيديو وصل مسودةً بدون نص</b>
         <p>تيك توك لا يستقبل النص مع المسودة. افتح إشعار تيك توك في الهاتف، والصق هذا النص في خانة الوصف قبل النشر.</p>
         <textarea id="tkAfterTx" readonly aria-label="نص تيك توك"></textarea>
@@ -711,6 +727,21 @@ $('waShare').onclick=async()=>{if(!files.length){toast(kind==='image'?'اختر 
     if(!navigator.canShare||!navigator.canShare({files:waCache.fl})){toast('هذا المتصفح لا يدعم المشاركة المباشرة — افتح «المنشورات» من الهاتف',6000);return}
     await navigator.share({files:waCache.fl});toast('النص منسوخ — الصقه في الحالة أو في وصف منتج الكتالوج',6000)
   }catch(e){if(e&&e.name==='AbortError')return;toast(e&&e.name==='NotAllowedError'?'الملف جاهز — اضغط الزر مرة ثانية للمشاركة':'تعذرت المشاركة',5000)}};
+// ---------- موسيقى ترند: قائمة أسبوعية (img/music/trend.json) — تختار أغنية والأداة تذكّرك بها في تيك توك وإنستغرام ----------
+let TREND=null,trendPick=null;try{trendPick=JSON.parse(localStorage.getItem('nashr_trend')||'null')}catch(e){}
+const fmtN=n=>n>=1000?(n/1000).toFixed(1)+'k':String(n);
+async function loadTrend(){try{const r=await fetch('/img/music/trend.json?t='+Date.now());TREND=await r.json()}catch(e){TREND=null}renderTrend()}
+function renderTrend(){const L=$('trendList');if(!L)return;if(!TREND||!TREND.items){L.innerHTML='<div class="tn">تعذر تحميل القائمة</div>';return}
+  $('trendUp').textContent='تحديث '+TREND.updated;
+  L.innerHTML=TREND.items.map((it,i)=>`<label class="ti${trendPick&&trendPick.url===it.url?' on':''}" title="${esc(it.title+' — '+it.artist+' · '+it.mood)}"><input type="radio" name="trend" value="${i}"${trendPick&&trendPick.url===it.url?' checked':''}><span class="tx"><b>${esc(it.title)}</b><small>${esc(it.mood)}</small></span>${it.growth>=1.5?`<span class="up">▲ ${it.growth}x</span>`:''}<a href="${esc(it.url)}" target="_blank" rel="noopener">▶ اسمع</a></label>`).join('')+
+    (trendPick?'<label class="ti"><input type="radio" name="trend" value="-1"> <span class="tx"><small>إلغاء الاختيار</small></span></label>':'');
+  showTrendPick()}
+function showTrendPick(){const el=$('tkTrendPick');if(!el)return;if(trendPick){el.hidden=false;el.textContent='🎵 أضف الصوت في تيك توك: '+trendPick.title+' — '+trendPick.artist}else el.hidden=true}
+$('trendList').addEventListener('change',e=>{const v=+e.target.value;if(e.target.name!=='trend')return;
+  trendPick=v>=0&&TREND?TREND.items[v]:null;try{localStorage.setItem('nashr_trend',JSON.stringify(trendPick))}catch(x){}
+  if(trendPick){try{navigator.clipboard.writeText(trendPick.title+' '+trendPick.artist).catch(()=>{})}catch(x){}toast('اخترت: '+trendPick.title+' — اسمها منسوخ للبحث عنه في التطبيق',5000)}
+  renderTrend()});
+$('trend').addEventListener('toggle',()=>{if($('trend').open&&!TREND)loadTrend()});loadTrend();
 // ---------- إنستغرام بموسيقى ترند: الموسيقى الرائجة لا تُضاف إلا من داخل تطبيق إنستغرام ----------
 // يجهّز الفيديو بالباركود (بدون موسيقى الأداة، حتى تختار صوتاً رائجاً من إنستغرام)، ينسخ نص إنستغرام، ويفتح المشاركة ← إنستغرام ← ريلز
 let igCache={key:'',fl:null};
@@ -727,7 +758,7 @@ $('igShare').onclick=async()=>{if(!files.length){toast(kind==='image'?'اختر 
       igCache={key,fl}}
     if(!navigator.canShare||!navigator.canShare({files:igCache.fl})){toast('افتح «المنشورات» من الهاتف لهذه الميزة',6000);return}
     await navigator.share({files:igCache.fl});
-    toast(kind==='video'?'اختر «ريلز» ← اضغط 🎵 الصوت ← «رائج» واختر أغنية، ثم الصق النص (منسوخ)':'النص منسوخ — الصقه في الشرح',9000)
+    toast(kind==='video'?(trendPick?'اختر «ريلز» ← 🎵 الصوت ← ابحث: '+trendPick.title+' — ثم الصق النص (منسوخ)':'اختر «ريلز» ← اضغط 🎵 الصوت ← «رائج» واختر أغنية، ثم الصق النص (منسوخ)'):'النص منسوخ — الصقه في الشرح',10000)
   }catch(e){if(e&&e.name==='AbortError')return;toast(e&&e.name==='NotAllowedError'?'الملف جاهز — اضغط الزر مرة ثانية للمشاركة':'تعذرت المشاركة',5000)}};
 $('pubSel').onclick=()=>publish([...sel]);
 $('pubAll').onclick=()=>{const ks=ORDER.filter(k=>P[k].ready&&P[k].kinds.includes(kind));
