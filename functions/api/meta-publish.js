@@ -114,6 +114,21 @@ export async function onRequest({ request, env }) {
   }
   if (request.method !== 'POST') return json({ ok: false, error: 'post-only' }, 405);
   let b; try { b = await request.json(); } catch (e) { return json({ ok: false, error: 'bad-json' }, 400); }
+  if (Array.isArray(b.deleteByPhoto)) { // حذف منشورات الصفحة: من معرّف صورة داخل المنشور ← المنشور نفسه (للصفحة فقط)
+    let I; try { I = await ids(token, env); } catch (e) { return json({ ok: false, error: String(e.message || e) }); }
+    const res = {};
+    for (const pid of b.deleteByPhoto.slice(0, 10)) {
+      try { if (!/^\d+$/.test(String(pid))) throw new Error('bad-id');
+        const ph = await gget(`${pid}?fields=page_story_id,from`, I.token);
+        if (!ph.from || String(ph.from.id) !== String(I.pageId)) throw new Error('not-page');
+        const sid = ph.page_story_id; if (!sid) throw new Error('no-post');
+        if (b.dry) { res[pid] = { ok: true, post: sid, dry: true }; continue; }
+        const r = await fetch(`https://graph.facebook.com/v21.0/${sid}?access_token=${encodeURIComponent(I.token)}`, { method: 'DELETE' });
+        const d = await r.json().catch(() => ({})); res[pid] = { ok: !!d.success, post: sid, error: d.error ? d.error.message : undefined };
+      } catch (e) { res[pid] = { ok: false, error: String(e.message || e) }; }
+    }
+    return json({ ok: true, res });
+  }
   const items = (Array.isArray(b.items) ? b.items : []).filter(x => x && ALLOW.test(String(x.url)) && /^(image|video)$/.test(x.type));
   if (!items.length) return json({ ok: false, error: 'no-media' }, 400);
   // نسخة إنستغرام المصحّحة المقاس (إن وُجدت) — وإلا نفس الملفات
