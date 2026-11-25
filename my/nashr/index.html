@@ -326,7 +326,7 @@ async function sugMake(src){sugCur=null;sugShow(sugAi?'✨ جارٍ الصياغ
     if(d.error)throw new Error(d.error);if(sugAi&&sugAi.siteTitle)d.site=sugAi.siteTitle;sugCur=d;$('sugCat').value=d.cat;
     sugShow(d.fb,src||(sugAi?'✨ كُتب بالذكاء الاصطناعي من '+(kind==='image'?'الصورة':'الفيديو')+' — النوع: '+d.catAr:'💡 اقتراح من القوالب — النوع: '+d.catAr+'. غيّر النوع من القائمة إن لم يكن صحيحاً'))}
   catch(e){sugShow('تعذر تجهيز الاقتراح: '+(e.message||e)+' — استعمل «صياغة النص تلقائياً» في الأعلى','',false)}}
-function sugAuto(){const fk=filesKey();if(!fk){$('sug').hidden=true;sugFor='';return}if(fk===sugFor)return;sugFor=fk;if($('text').value.trim())return;sugAi=null;sugStyle=0;sugMake()}
+function sugAuto(){const fk=filesKey();if(!fk){$('sug').hidden=true;sugFor='';return}if(fk===sugFor)return;sugFor=fk;if($('text').value.trim()){sugCur=null;sugShow('عندك نص مكتوب — اضغط ✨ «اقتراح بالذكاء الاصطناعي» إن أردت نصاً جديداً من '+(kind==='image'?'الصور':'الفيديو'),'',false);return}sugAi=null;sugStyle=0;sugMake()}
 $('sugCat').onchange=()=>{try{localStorage.setItem('nashr_sugcat',$('sugCat').value)}catch(e){}sugMake()};
 $('sugNext').onclick=()=>{sugStyle=(sugStyle+1)%4;sugMake()};
 $('sugUse').onclick=()=>{if(!sugCur)return;const d=sugCur;try{localStorage.setItem('nashr_sugcat',d.cat)}catch(e){}
