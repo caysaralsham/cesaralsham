@@ -117,6 +117,16 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
 .trend .tplay{font:inherit;font-size:12px;font-weight:700;color:var(--br);background:#fff;white-space:nowrap;border:1px solid var(--line);border-radius:999px;padding:3px 9px;flex-shrink:0;cursor:pointer}
 .trend .tpl{padding:8px 12px;border-bottom:1px solid #F1E8DA;background:#FBF5EA}.trend .tpl iframe{display:block;width:min(100%,300px);aspect-ratio:9/16;max-height:60vh;margin:0 auto;border:0;border-radius:10px;background:#000}
 .trend .tpl .tn{border:0;text-align:center}
+.appsh{margin-top:12px;border:1.5px solid var(--line);border-radius:14px;background:#FFFCF6;padding:10px 12px}
+.appsh .ah{display:flex;align-items:baseline;justify-content:space-between;gap:8px;white-space:nowrap}.appsh .ah small{color:var(--deep);font-size:11.5px;overflow:hidden;text-overflow:ellipsis}
+.appsh .asong{display:flex;align-items:center;gap:6px;margin:8px 0;padding:8px 10px;border-radius:10px;background:#fff;border:1px solid #EFE4D2;min-width:0}
+.appsh .asong .tx{flex:1;min-width:0;display:flex;flex-direction:column}.appsh .asong b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.appsh .asong small{font-size:11.5px;color:var(--deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.appsh .asong button{font:inherit;font-size:12px;font-weight:800;white-space:nowrap;border:1px solid var(--line);border-radius:999px;padding:5px 10px;background:#fff;color:var(--br);cursor:pointer;flex-shrink:0}
+.appsh .asong button.ok{background:var(--br);color:#fff;border-color:var(--br)}.appsh .asong.on{border-color:var(--br);background:#FBF5EA}
+.appsh .ag{display:grid;grid-template-columns:1fr 1fr;gap:8px}.appsh .ag .btn{padding:10px 8px;font-size:14px}
+.appsh .aguide{margin-top:10px;padding:10px;border-radius:10px;background:#FBF5EA;border:1px solid var(--line);font-size:13px;line-height:1.7}
+.appsh .aguide ol{margin:4px 0 8px;padding-inline-start:20px}.appsh .aguide .r{display:flex;gap:6px;flex-wrap:wrap}.appsh .aguide .r .btn{padding:8px 10px;font-size:13px}
 .trend-pick{font-size:12.5px;font-weight:700;color:var(--ink);background:#FBF5EA;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:8px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mu{position:relative;display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:12px;padding:9px 10px;background:#fff;cursor:pointer;min-width:0;border-inline-start:6px solid var(--st)}
 .mu.on{border-color:var(--br);border-inline-start-color:var(--st);background:#F7EBD8}
@@ -223,7 +233,11 @@ details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;tex
       <div class="acts"><button class="btn big" id="pubAll">🚀 نشر على الجميع</button></div>
       <div class="acts" style="margin-top:8px"><button class="btn" id="pubSel">نشر على المحدد فقط</button><button class="btn ghost" id="check">فحص قبل النشر</button></div>
       <div class="acts" style="margin-top:8px"><button class="btn ghost" id="waShare" style="width:100%">واتساب: مشاركة إلى الحالة</button></div>
-      <div class="acts" style="margin-top:8px"><button class="btn ghost" id="igShare" style="width:100%">🎵 إنستغرام بموسيقى ترند (ريلز من التطبيق)</button></div>
+      <div class="appsh" id="appSh"><div class="ah"><b>📱 انشر من التطبيق بموسيقى ترند</b><small>الفيديو يفتح في التطبيق والنص منسوخ</small></div>
+        <div class="asong" id="appSong"><span class="tx">جارٍ اختيار أغنية مناسبة…</span></div>
+        <div class="ag"><button type="button" class="btn ghost" data-app="fb">📘 فيسبوك</button><button type="button" class="btn ghost" data-app="ig">📸 إنستغرام</button><button type="button" class="btn ghost" data-app="tk">🎵 تيك توك</button><button type="button" class="btn ghost" data-app="yt">▶️ يوتيوب</button></div>
+        <div class="aguide" id="appGuide" hidden role="status"></div>
+        <button type="button" id="igShare" hidden></button></div>
       <div class="upp" id="upProg" hidden role="status"></div><div class="st" id="status" style="margin-top:12px"></div><button type="button" class="btn ghost retry" id="cancelPub" hidden>⛔ إلغاء النشر</button><button type="button" class="btn retry" id="retry" hidden>🔁 أعِد المحاولة على المنصات التي فشلت فقط</button>
       <div class="tkafter" id="tkAfter" hidden role="status"><div class="trend-pick" id="tkTrendPick" hidden></div>
         <b>تيك توك: الفيديو وصل مسودةً بدون نص</b>
@@ -747,7 +761,7 @@ function renderTrend(){const L=$('trendList');if(!L)return;if(!TREND||!TREND.ite
   $('trendUp').textContent='تحديث '+TREND.updated;
   L.innerHTML=TREND.items.map((it,i)=>`<label class="ti${trendPick&&trendPick.url===it.url?' on':''}" title="${esc(it.title+' — '+it.artist+' · '+it.mood)}"><input type="radio" name="trend" value="${i}"${trendPick&&trendPick.url===it.url?' checked':''}><span class="tx"><b>${esc(it.title)}</b><small>${esc(it.mood)}</small><small class="cnt">🔥 ${it.vpd||0} فيديو يومياً${it.growth>=1.3?' · <span class="up">▲ تصعد</span>':it.growth<0.9?' · ▼ تنزل':''}</small></span>${it.vids&&it.vids.length?`<button type="button" class="tplay" data-play="${i}">▶ اسمع</button>`:`<a href="${esc(it.url)}" target="_blank" rel="noopener">▶ اسمع</a>`}</label><div class="tpl" id="tpl${i}" hidden></div>`).join('')+
     (trendPick?'<label class="ti"><input type="radio" name="trend" value="-1"> <span class="tx"><small>إلغاء الاختيار</small></span></label>':'')+'<div class="tn">⚠️ أغنية الترند <b>لا تُدمج في الفيديو</b> هنا (محمية بحقوق النشر، وفيسبوك يكتمها). تضيفها أنت من داخل تطبيق تيك توك أو إنستغرام عند النشر. لفيسبوك ويوتيوب اختر موسيقى من «موسيقى الفيديو» تحت.</div>';
-  showTrendPick()}
+  showTrendPick();try{appRender()}catch(e){}}
 function showTrendPick(){const el=$('tkTrendPick');if(!el)return;if(trendPick){el.hidden=false;el.textContent='🎵 أضف الصوت في تيك توك: '+trendPick.title+' — '+trendPick.artist}else el.hidden=true}
 $('trendList').addEventListener('change',e=>{const v=+e.target.value;if(e.target.name!=='trend')return;
   trendPick=v>=0&&TREND?TREND.items[v]:null;try{localStorage.setItem('nashr_trend',JSON.stringify(trendPick))}catch(x){}
@@ -777,6 +791,45 @@ $('igShare').onclick=async()=>{if(!files.length){toast(kind==='image'?'اختر 
     await navigator.share({files:igCache.fl});
     toast(kind==='video'?(trendPick?'اختر «ريلز» ← 🎵 الصوت ← ابحث: '+trendPick.title+' — ثم الصق النص (منسوخ)':'اختر «ريلز» ← اضغط 🎵 الصوت ← «رائج» واختر أغنية، ثم الصق النص (منسوخ)'):'النص منسوخ — الصقه في الشرح',10000)
   }catch(e){if(e&&e.name==='AbortError')return;toast(e&&e.name==='NotAllowedError'?'الملف جاهز — اضغط الزر مرة ثانية للمشاركة':'تعذرت المشاركة',5000)}};
+// ---------- انشر من التطبيق: الفيديو يفتح في التطبيق + النص منسوخ + أغنية ترند مقترحة حسب نوع العمل ----------
+// الأغاني الرائجة لا تُضاف إلا من داخل التطبيق (حقوق النشر) — وهي التي تعطي دفعة الظهور لأنها مربوطة بصفحة الصوت
+const APPS={fb:{n:'فيسبوك',w:'اختر «Facebook» ← «ريلز»',m:'🎵 الموسيقى'},ig:{n:'إنستغرام',w:'اختر «Instagram» ← «ريلز»',m:'🎵 الصوت'},tk:{n:'تيك توك',w:'اختر «TikTok»',m:'🎵 إضافة صوت'},yt:{n:'يوتيوب',w:'اختر «YouTube» ← «Short»',m:'🎵 الصوت'}};
+const CALM=new Set(['cascade','fontaine','bain','lavabo','cheminee','sabil','bassin','tablo','table','mur','corniche','fenetre','mosquee']);
+let appIdx=-1,appOk=false,appFor='';
+function appCands(){if(!TREND||!TREND.items)return [];const cat=($('sugCat')&&$('sugCat').value)||guessCat();const calm=CALM.has(cat);
+  const re=calm?/هادئ|بيانو|حالم/:/إيقاع|يتصاعد|درامي|صاعد|بوب|حماسي|سريع/;const sc=it=>(it.vpd||0)*Math.max(1,Math.min(it.growth||1,3));
+  const all=TREND.items.map((it,i)=>({it,i}));const a=all.filter(x=>re.test(x.it.mood)).sort((x,y)=>sc(y.it)-sc(x.it)),b=all.filter(x=>!re.test(x.it.mood)).sort((x,y)=>sc(y.it)-sc(x.it));return [...a,...b]}
+function appRender(){const el=$('appSong');if(!el)return;const c=appCands();if(!c.length){el.innerHTML='<span class="tx"><small>تعذر تحميل قائمة الترند</small></span>';return}
+  const cat=($('sugCat')&&$('sugCat').value)||'';if(appFor!==cat){appFor=cat;if(!(appOk&&trendPick)){appIdx=c[0].i}}
+  if(appOk&&trendPick){const j=TREND.items.findIndex(x=>x.url===trendPick.url);if(j>=0)appIdx=j}
+  const it=TREND.items[appIdx]||c[0].it;el.classList.toggle('on',appOk);
+  el.innerHTML=`<span class="tx"><b>${appOk?'✅':'🎵'} ${esc(it.title)}</b><small>${esc(it.mood)} · 🔥 ${it.vpd||0} فيديو يومياً</small></span><button type="button" data-a="play">▶ اسمع</button>${appOk?'':'<button type="button" class="ok" data-a="ok">موافق</button>'}<button type="button" data-a="next">🔄 غيّر</button>`}
+$('appSong').addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;
+  if(a==='next'){const c=appCands();const k=c.findIndex(x=>x.i===appIdx);appIdx=c[(k+1)%c.length].i;appOk=false;appRender();return}
+  if(a==='ok'){trendPick=TREND.items[appIdx];appOk=true;try{localStorage.setItem('nashr_trend',JSON.stringify(trendPick))}catch(x){}renderTrend();appRender();toast('اعتمدت: '+trendPick.title,3000);return}
+  if(a==='play'){$('trend').open=true;if(!TREND)return;setTimeout(()=>{const pb=document.querySelector(`[data-play="${appIdx}"]`);if(pb){if($('tpl'+appIdx).hidden)pb.click();pb.scrollIntoView({behavior:'smooth',block:'start'})}else window.open(TREND.items[appIdx].url,'_blank','noopener')},60)}});
+const appTxt=k=>{const t=k==='tk'?((custom.tk&&String(custom.tk).trim())?String(custom.tk):tkFromMain()):(txt(k).trim()||vTitleEff());return [...t].slice(0,k==='ig'?2200:k==='tk'?2200:5000).join('')};
+const copyT=t=>{try{navigator.clipboard.writeText(t).catch(()=>{})}catch(e){}};
+document.querySelectorAll('#appSh [data-app]').forEach(b=>b.onclick=async()=>{const k=b.dataset.app,A=APPS[k];
+  if(!files.length){toast(kind==='image'?'اختر الصور أولاً':'اختر الفيديو أولاً');return}
+  if(k==='yt'&&kind!=='video'){toast('يوتيوب للفيديو فقط');return}
+  const song=TREND&&TREND.items[appIdx];const t=appTxt(k);copyT(t);
+  const g=$('appGuide');g.hidden=false;
+  g.innerHTML=`<b>${A.n}:</b><ol><li>${A.w}</li>${kind==='video'&&song?`<li>اضغط ${A.m} ← ابحث: <b dir="ltr">${esc(song.title)}</b> (إن لم تظهر لحسابك التجاري اختر صوتاً من «رائج»)</li>`:''}<li>الصق النص في الوصف (منسوخ ✔️) ← انشر</li></ol><div class="r"><button type="button" class="btn ghost" data-g="t">📋 انسخ النص</button>${song&&kind==='video'?'<button type="button" class="btn ghost" data-g="s">📋 انسخ اسم الأغنية</button>':''}<button type="button" class="btn" data-g="done">✔️ نشرته على ${A.n}</button></div>`;
+  g.dataset.k=k;
+  try{const fl=kind==='image'?await Promise.all(files.map(async(x,i)=>new File([await processImage(x,$('wm').checked)],'cesar-alcham-'+(i+1)+'.jpg',{type:'image/jpeg'}))):[files[0].f];
+    if(!navigator.canShare||!navigator.canShare({files:fl})){toast('افتح «المنشورات» من الهاتف لهذه الميزة',6000);return}
+    await navigator.share({files:fl})}
+  catch(e){if(e&&e.name==='AbortError')return;toast(e&&e.name==='NotAllowedError'?'الملف جاهز — اضغط الزر مرة ثانية':'تعذرت المشاركة'+(k==='yt'?' — احفظ الفيديو في الصور وافتح يوتيوب ← + ← Short':''),7000)}});
+$('appGuide').addEventListener('click',async e=>{const b=e.target.closest('[data-g]');if(!b)return;const g=$('appGuide'),k=g.dataset.k,song=TREND&&TREND.items[appIdx];
+  if(b.dataset.g==='t'){copyT(appTxt(k));toast('النص منسوخ');return}
+  if(b.dataset.g==='s'&&song){copyT(song.title+' '+song.artist);toast('اسم الأغنية منسوخ');return}
+  if(b.dataset.g==='done'){const id=uidF(),results={[k]:{status:'ok',manual:true,song:song&&kind==='video'?song.title:''}};
+    const rec={createdAt:Date.now(),kind,text:$('text').value,title:kind==='video'?vTitleEff():'',custom:{[k]:appTxt(k)},category:'',results,manual:true,files:files.map(x=>({name:x.f.name,size:x.f.size,hash:x.hash}))};
+    saveLocalLog(id,rec);try{await db.collection(LOGCOL).doc(id).set(rec)}catch(x){}
+    b.disabled=true;b.textContent='✔️ سُجّل في سجل النشر';toast('سُجّل: '+APPS[k].n+' (من التطبيق)')}});
+$('sugCat').addEventListener('change',()=>{if(!appOk)appRender()});
+(function waitT(n){if(TREND)appRender();else if(n<40)setTimeout(()=>waitT(n+1),300)})(0);
 $('pubSel').onclick=()=>publish([...sel]);
 $('pubAll').onclick=()=>{const ks=ORDER.filter(k=>P[k].ready&&P[k].kinds.includes(kind));
   if(ks.includes('pin')&&!$('board').value&&!pinBoardName()){ks.splice(ks.indexOf('pin'),1);toast('Pinterest: اختر اللوحة أو القسم في الخطوة 4',5000)}
