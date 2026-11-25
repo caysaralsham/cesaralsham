@@ -176,8 +176,17 @@ const CATS={
   hAr:['#نافورة_رخام','#نوافير','#ديكور_حدائق'],hFr:['#fontainemarbre','#fontaine'],
   tags:['نافورة رخام','نافورة حديقة','فوارة رخام','fontaine en marbre','fontaine jardin Algérie','marble fountain'],
   ideas:['فيديو بصوت الماء فقط بدون موسيقى (يجذب كثيراً على تيك توك)','لقطة ليلية للنافورة مع الإضاءة','قبل وبعد: الحديقة بدون النافورة ثم معها','مراحل تركيب النافورة في الموقع']},
+ cascade:{ar:'شلال ماء رخام',fr:'Cascade murale en marbre',em:'🌊',
+  kw:/شلال|شلالات|cascade/i,
+  open:['✨ شلال رخام منحوت بدقة، قطعة فنية تدوم لسنوات','🌊 شلال ماء من الرخام الطبيعي: صوت الماء وفخامة الحجر في مكان واحد','💧 حوّل جدار حديقتك إلى لوحة حية مع شلال ماء من الرخام','✨ شلال رخام على الجدار يضيف الهدوء والرقي لمدخل منزلك','🌊 انسياب الماء على الرخام الطبيعي… تفصيل يصنع الفرق'],
+  body:['نصمّمه حسب مقاس الجدار، للحدائق والمداخل والمسابح والفيلات.','نقوش وزخارف منحوتة بآلات CNC، وتشطيب يقاوم الماء والعوامل الجوية.','مضخة ماء مخفية وإمكانية إضافة الإضاءة ليلاً لمنظر ساحر.','متوفر بألوان رخام وحجر متعددة لتناسب واجهة منزلك.'],
+  pts:['رخام طبيعي','حسب مقاس الجدار','نحت CNC دقيق','تركيب وتشغيل'],
+  frl:['Cascade murale en marbre naturel, sculptée en CNC et réalisée sur mesure pour jardins et entrées.','Cascade d’eau en marbre : élégance et sérénité pour votre villa.'],
+  hAr:['#شلال_ماء','#شلال_رخام','#ديكور_حدائق'],hFr:['#cascade','#cascademurale'],
+  tags:['شلال ماء رخام','شلال جداري','شلال حديقة','cascade murale marbre','cascade eau jardin Algérie','marble water wall'],
+  ideas:['فيديو بصوت الماء فقط وهو ينساب على الرخام','لقطة ليلية مع الإضاءة','قبل وبعد: الجدار فارغ ثم مع الشلال','لقطة قريبة للنقوش والماء يجري عليها']},
  sabil:{ar:'سبالة ماء رخام',fr:'Sabil (fontaine murale) en marbre',em:'💧',
-  kw:/سبال|sabil|fontaine murale|شلال|cascade/i,
+  kw:/سبال|sabil|fontaine murale/i,
   open:['💧 سبالة ماء من الرخام الطبيعي، جمال وأصالة لمدخل منزلك','✨ سبالة رخام منحوتة تجمع بين التراث والفخامة','🏛️ لمسة تراثية راقية: سبالة ماء من الرخام الطبيعي'],
   body:['تُصنع حسب المقاس والتصميم، للحدائق والمداخل والمساجد.','نقوش إسلامية أو نباتية منحوتة بآلات CNC بدقة عالية.','متوفرة بعدة ألوان ونقوش تناسب جميع الأذواق.'],
   pts:['رخام طبيعي','نقوش حسب الطلب','للمنازل والمساجد','تركيب احترافي'],
@@ -339,9 +348,9 @@ const CATS={
   tags:['رخام طبيعي','ديكور رخام','حجر طبيعي','marbre Algérie','décoration marbre'],
   ideas:['فيديو تعريفي بالشركة','جولة في المعمل','أعمال متنوعة في فيديو واحد']}
 };
-const CAT_ORDER=['machine','mosquee','mosaique','sabil','fontaine','cheminee','bassin','lavabo','sol','corniche','fenetre','tablo','mur','bain','facade','entree','colonne','table','cnc','general'];
+const CAT_ORDER=['machine','mosquee','mosaique','cascade','sabil','fontaine','cheminee','bassin','lavabo','sol','corniche','fenetre','tablo','mur','bain','facade','entree','colonne','table','cnc','general'];
 // ترتيب الأقسام بالواجهة: نفس أنواع مرسم ديكور أولاً، وبعدين باقي أقسام الموقع
-const CAT_UI=['fontaine','bassin','facade','entree','fenetre','cheminee','sol','mur','tablo','bain','corniche','sabil','lavabo','colonne','table','mosquee','mosaique','cnc','machine','general'];
+const CAT_UI=['fontaine','cascade','bassin','facade','entree','fenetre','cheminee','sol','mur','tablo','bain','corniche','sabil','lavabo','colonne','table','mosquee','mosaique','cnc','machine','general'];
 const GEN_AR=['#رخام_طبيعي','#الجزائر'], GEN_FR=['#marbre','#Algérie'], BRAND='#قيصر_الشام';
 const CTA=[['للطلب والاستفسار راسلنا أو اتصل بنا 👇','Pour commander ou demander un devis, contactez-nous 👇'],
  ['نصمّم وننفّذ حسب المقاس، اطلب عرض سعرك الآن 👇','Fabrication sur mesure, demandez votre devis 👇'],
@@ -371,6 +380,7 @@ function placeLines(o,c){
 const HT={
  cheminee:{ar:['#شمينة','#شمينة_رخام','#مدفأة','#ديكور_صالون','#صالونات'],fr:['#cheminee','#cheminéeenmarbre','#cheminéedecorative','#fireplace','#salon']},
  fontaine:{ar:['#نافورة','#نافورة_رخام','#نوافير','#ديكور_حدائق','#حدائق'],fr:['#fontaine','#fontainemarbre','#fontainejardin','#jardin','#fountain']},
+ cascade:{ar:['#شلال','#شلال_ماء','#شلالات','#ديكور_حدائق','#حدائق'],fr:['#cascade','#cascademurale','#murdeau','#jardin','#waterwall']},
  sabil:{ar:['#سبالة','#سبالة_ماء','#ديكور_تراثي','#ديكور_مداخل'],fr:['#fontainemurale','#sabil','#fontaine','#patio']},
  bassin:{ar:['#جرن','#جرن_رخام','#باسان','#حمام_تقليدي','#حمام_مغربي'],fr:['#hammam','#bassinmarbre','#vasque','#hammammarocain']},
  lavabo:{ar:['#مغسلة','#مغسلة_رخام','#ديكور_حمامات','#حمامات'],fr:['#lavabo','#vasquemarbre','#salledebain','#salledebainmarbre','#bathroomdesign']},
@@ -392,7 +402,7 @@ const HT={
 };
 const HT_BIG_AR=['#ديكور','#ديكورات','#تصميم_داخلي','#ديكور_فخم','#ديكور_منزلي','#رخام','#رخام_طبيعي','#فلل'];
 const HT_BIG_FR=['#decoration','#decorationinterieure','#design','#architecture','#interieur','#maison','#luxe','#marbre','#interiordesign','#homedecor'];
-const HT_EXT=new Set(['facade','fontaine','sabil','colonne','entree','fenetre','corniche']);
+const HT_EXT=new Set(['facade','fontaine','cascade','sabil','colonne','entree','fenetre','corniche']);
 const HT_BIG_AR_EXT=['#ديكور_خارجي','#فلل','#ديكور','#تصميم_خارجي','#رخام_طبيعي'];
 const HT_BIG_FR_EXT=['#architecture','#design','#villa','#exterieur','#luxe','#landscapedesign'];
 const HT_LOC=['#algerie','#alger','#dz','#الجزائر','#algeria','#dzair','#algerie🇩🇿'];

@@ -73,7 +73,7 @@ async function handle({ request, env }) {
   if (!imgs.length || imgs.some(x => x.length > 400000)) return json({ ok: false, error: 'bad-image' }, 400);
   const cats = (Array.isArray(b.cats) ? b.cats : []).slice(0, 40).map(c => ({ k: String(c.k || '').slice(0, 30), ar: String(c.ar || '').slice(0, 60), fr: String(c.fr || '').slice(0, 60) })).filter(c => c.k);
   if (!cats.length) return json({ ok: false, error: 'no-cats' }, 400);
-  const hint = String(b.hint || '').slice(0, 300), kind = b.kind === 'video' ? 'فيديو (هذه لقطة منه)' : 'صور';
+  const hint = String(b.hint || '').slice(0, 300), kind = b.kind === 'video' ? 'فيديو (هذه لقطات من بدايته ووسطه ونهايته — صف العمل كما يظهر في الفيديو، ولو فيه ماء يجري اذكر حركة الماء)' : 'صور';
   const prompt = `أنت كاتب تسويق لشركة «قيصر الشام للحجر والرخام» بالجزائر (دالي إبراهيم). المنشور ${kind}.
 انظر إلى الصورة وصف الشغل الظاهر فيها بدقة، بلا اختراع.
 - cat: اختر مفتاح نوع العمل (k) من هذه القائمة بالضبط:
