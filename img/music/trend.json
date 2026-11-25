@@ -1,16 +1,126 @@
 {
-  "updated": "2026-11-25",
-  "source": "TikTok — أكثر الأغاني انتشاراً آخر 14 يوماً (عالمياً، مختارة لفيديوهات الرخام والديكور)",
-  "items": [
-    {"title": "Chopin Nocturne No. 2 Piano Mono", "artist": "moshimo sound design", "url": "https://www.tiktok.com/music/x-6817665487665629186", "vpd": 911, "growth": 1.0, "mood": "بيانو فاخر هادئ — للشمينيه والحمامات"},
-    {"title": "Saxophones getting louder - Sped Up", "artist": "AntonioVivald", "url": "https://www.tiktok.com/music/x-7639417177691473937", "vpd": 330, "growth": 1.1, "mood": "يتصاعد — لكشف العمل في الآخر (قبل/بعد)"},
-    {"title": "boom clap", "artist": "˖ . ݁𝜗𝜚. ݁₊", "url": "https://www.tiktok.com/music/x-7042173834044164869", "vpd": 174, "growth": 13.6, "mood": "الأسرع صعوداً هذا الأسبوع — إيقاع سريع"},
-    {"title": "Training Season (Live)", "artist": "Dua Lipa", "url": "https://www.tiktok.com/music/x-7445345666976631558", "vpd": 85, "growth": 0.9, "mood": "بوب قوي — مونتاج سريع لعدة أعمال"},
-    {"title": "Life Is Real", "artist": "Dj Johnny By", "url": "https://www.tiktok.com/music/x-7656611707432306689", "vpd": 185, "growth": 1.9, "mood": "إيقاع متوسط — جولة في واجهة أو فيلا"},
-    {"title": "Everything On Fire", "artist": "Maia Toakley", "url": "https://www.tiktok.com/music/x-7666873891742959632", "vpd": 197, "growth": 1.8, "mood": "درامي — نحت CNC ولقطات قريبة"},
-    {"title": "Piano famous song Chopin", "artist": "RYOpianoforte", "url": "https://www.tiktok.com/music/x-6817195494956075009", "vpd": 334, "growth": 0.9, "mood": "بيانو صافٍ — نوافير ومغاسل"},
-    {"title": "G.T.A. – Grand Trance Audio", "artist": "Tahara (Br)", "url": "https://www.tiktok.com/music/x-7564113279418894337", "vpd": 362, "growth": 12.4, "mood": "صاعد بقوة — إيقاع إلكتروني للتحوّلات"},
-    {"title": "BLUE WATER CANDY", "artist": "DJ Allanzinho JP", "url": "https://www.tiktok.com/music/x-7625997019442612225", "vpd": 217, "growth": 1.1, "mood": "بيت حماسي — فيديو قصير 10–15 ثانية"},
-    {"title": "Paper Moon Static", "artist": "Marnie Cusk", "url": "https://www.tiktok.com/music/x-7684150368565250075", "vpd": 564, "growth": 0.8, "mood": "هادئ حالم — لقطات بطيئة للتفاصيل"}
-  ]
+ "updated": "2026-11-25",
+ "source": "TikTok — أكثر الأغاني انتشاراً آخر 14 يوماً (عالمياً، مختارة لفيديوهات الرخام والديكور)",
+ "items": [
+  {
+   "title": "Chopin Nocturne No. 2 Piano Mono",
+   "artist": "moshimo sound design",
+   "url": "https://www.tiktok.com/music/x-6817665487665629186",
+   "vpd": 911,
+   "growth": 1.0,
+   "mood": "بيانو فاخر هادئ — للشمينيه والحمامات",
+   "vids": [
+    "7680151533253594386",
+    "7680405149734522126"
+   ]
+  },
+  {
+   "title": "Saxophones getting louder - Sped Up",
+   "artist": "AntonioVivald",
+   "url": "https://www.tiktok.com/music/x-7639417177691473937",
+   "vpd": 330,
+   "growth": 1.1,
+   "mood": "يتصاعد — لكشف العمل في الآخر (قبل/بعد)",
+   "vids": [
+    "7684685483275767070",
+    "7690335071420566797"
+   ]
+  },
+  {
+   "title": "boom clap",
+   "artist": "˖ . ݁𝜗𝜚. ݁₊",
+   "url": "https://www.tiktok.com/music/x-7042173834044164869",
+   "vpd": 174,
+   "growth": 13.6,
+   "mood": "الأسرع صعوداً هذا الأسبوع — إيقاع سريع",
+   "vids": [
+    "7709682900932775198",
+    "7709178793071496454"
+   ]
+  },
+  {
+   "title": "Training Season (Live)",
+   "artist": "Dua Lipa",
+   "url": "https://www.tiktok.com/music/x-7445345666976631558",
+   "vpd": 85,
+   "growth": 0.9,
+   "mood": "بوب قوي — مونتاج سريع لعدة أعمال",
+   "vids": [
+    "7683207444276743446",
+    "7678726785579912466"
+   ]
+  },
+  {
+   "title": "Life Is Real",
+   "artist": "Dj Johnny By",
+   "url": "https://www.tiktok.com/music/x-7656611707432306689",
+   "vpd": 185,
+   "growth": 1.9,
+   "mood": "إيقاع متوسط — جولة في واجهة أو فيلا",
+   "vids": [
+    "7708416434354801942",
+    "7709900250709888288"
+   ]
+  },
+  {
+   "title": "Everything On Fire",
+   "artist": "Maia Toakley",
+   "url": "https://www.tiktok.com/music/x-7666873891742959632",
+   "vpd": 197,
+   "growth": 1.8,
+   "mood": "درامي — نحت CNC ولقطات قريبة",
+   "vids": [
+    "7709312611409497396",
+    "7709690083279965492"
+   ]
+  },
+  {
+   "title": "Piano famous song Chopin",
+   "artist": "RYOpianoforte",
+   "url": "https://www.tiktok.com/music/x-6817195494956075009",
+   "vpd": 334,
+   "growth": 0.9,
+   "mood": "بيانو صافٍ — نوافير ومغاسل",
+   "vids": [
+    "7682147802092178709",
+    "7694643480022306069"
+   ]
+  },
+  {
+   "title": "G.T.A. – Grand Trance Audio",
+   "artist": "Tahara (Br)",
+   "url": "https://www.tiktok.com/music/x-7564113279418894337",
+   "vpd": 362,
+   "growth": 12.4,
+   "mood": "صاعد بقوة — إيقاع إلكتروني للتحوّلات",
+   "vids": [
+    "7710668270055001366",
+    "7706758568443186438"
+   ]
+  },
+  {
+   "title": "BLUE WATER CANDY",
+   "artist": "DJ Allanzinho JP",
+   "url": "https://www.tiktok.com/music/x-7625997019442612225",
+   "vpd": 217,
+   "growth": 1.1,
+   "mood": "بيت حماسي — فيديو قصير 10–15 ثانية",
+   "vids": [
+    "7692444951853960479",
+    "7682224747484122400"
+   ]
+  },
+  {
+   "title": "Paper Moon Static",
+   "artist": "Marnie Cusk",
+   "url": "https://www.tiktok.com/music/x-7684150368565250075",
+   "vpd": 564,
+   "growth": 0.8,
+   "mood": "هادئ حالم — لقطات بطيئة للتفاصيل",
+   "vids": [
+    "7704484923280821512",
+    "7704803524076489998"
+   ]
+  }
+ ]
 }
