@@ -294,8 +294,11 @@ $('#add').onclick=async()=>{const L=PH.filter(p=>p.sel&&!p.onSite&&p.cat!==X);if
 // ---------- Pinterest: صور فيسبوك ← دبابيس (بدون تكرار) ----------
 let PINNED={},PSTOP=false;
 async function loadPinned(){try{const r=await fetch('/api/oauth/pinned',{headers:{authorization:'Bearer '+await tok()}});const d=await r.json();if(d.ok)PINNED=d.pinned||{}}catch(e){}pinInfo()}
-function pinInfo(){if(!PH.length)return;const left=PH.filter(p=>p.cat!==X&&!PINNED[p.id]).length,done=Object.keys(PINNED).length;$('#pinSt').textContent=`على Pinterest: ${done} · باقي: ${left}`}
+function pinInfo(){if(!PH.length)return;const left=PH.filter(p=>p.cat!==X&&!PINNED[p.id]&&!GONE[p.id]).length,done=Object.keys(PINNED).length;$('#pinSt').textContent=`على Pinterest: ${done} · باقي: ${left}`}
 const PAGES=[[/lavabo/i,'a3mal-lavabo-en-marbre-naturel'],[/fontaine/i,'a3mal-fontaines-en-marbre'],[/chemin/i,'a3mal-cheminees-en-marbre'],[/fa[cç]ade/i,'a3mal-facades-de-maisons-en-pierre'],[/fen[eê]tre/i,'a3mal-fenetres-en-marbre'],[/colonne|balustr/i,'a3mal-colonnes-et-balustrades-en-marbre'],[/cascade/i,'a3mal-cascades-murales'],[/sabil/i,'a3mal-sabils-en-marbre'],[/bassin/i,'a3mal-bassin-en-bloc-de-marbre'],[/table/i,'a3mal-tables-en-marbre'],[/mosqu/i,'a3mal-decoration-de-mosquees'],[/salle|bain/i,'a3mal-salles-de-bains-en-marbre'],[/sol/i,'a3mal-tableaux-de-sol-en-marbre'],[/mur/i,'a3mal-murs-en-marbre-sculpte']];
+const pIdx=n=>{const f=String(n||'').split(/[|–]/).pop();return PAGES.findIndex(x=>x[0].test(f))};
+let BOARDS=[];const boardFor=c=>{const i=pIdx(c);let b=i>=0&&BOARDS.find(x=>pIdx(x.name)===i);if(!b)b=BOARDS.find(x=>/قيصر الشام/.test(x.name)&&pIdx(x.name)<0);return b?b.id:''};
+let GONE={};try{GONE=JSON.parse(localStorage.getItem('pin_gone')||'{}')}catch(e){}
 const pageOf=c=>{const f=fr(c);const m=PAGES.find(x=>x[0].test(f));return 'https://cesar-alcham.com/'+(m?m[1]+'.html':'')};
 const TAGS_G=['#marbre','#marbrealgerie','#pierrenaturelle','#decoration','#decorationinterieure','#decorationexterieure','#architecture','#design','#luxe','#alger','#algerie','#delyibrahim','#dz','#maison','#villa','#interiordesign','#marble','#stone','#رخام','#حجر','#ديكور','#الجزائر','#نحت_CNC','#ديكورات'];
 const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -306,14 +309,16 @@ function pinText(p){const f=fr(p.cat),a=ar(p.cat);const own='#'+f.toLowerCase().
   return {title,text:text.slice(0,500)}}
 $('#pinStop').onclick=()=>{PSTOP=true;$('#pinStop').disabled=true};
 $('#pinGo').onclick=async()=>{await loadPinned();try{const r=await fetch('/api/oauth/status',{headers:{authorization:'Bearer '+await tok()}});const d=await r.json();const x=d.pinterest||{};if(!x.configured)return alert('Pinterest غير مُعدّ في Cloudflare بعد: أضف PINTEREST_APP_ID و PINTEREST_APP_SECRET ثم أعد النشر');if(!x.connected)return alert('Pinterest غير مربوط: افتح «المنشورات» واضغط «ربط الآن» على Pinterest')}catch(e){}const n=+$('#pinN').value;
-  let L=PH.filter(p=>p.cat!==X&&!PINNED[p.id]).sort((a,b)=>String(b.at).localeCompare(String(a.at)));if(n)L=L.slice(0,n);
+  try{const r=await fetch('/api/oauth/boards',{headers:{authorization:'Bearer '+await tok()}});const d=await r.json();if(d.ok)BOARDS=d.boards||[]}catch(e){}
+  let L=PH.filter(p=>p.cat!==X&&!PINNED[p.id]&&!GONE[p.id]).sort((a,b)=>String(b.at).localeCompare(String(a.at)));if(n)L=L.slice(0,n);
   if(!L.length)return toast('كل صور الشغل منشورة على Pinterest ✓');
   if(!confirm(`نشر ${L.length} صورة على Pinterest (بالباركود، كل صورة على لوحة قسمها)؟\nلا تقفل الصفحة لحد ما يخلص.`))return;
   const btn=$('#pinGo');btn.disabled=true;PSTOP=false;$('#pinStop').style.display='';$('#pinStop').disabled=false;let ok=0,bad=0,lastErr='';
   let wl=null;try{if(navigator.wakeLock)wl=await navigator.wakeLock.request('screen')}catch(e){}
   for(const p of L){if(PSTOP)break;btn.textContent=`📌 ${ok+bad+1} من ${L.length}…`;
-    try{const c=await makeQr(await fbImg(p),1600);const ref=st.ref('gallery/pin_'+p.id+'.jpg');await ref.put(await toBlob(c),{contentType:'image/jpeg'});const url=await ref.getDownloadURL();
-      const t=pinText(p);const r=await fetch('/api/oauth/publish/pinterest',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+await tok()},body:JSON.stringify({items:[{url,type:'image'}],title:t.title,text:t.text,boardName:fr(p.cat),link:pageOf(p.cat),fbId:p.id})});
+    let im;try{im=await fbImg(p)}catch(e){GONE[p.id]=1;try{localStorage.setItem('pin_gone',JSON.stringify(GONE))}catch(x){}bad++;lastErr='صورة محذوفة من فيسبوك — تخطيتها';continue}
+    try{const c=await makeQr(im,1600);const ref=st.ref('gallery/pin_'+p.id+'.jpg');await ref.put(await toBlob(c),{contentType:'image/jpeg'});const url=await ref.getDownloadURL();
+      const t=pinText(p);const r=await fetch('/api/oauth/publish/pinterest',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+await tok()},body:JSON.stringify({items:[{url,type:'image'}],title:t.title,text:t.text,board:boardFor(p.cat),boardName:boardFor(p.cat)?'':fr(p.cat),link:pageOf(p.cat),fbId:p.id})});
       const d=await r.json().catch(()=>({}));if(d.ok&&d.id){PINNED[p.id]={id:d.id,at:Date.now()};ok++}else{bad++;lastErr=d.error||('HTTP '+r.status);if(/غير مربوط|غير مُعدّ|Trial|صلاحية|login/i.test(lastErr))break}}
     catch(e){bad++;lastErr=e.message||String(e)}
     render();pinInfo();if(!PSTOP)await sleep(6000)}
