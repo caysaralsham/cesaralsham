@@ -41,7 +41,7 @@ textarea{min-height:120px;resize:vertical;line-height:1.7}
 .pfc.on{border-color:var(--br);background:#F7EBD8}
 .pfc small:has(.q){white-space:normal;line-height:1.5}.pfc.off{opacity:.62;cursor:default}.pfc.off small{color:var(--bad)}
 .pfc .q{border:0;background:none;padding:0;color:var(--br);font-weight:800;cursor:pointer;font-size:11px;text-decoration:underline;margin-inline-start:4px}
-.c-fb{background:#1877F2}.c-ig{background:linear-gradient(45deg,#f09433,#dc2743,#bc1888)}.c-pin{background:#E60023}.c-tk{background:#111}.c-yt{background:#FF0000}.c-site{background:linear-gradient(135deg,#8A5A30,#5E3A1E)}
+.c-fb{background:#1877F2}.c-ig{background:linear-gradient(45deg,#f09433,#dc2743,#bc1888)}.c-pin{background:#E60023}.c-tk{background:#111}.c-yt{background:#FF0000}.c-gbp{background:#34A853}.c-site{background:linear-gradient(135deg,#8A5A30,#5E3A1E)}
 details.cust{border:1px solid var(--line);border-radius:12px;background:#fff;padding:8px 12px;margin-top:8px}
 details.cust summary{cursor:pointer;font-weight:800;font-size:13.5px;display:flex;align-items:center;gap:8px;white-space:nowrap}
 details.cust summary small{font-weight:600;color:var(--deep);overflow:hidden;text-overflow:ellipsis}
@@ -271,9 +271,11 @@ const P={
    need:'<h4>ربط TikTok</h4><p>يُرسل الفيديو <b>كمسودة</b> إلى تطبيق تيك توك عبر Content Posting API الرسمي (يعمل بدون مراجعة Audit):</p><ol><li>إنشاء تطبيق على developers.tiktok.com وإضافة منتج Content Posting API.</li><li>تسجيل الدخول بموافقتك (OAuth) بصلاحية video.upload.</li><li>بعد كل رفع يصلك إشعار في تيك توك: افتحه، اختر موسيقى ترند، الصق النص (يُنسخ تلقائياً) وانشر خلال 24 ساعة.</li><li>الحد: 5 مسودات معلّقة خلال 24 ساعة.</li></ol>'},
  yt:{name:'YouTube',cls:'c-yt',kinds:['video'],max:5000,ic:SV('<path d="M23 7.2a3 3 0 00-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 001 7.2 31 31 0 00.5 12 31 31 0 001 16.8a3 3 0 002.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 002.1-2.1 31 31 0 00.5-4.8 31 31 0 00-.5-4.8zM9.8 15.1V8.9L15.2 12z"/>'),ready:false,
    need:'<h4>ربط YouTube</h4><p>الرفع على يوتيوب يتم عبر YouTube Data API الرسمي، ويلزم:</p><ol><li>مشروع على Google Cloud مع تفعيل YouTube Data API v3 وإنشاء OAuth Client.</li><li>تسجيل الدخول بحساب قناة Cesar Alcham والموافقة على صلاحية youtube.upload.</li><li>مهم: المشاريع الجديدة غير المراجَعة من Google تُرفع فيديوهاتها <b>خاصة (Private)</b> إلى أن يجتاز المشروع مراجعة Google.</li></ol>'},
+ gbp:{name:'Google Maps',cls:'c-gbp',kinds:['image','video'],max:1500,ic:SV('<path d="M12 2a7 7 0 00-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 00-7-7zm0 9.5A2.5 2.5 0 1112 6.5a2.5 2.5 0 010 5z"/>'),ready:false,
+   need:'<h4>ربط Google Maps</h4><p>النشر يتم على ملفك في Maps (دالي إبراهيم فقط) عبر Business Profile API الرسمي. الكود جاهز هنا، ويبقى (مرة واحدة):</p><ol><li>اطلب الموافقة على الواجهة من نموذج Google: <bdi>support.google.com/business/contact/api_default</bdi> — اختر «Application for Basic API Access» واكتب رقم مشروع Google Cloud نفسه تبع يوتيوب. الرد عادة خلال أيام إلى أسبوعين.</li><li>بعد القبول، في Google Cloud ← APIs &amp; Services فعّل: <bdi>My Business Account Management API</bdi> و <bdi>My Business Business Information API</bdi> و <bdi>Google My Business API</bdi>.</li><li>في نفس OAuth Client تبع يوتيوب أضف في Authorized redirect URIs بالضبط:<br><bdi style="user-select:all;font-weight:700">https://cesar-alcham.com/api/oauth/gbp</bdi></li><li>ارجع إلى هنا واضغط «ربط الآن» على Google Maps ووافق بحسابك صاحب الملف.</li></ol><p>ملاحظات: الصورة تُنشر كمنشور «آخر الأخبار» مع زر «اتصال». الفيديو يُضاف إلى «الصور والفيديو» (حتى 30 ثانية و 75 ميغا). رقم الهاتف يُحذف من النص تلقائياً لأن Google يرفض المنشورات التي فيها رقم.</p>'},
  site:{name:'الموقع الرسمي',cls:'c-site',kinds:['image','video'],max:120,ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></svg>',ready:false}
 };
-const ORDER=['fb','ig','pin','tk','yt','site'];
+const ORDER=['fb','ig','pin','tk','yt','gbp','site'];
 let kind='image', files=[], cover=null, custom={}, sel=new Set(), busy=false, LOG=[], CATS=[], SITE_ITEMS=[], prof={fb:{},ig:{}}, db, st, A;
 // ---------- الملفات ----------
 const MAXIMG=10;
@@ -399,7 +401,7 @@ function renderPf(){autoDeselect();const DM=doneMap();$('pf').innerHTML=ORDER.ma
   const sub=!fits?(kind==='image'?'للفيديو فقط':'—'):p.ready?(k==='site'?'تحديد القسم بالخطوة 4':(k==='fb'?(prof.fb.name||'مربوط'):k==='ig'?(prof.ig.user?'@'+prof.ig.user:'مربوط'):(p.who||'مربوط'))):(p.conf?'جاهز للربط':p.need?'يحتاج ربط':(p.err||'غير متاح'));
   const off=!fits||!p.ready;const dh=dn?(dn.link?`<a class="done" href="${esc(dn.link)}" target="_blank" rel="noopener" title="فتح المنشور">✓ ${dn.draft?'أُرسل مسودة':'تم النشر'} ${esc(fmt(dn.at).slice(5,10))}</a>`:`<span class="done">✓ ${dn.draft?'أُرسل مسودة':'تم النشر'} ${esc(fmt(dn.at).slice(5,10))}</span>`):'';return `<label class="pfc ${on?'on':''} ${off?'off':''} ${dn?'was':''}" title="${esc(p.name+' — '+sub+(dn?' — سبق نشر هذه الملفات هنا':''))}"><input type="checkbox" data-p="${k}" ${on?'checked':''} ${off?'disabled':''}><span class="ic ${p.cls}">${p.ic}</span><span class="tx"><b>${p.name}</b><small><bdi>${esc(sub)}</bdi>${!p.ready&&p.conf&&fits?`<button type="button" class="q" data-conn="${k}">ربط الآن</button>`:!p.ready&&p.need&&fits?`<button type="button" class="q" data-need="${k}">ما المطلوب؟</button>`:''}</small>${dh}</span></label>`}).join('')}
 $('pf').addEventListener('change',e=>{const k=e.target.dataset.p;if(!k)return;e.target.checked?sel.add(k):sel.delete(k);render()});
-const SKEY={pin:'pinterest',yt:'youtube',tk:'tiktok'};
+const SKEY={pin:'pinterest',yt:'youtube',tk:'tiktok',gbp:'gbp'};
 $('pf').addEventListener('click',async e=>{const c=e.target.closest('[data-conn]');if(c){e.preventDefault();try{const r=await fetch('/api/oauth/connect/'+SKEY[c.dataset.conn],{method:'POST',headers:{authorization:'Bearer '+await idTok()}});const d=await r.json();if(d.ok&&d.url)location.href=d.url;else toast(d.error||'تعذر بدء الربط')}catch(x){toast('تعذر بدء الربط')}return}});
 $('pf').addEventListener('click',e=>{const b=e.target.closest('[data-need]');if(!b)return;e.preventDefault();showModal(P[b.dataset.need].need)});
 function showModal(h){$('mBody').innerHTML=h;$('modal').classList.add('show')}$('mClose').onclick=()=>$('modal').classList.remove('show');
@@ -473,6 +475,10 @@ function problems(ks){const out=[];const add=(k,m,bad=true)=>out.push({k,m,bad})
       if(kind==='video'&&files[0]&&files[0].d&&(files[0].d<3||files[0].d>900))add(k,'ريلز إنستغرام: المدة بين 3 ثوانٍ و 15 دقيقة')}
     if(k==='site'&&!catVal())add(k,'اختر قسم الموقع في الخطوة 4');
     if(k==='pin'&&!$('board').value&&!pinBoardName())add(k,'اختر لوحة Pinterest أو قسم الموقع في الخطوة 4');
+    if(k==='gbp'){if(kind==='video'&&files[0]&&files[0].d>30)add(k,'Google Maps يقبل فيديو حتى 30 ثانية فقط (فيديوك '+Math.round(files[0].d)+' ث)');
+      if(kind==='video'&&files[0]&&files[0].f.size>75e6)add(k,'Google Maps يقبل فيديو حتى 75 ميغا');
+      if(kind==='image'&&files.length>1)add(k,'Google Maps: تُنشر الصورة الأولى فقط مع المنشور',false);
+      if(/\d[\d\s.\-]{7,}\d/.test(txt(k)))add(k,'رقم الهاتف يُحذف من نص Google Maps تلقائياً (Google يرفضه) — الاتصال يكون من زر «اتصال»',false)}
     if((k==='yt')&&!$('vTitle').value.trim())add(k,'لم تكتب عنواناً — سيُنشر بعنوان: «'+vTitleEff()+'»',false)}
   if(kind==='video'&&files[0]&&!/mp4$/i.test(files[0].f.type)&&!/\.mp4$/i.test(files[0].f.name))add('',files[0].f.size>MP4MAX?'فيديو آيفون (MOV) أكبر من 600 ميغا: يُرفع كما هو بدون تحويل — قد لا يعمل في الموقع أو إنستغرام':'فيديو آيفون (MOV): يُحوَّل تلقائياً إلى MP4 قبل النشر — لا حاجة لأي شيء منك',false);
   if(!$('text').value.trim()&&ks.some(k=>k!=='site'))add('','نص المنشور فارغ',false);

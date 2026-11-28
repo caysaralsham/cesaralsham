@@ -1,11 +1,12 @@
-// ربط ونشر: YouTube و Pinterest و TikTok (الواجهات الرسمية + OAuth)
+// ربط ونشر: YouTube و Pinterest و TikTok و Google Maps (ملف النشاط التجاري) — الواجهات الرسمية + OAuth
 // المفاتيح السرية بـ Cloudflare فقط (متغيرات البيئة)، ومفاتيح الوصول بعد الربط بـ Cloudflare KV (SOCIAL_KV) — ما بتوصل للمتصفح أبداً.
 // المسارات:
 //   GET  /api/oauth/status                 → حالة الربط (صاحب الحساب فقط)
 //   POST /api/oauth/connect/{pf}           → رابط صفحة الموافقة الرسمية للمنصة
 //   GET  /api/oauth/{pf}?code=&state=      → رجوع المنصة بعد الموافقة (Redirect URI)
 //   GET  /api/oauth/boards                 → لوحات Pinterest
-//   POST /api/oauth/publish/{pf}           → نشر (فيديو يوتيوب، دبوس Pinterest، فيديو تيك توك)
+//   POST /api/oauth/publish/{pf}           → نشر (فيديو يوتيوب، دبوس Pinterest، فيديو تيك توك، منشور/فيديو Google Maps)
+//   GET  /api/oauth/pinned                 → صور فيسبوك اللي انعملها دبوس Pinterest (لمنع التكرار)
 // ما في أي حذف أو تعديل لمنشورات قديمة.
 
 // ---- التحقق أن الطلب من حسابك (نفس طريقة ai-title.js) ----
@@ -73,6 +74,17 @@ const PF = {
     },
     who: async (tok, env) => { const r = await fetch(PF.pinterest.api(env) + '/v5/user_account', { headers: { authorization: 'Bearer ' + tok } }); const d = await r.json(); return { name: d.username || '' }; },
   },
+  gbp: { // Google Maps = ملف النشاط التجاري (Business Profile). نفس مشروع Google Cloud تبع يوتيوب
+    name: 'Google Maps',
+    id: env => env.GBP_CLIENT_ID || PF.youtube.id(env),
+    secret: env => env.GBP_CLIENT_SECRET || env.YT_CLIENT_SECRET,
+    auth: (env, state) => 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({ client_id: PF.gbp.id(env), redirect_uri: redirect('gbp'), response_type: 'code', access_type: 'offline', prompt: 'consent', scope: 'https://www.googleapis.com/auth/business.manage', state }),
+    token: async (env, params) => {
+      const r = await fetch('https://oauth2.googleapis.com/token', { method: 'POST', body: new URLSearchParams({ client_id: PF.gbp.id(env), client_secret: PF.gbp.secret(env), ...params }) });
+      const d = await r.json().catch(() => ({})); if (!r.ok || !d.access_token) throw new Error('Google Maps token: ' + clean(d.error_description || d.error || r.status)); return d;
+    },
+    who: async tok => { try { const l = await gbpLoc(tok); return { name: l.title, loc: l.name }; } catch (e) { return { name: '' }; } },
+  },
   tiktok: {
     name: 'TikTok',
     id: env => env.TIKTOK_CLIENT_KEY,
@@ -136,6 +148,9 @@ async function pinApi(env, t, path, opt = {}) {
   if (!r.ok) throw new Error('Pinterest: ' + clean(d.message || r.status)); return d;
 }
 async function pubPinterest(env, b) {
+  const fbId = /^[\w-]{3,60}$/.test(String(b.fbId || '')) ? String(b.fbId) : '';
+  const PK = 'pinfb'; let pinned = null;
+  if (fbId) { pinned = JSON.parse(await env.SOCIAL_KV.get(PK) || '{}'); if (pinned[fbId]) return { id: pinned[fbId].id, link: 'https://www.pinterest.com/pin/' + pinned[fbId].id + '/', dup: true }; }
   const t = await getTok(env, 'pinterest');
   let board = String(b.board || '');
   if (!board && b.boardName) { // لوحة باسم القسم (بالفرنسية): نبحث عنها، وإن لم توجد ننشئها
@@ -161,7 +176,47 @@ async function pubPinterest(env, b) {
   else if (items.length) pin.media_source = { source_type: 'image_url', url: items[0].url };
   else throw new Error('لا توجد صورة');
   const d = await pinApi(env, t, '/v5/pins', { method: 'POST', body: JSON.stringify(pin) });
+  if (fbId) { pinned = JSON.parse(await env.SOCIAL_KV.get(PK) || '{}'); pinned[fbId] = { id: d.id, at: Date.now() }; await env.SOCIAL_KV.put(PK, JSON.stringify(pinned)); }
   return { id: d.id, link: 'https://www.pinterest.com/pin/' + d.id + '/' };
+}
+
+// ---------- Google Maps (Business Profile) ----------
+// النشر على ملف دالي إبراهيم فقط (ملف معمل البليدة ما بينلمس).
+async function gapi(tok, url, opt = {}) {
+  const r = await fetch(url, { ...opt, headers: { authorization: 'Bearer ' + tok, 'content-type': 'application/json', ...(opt.headers || {}) } });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) { const m = (d.error && (d.error.message || d.error.status)) || r.status;
+    if (r.status === 403 || /has not been used|disabled|quota.*0|PERMISSION_DENIED/i.test(String(m))) throw new Error('Google Maps: واجهة Business Profile غير مفعّلة أو لم تُقبل بعد لمشروعك — ' + clean(m));
+    throw new Error('Google Maps: ' + clean(m)); }
+  return d;
+}
+async function gbpLoc(tok) { // يرجّع {name:'accounts/x/locations/y', title}
+  const acc = await gapi(tok, 'https://mybusinessaccountmanagement.googleapis.com/v1/accounts');
+  const all = [];
+  for (const a of acc.accounts || []) {
+    const l = await gapi(tok, `https://mybusinessbusinessinformation.googleapis.com/v1/${a.name}/locations?readMask=name,title,storefrontAddress&pageSize=100`);
+    for (const x of l.locations || []) all.push({ name: a.name + '/' + x.name, title: x.title || '', addr: JSON.stringify(x.storefrontAddress || {}) });
+  }
+  const blida = x => /blida|البليدة|بليدة/i.test(x.addr + ' ' + x.title);
+  const dely = x => /d[eé]ly|ibrahim|دالي|إبراهيم/i.test(x.addr);
+  const pick = all.find(x => dely(x) && !blida(x)) || all.find(x => !blida(x));
+  if (!pick) throw new Error('Google Maps: لم أجد ملف دالي إبراهيم في حسابك');
+  return pick;
+}
+const noPhone = s => String(s || '').replace(/(\+?\d[\d\s.\-]{7,}\d)/g, '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim(); // Google يرفض المنشور إذا فيه رقم هاتف
+async function pubGbp(env, b) {
+  const t = await getTok(env, 'gbp');
+  let loc = t.loc; if (!loc) { const l = await gbpLoc(t.access); loc = l.name; t.loc = loc; t.name = l.title; await env.SOCIAL_KV.put('tok:gbp', JSON.stringify(t)); }
+  const items = (b.items || []).filter(x => ALLOW.test(String(x.url)));
+  const v = items.find(x => x.type === 'video');
+  if (v) { // الفيديو بيروح لقسم «الصور والفيديو» (Google ما بيقبل فيديو داخل المنشور)
+    const d = await gapi(t.access, `https://mybusiness.googleapis.com/v4/${loc}/media`, { method: 'POST', body: JSON.stringify({ mediaFormat: 'VIDEO', locationAssociation: { category: 'ADDITIONAL' }, sourceUrl: v.url }) });
+    return { id: d.name || '', link: d.googleUrl || 'https://business.google.com/', note: 'أُضيف الفيديو إلى «الصور والفيديو» في ملفك على Maps (قد يأخذ وقتاً للمراجعة)' };
+  }
+  const img = items.find(x => x.type !== 'video'); if (!img) throw new Error('لا توجد صورة');
+  const summary = noPhone(b.text).slice(0, 1500) || 'قيصر الشام للحجر والرخام — دالي إبراهيم';
+  const d = await gapi(t.access, `https://mybusiness.googleapis.com/v4/${loc}/localPosts`, { method: 'POST', body: JSON.stringify({ languageCode: 'ar', topicType: 'STANDARD', summary, media: [{ mediaFormat: 'PHOTO', sourceUrl: img.url }], callToAction: { actionType: 'CALL' } }) });
+  return { id: d.name || '', link: d.searchUrl || 'https://business.google.com/' };
 }
 
 // ---------- TikTok ----------
@@ -219,7 +274,7 @@ export async function onRequest({ request, env, params }) {
     try {
       const d = await PF[a].token(env, { grant_type: 'authorization_code', code, redirect_uri: redirect(a) });
       let who = {}; try { who = await PF[a].who(d.access_token, env); } catch (e) {}
-      await saveTok(env, a, d, { name: who.name || '' });
+      await saveTok(env, a, d, { name: who.name || '', ...(who.loc ? { loc: who.loc } : {}) });
       return page('تم ربط ' + PF[a].name + (who.name ? ' — ' + who.name : ''), true);
     } catch (e) { return page(clean(e.message), false); }
   }
@@ -240,6 +295,7 @@ export async function onRequest({ request, env, params }) {
       const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error('YouTube: ' + clean((d.error && d.error.message) || r.status));
       const have = new Set((d.items || []).map(x => x.id)); return json({ ok: true, exists: Object.fromEntries(ids.map(x => [x, have.has(x)])) });
     }
+    if (a === 'pinned') return json({ ok: true, pinned: JSON.parse(await env.SOCIAL_KV.get('pinfb') || '{}') });
     if (a === 'boards') {
       const t = await getTok(env, 'pinterest'); const d = await pinApi(env, t, '/v5/boards?page_size=100');
       return json({ ok: true, boards: (d.items || []).map(x => ({ id: x.id, name: x.name })), board: t.board || '' });
@@ -248,7 +304,7 @@ export async function onRequest({ request, env, params }) {
     if (a === 'publish' && PF[b] && request.method === 'POST') {
       if (!configured(env, b)) return json({ ok: false, error: PF[b].name + ' غير مُعدّ بعد في Cloudflare' });
       const body = await request.json();
-      const r = b === 'youtube' ? await pubYouTube(env, body) : b === 'pinterest' ? await pubPinterest(env, body) : await pubTikTok(env, body);
+      const r = b === 'youtube' ? await pubYouTube(env, body) : b === 'pinterest' ? await pubPinterest(env, body) : b === 'gbp' ? await pubGbp(env, body) : await pubTikTok(env, body);
       return json({ ok: true, ...r });
     }
     return json({ ok: false, error: 'not-found' }, 404);

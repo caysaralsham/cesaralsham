@@ -77,6 +77,13 @@ select,input[type=text],input[type=email],input[type=password]{font:inherit;padd
     <button class="btn" id="add">➕ أضف المحدّدة للموقع</button>
     <span class="hint" id="selN"></span>
   </div>
+  <div class="row" style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)">
+    <button class="btn" id="pinGo" style="background:#E60023">📌 انشر على Pinterest</button>
+    <select id="pinN"><option value="10">10 صور</option><option value="25" selected>25 صورة</option><option value="50">50 صورة</option><option value="0">الكل</option></select>
+    <button class="btn l s" id="pinStop" style="display:none">وقّف</button>
+    <span class="hint" id="pinSt"></span>
+  </div>
+  <div class="hint">الأحدث أولاً، بالباركود، كل صورة على لوحة قسمها بالفرنسية. الصورة اللي انعملها دبوس ما بتنعاد أبداً، والمكرّرة ما بتنحسب. ننصح بـ 25 صورة باليوم حتى ما يعتبرها Pinterest سبام.</div>
 </div>
 <div class="grid" id="grid"></div>
 </div>
@@ -221,7 +228,7 @@ async function run(){STOP=false;$('#go').disabled=true;$('#stop').style.display=
   if(!STOP){const m={};ALLN.forEach(p=>m[p.id]=p.dup?{dup:true}:p.bad?{bad:true}:{cat:p.cat||X,onSite:!!p.onSite,siteId:p.siteId||''});await saveCls({photos:m});ALLN.forEach(p=>{const o=LIB.photos.find(x=>x.id===p.id);if(o)o.cls=m[p.id]})}
   PH=[...KNOWN.map(fromCls),...PH];
   setSt(`✓ ${PH.length} صورة (بدون المكرر) — ${PH.filter(p=>p.onSite).length} موجودة بالموقع، ${PH.filter(p=>!p.onSite&&p.cat!==X).length} شغل مش بالموقع، ${PH.filter(p=>p.cat===X).length} مش شغل`,1);
-  $('#tools').style.display='';render()
+  $('#tools').style.display='';render();loadPinned().then(render)
  }catch(e){setSt('صار خطأ: '+e.message)}
  $('#go').disabled=false;$('#stop').style.display='none'}
 
@@ -232,14 +239,14 @@ let clsT=null,clsQ={photos:{},videos:{}};const saveSoon=(kind,id,o)=>{clsQ[kind]
 async function restore(){if(!LIB||PH.length)return;const k=LIB.photos.filter(p=>p.cls&&!p.cls.dup&&!p.cls.bad);if(!k.length)return;
   if(!CATS.length){try{await loadSite()}catch(e){}}PH=k.map(fromCls);const nw=LIB.photos.filter(p=>!p.cls).length;
   setSt(`✓ جاهزة: ${PH.length} صورة مصنّفة — ${PH.filter(p=>p.onSite).length} بالموقع، ${PH.filter(p=>!p.onSite&&p.cat!==X).length} مش بالموقع، ${PH.filter(p=>p.cat===X).length} مش شغل${nw?` · ${nw} صورة جديدة بدها تصنيف — اضغط «صنّف»`:''}`,1);
-  $('#go').textContent=nw?'1) صنّف الصور الجديدة':'1) أعد التصنيف';$('#tools').style.display='';render()}
+  $('#go').textContent=nw?'1) صنّف الصور الجديدة':'1) أعد التصنيف';$('#tools').style.display='';render();loadPinned().then(render)}
 function list(){return PH.filter(p=>(F==='all'?p.cat!==X:F==='new'?(!p.onSite&&p.cat!==X):F==='site'?p.onSite:p.cat===X)&&(!CF||p.cat===CF))}
 function render(){
   const cnt={};PH.filter(p=>p.cat!==X).forEach(p=>cnt[p.cat]=(cnt[p.cat]||0)+1);
   $('#chips').innerHTML=`<button class="chip${CF?'':' on'}" data-c="">كل الأقسام</button>`+CATS.filter(c=>cnt[c]).map(c=>`<button class="chip${CF===c?' on':''}" data-c="${esc(c)}">${esc(fr(c))} (${cnt[c]})</button>`).join('');
   const L=list();const opts=[...CATS,X];
   $('#grid').innerHTML=L.map(p=>`<div class="card${p.cat===X?' x':''}" data-id="${p.id}"><img loading="lazy" referrerpolicy="no-referrer" src="${esc(p.thumb||p.src||'')}" onerror="this.style.visibility='hidden'">
-   <div class="b">${p.add>Date.now()-7*864e5?'<span class="tag new">🆕 جديد هذا الأسبوع</span>':''}${p.onSite?'<span class="tag on">✓ موجودة بالموقع</span>':'<span class="tag new">مش بالموقع</span>'}
+   <div class="b">${p.add>Date.now()-7*864e5?'<span class="tag new">🆕 جديد هذا الأسبوع</span>':''}${p.onSite?'<span class="tag on">✓ موجودة بالموقع</span>':'<span class="tag new">مش بالموقع</span>'}${PINNED[p.id]?`<a class="tag on" style="background:#FDE2E4;color:#B0001A;text-decoration:none" href="https://www.pinterest.com/pin/${esc(PINNED[p.id].id)}/" target="_blank" rel="noopener">📌 على Pinterest</a>`:''}
    <select data-a="cat">${opts.map(c=>`<option${c===p.cat?' selected':''} value="${esc(c)}">${esc(c===X?c:fr(c)+' — '+ar(c))}</option>`).join('')}</select>
    ${!p.onSite&&p.cat!==X?`<label><input type="checkbox" data-a="sel"${p.sel?' checked':''}> أضفها للموقع</label>`:''}</div></div>`).join('');
   $('#selN').textContent=PH.filter(p=>p.sel).length?`محدّد للموقع: ${PH.filter(p=>p.sel).length}`:''}
@@ -283,6 +290,36 @@ $('#add').onclick=async()=>{const L=PH.filter(p=>p.sel&&!p.onSite&&p.cat!==X);if
   await Promise.all([worker(),worker(),worker(),worker()]);await flush();
   btn.disabled=false;btn.textContent='➕ أضف المحدّدة للموقع';render();
   toast(`✓ ${ok} صورة جاهزة — افتح «لوحة الموقع» لتكمل الإضافة`)};
+
+// ---------- Pinterest: صور فيسبوك ← دبابيس (بدون تكرار) ----------
+let PINNED={},PSTOP=false;
+async function loadPinned(){try{const r=await fetch('/api/oauth/pinned',{headers:{authorization:'Bearer '+await tok()}});const d=await r.json();if(d.ok)PINNED=d.pinned||{}}catch(e){}pinInfo()}
+function pinInfo(){if(!PH.length)return;const left=PH.filter(p=>p.cat!==X&&!PINNED[p.id]).length,done=Object.keys(PINNED).length;$('#pinSt').textContent=`على Pinterest: ${done} · باقي: ${left}`}
+const PAGES=[[/lavabo/i,'a3mal-lavabo-en-marbre-naturel'],[/fontaine/i,'a3mal-fontaines-en-marbre'],[/chemin/i,'a3mal-cheminees-en-marbre'],[/fa[cç]ade/i,'a3mal-facades-de-maisons-en-pierre'],[/fen[eê]tre/i,'a3mal-fenetres-en-marbre'],[/colonne|balustr/i,'a3mal-colonnes-et-balustrades-en-marbre'],[/cascade/i,'a3mal-cascades-murales'],[/sabil/i,'a3mal-sabils-en-marbre'],[/bassin/i,'a3mal-bassin-en-bloc-de-marbre'],[/table/i,'a3mal-tables-en-marbre'],[/mosqu/i,'a3mal-decoration-de-mosquees'],[/salle|bain/i,'a3mal-salles-de-bains-en-marbre'],[/sol/i,'a3mal-tableaux-de-sol-en-marbre'],[/mur/i,'a3mal-murs-en-marbre-sculpte']];
+const pageOf=c=>{const f=fr(c);const m=PAGES.find(x=>x[0].test(f));return 'https://cesar-alcham.com/'+(m?m[1]+'.html':'')};
+const TAGS_G=['#marbre','#marbrealgerie','#pierrenaturelle','#decoration','#decorationinterieure','#decorationexterieure','#architecture','#design','#luxe','#alger','#algerie','#delyibrahim','#dz','#maison','#villa','#interiordesign','#marble','#stone','#رخام','#حجر','#ديكور','#الجزائر','#نحت_CNC','#ديكورات'];
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function pinText(p){const f=fr(p.cat),a=ar(p.cat);const own='#'+f.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'');
+  const tags=[own,'#'+a.replace(/\s+/g,'_'),...shuf(TAGS_G).slice(0,6)].filter((t,i,x)=>t.length>2&&x.indexOf(t)===i).join(' ');
+  const title=(f+' en marbre et pierre — '+a+' | Cesar Alcham').slice(0,100);
+  const text=`${f} sur mesure en marbre et pierre naturelle — fabrication et pose par Cesar Alcham.\n${a} من الرخام والحجر الطبيعي حسب الطلب — قيصر الشام للحجر والرخام.\n📍 Dely Ibrahim, Alger · ✆ WhatsApp 0541737888\n${tags}`;
+  return {title,text:text.slice(0,500)}}
+$('#pinStop').onclick=()=>{PSTOP=true;$('#pinStop').disabled=true};
+$('#pinGo').onclick=async()=>{await loadPinned();const n=+$('#pinN').value;
+  let L=PH.filter(p=>p.cat!==X&&!PINNED[p.id]).sort((a,b)=>String(b.at).localeCompare(String(a.at)));if(n)L=L.slice(0,n);
+  if(!L.length)return toast('كل صور الشغل منشورة على Pinterest ✓');
+  if(!confirm(`نشر ${L.length} صورة على Pinterest (بالباركود، كل صورة على لوحة قسمها)؟\nلا تقفل الصفحة لحد ما يخلص.`))return;
+  const btn=$('#pinGo');btn.disabled=true;PSTOP=false;$('#pinStop').style.display='';$('#pinStop').disabled=false;let ok=0,bad=0,lastErr='';
+  let wl=null;try{if(navigator.wakeLock)wl=await navigator.wakeLock.request('screen')}catch(e){}
+  for(const p of L){if(PSTOP)break;btn.textContent=`📌 ${ok+bad+1} من ${L.length}…`;
+    try{const c=await makeQr(await fbImg(p),1600);const ref=st.ref('gallery/pin_'+p.id+'.jpg');await ref.put(await toBlob(c),{contentType:'image/jpeg'});const url=await ref.getDownloadURL();
+      const t=pinText(p);const r=await fetch('/api/oauth/publish/pinterest',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+await tok()},body:JSON.stringify({items:[{url,type:'image'}],title:t.title,text:t.text,boardName:fr(p.cat),link:pageOf(p.cat),fbId:p.id})});
+      const d=await r.json().catch(()=>({}));if(d.ok&&d.id){PINNED[p.id]={id:d.id,at:Date.now()};ok++}else{bad++;lastErr=d.error||('HTTP '+r.status);if(/غير مربوط|Trial|صلاحية|login/i.test(lastErr))break}}
+    catch(e){bad++;lastErr=e.message||String(e)}
+    render();pinInfo();if(!PSTOP)await sleep(6000)}
+  try{wl&&wl.release()}catch(e){}
+  btn.disabled=false;btn.textContent='📌 انشر على Pinterest';$('#pinStop').style.display='none';pinInfo();
+  toast(`✓ ${ok} دبوس جديد`+(bad?` — ${bad} ما انعمل`:''));if(bad&&lastErr)setSt('Pinterest: '+lastErr)};
 
 window.addEventListener('DOMContentLoaded',()=>{
   firebase.initializeApp({apiKey:"AIzaSyDi1Pn7guMnyc0CetV8Z9IUC-k0gtav2_8",authDomain:"basel-7b29b.firebaseapp.com",projectId:"basel-7b29b",storageBucket:"basel-7b29b.firebasestorage.app",messagingSenderId:"1025769465563",appId:"1:1025769465563:web:53b5c9949dbb26364d8efe"});
