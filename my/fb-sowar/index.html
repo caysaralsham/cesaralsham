@@ -305,7 +305,7 @@ function pinText(p){const f=fr(p.cat),a=ar(p.cat);const own='#'+f.toLowerCase().
   const text=`${f} sur mesure en marbre et pierre naturelle — fabrication et pose par Cesar Alcham.\n${a} من الرخام والحجر الطبيعي حسب الطلب — قيصر الشام للحجر والرخام.\n📍 Dely Ibrahim, Alger · ✆ WhatsApp 0541737888\n${tags}`;
   return {title,text:text.slice(0,500)}}
 $('#pinStop').onclick=()=>{PSTOP=true;$('#pinStop').disabled=true};
-$('#pinGo').onclick=async()=>{await loadPinned();const n=+$('#pinN').value;
+$('#pinGo').onclick=async()=>{await loadPinned();try{const r=await fetch('/api/oauth/status',{headers:{authorization:'Bearer '+await tok()}});const d=await r.json();const x=d.pinterest||{};if(!x.configured)return alert('Pinterest غير مُعدّ في Cloudflare بعد: أضف PINTEREST_APP_ID و PINTEREST_APP_SECRET ثم أعد النشر');if(!x.connected)return alert('Pinterest غير مربوط: افتح «المنشورات» واضغط «ربط الآن» على Pinterest')}catch(e){}const n=+$('#pinN').value;
   let L=PH.filter(p=>p.cat!==X&&!PINNED[p.id]).sort((a,b)=>String(b.at).localeCompare(String(a.at)));if(n)L=L.slice(0,n);
   if(!L.length)return toast('كل صور الشغل منشورة على Pinterest ✓');
   if(!confirm(`نشر ${L.length} صورة على Pinterest (بالباركود، كل صورة على لوحة قسمها)؟\nلا تقفل الصفحة لحد ما يخلص.`))return;
@@ -314,7 +314,7 @@ $('#pinGo').onclick=async()=>{await loadPinned();const n=+$('#pinN').value;
   for(const p of L){if(PSTOP)break;btn.textContent=`📌 ${ok+bad+1} من ${L.length}…`;
     try{const c=await makeQr(await fbImg(p),1600);const ref=st.ref('gallery/pin_'+p.id+'.jpg');await ref.put(await toBlob(c),{contentType:'image/jpeg'});const url=await ref.getDownloadURL();
       const t=pinText(p);const r=await fetch('/api/oauth/publish/pinterest',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+await tok()},body:JSON.stringify({items:[{url,type:'image'}],title:t.title,text:t.text,boardName:fr(p.cat),link:pageOf(p.cat),fbId:p.id})});
-      const d=await r.json().catch(()=>({}));if(d.ok&&d.id){PINNED[p.id]={id:d.id,at:Date.now()};ok++}else{bad++;lastErr=d.error||('HTTP '+r.status);if(/غير مربوط|Trial|صلاحية|login/i.test(lastErr))break}}
+      const d=await r.json().catch(()=>({}));if(d.ok&&d.id){PINNED[p.id]={id:d.id,at:Date.now()};ok++}else{bad++;lastErr=d.error||('HTTP '+r.status);if(/غير مربوط|غير مُعدّ|Trial|صلاحية|login/i.test(lastErr))break}}
     catch(e){bad++;lastErr=e.message||String(e)}
     render();pinInfo();if(!PSTOP)await sleep(6000)}
   try{wl&&wl.release()}catch(e){}
